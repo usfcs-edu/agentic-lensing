@@ -1,0 +1,5 @@
+- [User role: Greg Benson](user_role_benson.md) — CS prof at USF, Co-I on DOE Genesis SpectrumFM, leads agentic-AI tooling in Huang's strong-lensing group
+- [Project: Huang group strong-lensing program](project_huang_lensing.md) — DESI Strong Lens Foundry; ResNet/EfficientNet finders + GIGA-Lens modeling; ~3500-5500 candidates
+- [Project: SpectrumFM DOE Genesis](project_spectrumfm.md) — transformer foundation model on DESI spectra; "one model, six classes"; Benson leads agentic-AI tooling
+- [Reference: Paper + proposal corpus](reference_paper_corpus.md) — where the 16 PDFs and proposal docx live
+- [Feedback: How Benson wants research delivered](feedback_research_style.md) — deep + concrete agentic architectures + verified citations
