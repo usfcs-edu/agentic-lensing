@@ -7,6 +7,7 @@ substitutes the SVI variational distribution for the full HMC posterior to
 unblock Phase-1 v3 reproduction while the HMC JIT bottleneck is investigated.
 """
 from pathlib import Path
+import gigalens
 
 import jax
 import jax.experimental.shard_map  # noqa: F401 — gigalens 2.0 / JAX 0.6 compat
@@ -23,7 +24,7 @@ from gigalens.simulator import SimulatorConfig
 
 tfd = tfp.distributions
 
-REPRO = Path("/raid/benson/git/agentic-lensing/reproductions/foundry-i")
+REPRO = Path(__file__).parent
 DATA = REPRO / "data"
 
 # === Reconstruct v2 model (priors are part of the bijector wiring) ===
@@ -34,7 +35,7 @@ sky = float(np.median(sci))
 data_arr = sci - sky
 background_rms = float(np.sqrt(np.median(1.0 / np.where(wht > 0, wht, np.nan))))
 EXP_TIME = 1197.7
-kernel = np.load("/raid/benson/lensing-repos/gigalens/src/gigalens/assets/psf.npy").astype(np.float32)
+kernel = np.load(Path(gigalens.__file__).parent / "assets" / "psf.npy").astype(np.float32)
 kernel /= kernel.sum()
 N_MAX = 6
 sim_config = SimulatorConfig(delta_pix=0.13, num_pix=128, supersample=2, kernel=kernel)

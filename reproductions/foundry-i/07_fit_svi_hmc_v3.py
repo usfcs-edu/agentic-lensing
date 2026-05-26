@@ -5,6 +5,7 @@ v3 reuses the v2 model (29 free non-linear params + lstsq amps).
 """
 import time
 from pathlib import Path
+import gigalens
 
 import jax
 import jax.experimental.shard_map  # noqa: F401
@@ -23,7 +24,7 @@ from gigalens.simulator import SimulatorConfig
 
 tfd = tfp.distributions
 
-REPRO = Path("/raid/benson/git/agentic-lensing/reproductions/foundry-i")
+REPRO = Path(__file__).parent
 DATA = REPRO / "data"
 
 # === Data ===
@@ -35,7 +36,7 @@ data_arr = sci - sky
 background_rms = float(np.sqrt(np.median(1.0 / np.where(wht > 0, wht, np.nan))))
 EXP_TIME = 1197.7
 
-kernel = np.load("/raid/benson/lensing-repos/gigalens/src/gigalens/assets/psf.npy").astype(np.float32)
+kernel = np.load(Path(gigalens.__file__).parent / "assets" / "psf.npy").astype(np.float32)
 kernel /= kernel.sum()
 
 # === v2 model exactly as 05_fit_map_v2.py ===

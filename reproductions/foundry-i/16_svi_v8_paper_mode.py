@@ -6,6 +6,7 @@ SVI local — otherwise it would drift back to the v6-mode (higher log_p).
 """
 import time
 from pathlib import Path
+import gigalens
 
 import jax
 import jax.experimental.shard_map  # noqa: F401
@@ -23,7 +24,7 @@ from gigalens.model import PhysicalModel
 from gigalens.simulator import SimulatorConfig
 
 tfd = tfp.distributions
-REPRO = Path("/raid/benson/git/agentic-lensing/reproductions/foundry-i")
+REPRO = Path(__file__).parent
 DATA = REPRO / "data"
 
 # ===== model setup (same as v6/v7) =====
@@ -34,7 +35,7 @@ sky = float(np.median(sci))
 data_arr = sci - sky
 background_rms = float(np.sqrt(np.median(1.0 / np.where(wht > 0, wht, np.nan))))
 EXP_TIME = 1197.7
-kernel = np.load("/raid/benson/lensing-repos/gigalens/src/gigalens/assets/psf.npy").astype(np.float32)
+kernel = np.load(Path(gigalens.__file__).parent / "assets" / "psf.npy").astype(np.float32)
 kernel /= kernel.sum()
 nb = np.load(DATA / "nearby_galaxy_loc.npz")
 NEAR_X, NEAR_Y = float(nb["arcsec_x"]), float(nb["arcsec_y"])

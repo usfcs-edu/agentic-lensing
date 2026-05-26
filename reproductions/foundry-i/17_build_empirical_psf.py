@@ -8,6 +8,7 @@ Pipeline (mirrors Huang 2025a's described approach):
   5. Save as data/empirical_psf.npy; also save QA figure.
 """
 from pathlib import Path
+import gigalens
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -18,7 +19,7 @@ from photutils.detection import DAOStarFinder
 from photutils.psf import EPSFBuilder, extract_stars
 from astropy.table import Table
 
-REPRO = Path("/raid/benson/git/agentic-lensing/reproductions/foundry-i")
+REPRO = Path(__file__).parent
 DATA = REPRO / "data"
 FIGS = REPRO / "figs"
 FIGS.mkdir(exist_ok=True)
@@ -93,7 +94,7 @@ np.save(DATA / "empirical_psf.npy", psf.astype(np.float32))
 print(f"Saved {DATA / 'empirical_psf.npy'}")
 
 # QA figure: empirical PSF vs TinyTim
-tinytim = np.load("/raid/benson/lensing-repos/gigalens/src/gigalens/assets/psf.npy").astype(np.float32)
+tinytim = np.load(Path(gigalens.__file__).parent / "assets" / "psf.npy").astype(np.float32)
 tinytim_norm = tinytim / tinytim.sum()
 
 fig, axes = plt.subplots(1, 4, figsize=(18, 4))

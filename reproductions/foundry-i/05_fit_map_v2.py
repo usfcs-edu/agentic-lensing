@@ -11,6 +11,7 @@ Skipped vs paper: 2 nearby-galaxy Sersic components (decoupled from main lens ma
 """
 import time
 from pathlib import Path
+import gigalens
 
 import jax
 import jax.experimental.shard_map  # noqa: F401
@@ -30,7 +31,7 @@ from gigalens.simulator import SimulatorConfig
 
 tfd = tfp.distributions
 
-REPRO = Path("/raid/benson/git/agentic-lensing/reproductions/foundry-i")
+REPRO = Path(__file__).parent
 DATA = REPRO / "data"
 FIGS = REPRO / "figs"
 
@@ -48,7 +49,7 @@ EXP_TIME = 1197.7
 print(f"background_rms={background_rms:.5f}, exp_time={EXP_TIME}")
 
 # --- PSF ---
-kernel = np.load("/raid/benson/lensing-repos/gigalens/src/gigalens/assets/psf.npy").astype(np.float32)
+kernel = np.load(Path(gigalens.__file__).parent / "assets" / "psf.npy").astype(np.float32)
 kernel /= kernel.sum()
 
 # --- simulator ---

@@ -23,7 +23,7 @@ from gigalens.model import PhysicalModel
 from gigalens.simulator import SimulatorConfig
 
 tfd = tfp.distributions
-REPRO = Path("/raid/benson/git/agentic-lensing/reproductions/foundry-i")
+REPRO = Path(__file__).parent
 DATA = REPRO / "data"
 
 # ----- data -----

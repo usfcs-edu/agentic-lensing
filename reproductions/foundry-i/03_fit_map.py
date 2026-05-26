@@ -14,6 +14,7 @@ Goal: get a sensible posterior on θ_E and γ_EPL. Paper targets:
 """
 import time
 from pathlib import Path
+import gigalens
 
 import jax
 import jax.experimental.shard_map  # noqa: F401 — gigalens 2.0 accesses jax.experimental.shard_map.shard_map by attribute; JAX 0.6.2 requires explicit submodule import to populate the attribute. Upstream issue.
@@ -34,7 +35,7 @@ from gigalens.simulator import SimulatorConfig
 
 tfd = tfp.distributions
 
-REPRO = Path("/raid/benson/git/agentic-lensing/reproductions/foundry-i")
+REPRO = Path(__file__).parent
 DATA = REPRO / "data"
 FIGS = REPRO / "figs"
 FIGS.mkdir(exist_ok=True)
@@ -57,7 +58,7 @@ print(f"Median per-pixel noise: background_rms={background_rms:.5f} e-/s")
 EXP_TIME = 1197.7  # 3 x 399.23 s, F140W
 
 # --- PSF ---
-PSF_PATH = Path("/raid/benson/lensing-repos/gigalens/src/gigalens/assets/psf.npy")
+PSF_PATH = Path(gigalens.__file__).parent / "assets" / "psf.npy"
 kernel = np.load(PSF_PATH).astype(np.float32)
 kernel /= kernel.sum()
 print(f"PSF: shape={kernel.shape} (TinyTim F140W, supersampled to 0.065\")")

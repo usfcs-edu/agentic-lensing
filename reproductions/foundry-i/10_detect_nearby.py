@@ -9,6 +9,7 @@ Output: data/nearby_galaxy_loc.npz with x, y (pix offset from image center) and
 arcsec offset.
 """
 from pathlib import Path
+import gigalens
 
 import jax
 import jax.experimental.shard_map  # noqa: F401
@@ -28,7 +29,7 @@ import matplotlib.pyplot as plt
 
 tfd = tfp.distributions
 
-REPRO = Path("/raid/benson/git/agentic-lensing/reproductions/foundry-i")
+REPRO = Path(__file__).parent
 DATA = REPRO / "data"
 FIGS = REPRO / "figs"
 FIGS.mkdir(exist_ok=True)
@@ -41,7 +42,7 @@ data_arr = sci - sky
 background_rms = float(np.sqrt(np.median(1.0 / np.where(wht > 0, wht, np.nan))))
 EXP_TIME = 1197.7
 
-kernel = np.load("/raid/benson/lensing-repos/gigalens/src/gigalens/assets/psf.npy").astype(np.float32)
+kernel = np.load(Path(gigalens.__file__).parent / "assets" / "psf.npy").astype(np.float32)
 kernel /= kernel.sum()
 
 # Recreate v2 model + load its best params

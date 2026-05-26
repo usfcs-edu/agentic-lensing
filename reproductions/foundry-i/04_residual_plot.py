@@ -8,6 +8,7 @@ Writes:
 """
 import sys
 from pathlib import Path
+import gigalens
 
 import jax
 import jax.experimental.shard_map  # noqa: F401 — gigalens 2.0 / JAX 0.6.2 compat
@@ -26,7 +27,7 @@ from gigalens.simulator import SimulatorConfig
 
 tfd = tfp.distributions
 
-REPRO = Path("/raid/benson/git/agentic-lensing/reproductions/foundry-i")
+REPRO = Path(__file__).parent
 DATA = REPRO / "data"
 FIGS = REPRO / "figs"
 
@@ -40,7 +41,7 @@ background_rms = float(np.sqrt(np.median(1.0 / np.where(wht > 0, wht, np.nan))))
 EXP_TIME = 1197.7
 
 # Load PSF
-kernel = np.load("/raid/benson/lensing-repos/gigalens/src/gigalens/assets/psf.npy").astype(np.float32)
+kernel = np.load(Path(gigalens.__file__).parent / "assets" / "psf.npy").astype(np.float32)
 kernel /= kernel.sum()
 
 # Rebuild model exactly as in 03_fit_map.py
