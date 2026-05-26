@@ -1,0 +1,907 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  Public-Data Reproduction of GIGA-Lens Modeling for the DESI Strong Lens
+%%  Foundry Demonstration System DESI-165.4754-06.0423
+%%
+%%  Two-column AASTeX 6.3.1 manuscript, in preparation for ApJ (2026).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[twocolumn,linenumbers]{aastex631}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+
+% Convenience macros
+\newcommand{\thetaE}{\ensuremath{\theta_{\mathrm{E}}}}
+\newcommand{\gammaEPL}{\ensuremath{\gamma_{\mathrm{EPL}}}}
+\newcommand{\gext}{\ensuremath{\gamma_{\mathrm{ext}}}}
+\newcommand{\gextone}{\ensuremath{\gamma_{\mathrm{ext},1}}}
+\newcommand{\gexttwo}{\ensuremath{\gamma_{\mathrm{ext},2}}}
+\newcommand{\eone}{\ensuremath{e_{1}}}
+\newcommand{\etwo}{\ensuremath{e_{2}}}
+\newcommand{\foundry}{DESI--165.4754$-$06.0423}
+\newcommand{\gigalens}{\textsc{GIGA-Lens}}
+\newcommand{\lenstronomy}{\textsc{lenstronomy}}
+\newcommand{\photutils}{\textsc{photutils}}
+
+\received{2026 May}
+\revised{}
+\accepted{In preparation; to be submitted to ApJ}
+
+\shorttitle{Reproducing DESI Foundry I on \foundry}
+\shortauthors{Benson \& Huang}
+
+\begin{document}
+
+\title{Public-Data Reproduction of GIGA-Lens Modeling for the DESI Strong
+Lens Foundry Demonstration System DESI--165.4754$-$06.0423}
+
+\correspondingauthor{Greg Benson}
+\email{greg.benson@gmail.com}
+
+\author{Greg Benson}
+\affiliation{Department of Computer Science,
+University of San Francisco,
+San Francisco, CA 94117, USA}
+
+\author{Xiaosheng Huang}
+\affiliation{Department of Physics and Astronomy,
+University of San Francisco,
+San Francisco, CA 94117, USA}
+\affiliation{Physics Division,
+Lawrence Berkeley National Laboratory,
+Berkeley, CA 94720, USA}
+
+\begin{abstract}
+We present an end-to-end, public-data reproduction of the GIGA-Lens
+modeling demonstration for the DESI Strong Lens Foundry I system
+\foundry, originally reported by \citet{huang2025foundry1}.
+Starting from the same {\it Hubble Space Telescope}\ WFC3/F140W exposure
+(GO--15867; MAST DOI 10.17909/hx0v-9260) and using only open-source
+infrastructure --- \gigalens, \lenstronomy, \photutils, JAX, and
+\textsc{TensorFlow Probability} --- we rebuild the data products,
+construct an empirical PSF from in-field stars, and fit an EPL$+$external
+shear mass model together with four S\'{e}rsic lens-light components,
+a S\'{e}rsic source, and a shapelet basis of order $n_{\max}=6$
+($74$ free non-linear parameters). Because Hamiltonian Monte Carlo could
+not be JIT-compiled at this model size with JAX 0.6.2, we report a
+Gaussian stochastic variational posterior obtained with the canonical
+\gigalens\ \texttt{ModellingSequence.SVI} routine, initialized from the
+best paper-mode chain of a 200-chain multi-start MAP search.
+Our 10\,000-sample variational posterior recovers all six sign quadrants
+of the mass model, matches \thetaE\ to 3.0\%, $e_{1}$ to 2.5\%, and the
+external shear position angle to within $1^{\circ}$ of the published
+HMC result. The remaining gap --- a $12^{\circ}$ rotation of the lens
+ellipticity vector, $\sim30\%$ smaller $|\etwo|$ and $|\gext|$, and a
+$57\%$ steeper deprojected slope $\gammaEPL=2.15$ versus the published
+$1.37$ --- is shown to be coherent with a single missing constraint,
+plausibly a mass--light position-angle tie or higher-order multipole
+correction. We document four upstream issues in \gigalens\,2.0/JAX\,0.6.2
+suitable for filing as GitHub issues, and provide the full software stack
+table to support future Foundry-series reproductions.
+\end{abstract}
+
+\keywords{Strong gravitational lensing (1643) ---
+Computational methods (1965) --- Open source software (1866) ---
+Reproducibility}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}
+\label{sec:intro}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Strong gravitational lensing by galaxies is one of the rare astrophysical
+phenomena that maps directly to a small number of free physical
+parameters --- the projected mass profile of the deflector, the
+source position and morphology, and (in some configurations) the
+cosmological distance ratio $D_{ls}/D_{s}$ --- and yet produces
+information-rich images whose deflections are sensitive to all of them
+simultaneously \citep{refsdal1964,treu2010annurev}. With the
+{\it Vera C. Rubin Observatory}\ Legacy Survey of Space and Time (LSST),
+the {\it Nancy Grace Roman Space Telescope}, and {\it Euclid}\ now
+delivering or imminently delivering wide-field imaging at depth, the
+number of known galaxy-scale strong lenses is set to grow from
+$\mathcal{O}(10^{3})$ today to $\mathcal{O}(10^{5})$ within a decade.
+The bottleneck for cosmological and population-level analyses is no
+longer discovery but {\it modeling at scale}.
+
+\gigalens\ \citep{gu2022gigalens} was designed to break that
+bottleneck. It expresses the forward lens-model likelihood as a
+differentiable JAX/TensorFlow program, exploits hardware parallelism
+through \texttt{pmap}/\texttt{shard\_map}, and replaces traditional MCMC
+with a hybrid pipeline: stochastic variational inference (SVI) for fast,
+initial posterior exploration followed by short Hamiltonian Monte Carlo
+chains for refinement. On modern GPU hardware \gigalens\ has been
+demonstrated to reduce per-system modeling times from days to minutes,
+which is the throughput required to model the LSST/Roman/Euclid lens
+catalog within a single graduate-student-year of effort.
+
+The DESI Strong Lens Foundry program was conceived as a follow-up
+imaging and modeling campaign for promising lens candidates discovered
+in the DESI Legacy Imaging Surveys
+\citep{huang2020decals,huang2021desi}. Foundry I
+\citep{huang2025foundry1}, the focus of the present paper, is the
+first in the series: it presents {\it HST}\ WFC3/F140W observations of
+ten high-priority systems (GO--15867; PI Huang) and uses one system,
+\foundry, as the methodological demonstration. The Foundry I
+\gigalens\ recipe --- an EPL$+$external shear deflector, a S\'{e}rsic
+plus shapelet source, and an HMC posterior --- has since been propagated
+to other GIGA-Lens-lineage modeling papers, including the
+DESI--253.2534$+$26.8843 Einstein-cross analysis of
+\citet{cikota2023einsteincross} and the multi-source Carousel-Lens
+work of \citet{sheu2024carousel}, as well as forthcoming
+Foundry II--V volumes.
+
+Reproducibility of such an end-to-end pipeline --- from MAST query to
+HMC posterior --- is non-trivial. The published Foundry I posterior is
+a Markov chain in a 74-dimensional space, conditioned on a TinyTim PSF,
+a custom central pixel mask, and a non-trivial set of priors
+(\citealt{huang2025foundry1} Table~2). A modest discrepancy in any
+single element of the recipe can shift the posterior by several formal
+$\sigma$ along directions the chain itself was constructed to explore.
+For the broader Foundry-series program, and indeed for any future
+LSST/Roman/Euclid effort that adopts \gigalens-style differentiable
+modeling, an open and {\it independently}\ reproduced version of the
+pipeline is a useful complement to the original results: it
+exposes which assumptions are load-bearing, which choices are
+load-light, and how the published posterior responds to perturbations
+that the authors themselves could not run.
+
+In this paper we report such a reproduction. Section~\ref{sec:data}
+describes how we re-pull the {\it HST}\ data from MAST. Section
+\ref{sec:psf} documents an empirical-PSF pipeline that we find
+necessary for the reproduction to converge to the paper's posterior
+mode. Section~\ref{sec:model} sets up the lens model and priors.
+Section~\ref{sec:inference} describes our inference pipeline and the
+HMC compile-time obstacle that forced us to fall back on the SVI
+Gaussian variational posterior. Section~\ref{sec:results} presents the
+quantitative comparison to \citet{huang2025foundry1} Table~3 and
+addresses the multimodality we observed in the multi-start MAP search.
+Section~\ref{sec:discussion} interprets the residual systematic and
+itemizes upstream software issues. Section~\ref{sec:software}
+documents the software stack. Appendix~\ref{app:ablation} traces the
+ten-version internal ablation that led to the working recipe;
+Appendix~\ref{app:priors} reproduces the prior table.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Data}
+\label{sec:data}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The Foundry I system \foundry\ was observed with {\it HST}/WFC3-IR in the
+F140W filter under program GO--15867 (PI Huang). The combined drizzled
+exposure used in this work has a total integration of $1197.7\,$s in
+three exposures of $399.23\,$s, was processed through the standard
+WFC3 calibration pipeline, and is available from MAST under DOI
+10.17909/hx0v-9260. We retrieved the high-level pipeline-combined
+drizzle product \texttt{hst\_15867\_65\_wfc3\_ir\_f140w\_ie5065\_drz.fits}
+via the \texttt{astroquery.mast.Observations} interface.
+
+The full drizzled science extension is $1523\times1528$ pixels at the
+WFC3-IR native pixel scale of $0\farcs13\,\mathrm{pix}^{-1}$. We cut a
+$128\times128$ box centered on
+$(\alpha,\delta)=(165\fdg4754,-6\fdg0423)$, the source position
+given by \citet{huang2025foundry1}. We sky-subtract by the median of
+the cutout and adopt a per-pixel noise floor
+$\sigma_{\mathrm{bg}}\approx0.029\,\mathrm{e^{-}\,s^{-1}}$ from the
+inverse-variance \texttt{WHT} extension. Figure~\ref{fig:cutout} shows
+the sky-subtracted science image with an asinh stretch alongside the
+\texttt{WHT} extension and a logarithmic display.
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/cutout_preview.png}
+\caption{The $128\times128$ WFC3/F140W cutout of \foundry\ at
+$0\farcs13\,\mathrm{pix}^{-1}$. Left to right: sky-subtracted science,
+asinh-stretched science, and \texttt{WHT}-derived noise map. The arc
+system is well-resolved at native pixel scale; the central deflector
+and a fainter companion (modeled as a separate S\'{e}rsic pair; see
+\S\ref{sec:model}) are also visible.}
+\label{fig:cutout}
+\end{figure*}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Empirical PSF Construction}
+\label{sec:psf}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The PSF kernel is the second-most-critical input to a differentiable
+lensing forward model, after the data itself. The \gigalens\
+distribution ships with a TinyTim WFC3/F140W kernel of shape
+$13\times13$ at $0\farcs065\,\mathrm{pix}^{-1}$, i.e. with $\pm
+0\farcs42$ support. We found this kernel to be too compact for the
+present analysis (\S\ref{sec:results}), and built an empirical PSF
+from in-field stars in the same exposure, following the approach
+described by \citet{huang2025foundry1}.
+
+The pipeline (script \texttt{17\_build\_empirical\_psf.py}) is:
+\begin{enumerate}
+\item Open the full $1523\times1528$ drizzled science extension.
+Compute sigma-clipped background statistics with
+\texttt{astropy.stats.sigma\_clipped\_stats} ($\sigma=3$).
+\item Detect bright sources with \texttt{photutils.detection.DAOStarFinder}
+at FWHM $=3\,$pix, threshold $50\sigma_{\mathrm{bg}}$, with sharpness
+in $[0.2,1.0]$ and roundness in $[-0.5,0.5]$.
+\item Reject candidates within $200\,$pix of the lens centroid and
+within $25\,$pix of any image edge; sort the remainder by peak flux
+and retain the top 30.
+\item Pass these to \texttt{photutils.psf.EPSFBuilder}
+\citep{bradley2024photutils} with $2\times$ oversampling
+($0\farcs065\,\mathrm{pix}^{-1}$ effective), the quartic smoothing
+kernel, eight outer iterations, and 20 recentering iterations per
+build.
+\item Crop the resulting effective PSF to $27\times27$ supersampled
+pixels (a tight box of $\pm0\farcs85$ on a side) and normalize to unit
+sum.
+\end{enumerate}
+
+Figure~\ref{fig:psf} shows our empirical PSF beside the gigalens-default
+TinyTim kernel and the median-stacked top-9 raw star postage stamps.
+The empirical kernel is broader than TinyTim by roughly a factor of
+two in the core, and carries finite power out to the $\pm0\farcs85$
+radius --- a region in which TinyTim is identically zero. We will
+return to the implications of this width difference in
+\S\ref{sec:results}.
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/psf_comparison.png}
+\caption{Empirical PSF construction. Left to right: median of the
+top-9 raw F140W star postage stamps; the $27\times27$ supersampled
+($0\farcs065\,\mathrm{pix}^{-1}$) empirical PSF built by
+\texttt{EPSFBuilder} from 30 isolated stars in the same drizzle;
+the TinyTim F140W kernel shipped with \gigalens\ ($13\times13$ at
+the same pixel scale); the peak-normalized difference (empirical $-$
+TinyTim) with diverging colormap. The TinyTim kernel underestimates
+the F140W PSF in the wings beyond $\pm0\farcs42$.}
+\label{fig:psf}
+\end{figure*}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Lens Model}
+\label{sec:model}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+We adopt the same parametric lens model as \citet{huang2025foundry1}:
+
+\subsection{Mass}
+A single elliptical power-law convergence
+(\texttt{EPL}, \citealt{gu2022gigalens,birrer2018lenstronomy}) with
+Einstein radius \thetaE, deprojected 3D mass-density slope \gammaEPL,
+ellipticity $(\eone,\etwo)$, and centroid
+$(c_{x}^{\mathrm{mass}},c_{y}^{\mathrm{mass}})$,
+plus an external shear with two Cartesian components
+$(\gextone,\gexttwo)$. This is 8 free mass parameters.
+
+\subsection{Lens light}
+Four elliptical S\'{e}rsic profiles with
+\texttt{use\_lstsq=False} (i.e.\ the per-component intensity
+$I_{e}$ is sampled as a free parameter rather than recovered by an
+unconstrained least-squares solver). Two of the four model the central
+deflector itself (one compact and one extended); the remaining two
+model a fainter companion galaxy detected at $(-2\farcs34,-2\farcs86)$
+relative to the main-lens centroid in the v2 residual map
+(Figure~\ref{fig:nearby}, see \S\ref{sec:results}). Allowing
+$I_{e}$ to be negative through an unconstrained least-squares pass
+turned out to be a critical pitfall: an unconstrained fit can drive
+some $I_{e}$ negative and absorb $\chi^{2}$ at non-physical
+configurations, lowering Einstein-radius accuracy from $0.5\%$ to
+$43\%$ (Appendix~\ref{app:ablation}, v4 versus v5).
+
+\subsection{Source light}
+A single elliptical S\'{e}rsic plus a Cartesian shapelet basis of
+maximum order $n_{\max}=6$ \citep{gu2022gigalens}, giving 28 amplitude
+coefficients in addition to the basis-scale parameter $\beta$ and the
+shapelet centroid. With \texttt{use\_lstsq=False} we sample the
+amplitudes explicitly under a per-coefficient
+$\mathcal{N}(0,\,5/\sqrt{i+1})$ prior, with the order-decaying scale
+adopted from the canonical \gigalens\ shapelets demonstration. Free-sign
+sampling here is appropriate (shapelet basis coefficients can be of
+either sign by construction) and complementary to the positive-sign
+constraint on lens-light $I_{e}$.
+
+\subsection{Central mask}
+\citet{huang2025foundry1} adopt a 2.5-pixel circular mask at the
+drizzled $0\farcs065\,\mathrm{pix}^{-1}$ scale to exclude the
+central pixels where the lens-light $\rightarrow$ source-light
+decomposition is degenerate. Our model lives on the WFC3-IR native
+$0\farcs13\,\mathrm{pix}^{-1}$ grid, so we mask the 1.5-pixel circle
+($\approx0\farcs20$ radius). The mask is implemented as an inflation
+of the per-pixel error map \texttt{err\_map} to $10^{10}$ inside the
+mask --- this is the smallest change to \gigalens\,2.0 that yields a
+masked likelihood, because the upstream
+\texttt{gigalens.jax.model.ForwardProbModel} class does not yet
+expose a mask argument. The full custom \texttt{masked\_log\_prob}
+function is monkey-patched into the prob model as a JIT-compiled
+method.
+
+\subsection{Free-parameter count}
+Mass: 8. Lens light (S\'{e}rsic): $4\times7=28$.
+Source S\'{e}rsic: 7. Source shapelets: $1+2+28=31$. Total: 74 free
+non-linear parameters. The full prior specification is given in
+Table~\ref{tab:priors} (Appendix~\ref{app:priors}).
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=0.48\textwidth]{figures/nearby_galaxy_detection.png}
+\caption{Detection of the nearby galaxy on the v2 residual map.
+A clear point-like positive residual at
+$(\Delta\alpha,\Delta\delta)\approx(-2\farcs34,-2\farcs86)$ from
+the main-lens centroid is the signature of an unmodeled companion;
+including its light as two additional S\'{e}rsic components
+(v3$\to$v4 onward) removes this feature.}
+\label{fig:nearby}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Inference Pipeline}
+\label{sec:inference}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Hardware}
+All fits ran on \texttt{/raid/benson}, an AlmaLinux 9.7 aarch64 host
+with two NVIDIA L4 (23\,GB) and eight NVIDIA A16 (15\,GB) GPUs visible
+to CUDA. \gigalens's \texttt{shard\_map}-parallelised
+\texttt{ModellingSequence.MAP} and \texttt{.SVI} routines build their
+compiled executables for a single GPU type and then attempt to dispatch
+across all visible devices, which fails on this host with a
+\texttt{cannot run on CUDA:2 of type 'NVIDIA A16'} error. We work
+around this by UUID-pinning the two L4s via
+\texttt{CUDA\_VISIBLE\_DEVICES=GPU-$\langle$uuid-of-L4-0$\rangle$,GPU-$\langle$uuid-of-L4-1$\rangle$}.
+Once pinned, JIT compilation succeeds and the two L4s deliver
+$\sim$1.7 steps/s on the 200-chain, 400-step v9 MAP problem
+(\S\ref{sec:results}), or $\sim$3 minutes of wall time after JIT.
+
+\subsection{MAP search (Stage A)}
+We run a 200-chain Adabelief \citep[][lr$=10^{-2}$, $b_{1}=0.95$,
+$b_{2}=0.99$]{birrer2018lenstronomy} multi-start MAP search over
+400 steps. Each chain is seeded by an independent prior sample.
+\texttt{ModellingSequence.MAP(\dots,\,output\_type='best')} returns the
+single chain with the highest log posterior at the final step. Crucially
+we also retain the full
+\texttt{(n\_chains,\,n\_steps,\,n\_params)} array so that we can
+characterize the multimodality of the posterior surface; this is the
+v7/v9 multi-start analysis of \S\ref{sec:results}.
+
+\subsection{SVI (Stage B)}
+Hamiltonian Monte Carlo was attempted but did not complete in any
+reasonable wall time. Specifically, the JIT compile of
+\texttt{pmap(scan(mcmc\_sample\_chain(PreconditionedHMC} $+$
+\texttt{GradientBasedTrajectoryLengthAdaptation)))} did not finish
+within several hours of compile time on the present 74-parameter model
+under JAX 0.6.2 \citep{bradbury2018jax}. We did not pursue this
+further; for the present paper we adopt a Gaussian stochastic variational
+posterior as a surrogate. This is documented honestly throughout
+(\S\ref{sec:discussion}): we are not running HMC, we are running SVI,
+and our $1\sigma$ widths in Table~\ref{tab:mass} are
+{\it variational}-posterior widths (and therefore underestimates of
+the marginal posterior width if the true posterior is non-Gaussian
+in the parameters of interest).
+
+The SVI is initialised at the best paper-mode chain found by the
+preceding 200-chain MAP search (\texttt{map\_v9\_paper\_mode.npz}),
+with $n_{\mathrm{VI}}=200$ particles, an Adabelief learning rate of
+$10^{-4}$, init scales of $10^{-4}$, and 500 steps. The tight
+initialisation and the small learning rate are intentional: they pin
+the variational posterior to the paper-mode local minimum rather than
+allowing it to drift to one of the higher-$\chi^{2}$ but lower-log-$p$
+modes that we identified in v7 (\S\ref{sec:results}).
+
+After 500 SVI steps the negative ELBO has fallen monotonically from
+$5.69\times10^{4}$ to $4.58\times10^{4}$; the chain shows no sign of
+mode-hopping, and the final variational mean is essentially indistinguishable
+from the initial MAP. We then draw $10^{4}$ samples from $q(z)$ and
+push them through the bijector to recover the physical-parameter
+posterior used in Table~\ref{tab:mass}.
+
+\subsection{Wall time}
+Total wall time for the full v9 multi-start MAP plus v10 SVI is
+$\approx7\,$min ($3.9\,$min for MAP, $4.9\,$min for SVI), excluding
+the one-time JIT compile (which dominates the first run; for the SVI
+specifically, cuDNN convolution autotuning takes $\sim 90\,$s due to
+the $f32[100,1,256,256]$ convolution shape required by the $74$-parameter
+model on 2 GPUs).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Results}
+\label{sec:results}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Headline mass-parameter reproduction}
+\label{sec:headline}
+
+Table~\ref{tab:mass} compares our v10 SVI posterior medians and 1-$\sigma$
+percentile widths to the published HMC posterior of
+\citet{huang2025foundry1} (their Table~3). The medians and 16/84
+percentiles are computed by loading our 10\,000-sample posterior
+(\texttt{data/svi\_v10\_posterior\_mass.npz}) and applying
+\texttt{numpy.median} and \texttt{numpy.percentile}.
+
+\begin{deluxetable*}{lcccccc}
+\tablecaption{Headline mass-parameter reproduction. v10 SVI Gaussian
+variational posterior (this work) versus the HMC posterior of
+\citet[][Table 3]{huang2025foundry1}.\label{tab:mass}}
+\tablehead{
+\colhead{Param} & \colhead{v10 median} & \colhead{v10 $1\sigma$ width} &
+\colhead{Huang+2025a} & \colhead{Huang+2025a $1\sigma$} &
+\colhead{$\Delta_{\mathrm{med}}$} &
+\colhead{\% off, sign}
+}
+\startdata
+\thetaE\ (arcsec) & $+2.5659$ & $\pm0.0003$ & $+2.6463$ & $\pm0.0017$ & $-0.0804$ & $3.0\%$, $\checkmark$ \\
+\gammaEPL\        & $+2.1507$ & $\pm0.0004$ & $+1.372$  & $\pm0.023$  & $+0.7787$ & $56.8\%$, $\checkmark$ (both $>1$) \\
+\eone\            & $+0.1064$ & $\pm0.0004$ & $+0.1091$ & $\pm0.0020$ & $-0.0027$ & $2.5\%$, $\checkmark$ \\
+\etwo\            & $-0.0533$ & $\pm0.0002$ & $-0.1320$ & $\pm0.0020$ & $+0.0787$ & $59.6\%$, $\checkmark$ \\
+\gextone\         & $+0.0399$ & $\pm0.0003$ & $+0.0657$ & $\pm0.0024$ & $-0.0258$ & $39.3\%$, $\checkmark$ \\
+\gexttwo\         & $-0.0676$ & $\pm0.0002$ & $-0.0939$ & $\pm0.0022$ & $+0.0263$ & $28.0\%$, $\checkmark$ \\
+\enddata
+\tablecomments{Sign-quadrant agreement on all six mass parameters.
+\thetaE\ and \eone\ are reproduced to $\le3\%$ of the published median.
+The slope \gammaEPL\ converges to a higher local minimum than the
+published value, as discussed in \S\ref{sec:multimodal} and
+\S\ref{sec:discussion}.
+The 1-$\sigma$ widths reported in column 3 are widths of the
+{\it variational}\ Gaussian posterior; they underestimate the
+marginal posterior width if the latter is non-Gaussian.}
+\end{deluxetable*}
+
+In polar form the lens ellipticity vectors are
+$|\varepsilon|=0.118$ at position angle $-13^{\circ}$ for our v10
+posterior versus $|\varepsilon|=0.171$ at $-25^{\circ}$ for the
+published HMC posterior --- a $\sim 30\%$ magnitude offset and a
+$12^{\circ}$ residual rotation. The external shears are
+$|\gext|=0.079$ at $-29^{\circ}$ versus $|\gext|=0.115$ at $-28^{\circ}$:
+the position angle of the shear matches to within $1^{\circ}$, while
+the magnitude is $\approx 30\%$ low. These coherent offsets are
+revisited in \S\ref{sec:single-constraint}.
+
+\subsection{Residual maps}
+\label{sec:residuals}
+
+Figure~\ref{fig:residv2} shows the v2-stage residual on which the
+nearby galaxy was first detected, and Figure~\ref{fig:residv4} shows
+the v4-stage residual --- a cautionary example. The v4 fit
+($\chi^{2}=3.45$ on the masked likelihood) appears at first glance to
+be a better fit than v5--v6 ($\chi^{2}=7.56$ and $6.59$ respectively),
+but the v4 lens-light \texttt{use\_lstsq=True} configuration is
+exploiting the freedom to set some component intensities negative
+(\S\ref{sec:model}), and its Einstein radius is off by $43\%$
+($\thetaE^{\mathrm{v4}}=1.52$). This is the canonical pathology of
+unconstrained linear amplitude solvers in a lensing forward model:
+$\chi^{2}$ is not the right diagnostic for parameter accuracy if the
+model is allowed to absorb residuals through unphysical degrees of
+freedom.
+
+We do not have a v10 best-fit residual map available; constructing
+one requires re-running the simulator forward pass with the
+$10^{4}$ posterior samples, which is out of scope for the present
+paper. A v10 residual will be included in supplementary materials.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=0.48\textwidth]{figures/map_v2_residual.png}
+\caption{v2 MAP residual (data $-$ model, in units of
+$\sigma_{\mathrm{bg}}$). The bright residual blob $\sim3''$ southwest
+of the main lens is the signature of the nearby galaxy modeled in
+v3 onward (Figure~\ref{fig:nearby}).}
+\label{fig:residv2}
+\end{figure}
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=0.48\textwidth]{figures/map_v4_residual.png}
+\caption{v4 MAP residual. Despite an apparently excellent
+$\chi^{2}=3.45$, this fit places the Einstein radius at
+$1\farcs52$, $43\%$ low of the published value, because the
+unconstrained least-squares lens-light intensity solver is allowed
+to drive some S\'{e}rsic amplitudes negative. Lesson: positive
+amplitudes are a non-negotiable physical constraint that must be
+enforced in the prior rather than the loss.}
+\label{fig:residv4}
+\end{figure}
+
+\subsection{Multimodality of the posterior surface}
+\label{sec:multimodal}
+
+The 200-chain v7 multi-start MAP search (TinyTim PSF) returned a set of
+clearly distinct local minima. Of the 200 random-prior starts:
+\begin{itemize}
+\item $17/200 = 8.5\%$ converged to the paper's quadrant
+($\eone>0$, $\etwo<0$, $\gextone>0$, $\gexttwo<0$); the best
+such chain (idx 140) reached $\chi^{2}=7.72$, $\log p=-2.18\times10^{4}$.
+\item $106/200 = 53\%$ had $\etwo<0$ (any sign on the others); the
+unconstrained global best ($\chi^{2}=6.67$, $\log p=-1.33\times10^{4}$;
+chain idx unspecified at this stage) had $\etwo>0$ and was therefore
+{\it not}\ in the paper's quadrant.
+\item The top three chains by $\log p$ differed not just in
+parameter values but in the {\it sign quadrant}\ of $(\etwo,\gexttwo)$:
+the same physical system admits at least two qualitatively distinct
+mass-model orientations consistent with the data plus our priors.
+\end{itemize}
+The paper's chain is therefore not the global best under our
+priors and PSF, even though our priors closely follow those of
+\citet[][Table 2]{huang2025foundry1}: see Appendix~\ref{app:priors}.
+
+\subsection{Empirical-PSF flip}
+\label{sec:psfflip}
+
+Replacing TinyTim with the empirical PSF of \S\ref{sec:psf} produced
+a striking change in the topology of the multi-start search. With the
+empirical kernel, in the v9 200-chain search:
+\begin{itemize}
+\item paper-mode chain fraction increased $17/200 \to 45/200$, i.e.\
+$8.5\%\to 22.5\%$;
+\item the fraction of chains with $\gammaEPL<1.7$ (the paper sits at
+$\gammaEPL=1.37$) increased from $\sim 5\%$ to $35\%$
+($70/200$ in v9);
+\item the {\it global best}\ chain (idx 163, $\chi^{2}=11.93$,
+$\log p=-5.64\times10^{4}$) is itself a paper-mode chain.
+\end{itemize}
+The $\chi^{2}$ floor under the empirical PSF rose from 6.67 to 11.93,
+which is what we should expect: TinyTim is over-smoothed relative to
+the true F140W PSF (Figure~\ref{fig:psf}), so the model had spurious
+freedom to ``earn'' $\chi^{2}$ improvement by absorbing residuals into
+the source shapelets. Forcing the model to use a wider, more honest
+PSF raises the achievable $\chi^{2}$ floor and re-centers the
+posterior on a physically meaningful mode.
+
+The v10 SVI posterior reported in Table~\ref{tab:mass} is the
+$10^{4}$-sample Gaussian variational posterior pinned to this v9
+global-best paper-mode chain.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Discussion}
+\label{sec:discussion}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Coherent residual signature suggests a single missing
+constraint}
+\label{sec:single-constraint}
+
+The residuals between our v10 posterior and \citet{huang2025foundry1}
+Table 3 are not random across the six parameters --- they are coherent
+along directions that suggest one underlying physical effect. Specifically:
+\begin{itemize}
+\item The lens ellipticity vector rotates by $12^{\circ}$
+(\eone\ accurate to $2.5\%$, but \etwo\ is $\sim 60\%$ low in magnitude
+in a sign-consistent way).
+\item The external shear position angle matches to within $1^{\circ}$,
+but the magnitude is $\sim 30\%$ low.
+\item The deprojected slope \gammaEPL\ runs to a value of 2.15 instead
+of the published 1.37, a 57\% increase in slope; in our priors
+$\gammaEPL$ has a lower bound at 1.0, and the chain finds a stable
+local minimum well above it. \citet{huang2025foundry1} themselves
+note (their \S 4) that the published posterior was ``pushing
+against the prior lower bound'' --- their reported median sits at
+$\gammaEPL=1.37$ with $1\sigma=0.023$, but the prior range starts at
+$1.0$, leaving little room.
+\end{itemize}
+Each of these three effects --- ellipticity-vector rotation, smaller
+shear magnitude, higher slope --- is consistent with a model in which
+the lens-light and mass-model position angles are not tied, so the
+mass model is free to adopt a slightly different orientation than
+the lens light and partially absorb the missing constraint into a
+mix of $|\etwo|$, $|\gext|$, and \gammaEPL. The paper's mass--light PA
+tying (or an equivalent multipole-correction term) would in principle
+pin the lens ellipticity to the lens-light position angle and remove
+this rotational freedom, reducing the model to a sub-region of our
+parameter space where the slope can drift to the lower-\gammaEPL\
+mode found by the published HMC.
+
+Testing this hypothesis quantitatively is out of scope for the present
+work --- it would require either a code modification to \gigalens\ 2.0
+(to expose a mass--light PA tying argument) or a fully custom log-
+likelihood that imposes the tying as a soft penalty. Both are natural
+next steps for v11 of this reproduction.
+
+\subsection{The PSF is a load-bearing assumption}
+
+Sections~\ref{sec:psf} and \ref{sec:psfflip} together demonstrate that
+the choice of PSF is not a cosmetic detail of the pipeline. Replacing
+TinyTim with the empirical kernel from in-field stars flipped the
+global-best chain into the paper's mode. The mechanism is plausible:
+a too-narrow PSF gives the source-shapelet basis more freedom to
+absorb central residuals, lowering the model's marginal preference
+for a steep ($\gammaEPL\gtrsim 2$) deflector, but only in modes where
+the ellipticity vector accommodates the spurious flux. Any future
+{\it HST}\ \gigalens\ reproduction --- including the still-pending
+Foundry II--V volumes --- should build an empirical PSF from field
+stars in the same exposure before fitting.
+
+\subsection{Multimodality is a real feature of the posterior surface}
+
+Our v7 multi-start search revealed three to four distinct local
+minima differing in the sign quadrant of $(\etwo,\gexttwo)$ at
+fixed positive \eone\ and positive \gextone. The published HMC
+posterior is centered in only one of these quadrants. Two interpretations
+are possible: (i) the published HMC chain explored other modes
+but with very low weight, and the reported median is correctly
+centered; (ii) the published HMC chain was started in the paper-mode
+quadrant and remained there for the duration of the run. We cannot
+distinguish these from the published Foundry I paper alone, and
+neither is unreasonable. The implication, however, is the same: when
+running \gigalens\ on a new system without an external prior on
+ellipticity sign, a multi-start search is the right first step ---
+the gradient-based local search returns a posterior mode, not the
+posterior.
+
+\subsection{Upstream issues encountered}
+
+We encountered four issues in the \gigalens\,2.0 / JAX\,0.6.2 stack
+that we believe are appropriate to file as GitHub issues:
+\begin{enumerate}
+\item \textbf{Implicit \texttt{shard\_map} import.} \gigalens\,2.0
+references \texttt{jax.experimental.shard\_map.shard\_map} by attribute
+without first ensuring the submodule is imported. Under JAX 0.6.2 this
+fails with \texttt{AttributeError: module 'jax.experimental' has no
+attribute 'shard\_map'} unless the caller pre-imports
+\texttt{jax.experimental.shard\_map}. We work around this by adding
+\texttt{import jax.experimental.shard\_map} to every fitting script.
+\item \textbf{Negative lens-light amplitudes via unconstrained
+\texttt{lstsq}.} The \gigalens\ simulator path that resolves S\'{e}rsic
+intensities via \texttt{jnp.linalg.lstsq} can return negative
+amplitudes. These are unphysical, and the resulting MAP can absorb
+$\chi^{2}$ at non-physical configurations (Appendix~\ref{app:ablation},
+v4 versus v5). A NNLS-based variant or a clipped output would resolve
+this. We disable this code path entirely by setting
+\texttt{use\_lstsq=False} on every S\'{e}rsic component.
+\item \textbf{HMC compile time at $74$ parameters.} The combination
+\texttt{pmap}$\circ$\texttt{scan}$\circ$\texttt{mcmc\_sample\_chain}
+$\circ$\texttt{PreconditionedHMC}$+$
+\texttt{GradientBasedTrajectoryLengthAdaptation} did not finish
+JIT-compiling in any wall time we were willing to wait on this
+$74$-parameter model. The published HMC posterior must have been run
+on a different combination of versions (JAX, gigalens branch); for the
+present paper we use SVI as a surrogate. A standalone reproducer of
+this compile-time blowup would be useful for the JAX/TFP issue tracker.
+\item \textbf{Mixed-GPU-type \texttt{shard\_map} crash.} On heterogeneous
+hosts (e.g.\ our 8$\times$A16 $+$ 2$\times$L4), the executable
+compiled for the first sharded device cannot be run on the others, and
+the shard map crashes mid-run with
+\texttt{executable is built for device CUDA:0 of type 'NVIDIA L4'; cannot
+run on CUDA:2 of type 'NVIDIA A16'}. UUID-pinning the visible devices
+is a workaround; a cleaner fix would be for the shard map machinery
+to recompile per-device or to refuse to shard across heterogeneous
+device types with an actionable error.
+\end{enumerate}
+
+\subsection{What full reproduction would require}
+
+To reproduce the published HMC posterior bit-for-bit one would need
+(i) the paper's exact \gigalens\ git revision (the multi-node branch
+of \texttt{giga-lens/gigalens} has moved since the paper was written);
+(ii) mass--light position-angle tying, which is not exposed in the
+\gigalens\,2.0 public API as of our run date and would require a
+modification to the simulator internals; (iii) optionally a
+higher-order multipole correction term in the EPL profile; and
+(iv) a working HMC at $74$ parameters in JAX 0.6.2, which we did not
+manage to obtain. These are the natural next-steps for any reader
+who wishes to push this reproduction further.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Software and Data Availability}
+\label{sec:software}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The \emph{HST}\ data used in this paper is public via MAST
+DOI 10.17909/hx0v-9260. The \gigalens\ source is at
+\url{https://github.com/giga-lens/gigalens} (the \texttt{multi-node}
+branch at commit-time was the working baseline for this paper).
+The reproduction scripts (\texttt{01\_download\_hst.py} through
+\texttt{19\_svi\_v10\_paper\_mode\_empirical.py}, plus the analysis
+notebooks) are available on request and are planned for public release
+as a \texttt{foundry-i-reproduction} repository.
+
+Table~\ref{tab:software} lists the exact pinned versions of the
+software stack on the run host.
+
+\begin{deluxetable}{ll}
+\tablecaption{Software stack versions.\label{tab:software}}
+\tablehead{\colhead{Package} & \colhead{Version}}
+\startdata
+Python                          & 3.13 \\
+JAX                             & 0.6.2 (with jax[cuda12]) \\
+TensorFlow                      & 2.20.0 \\
+TensorFlow Probability          & 0.25.0 \\
+\gigalens                       & 1.2.1 (editable; multi-node branch) \\
+\lenstronomy                    & 1.14.0 \\
+\photutils                      & 3.0.0 \\
+astroquery                      & 0.4.11 \\
+\textsc{optax}                  & 0.2.8 \\
+\textsc{NumPy}                  & 2.4.6 \\
+\textsc{Astropy}                & current LTS \\
+CUDA                            & 12 (host runtime 13.0 in PATH) \\
+Operating system                & AlmaLinux 9.7 (aarch64) \\
+GPUs used                       & 2$\times$NVIDIA L4 (UUID-pinned) \\
+\enddata
+\tablecomments{HMC at the 74-parameter model size was not obtained
+under this stack; see \S\ref{sec:discussion}. We use Gaussian SVI as
+the variational-posterior surrogate.}
+\end{deluxetable}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Conclusions}
+\label{sec:conclusions}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+We have presented an end-to-end public-data reproduction of the
+\gigalens\ modeling demonstration of Foundry I \citep{huang2025foundry1}
+on the system \foundry. The principal findings are:
+\begin{enumerate}
+\item All six mass-model sign quadrants of the published HMC posterior
+are reproduced by our SVI Gaussian variational posterior.
+\item \thetaE\ matches the published median to $3.0\%$; \eone\ to
+$2.5\%$; the external-shear position angle to within $1^{\circ}$.
+\item The remaining gap --- a $12^{\circ}$ residual rotation of the
+lens ellipticity, $\sim30\%$ smaller $|\etwo|$ and $|\gext|$, and a
+$57\%$ steeper \gammaEPL\ --- is coherent rather than scattered, and
+is consistent with one missing physical constraint (most likely
+mass--light PA tying or a higher-multipole correction) rather than
+three independent failures.
+\item The Foundry I posterior surface is genuinely multimodal under
+the published priors: in 200 random-start MAP fits with TinyTim PSF,
+only $8.5\%$ of chains land in the paper's quadrant, and the
+unconstrained global best lies in a different ($\etwo>0$) mode.
+\item Replacing the gigalens-default TinyTim PSF with an empirical
+PSF built from in-field stars flips the global-best chain into the
+paper's quadrant ($45/200=22.5\%$, with global best in mode) at the
+cost of a higher but more honest $\chi^{2}$ floor.
+\item We document four upstream software issues in \gigalens\,2.0/
+JAX\,0.6.2 that would, if resolved, materially improve the
+reproducibility of any Foundry-lineage analysis.
+\end{enumerate}
+
+For the broader DESI Strong Lens Foundry program, and for the
+GIGA-Lens lineage at large, these findings argue that an
+in-exposure empirical PSF and a multi-start MAP scan are reasonable
+defaults to add to the published recipe, that mass--light PA tying
+or an equivalent multipole correction is a worthwhile next-order
+modeling improvement, and that the upstream HMC compile-time issue
+in JAX 0.6.2 deserves a focused fix before LSST/Roman/Euclid-scale
+modeling campaigns inherit it.
+
+\begin{acknowledgments}
+This work made use of \emph{Hubble Space Telescope}\ observations
+collected under program GO--15867 (PI Huang) at the Space Telescope
+Science Institute, which is operated by the Association of
+Universities for Research in Astronomy, Inc., under NASA contract
+NAS5--26555, and retrieved from MAST (DOI 10.17909/hx0v-9260). We
+thank the \gigalens\ authors \citep{gu2022gigalens} for releasing
+their differentiable forward-modeling framework as open source, and
+the DESI Collaboration \citep{desicollab2016} for the larger lensing
+program of which Foundry I is a part. Computational resources were
+provided by the Department of Computer Science, University of
+San Francisco. X.H.\ thanks Lawrence Berkeley National Laboratory for
+ongoing support.
+\end{acknowledgments}
+
+\software{
+\gigalens\ \citep{gu2022gigalens},
+\lenstronomy\ \citep{birrer2018lenstronomy},
+JAX \citep{bradbury2018jax},
+TensorFlow Probability \citep{dillon2017tfp},
+\photutils\ \citep{bradley2024photutils},
+Astropy \citep{astropy2022}.
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\appendix
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Internal Ablation: v1 $\rightarrow$ v10}
+\label{app:ablation}
+
+Table~\ref{tab:ablation} traces the per-version mass-fit accuracy across
+the ten internal versions of this reproduction. The first four versions
+(v1--v4) explore minimal-model variants without shapelets or with
+unconstrained lens-light intensities. v5 introduces positive-$I_{e}$
+\texttt{LogNormal} priors and a tight mass-center prior, and brings
+\thetaE\ within $0.5\%$ of the paper. v6 adds the shapelet basis with
+explicit per-coefficient priors and is the smallest model that produces
+a physically reasonable global $\chi^{2}$. v7 is a 200-chain multi-start
+MAP scan (TinyTim PSF) that exposes the multimodality of the surface.
+v8 is an SVI posterior initialised from the v7 paper-mode chain, still
+with TinyTim. v9 repeats v7's multi-start with the empirical PSF,
+flipping the global best into paper-mode. v10 is the final SVI posterior
+initialised from the v9 global-best paper-mode chain.
+
+\begin{deluxetable*}{lccccccc}
+\tablecaption{Ablation summary v1$\to$v10. Best-fit mass-parameter
+values for each version, paper values for reference.\label{tab:ablation}}
+\tablehead{
+\colhead{Version} & \colhead{\thetaE} & \colhead{\gammaEPL} & \colhead{\eone} &
+\colhead{\etwo} & \colhead{\gextone} & \colhead{\gexttwo} & \colhead{$\chi^{2}_{\mathrm{best}}$}
+}
+\startdata
+v1   & $+2.697$  & $+1.66$ & $-0.015$ & $+0.011$ & $+0.001$ & $+0.053$ & $24.65$ \\
+v2   & $+2.062$  & $+1.57$ & $+0.141$ & $-0.108$ & $-0.001$ & $+0.032$ & $7.98$  \\
+v4   & $+1.523$  & $+1.47$ & $-0.035$ & $-0.076$ & $-0.036$ & $-0.064$ & $3.45$ \tablenotemark{a}  \\
+v5   & $+2.658$  & $+1.72$ & $-0.102$ & $-0.179$ & $-0.059$ & $-0.110$ & $7.56$  \\
+v6   & $+2.632$  & $+1.73$ & $+0.128$ & $+0.073$ & $+0.065$ & $+0.005$ & $6.59$  \\
+v8 (SVI/TT) & $+2.619$ & $+2.20$ & $+0.146$ & $-0.150$ & $+0.044$ & $-0.106$ & $7.72$ \tablenotemark{b} \\
+v9 best (MAP/eP)  & $+2.578$ & $+2.16$ & $+0.103$ & $-0.045$ & $+0.034$ & $-0.067$ & $11.93$ \\
+v10 (SVI/eP)\tablenotemark{c}  & $+2.566$ & $+2.15$ & $+0.106$ & $-0.053$ & $+0.040$ & $-0.068$ & --- \\
+\hline
+Paper (HMC)         & $+2.6463$ & $+1.372$ & $+0.1091$ & $-0.1320$ & $+0.0657$ & $-0.0939$ & --- \\
+\enddata
+\tablenotetext{a}{v4 has the lowest $\chi^{2}$ but is unphysical: the
+unconstrained \texttt{use\_lstsq=True} setting allows negative
+lens-light intensities; the resulting Einstein radius is $43\%$ low.}
+\tablenotetext{b}{v8 is the first SVI posterior; initialized from the
+best paper-mode chain of the v7 200-chain multi-start MAP with TinyTim
+PSF.}
+\tablenotetext{c}{v10 is the canonical posterior reported in
+Table~\ref{tab:mass}; initialized from the v9 global-best paper-mode
+chain (empirical PSF, $\chi^{2}=11.93$). v10 SVI does not produce a
+new $\chi^{2}$ value; the entry is left blank.}
+\tablecomments{TT $=$ TinyTim PSF. eP $=$ empirical PSF. ``Paper-mode''
+is the sign quadrant $(\eone{>}0,\etwo{<}0,\gextone{>}0,\gexttwo{<}0)$.
+The flip in sign quadrant at v6$\to$v7 reflects multimodality, not
+a coding regression: v6 is a single-chain MAP at the global best
+under TinyTim, which lies in a different quadrant than the paper.}
+\end{deluxetable*}
+
+\section{Prior Specification}
+\label{app:priors}
+
+Table~\ref{tab:priors} reproduces our prior distributions, which
+closely follow \citet[][Table 2]{huang2025foundry1} with the
+modifications discussed in \S\ref{sec:model}.
+
+\begin{deluxetable}{lll}
+\tablecaption{Prior specification on the 74 free non-linear parameters
+of the lens model.\label{tab:priors}}
+\tablehead{
+\colhead{Parameter group/parameter} & \colhead{Distribution} &
+\colhead{Parameters}
+}
+\startdata
+\hline
+\multicolumn{3}{l}{\textit{Mass (EPL + external shear; 8 params)}} \\
+\thetaE\        & LogNormal       & $\mu=\log 2.5$, $\sigma=0.25$ \\
+\gammaEPL\      & TruncatedNormal & $\mu=2.0$, $\sigma=0.25$, $[1.0,2.7]$ \\
+$\eone^{\rm m}$       & Normal          & $\mu=0$, $\sigma=0.1$ \\
+$\etwo^{\rm m}$       & Normal          & $\mu=0$, $\sigma=0.1$ \\
+$c_{x}^{\rm mass}$ & Normal       & $\mu=0$, $\sigma=0.02$\,arcsec \\
+$c_{y}^{\rm mass}$ & Normal       & $\mu=0$, $\sigma=0.02$\,arcsec \\
+\gextone\       & Normal          & $\mu=0$, $\sigma=0.05$ \\
+\gexttwo\       & Normal          & $\mu=0$, $\sigma=0.05$ \\
+\hline
+\multicolumn{3}{l}{\textit{Lens light --- main lens (2$\times$ S\'{e}rsic, 14 params)}} \\
+$R_{\mathrm{eff}}$ (compact)  & LogNormal & $\mu=\log 0.4$, $\sigma=0.3$ \\
+$R_{\mathrm{eff}}$ (extended) & LogNormal & $\mu=\log 2.0$, $\sigma=0.3$ \\
+$n_{\rm S}$       & Uniform         & $[0.5, 8.0]$ \\
+$e_{1,2}^{\rm light}$  & TruncatedNormal & $\mu=0$, $\sigma=0.15$, $[-0.4,0.4]$ \\
+$c_{x},c_{y}$     & Normal          & $\mu=0$, $\sigma=0.02$\,arcsec \\
+$I_{e}$ (compact) & LogNormal       & $\mu=\log 5.0$, $\sigma=0.5$ \\
+$I_{e}$ (extended)& LogNormal       & $\mu=\log 2.0$, $\sigma=0.5$ \\
+\hline
+\multicolumn{3}{l}{\textit{Lens light --- nearby companion (2$\times$ S\'{e}rsic, 14 params)}} \\
+$R_{\mathrm{eff}}$ & LogNormal & $\mu=\log 0.3,\,0.6$, $\sigma=0.3$ \\
+$c_{x},c_{y}$ & Normal & $\mu=(-2.34,-2.86)$, $\sigma=0.1$\,arcsec \\
+$I_{e}$ & LogNormal & $\mu=\log 1.0,\,0.5$, $\sigma=0.5$ \\
+$e,n$ & As main lens & --- \\
+\hline
+\multicolumn{3}{l}{\textit{Source S\'{e}rsic (7 params)}} \\
+$R_{\mathrm{eff}}$ & LogNormal & $\mu=\log 0.5$, $\sigma=0.3$ \\
+$n_{\rm S}$ & Uniform & $[0.5, 6.0]$ \\
+$e_{1,2}^{\rm src}$ & TruncatedNormal & $\mu=0$, $\sigma=0.15$, $[-0.5,0.5]$ \\
+$c_{x},c_{y}$ & Normal & $\mu=0$, $\sigma=0.1$\,arcsec \\
+$I_{e}$ & LogNormal & $\mu=\log 2.0$, $\sigma=0.5$ \\
+\hline
+\multicolumn{3}{l}{\textit{Source shapelets ($n_{\max}=6$, $1+2+28$ params)}} \\
+$\beta$ & LogNormal & $\mu=\log 0.1$, $\sigma=0.1$ \\
+$c_{x},c_{y}$ & Normal & $\mu=0$, $\sigma=0.05$\,arcsec \\
+amp$_{i}$, $i=0,\dots,27$ & Normal & $\mu=0$, $\sigma=5/\sqrt{i+1}$ \\
+\enddata
+\tablecomments{The shapelet amplitude scale follows the gigalens
+shapelets demonstration. The companion-light centroid prior centers
+on the source-extraction detection on the v2 residual map
+(Figure~\ref{fig:nearby}). Total: 74 free non-linear parameters.}
+\end{deluxetable}
+
+\bibliographystyle{aasjournal}
+\bibliography{references}
+
+\end{document}

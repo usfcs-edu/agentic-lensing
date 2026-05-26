@@ -1,2 +1,6 @@
 /lensing-repos
 
+# Heavy HST data — regenerable via reproductions/foundry-i/01_download_hst.py
+# (raw MAST products) and 02_inspect_cutout.py (the 128x128 cutout).
+reproductions/foundry-i/data/mastDownload/
+reproductions/foundry-i/data/cutout_F140W.fits

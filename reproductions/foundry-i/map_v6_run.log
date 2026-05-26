@@ -1,0 +1,45 @@
+Nearby galaxy prior center: (-2.34, -2.86) arcsec
+Shapelet n_max=6, n_layers=28, len(amp_names)=28
+Free params: 74
+Central mask: 9 px
+ForwardProbModel built with masked log_prob
+
+MAP v6: n_samples=20, num_steps=500
+  0% 0/500 [00:00<?, ?it/s]2026-05-25 22:51:11.534340: E external/xla/xla/stream_executor/cuda/cuda_timer.cc:86] Delay kernel timed out: measured time has sub-optimal accuracy. There may be a missing warmup execution, please investigate in Nsight Systems.
+2026-05-25 22:51:11.640455: E external/xla/xla/stream_executor/cuda/cuda_timer.cc:86] Delay kernel timed out: measured time has sub-optimal accuracy. There may be a missing warmup execution, please investigate in Nsight Systems.
+Chi-squared: 289.024:   1% 5/500 [00:19<32:13,  3.91s/it]Chi-squared: 248.737:   2% 10/500 [00:19<15:59,  1.96s/it]Chi-squared: 215.897:   3% 15/500 [00:19<10:35,  1.31s/it]Chi-squared: 176.963:   4% 20/500 [00:19<07:53,  1.01it/s]Chi-squared: 138.291:   5% 25/500 [00:19<06:16,  1.26it/s]Chi-squared: 102.000:   6% 30/500 [00:19<05:11,  1.51it/s]Chi-squared: 72.529:   7% 35/500 [00:19<04:24,  1.76it/s] Chi-squared: 48.218:   8% 40/500 [00:19<03:49,  2.00it/s]Chi-squared: 48.218:   8% 40/500 [00:20<03:50,  2.00it/s]Chi-squared: 37.002:   9% 45/500 [00:20<03:22,  2.24it/s]Chi-squared: 29.243:  10% 50/500 [00:20<03:01,  2.48it/s]Chi-squared: 28.050:  11% 55/500 [00:20<02:43,  2.72it/s]Chi-squared: 31.168:  12% 60/500 [00:20<02:28,  2.96it/s]Chi-squared: 32.730:  13% 65/500 [00:20<02:16,  3.20it/s]Chi-squared: 30.379:  14% 70/500 [00:20<02:05,  3.43it/s]Chi-squared: 27.736:  15% 75/500 [00:20<01:56,  3.66it/s]Chi-squared: 26.081:  16% 80/500 [00:20<01:47,  3.89it/s]Chi-squared: 24.463:  17% 85/500 [00:20<01:40,  4.12it/s]Chi-squared: 21.626:  18% 90/500 [00:20<01:34,  4.35it/s]Chi-squared: 20.103:  19% 95/500 [00:20<01:28,  4.58it/s]Chi-squared: 19.692:  20% 100/500 [00:20<01:23,  4.80it/s]Chi-squared: 19.809:  21% 105/500 [00:20<01:18,  5.02it/s]Chi-squared: 19.943:  22% 110/500 [00:20<01:14,  5.25it/s]Chi-squared: 19.954:  23% 115/500 [00:21<01:10,  5.47it/s]Chi-squared: 19.410:  24% 120/500 [00:21<01:06,  5.69it/s]Chi-squared: 18.721:  25% 125/500 [00:21<01:03,  5.90it/s]Chi-squared: 17.836:  26% 130/500 [00:21<01:00,  6.12it/s]Chi-squared: 17.116:  27% 135/500 [00:21<00:57,  6.34it/s]Chi-squared: 16.546:  28% 140/500 [00:21<00:54,  6.55it/s]Chi-squared: 16.245:  29% 145/500 [00:21<00:52,  6.76it/s]Chi-squared: 15.945:  30% 150/500 [00:21<00:50,  6.97it/s]Chi-squared: 15.583:  31% 155/500 [00:21<00:48,  7.18it/s]Chi-squared: 15.191:  32% 160/500 [00:21<00:46,  7.39it/s]Chi-squared: 14.757:  33% 165/500 [00:21<00:44,  7.59it/s]Chi-squared: 14.498:  34% 170/500 [00:21<00:42,  7.80it/s]Chi-squared: 14.187:  35% 175/500 [00:21<00:40,  8.00it/s]Chi-squared: 13.947:  36% 180/500 [00:21<00:38,  8.21it/s]Chi-squared: 13.816:  37% 185/500 [00:22<00:37,  8.41it/s]Chi-squared: 13.638:  38% 190/500 [00:22<00:36,  8.61it/s]Chi-squared: 13.480:  39% 195/500 [00:22<00:34,  8.81it/s]Chi-squared: 13.355:  40% 200/500 [00:22<00:33,  9.01it/s]Chi-squared: 13.183:  41% 205/500 [00:22<00:32,  9.20it/s]Chi-squared: 13.062:  42% 210/500 [00:22<00:30,  9.40it/s]Chi-squared: 12.882:  43% 215/500 [00:22<00:29,  9.59it/s]Chi-squared: 12.698:  44% 220/500 [00:22<00:28,  9.78it/s]Chi-squared: 12.521:  45% 225/500 [00:22<00:27,  9.98it/s]Chi-squared: 12.391:  46% 230/500 [00:22<00:26, 10.17it/s]Chi-squared: 12.237:  47% 235/500 [00:22<00:25, 10.36it/s]Chi-squared: 12.110:  48% 240/500 [00:22<00:24, 10.54it/s]Chi-squared: 11.964:  49% 245/500 [00:22<00:23, 10.73it/s]Chi-squared: 11.795:  50% 250/500 [00:22<00:22, 10.92it/s]Chi-squared: 11.606:  51% 255/500 [00:22<00:22, 11.10it/s]Chi-squared: 11.402:  52% 260/500 [00:23<00:21, 11.29it/s]Chi-squared: 11.223:  53% 265/500 [00:23<00:20, 11.47it/s]Chi-squared: 10.996:  54% 270/500 [00:23<00:19, 11.65it/s]Chi-squared: 10.815:  55% 275/500 [00:23<00:19, 11.83it/s]Chi-squared: 10.559:  56% 280/500 [00:23<00:18, 12.01it/s]Chi-squared: 10.224:  57% 285/500 [00:23<00:17, 12.19it/s]Chi-squared: 9.957:  58% 290/500 [00:23<00:16, 12.36it/s] Chi-squared: 9.655:  59% 295/500 [00:23<00:16, 12.54it/s]Chi-squared: 9.443:  60% 300/500 [00:23<00:15, 12.72it/s]Chi-squared: 9.359:  61% 305/500 [00:23<00:15, 12.89it/s]Chi-squared: 9.527:  62% 310/500 [00:23<00:14, 13.06it/s]Chi-squared: 11.136:  63% 315/500 [00:23<00:13, 13.23it/s]Chi-squared: 10.929:  64% 320/500 [00:23<00:13, 13.41it/s]Chi-squared: 10.257:  65% 325/500 [00:23<00:12, 13.58it/s]Chi-squared: 10.296:  66% 330/500 [00:24<00:12, 13.74it/s]Chi-squared: 9.499:  67% 335/500 [00:24<00:11, 13.91it/s] Chi-squared: 9.323:  68% 340/500 [00:24<00:11, 14.08it/s]Chi-squared: 8.644:  69% 345/500 [00:24<00:10, 14.25it/s]Chi-squared: 8.565:  70% 350/500 [00:24<00:10, 14.41it/s]Chi-squared: 8.017:  71% 355/500 [00:24<00:09, 14.58it/s]Chi-squared: 8.057:  72% 360/500 [00:24<00:09, 14.74it/s]Chi-squared: 7.730:  73% 365/500 [00:24<00:09, 14.90it/s]Chi-squared: 7.646:  74% 370/500 [00:24<00:08, 15.06it/s]Chi-squared: 7.408:  75% 375/500 [00:24<00:08, 15.22it/s]Chi-squared: 7.247:  76% 380/500 [00:24<00:07, 15.38it/s]Chi-squared: 7.240:  77% 385/500 [00:24<00:07, 15.54it/s]Chi-squared: 7.104:  78% 390/500 [00:24<00:07, 15.70it/s]Chi-squared: 7.041:  79% 395/500 [00:24<00:06, 15.86it/s]Chi-squared: 6.997:  80% 400/500 [00:24<00:06, 16.01it/s]Chi-squared: 7.040:  81% 405/500 [00:25<00:05, 16.17it/s]Chi-squared: 6.819:  82% 410/500 [00:25<00:05, 16.32it/s]Chi-squared: 6.839:  83% 415/500 [00:25<00:05, 16.48it/s]Chi-squared: 6.789:  84% 420/500 [00:25<00:04, 16.63it/s]Chi-squared: 6.781:  85% 425/500 [00:25<00:04, 16.78it/s]Chi-squared: 6.763:  86% 430/500 [00:25<00:04, 16.93it/s]Chi-squared: 6.749:  87% 435/500 [00:25<00:03, 17.08it/s]Chi-squared: 6.717:  88% 440/500 [00:25<00:03, 17.23it/s]Chi-squared: 6.684:  89% 445/500 [00:25<00:03, 17.38it/s]Chi-squared: 6.658:  90% 450/500 [00:25<00:02, 17.53it/s]Chi-squared: 6.620:  91% 455/500 [00:25<00:02, 17.68it/s]Chi-squared: 6.691:  92% 460/500 [00:25<00:02, 17.82it/s]Chi-squared: 7.312:  93% 465/500 [00:25<00:01, 17.97it/s]Chi-squared: 7.447:  94% 470/500 [00:25<00:01, 18.11it/s]Chi-squared: 6.965:  95% 475/500 [00:26<00:01, 18.26it/s]Chi-squared: 6.970:  96% 480/500 [00:26<00:01, 18.40it/s]Chi-squared: 7.254:  97% 485/500 [00:26<00:00, 18.54it/s]Chi-squared: 7.187:  98% 490/500 [00:26<00:00, 18.68it/s]Chi-squared: 7.083:  99% 495/500 [00:26<00:00, 18.82it/s]Chi-squared: 7.027: 100% 500/500 [00:26<00:00, 18.96it/s]Chi-squared: 7.027: 100% 500/500 [00:26<00:00, 18.96it/s]
+Final Chi-squared: 6.75355
+MAP done in 30.3 s (0.50 min)
+Best log_p=-12452.54, chi2=6.5862
+
+Lens-light Ie values:
+  lens_light[0]: Ie=+96.106  R=1.15"  center=(-0.07,+0.08)
+  lens_light[1]: Ie=+9.148  R=2.36"  center=(+0.01,+0.06)
+  lens_light[2]: Ie=+4.862  R=0.94"  center=(-2.30,-2.82)
+  lens_light[3]: Ie=+4.089  R=0.65"  center=(-2.38,-2.83)
+  source_sersic: Ie=+3.492, R=0.86"
+
+Shapelet amps (n=28): min=-4.905, max=+5.687, #negative=11/28
+  beta=0.1486, center=(-0.119, -0.018)
+
+Best-fit mass:
+     theta_E = +2.6324
+       gamma = +1.7262
+          e2 = +0.0730
+          e1 = +0.1277
+    center_y = +0.1089
+    center_x = -0.0313
+  -- shear --
+      gamma2 = +0.0047
+      gamma1 = +0.0648
+
+v6 vs Huang 2025a Table 3:
+       param      v6 fit               paper       Δ_abs      % off
+     theta_E     +2.6324     +2.6463±0.0017    -0.0139       0.5%
+       gamma     +1.7262     +1.3720±0.0230    +0.3542      25.8%
+          e1     +0.1277     +0.1091±0.0020    +0.0186      17.0%
+          e2     +0.0730     -0.1320±0.0020    +0.2050     155.3%
+      gamma1     +0.0648     +0.0657±0.0024    -0.0009       1.3%
+      gamma2     +0.0047     -0.0939±0.0022    +0.0986     105.0%
+
+Done.

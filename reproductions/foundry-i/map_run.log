@@ -1,0 +1,46 @@
+Data: shape=(128, 128), sky-subtracted range=[-0.152, 16.752]
+Sky median (subtracted): 1.0043 e-/s
+Median per-pixel noise: background_rms=0.02890 e-/s
+PSF: shape=(13, 13) (TinyTim F140W, supersampled to 0.065")
+SimulatorConfig: num_pix=128, delta_pix=0.13, supersample=2
+
+Sanity-check forward sim with prior medians...
+2026-05-25 20:22:21.493873: E external/xla/xla/stream_executor/cuda/cuda_timer.cc:86] Delay kernel timed out: measured time has sub-optimal accuracy. There may be a missing warmup execution, please investigate in Nsight Systems.
+2026-05-25 20:22:21.596958: E external/xla/xla/stream_executor/cuda/cuda_timer.cc:86] Delay kernel timed out: measured time has sub-optimal accuracy. There may be a missing warmup execution, please investigate in Nsight Systems.
+  simulated range: [0.000, 1.242]
+  observed range:  [-0.152, 16.752]
+
+MAP: n_samples=20 chains, num_steps=200
+  0% 0/200 [00:00<?, ?it/s]2026-05-25 20:22:28.689493: E external/xla/xla/stream_executor/cuda/cuda_timer.cc:86] Delay kernel timed out: measured time has sub-optimal accuracy. There may be a missing warmup execution, please investigate in Nsight Systems.
+2026-05-25 20:22:28.795542: E external/xla/xla/stream_executor/cuda/cuda_timer.cc:86] Delay kernel timed out: measured time has sub-optimal accuracy. There may be a missing warmup execution, please investigate in Nsight Systems.
+Chi-squared: 355.723:   2% 5/200 [00:11<07:10,  2.21s/it]Chi-squared: 315.022:   5% 10/200 [00:11<03:31,  1.11s/it]Chi-squared: 278.844:   8% 15/200 [00:11<02:17,  1.34it/s]Chi-squared: 239.801:  10% 20/200 [00:11<01:40,  1.78it/s]Chi-squared: 207.247:  12% 25/200 [00:11<01:18,  2.22it/s]Chi-squared: 170.121:  15% 30/200 [00:11<01:04,  2.65it/s]Chi-squared: 134.591:  18% 35/200 [00:11<00:53,  3.07it/s]Chi-squared: 105.129:  20% 40/200 [00:11<00:45,  3.49it/s]Chi-squared: 84.622:  22% 45/200 [00:11<00:39,  3.91it/s] Chi-squared: 65.263:  25% 50/200 [00:11<00:34,  4.32it/s]Chi-squared: 59.892:  28% 55/200 [00:11<00:30,  4.73it/s]Chi-squared: 46.132:  30% 60/200 [00:11<00:27,  5.14it/s]Chi-squared: 44.054:  32% 65/200 [00:11<00:24,  5.54it/s]Chi-squared: 43.751:  35% 70/200 [00:11<00:21,  5.94it/s]Chi-squared: 44.991:  38% 75/200 [00:11<00:19,  6.33it/s]Chi-squared: 44.452:  40% 80/200 [00:11<00:17,  6.72it/s]Chi-squared: 43.531:  42% 85/200 [00:11<00:16,  7.10it/s]Chi-squared: 40.827:  45% 90/200 [00:12<00:14,  7.48it/s]Chi-squared: 37.970:  48% 95/200 [00:12<00:13,  7.86it/s]Chi-squared: 35.551:  50% 100/200 [00:12<00:12,  8.23it/s]Chi-squared: 34.607:  52% 105/200 [00:12<00:11,  8.60it/s]Chi-squared: 32.781:  55% 110/200 [00:12<00:10,  8.97it/s]Chi-squared: 32.533:  57% 115/200 [00:12<00:09,  9.33it/s]Chi-squared: 31.726:  60% 120/200 [00:12<00:08,  9.69it/s]Chi-squared: 30.897:  62% 125/200 [00:12<00:07, 10.05it/s]Chi-squared: 30.558:  65% 130/200 [00:12<00:06, 10.40it/s]Chi-squared: 29.346:  68% 135/200 [00:12<00:06, 10.76it/s]Chi-squared: 27.233:  70% 140/200 [00:12<00:05, 11.10it/s]Chi-squared: 27.021:  72% 145/200 [00:12<00:04, 11.45it/s]Chi-squared: 26.635:  75% 150/200 [00:12<00:04, 11.79it/s]Chi-squared: 27.180:  78% 155/200 [00:12<00:03, 12.13it/s]Chi-squared: 26.429:  80% 160/200 [00:12<00:03, 12.46it/s]Chi-squared: 25.982:  82% 165/200 [00:12<00:02, 12.79it/s]Chi-squared: 26.108:  85% 170/200 [00:12<00:02, 13.12it/s]Chi-squared: 25.379:  88% 175/200 [00:13<00:01, 13.44it/s]Chi-squared: 25.192:  90% 180/200 [00:13<00:01, 13.77it/s]Chi-squared: 26.159:  92% 185/200 [00:13<00:01, 14.09it/s]Chi-squared: 25.153:  95% 190/200 [00:13<00:00, 14.40it/s]Chi-squared: 24.880:  98% 195/200 [00:13<00:00, 14.72it/s]Chi-squared: 24.647: 100% 200/200 [00:13<00:00, 15.03it/s]Chi-squared: 24.647: 100% 200/200 [00:13<00:00, 15.03it/s]
+Final Chi-squared: 24.64713
+MAP returned; type= <class 'tuple'>
+MAP done in 16.6 s (0.28 min)
+MAP output shapes: params=(1, 22), lp=(), chi=()
+Best log_p=-160321.86, chi2=24.65
+Saved raw MAP params to /raid/benson/git/agentic-lensing/reproductions/foundry-i/data/map_result.npz
+Applying bijector forward (unconstrained -> physical) ...
+  done in 0.38s
+
+Best-fit mass model:
+     theta_E = 2.6970
+       gamma = 1.6634
+          e2 = 0.0113
+          e1 = -0.0151
+    center_y = 0.3384
+    center_x = -0.0209
+  -- external shear --
+      gamma2 = 0.0528
+      gamma1 = 0.0010
+
+Comparison to Huang 2025a Table 3:
+       param       fit             paper      delta
+     theta_E   +2.6970    +2.6463±0.0017     +29.84σ
+       gamma   +1.6634    +1.3720±0.0230     +12.67σ
+          e1   -0.0151    +0.1091±0.0020     -62.12σ
+          e2   +0.0113    -0.1320±0.0020     +71.63σ
+      gamma1   +0.0010    +0.0657±0.0024     -26.97σ
+      gamma2   +0.0528    -0.0939±0.0022     +66.67σ
+
+Done. Run 04_residual_plot.py for the residual figure.

@@ -3,3 +3,5 @@
 - [Project: SpectrumFM DOE Genesis](project_spectrumfm.md) — transformer foundation model on DESI spectra; "one model, six classes"; Benson leads agentic-AI tooling
 - [Reference: Paper + proposal corpus](reference_paper_corpus.md) — where the 16 PDFs and proposal docx live
 - [Feedback: How Benson wants research delivered](feedback_research_style.md) — deep + concrete agentic architectures + verified citations
+- [Reference: GIGA-Lens working env on /raid/benson](reference_gigalens_env.md) — JAX 0.6.2 + TF 2.20 venv at ~/.venvs/gigalens; 10 GPUs (8×A16, 2×L4); active repo on multi-node branch
+- [Project: Foundry I reproduction status](project_foundry_i_reproduction.md) — v5 MAP recovers θ_E to 0.5%; positivity + tight centers were the key constraints
