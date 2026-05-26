@@ -11,7 +11,7 @@ from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astroquery.mast import Observations
 
-OUT_DIR = Path("/raid/benson/git/agentic-lensing/reproductions/foundry-i/data")
+OUT_DIR = Path(__file__).parent / "data"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 TARGET = SkyCoord(ra=165.4754 * u.deg, dec=-6.0423 * u.deg, frame="icrs")

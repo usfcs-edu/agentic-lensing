@@ -14,8 +14,8 @@ from astropy.io import fits
 from astropy.nddata import Cutout2D
 from astropy.wcs import WCS
 
-DATA = Path("/raid/benson/git/agentic-lensing/reproductions/foundry-i/data")
-FIGS = Path("/raid/benson/git/agentic-lensing/reproductions/foundry-i/figs")
+DATA = Path(__file__).parent / "data"
+FIGS = Path(__file__).parent / "figs"
 TARGET = SkyCoord(ra=165.4754 * u.deg, dec=-6.0423 * u.deg, frame="icrs")
 CUTOUT_PIX = 128
 PIXEL_SCALE_ARCSEC = 0.065
