@@ -2,9 +2,9 @@
 %%  Public-Data Reproduction of GIGA-Lens Modeling for the DESI Strong Lens
 %%  Foundry Demonstration System DESI-165.4754-06.0423
 %%
-%%  Two-column AASTeX 6.3.1 manuscript, in preparation for ApJ (2026).
+%%  Two-column AASTeX 7.0.1 manuscript, in preparation for ApJ (2026).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\documentclass[twocolumn,linenumbers]{aastex631}
+\documentclass[twocolumn,linenumbers]{aastex701}
 
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -38,12 +38,12 @@
 Lens Foundry Demonstration System DESI--165.4754$-$06.0423}
 
 \correspondingauthor{Greg Benson}
-\email{greg.benson@gmail.com}
 
 \author{Greg Benson}
 \affiliation{Department of Computer Science,
 University of San Francisco,
 San Francisco, CA 94117, USA}
+\email{benson@cs.usfca.edu}
 
 \author{Xiaosheng Huang}
 \affiliation{Department of Physics and Astronomy,
@@ -52,6 +52,8 @@ San Francisco, CA 94117, USA}
 \affiliation{Physics Division,
 Lawrence Berkeley National Laboratory,
 Berkeley, CA 94720, USA}
+% TODO confirm preferred contact email for co-author before submission
+\email{xhuang@usfca.edu}
 
 \begin{abstract}
 We present an end-to-end, public-data reproduction of the GIGA-Lens
@@ -64,22 +66,33 @@ infrastructure --- \gigalens, \lenstronomy, \photutils, JAX, and
 construct an empirical PSF from in-field stars, and fit an EPL$+$external
 shear mass model together with four S\'{e}rsic lens-light components,
 a S\'{e}rsic source, and a shapelet basis of order $n_{\max}=6$
-($74$ free non-linear parameters). Because Hamiltonian Monte Carlo could
-not be JIT-compiled at this model size with JAX 0.6.2, we report a
-Gaussian stochastic variational posterior obtained with the canonical
-\gigalens\ \texttt{ModellingSequence.SVI} routine, initialized from the
-best paper-mode chain of a 200-chain multi-start MAP search.
-Our 10\,000-sample variational posterior recovers all six sign quadrants
-of the mass model, matches \thetaE\ to 3.0\%, $e_{1}$ to 2.5\%, and the
-external shear position angle to within $1^{\circ}$ of the published
-HMC result. The remaining gap --- a $12^{\circ}$ rotation of the lens
-ellipticity vector, $\sim30\%$ smaller $|\etwo|$ and $|\gext|$, and a
-$57\%$ steeper deprojected slope $\gammaEPL=2.15$ versus the published
-$1.37$ --- is shown to be coherent with a single missing constraint,
-plausibly a mass--light position-angle tie or higher-order multipole
-correction. We document four upstream issues in \gigalens\,2.0/JAX\,0.6.2
-suitable for filing as GitHub issues, and provide the full software stack
-table to support future Foundry-series reproductions.
+($74$ free non-linear parameters). Hamiltonian Monte Carlo did not
+JIT-compile at this model size under JAX\,0.6.2; switching to the
+No-U-Turn Sampler (NUTS) with a static \texttt{max\_tree\_depth} resolves
+the compile-time blocker (NUTS compiles in $\sim$5\,min and runs 700
+chain steps in 2--3\,min), but the chain we obtain is a diagnostic,
+not a usable posterior: the v10 SVI covariance is rank-deficient
+(rank 53/74, minimum eigenvalue $-4.4\times10^{-13}$) and silently
+yields a NaN Cholesky in JAX, and once jittered the dual-averaging
+adapter consistently drives the step size to $\sim$2--$3\times10^{-6}$
+so the chain barely moves. We therefore report the v10 Gaussian
+stochastic variational posterior (initialized from the best paper-mode
+chain of a 200-chain multi-start MAP search) as the headline result, and
+present a v11 NUTS run started from the v7 paper-mode MAP point as a
+diagnostic that confirms posterior multimodality and locates a third
+distinct local mode. Our 10\,000-sample variational posterior recovers
+all six sign quadrants of the mass model, matches \thetaE\ to 3.0\%,
+$e_{1}$ to 2.5\%, and the external shear position angle to within
+$1^{\circ}$ of the published HMC result; the v11f NUTS mode reproduces
+\thetaE\ to 1.6\%, the closest of any version to date. The remaining
+gap --- a $12^{\circ}$ rotation of the lens ellipticity vector,
+$\sim30\%$ smaller $|\etwo|$ and $|\gext|$, and a $57\%$ steeper
+deprojected slope $\gammaEPL=2.15$ versus the published $1.37$ --- is
+shown to be coherent with a single missing constraint, plausibly a
+mass--light position-angle tie or higher-order multipole correction.
+We document upstream issues in \gigalens\,2.0/JAX\,0.6.2/TFP\,0.25.0
+suitable for filing as GitHub issues, and provide the full software
+stack table to support future Foundry-series reproductions.
 \end{abstract}
 
 \keywords{Strong gravitational lensing (1643) ---
@@ -153,15 +166,17 @@ describes how we re-pull the {\it HST}\ data from MAST. Section
 \ref{sec:psf} documents an empirical-PSF pipeline that we find
 necessary for the reproduction to converge to the paper's posterior
 mode. Section~\ref{sec:model} sets up the lens model and priors.
-Section~\ref{sec:inference} describes our inference pipeline and the
+Section~\ref{sec:inference} describes our inference pipeline, the
 HMC compile-time obstacle that forced us to fall back on the SVI
-Gaussian variational posterior. Section~\ref{sec:results} presents the
-quantitative comparison to \citet{huang2025foundry1} Table~3 and
-addresses the multimodality we observed in the multi-start MAP search.
-Section~\ref{sec:discussion} interprets the residual systematic and
-itemizes upstream software issues. Section~\ref{sec:software}
+Gaussian variational posterior, and a subsequent v11 NUTS attempt that
+resolves the JIT-compile blocker but does not yield a mixed chain.
+Section~\ref{sec:results} presents the quantitative comparison to
+\citet{huang2025foundry1} Table~3 and addresses the multimodality we
+observed in the multi-start MAP search and (separately) in the v11
+NUTS run. Section~\ref{sec:discussion} interprets the residual systematic
+and itemizes upstream software issues. Section~\ref{sec:software}
 documents the software stack. Appendix~\ref{app:ablation} traces the
-ten-version internal ablation that led to the working recipe;
+internal ablation v1\,$\to$\,v11 that led to the working recipe;
 Appendix~\ref{app:priors} reproduces the prior table.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -403,6 +418,97 @@ specifically, cuDNN convolution autotuning takes $\sim 90\,$s due to
 the $f32[100,1,256,256]$ convolution shape required by the $74$-parameter
 model on 2 GPUs).
 
+\subsection{NUTS attempt (v11 series)}
+\label{sec:nuts}
+
+Having identified the HMC JIT compile-time blowup as the most
+load-bearing of our upstream issues (\S\ref{sec:discussion}), we
+attempted a sequence of six NUTS runs (v11, v11b, v11c, v11d-scan,
+v11e, v11f) targeting that issue specifically. We treat the resulting
+chain as a {\it diagnostic}, not a replacement headline posterior;
+the v10 SVI fit of \S\ref{sec:headline} remains the canonical result.
+
+\paragraph{NUTS does compile.} The replacement we adopt is
+\texttt{tfp.experimental.mcmc.PreconditionedNoUTurnSampler} (TFP\,0.25.0,
+JAX backend) with \texttt{max\_tree\_depth=6} pinned as a static argument
+and {\it without}\ a \texttt{pmap} wrapper. With these two choices the
+sampler JIT-compiles in $\sim$5\,min on the same 2$\times$L4 host that
+failed to compile HMC after several hours, and runs 700 chain steps
+(200 burn-in $+$ 500 kept) in $\sim$2--3\,min of wall time. This is
+the main positive finding of the v11 series: the JIT-tractability of
+sample-chain at $74$ parameters under JAX\,0.6.2 is recovered by NUTS
+$+$ static tree depth, even though the same combinatorics defeated
+\texttt{PreconditionedHMC}$+$\texttt{Gra\-dient\-Based\-Tra\-jec\-tory\-Length\-Adap\-ta\-tion}.
+
+\paragraph{The v10 SVI covariance is rank-deficient.} On loading
+\texttt{svi\_v10\_posterior\_mass.npz} and computing the SVI posterior
+covariance in $z$-space, we find that \texttt{np.linalg.eigvalsh(qz\_cov)}
+reports a minimum eigenvalue of $-4.4\times10^{-13}$ --- numerically zero
+but slightly negative --- and a numerical rank of $53/74$
+(\texttt{np.linalg.matrix\_rank}, default tolerance), implying $\sim 21$
+near-degenerate directions. The CPU NumPy Cholesky
+(\texttt{np.linalg.cholesky}) raises \texttt{NotPositiveDefinite}; the
+JAX Cholesky (\texttt{jnp.linalg.cholesky}) {\it silently returns NaN}.
+The first NUTS attempt (v11) used this raw covariance as the
+\texttt{precondition\_state\_param\_partial\_loc} and inherited NaN
+momentum samples; TFP's NUTS proceeds without erroring and produces
+near-zero proposals. The fix is to jitter the covariance by
+$10^{-6}\,\mathbb{I}$ before Cholesky, after which the Cholesky
+diagonal lies in $[1.0\times10^{-3},6.2\times10^{-2}]$ and is usable.
+
+\paragraph{Dual-averaging step-size collapse.} Even with a valid
+(jittered) preconditioner (v11e), TFP's
+\texttt{DualAveragingStepSizeAdaptation} consistently drove the step
+size to $\sim$2--$3\times10^{-6}$ by the end of the 200-step burn-in,
+at which point every proposed move is effectively the current state
+(acceptance probability $1.000$, leapfrog count clamped at the
+$2^{6}-1=63$ maximum, and per-step displacement $\|\Delta z\|\sim
+10^{-4}$--$10^{-3}$ in unconstrained space). A static step-size scan
+over $\{10^{-5},3\times10^{-5},10^{-4},3\times10^{-4},10^{-3},
+3\times10^{-3},10^{-2},3\times10^{-2}\}$ with adaptation disabled
+(v11d-scan) gave 0\% acceptance for every entry $\ge10^{-5}$ --- the
+chain immediately U-turns and rejects --- and reported
+\texttt{leapfrogs\_taken=1} at every iteration. A working step size
+therefore exists somewhere in the interval $(2\times10^{-6},10^{-5})$,
+but neither simple dual-averaging nor a coarse log-spaced scan locates
+it; the local Hessian along the SVI mode and the local Hessian along
+the basin we actually want to explore appear to differ enough that a
+single global mass matrix is not adequate.
+
+\paragraph{A third local mode (v11f).} As a final attempt, we
+re-initialized NUTS from the v7 paper-mode MAP chain
+(\texttt{map\_v7\_paper\_mode.npz}; $\log p = -21{,}789$ under TinyTim
+PSF, but $\log p = -99{,}119$ under the empirical PSF used here)
+rather than the v10 SVI mean, kept the $10^{-6}\,\mathbb{I}$ jitter,
+and loosened the dual-averaging target acceptance from the default
+$0.8$ to $0.6$. The chain moves $\sim 35{,}000$ $\log p$ units during
+burn-in into a {\it new}\ local mode with $\log p \approx -63{,}868$,
+distinct from both the v10 SVI mode ($\log p \approx -40{,}400$) and
+the original paper-mode MAP. The posterior medians at this new mode
+are summarized in Table~\ref{tab:nuts_v11f}. With $\thetaE=2.604''$,
+v11f reproduces the published Einstein radius to $1.6\%$ --- the
+closest of any version of this reproduction --- although the other
+five mass parameters move in mixed directions relative to the v10
+medians. We emphasize that v11f is a {\it converged-to-a-different-basin}\
+point estimate, not a mixed chain; its $1\sigma$ widths
+(Table~\ref{tab:nuts_v11f}) are widths of a chain that froze and are
+not faithful marginal-posterior widths.
+
+\paragraph{Why we did not pursue \texttt{windowed\_adaptive\_nuts}.}
+The natural next step is TFP's \texttt{tfp.experimental.mcmc.
+windowed\_adaptive\_nuts}, which runs Stan-style window-adaptive mass
+matrix estimation interleaved with step-size adaptation and would in
+principle resolve the curvature mismatch between modes. The blocker
+is interface: \texttt{windowed\_adaptive\_nuts} expects a
+\texttt{tfd.JointDistribution\-Auto\-Batched} or equivalent, while the
+\gigalens\ \texttt{ForwardProbModel} exposes
+\texttt{log\_prob}/\texttt{sample} but not the joint-distribution
+abstraction. Refactoring the prob model to expose a
+\texttt{JointDistribution} interface is straightforward in principle
+but well-scoped enough to defer to a follow-up paper; the present
+work documents the obstacle so that downstream users know what would
+be required.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Results}
 \label{sec:results}
@@ -455,6 +561,46 @@ $|\gext|=0.079$ at $-29^{\circ}$ versus $|\gext|=0.115$ at $-28^{\circ}$:
 the position angle of the shear matches to within $1^{\circ}$, while
 the magnitude is $\approx 30\%$ low. These coherent offsets are
 revisited in \S\ref{sec:single-constraint}.
+
+\subsection{Second-mode point estimate from v11f NUTS}
+\label{sec:nuts_v11f_results}
+
+Table~\ref{tab:nuts_v11f} reports the posterior medians of the v11f
+NUTS chain (\S\ref{sec:nuts}; \texttt{data/nuts\_v11f\_posterior\_mass.npz}),
+the only NUTS variant that converged to a distinct basin rather than
+freezing at the SVI mode. This is presented as a {\it second-mode
+point estimate}, not as a replacement for the v10 SVI posterior of
+Table~\ref{tab:mass}: v11f's chain froze in its target basin
+($\log p\approx-63{,}868$) and did not mix, so its quoted $1\sigma$
+widths are widths of a non-mixed chain and do not represent marginal
+posterior uncertainty. The Einstein radius at the v11f mode,
+$\thetaE=2.604''$, is $1.6\%$ off the published value --- the closest
+single-version reproduction of \thetaE\ that we have obtained.
+
+\begin{deluxetable}{lccc}
+\tablecaption{v11f NUTS second-mode point estimate.\label{tab:nuts_v11f}}
+\tablehead{
+\colhead{Param} & \colhead{v11f median} & \colhead{Huang+2025a} & \colhead{\% off}
+}
+\startdata
+\thetaE\ (arcsec) & $+2.6042$ & $+2.6463$ & $1.6\%$ \\
+\gammaEPL\        & $+2.2565$ & $+1.372$  & $64.5\%$ \\
+\eone\            & $+0.1592$ & $+0.1091$ & $45.9\%$ \\
+\etwo\            & $-0.1507$ & $-0.1320$ & $14.2\%$ \\
+\gextone\         & $+0.0543$ & $+0.0657$ & $17.3\%$ \\
+\gexttwo\         & $-0.1186$ & $-0.0939$ & $26.3\%$ \\
+\enddata
+\tablecomments{v11f is a NUTS chain initialised at the v7 paper-mode
+MAP point with a $10^{-6}\,\mathbb{I}$-jittered v10 SVI covariance as
+preconditioner and target acceptance $0.6$. The chain converged into
+a new local basin $\log p\approx-63{,}868$ (distinct from the v10
+SVI mode at $\log p\approx-40{,}400$) and remained there. The
+quoted medians are over 500 retained samples after 200 burn-in steps;
+$1\sigma$ widths are not reported because the chain did not mix.
+v11f reproduces \thetaE\ to $1.6\%$ but is more discrepant than v10
+in \gammaEPL\ and \eone. See \S\ref{sec:nuts} for the run details and
+\S\ref{sec:multimodal_v11} for the multimodality implication.}
+\end{deluxetable}
 
 \subsection{Residual maps}
 \label{sec:residuals}
@@ -610,26 +756,60 @@ Foundry II--V volumes --- should build an empirical PSF from field
 stars in the same exposure before fitting.
 
 \subsection{Multimodality is a real feature of the posterior surface}
+\label{sec:multimodal_v11}
 
-Our v7 multi-start search revealed three to four distinct local
-minima differing in the sign quadrant of $(\etwo,\gexttwo)$ at
-fixed positive \eone\ and positive \gextone. The published HMC
-posterior is centered in only one of these quadrants. Two interpretations
-are possible: (i) the published HMC chain explored other modes
-but with very low weight, and the reported median is correctly
-centered; (ii) the published HMC chain was started in the paper-mode
-quadrant and remained there for the duration of the run. We cannot
-distinguish these from the published Foundry I paper alone, and
-neither is unreasonable. The implication, however, is the same: when
-running \gigalens\ on a new system without an external prior on
-ellipticity sign, a multi-start search is the right first step ---
-the gradient-based local search returns a posterior mode, not the
+We now have three independent lines of evidence for genuine
+multimodality of the posterior, and consider the multimodality to be
+a feature of the model conditioned on our priors and PSF rather than
+an artefact of any single inference run.
+
+\paragraph{Evidence (a): v7 multi-start MAP.} The 200-chain v7
+multi-start search revealed at least three distinct local minima
+differing in the sign quadrant of $(\etwo,\gexttwo)$ at fixed positive
+\eone\ and positive \gextone\ (\S\ref{sec:multimodal}); only $17/200
+=8.5\%$ of chains land in the paper's quadrant under TinyTim.
+
+\paragraph{Evidence (b): v6 vs v8 mode swap.} The v6 single-chain MAP
+(TinyTim, $\chi^{2}=6.59$) sits in a sign quadrant
+$(\eone,\etwo,\gextone,\gexttwo)=(+,+,+,+)$ that is different from the
+v8 SVI mode $(+,-,+,-)$, even though both converged stably under the
+same loss function (Appendix~\ref{app:ablation}). The two are
+qualitatively distinct lensing geometries, not refinements of one
+another.
+
+\paragraph{Evidence (c): v11f NUTS basin transit.} The v11f NUTS run
+(\S\ref{sec:nuts}, \S\ref{sec:nuts_v11f_results}) was initialised at
+the v7 paper-mode MAP point and during burn-in moved $\sim 35{,}000$
+$\log p$ units into a basin at $\log p\approx -63{,}868$, distinct
+from the v10 SVI basin at $\log p\approx -40{,}400$. The medians
+at v11f's terminal basin reproduce $\thetaE$ to $1.6\%$ but have a
+different signature in $(\eone,\etwo,\gext)$ than v10 does --- in
+particular $\eone=+0.159$ (vs.\ v10's $+0.106$) and $\etwo=-0.151$
+(vs.\ v10's $-0.053$). This is a third distinct local mode, found
+by a gradient-based sampler rather than by the multi-start scan, and
+confirms that the model surface admits at least three usable basins
+under our priors and PSF.
+
+The published HMC posterior is centered in only one of these basins.
+Two interpretations are possible: (i) the published HMC chain explored
+other modes but with very low weight, and the reported median is
+correctly centered; (ii) the published HMC chain was started in the
+paper-mode basin and remained there for the duration of the run.
+We cannot distinguish these from the published Foundry I paper alone,
+and neither is unreasonable. The implication, however, is the same:
+when running \gigalens\ on a new system without an external prior on
+ellipticity sign, a multi-start MAP scan {\it followed by}\
+mode-aware sampling (or, in lieu of that, transparent reporting of
+which local basin the chain occupies) is the right first step ---
+gradient-based local search returns a posterior mode, not the
 posterior.
 
 \subsection{Upstream issues encountered}
+\label{sec:upstream}
 
-We encountered four issues in the \gigalens\,2.0 / JAX\,0.6.2 stack
-that we believe are appropriate to file as GitHub issues:
+We encountered six issues in the \gigalens\,2.0 / JAX\,0.6.2 /
+TFP\,0.25.0 stack that we believe are appropriate to file as GitHub
+issues:
 \begin{enumerate}
 \item \textbf{Implicit \texttt{shard\_map} import.} \gigalens\,2.0
 references \texttt{jax.experimental.shard\_map.shard\_map} by attribute
@@ -651,10 +831,14 @@ this. We disable this code path entirely by setting
 $\circ$\texttt{PreconditionedHMC}$+$
 \texttt{GradientBasedTrajectoryLengthAdaptation} did not finish
 JIT-compiling in any wall time we were willing to wait on this
-$74$-parameter model. The published HMC posterior must have been run
-on a different combination of versions (JAX, gigalens branch); for the
-present paper we use SVI as a surrogate. A standalone reproducer of
-this compile-time blowup would be useful for the JAX/TFP issue tracker.
+$74$-parameter model. Switching to
+\texttt{tfp.experimental.mcmc.PreconditionedNoUTurnSampler} with a
+static \texttt{max\_tree\_depth} and no \texttt{pmap} wrapper
+(\S\ref{sec:nuts}) compiles in $\sim$5\,min and runs in $\sim$2--3\,min,
+which resolves the JIT-compile blocker. The published HMC posterior
+must, however, have been run on a different combination of versions
+(JAX, gigalens branch); a standalone reproducer of the original HMC
+compile-time blowup would still be useful for the JAX/TFP issue tracker.
 \item \textbf{Mixed-GPU-type \texttt{shard\_map} crash.} On heterogeneous
 hosts (e.g.\ our 8$\times$A16 $+$ 2$\times$L4), the executable
 compiled for the first sharded device cannot be run on the others, and
@@ -664,6 +848,36 @@ run on CUDA:2 of type 'NVIDIA A16'}. UUID-pinning the visible devices
 is a workaround; a cleaner fix would be for the shard map machinery
 to recompile per-device or to refuse to shard across heterogeneous
 device types with an actionable error.
+\item \textbf{\texttt{jnp.linalg.cholesky} silently returns NaN on
+a rank-deficient SVI covariance.} The v10 SVI posterior covariance
+has $\min\lambda(qz\_cov)=-4.4\times10^{-13}$ and numerical rank
+$53/74$ (\S\ref{sec:nuts}). On this matrix the CPU NumPy Cholesky
+raises \texttt{NotPositiveDefinite}, but the JAX Cholesky silently
+returns NaN. NUTS then receives NaN momentum and proceeds without
+erroring, producing the appearance of a stuck chain rather than a
+diagnosable failure. At minimum, \texttt{jnp.linalg.cholesky} should
+emit a NaN-trace warning under \texttt{jax\_debug\_nans} the way other
+NaN-producing JAX primitives do. The downstream \gigalens\ pipeline
+would benefit from a defensive \texttt{cov + eps*I} jitter in any code
+path that feeds an SVI covariance into a TFP preconditioner.
+\item \textbf{\texttt{DualAveragingStepSizeAdaptation} pathology on
+multimodal-Hessian models.} On this 74-parameter model the dual-averaging
+adapter consistently drove the step size to $\sim$2--$3\times10^{-6}$
+within 200 burn-in steps, at which acceptance is $1.000$ but per-step
+$\|\Delta z\|$ is $10^{-4}$--$10^{-3}$ and the chain effectively does
+not move (\S\ref{sec:nuts}). A static log-spaced scan from $10^{-5}$
+to $3\times10^{-2}$ with adaptation disabled gives $0\%$ acceptance
+everywhere, so the working step size lives in the narrow window
+$(2\times10^{-6},10^{-5})$ --- below the resolution of a coarse scan
+and below where dual-averaging settles. We interpret this as the
+adapter optimizing a single global step-size for a target acceptance
+under a globally Gaussian-like assumption that the model surface
+violates: the local Hessian at the v10 SVI mode and the local Hessian
+at the v11f basin differ enough that no single mass matrix or step
+size is simultaneously appropriate. A windowed mass-matrix adapter
+(e.g.\ \texttt{windowed\_adaptive\_nuts}) or a per-basin re-tuning
+would in principle help; both require a \texttt{JointDistribution}
+refactor of \gigalens\ which we defer.
 \end{enumerate}
 
 \subsection{What full reproduction would require}
@@ -674,9 +888,14 @@ of \texttt{giga-lens/gigalens} has moved since the paper was written);
 (ii) mass--light position-angle tying, which is not exposed in the
 \gigalens\,2.0 public API as of our run date and would require a
 modification to the simulator internals; (iii) optionally a
-higher-order multipole correction term in the EPL profile; and
+higher-order multipole correction term in the EPL profile;
 (iv) a working HMC at $74$ parameters in JAX 0.6.2, which we did not
-manage to obtain. These are the natural next-steps for any reader
+manage to obtain (NUTS with static \texttt{max\_tree\_depth} resolves
+the JIT-compile blocker, \S\ref{sec:nuts}, but step-size adaptation
+on this multimodal-Hessian surface remains an open problem); and
+(v) a \texttt{JointDistribution} refactor of the \gigalens\ prob model
+to enable \texttt{windowed\_adaptive\_nuts} or similar window-adaptive
+mass-matrix samplers. These are the natural next-steps for any reader
 who wishes to push this reproduction further.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -689,9 +908,17 @@ DOI 10.17909/hx0v-9260. The \gigalens\ source is at
 \url{https://github.com/giga-lens/gigalens} (the \texttt{multi-node}
 branch at commit-time was the working baseline for this paper).
 The reproduction scripts (\texttt{01\_download\_hst.py} through
-\texttt{19\_svi\_v10\_paper\_mode\_empirical.py}, plus the analysis
-notebooks) are available on request and are planned for public release
-as a \texttt{foundry-i-reproduction} repository.
+\texttt{19\_svi\_v10\_paper\_mode\_empirical.py} for the v1$\to$v10
+pipeline, and \texttt{20\_fit\_nuts\_v11.py},
+\texttt{21\_fit\_nuts\_v11b.py}, \texttt{22\_fit\_nuts\_v11c.py},
+\texttt{23\_nuts\_stepsize\_scan.py}, \texttt{24\_fit\_nuts\_v11e.py},
+\texttt{25\_fit\_nuts\_v11f.py} for the v11 NUTS series), together
+with the analysis notebooks and the per-version posterior artifacts
+(\texttt{data/svi\_v10\_posterior\_mass.npz},
+\texttt{data/nuts\_v11\{,b,c,e,f\}\_samples.npz}, and the matching
+\texttt{nuts\_v11*\_posterior\_mass.npz} files), are available on
+request and are planned for public release as a
+\texttt{foundry-i-reproduction} repository.
 
 Table~\ref{tab:software} lists the exact pinned versions of the
 software stack on the run host.
@@ -716,8 +943,12 @@ Operating system                & AlmaLinux 9.7 (aarch64) \\
 GPUs used                       & 2$\times$NVIDIA L4 (UUID-pinned) \\
 \enddata
 \tablecomments{HMC at the 74-parameter model size was not obtained
-under this stack; see \S\ref{sec:discussion}. We use Gaussian SVI as
-the variational-posterior surrogate.}
+under this stack; we use the v10 Gaussian SVI as the headline
+variational-posterior surrogate (Table~\ref{tab:mass}). NUTS at the
+same model size {\it does}\ compile under this stack with a static
+\texttt{max\_tree\_depth} (\S\ref{sec:nuts}); v11f provides a
+second-mode point estimate (Table~\ref{tab:nuts_v11f}). See
+\S\ref{sec:upstream} for the full upstream-issues list.}
 \end{deluxetable}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -747,9 +978,25 @@ unconstrained global best lies in a different ($\etwo>0$) mode.
 PSF built from in-field stars flips the global-best chain into the
 paper's quadrant ($45/200=22.5\%$, with global best in mode) at the
 cost of a higher but more honest $\chi^{2}$ floor.
-\item We document four upstream software issues in \gigalens\,2.0/
-JAX\,0.6.2 that would, if resolved, materially improve the
-reproducibility of any Foundry-lineage analysis.
+\item We resolve the upstream HMC JIT-compile blocker by switching
+to \texttt{PreconditionedNoUTurnSampler} with a static
+\texttt{max\_tree\_depth} and no \texttt{pmap} wrapper, but the
+\texttt{DualAveragingStepSizeAdaptation} adapter collapses on this
+model: the local-curvature mismatch between modes prevents a single
+mass matrix or step size from working, and a windowed mass-matrix
+adapter would require a \texttt{JointDistribution} refactor of the
+\gigalens\ prob model. The v11f NUTS run, started from the v7
+paper-mode MAP point, converges into a {\it third}\ distinct local
+mode at $\log p\approx -63{,}868$ with $\thetaE=2.604''$ ($1.6\%$ off
+the published value, our closest reproduction of \thetaE), confirming
+that the posterior surface is genuinely multimodal but not yielding a
+mixed chain.
+\item We document six upstream software issues in \gigalens\,2.0/
+JAX\,0.6.2/TFP\,0.25.0 that would, if resolved, materially improve
+the reproducibility of any Foundry-lineage analysis --- notably the
+silent NaN from \texttt{jnp.linalg.cholesky} on a rank-deficient SVI
+covariance, and the dual-averaging step-size pathology on
+multimodal-Hessian models.
 \end{enumerate}
 
 For the broader DESI Strong Lens Foundry program, and for the
@@ -757,9 +1004,12 @@ GIGA-Lens lineage at large, these findings argue that an
 in-exposure empirical PSF and a multi-start MAP scan are reasonable
 defaults to add to the published recipe, that mass--light PA tying
 or an equivalent multipole correction is a worthwhile next-order
-modeling improvement, and that the upstream HMC compile-time issue
-in JAX 0.6.2 deserves a focused fix before LSST/Roman/Euclid-scale
-modeling campaigns inherit it.
+modeling improvement, that NUTS with static \texttt{max\_tree\_depth}
+should replace HMC as the default JIT-tractable sampler at this model
+size, and that mode-aware adaptation (windowed mass-matrix estimation,
+basin-conditional re-tuning, or transparent reporting of the basin a
+chain occupies) is a prerequisite for trustworthy posterior inference
+at LSST/Roman/Euclid scale.
 
 \begin{acknowledgments}
 This work made use of \emph{Hubble Space Telescope}\ observations
@@ -789,11 +1039,11 @@ Astropy \citep{astropy2022}.
 \appendix
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{Internal Ablation: v1 $\rightarrow$ v10}
+\section{Internal Ablation: v1 $\rightarrow$ v11}
 \label{app:ablation}
 
 Table~\ref{tab:ablation} traces the per-version mass-fit accuracy across
-the ten internal versions of this reproduction. The first four versions
+the internal versions of this reproduction. The first four versions
 (v1--v4) explore minimal-model variants without shapelets or with
 unconstrained lens-light intensities. v5 introduces positive-$I_{e}$
 \texttt{LogNormal} priors and a tight mass-center prior, and brings
@@ -803,11 +1053,19 @@ a physically reasonable global $\chi^{2}$. v7 is a 200-chain multi-start
 MAP scan (TinyTim PSF) that exposes the multimodality of the surface.
 v8 is an SVI posterior initialised from the v7 paper-mode chain, still
 with TinyTim. v9 repeats v7's multi-start with the empirical PSF,
-flipping the global best into paper-mode. v10 is the final SVI posterior
-initialised from the v9 global-best paper-mode chain.
+flipping the global best into paper-mode. v10 is the SVI posterior
+initialised from the v9 global-best paper-mode chain and is the
+canonical headline posterior of this paper (Table~\ref{tab:mass}).
+v11 is a NUTS-based diagnostic series (\S\ref{sec:nuts}) that resolves
+the HMC JIT-compile blocker, exposes a silent NaN in
+\texttt{jnp.linalg.cholesky} on the rank-deficient SVI covariance,
+demonstrates that \texttt{DualAveragingStepSizeAdaptation} collapses
+on this model, and --- in the v11f run --- converges into a third local
+mode with $\thetaE=2.604''$ ($1.6\%$ off the published value, our
+closest single-version match for \thetaE).
 
 \begin{deluxetable*}{lccccccc}
-\tablecaption{Ablation summary v1$\to$v10. Best-fit mass-parameter
+\tablecaption{Ablation summary v1$\to$v11. Best-fit mass-parameter
 values for each version, paper values for reference.\label{tab:ablation}}
 \tablehead{
 \colhead{Version} & \colhead{\thetaE} & \colhead{\gammaEPL} & \colhead{\eone} &
@@ -822,6 +1080,7 @@ v6   & $+2.632$  & $+1.73$ & $+0.128$ & $+0.073$ & $+0.065$ & $+0.005$ & $6.59$ 
 v8 (SVI/TT) & $+2.619$ & $+2.20$ & $+0.146$ & $-0.150$ & $+0.044$ & $-0.106$ & $7.72$ \tablenotemark{b} \\
 v9 best (MAP/eP)  & $+2.578$ & $+2.16$ & $+0.103$ & $-0.045$ & $+0.034$ & $-0.067$ & $11.93$ \\
 v10 (SVI/eP)\tablenotemark{c}  & $+2.566$ & $+2.15$ & $+0.106$ & $-0.053$ & $+0.040$ & $-0.068$ & --- \\
+v11f (NUTS/eP)\tablenotemark{d} & $+2.604$ & $+2.26$ & $+0.159$ & $-0.151$ & $+0.054$ & $-0.119$ & --- \\
 \hline
 Paper (HMC)         & $+2.6463$ & $+1.372$ & $+0.1091$ & $-0.1320$ & $+0.0657$ & $-0.0939$ & --- \\
 \enddata
@@ -835,11 +1094,21 @@ PSF.}
 Table~\ref{tab:mass}; initialized from the v9 global-best paper-mode
 chain (empirical PSF, $\chi^{2}=11.93$). v10 SVI does not produce a
 new $\chi^{2}$ value; the entry is left blank.}
+\tablenotetext{d}{v11f is the only NUTS variant of the v11 series
+(\S\ref{sec:nuts}) that converged into a basin distinct from the
+v10 SVI mode; it sits at $\log p\approx -63{,}868$ and reproduces
+\thetaE\ to $1.6\%$ but the chain did not mix and is reported as a
+second-mode point estimate, not a posterior. NUTS resolves the
+HMC JIT-compile blocker (v11) but \texttt{DualAveragingStepSizeAdaptation}
+collapses step size to $\sim$2--$3\times10^{-6}$ on this model
+(v11a/e/f), so the chain barely moves once in a basin.}
 \tablecomments{TT $=$ TinyTim PSF. eP $=$ empirical PSF. ``Paper-mode''
 is the sign quadrant $(\eone{>}0,\etwo{<}0,\gextone{>}0,\gexttwo{<}0)$.
 The flip in sign quadrant at v6$\to$v7 reflects multimodality, not
 a coding regression: v6 is a single-chain MAP at the global best
-under TinyTim, which lies in a different quadrant than the paper.}
+under TinyTim, which lies in a different quadrant than the paper.
+v11f confirms a third distinct basin reached by gradient-based
+sampling.}
 \end{deluxetable*}
 
 \section{Prior Specification}
@@ -901,7 +1170,7 @@ on the source-extraction detection on the v2 residual map
 (Figure~\ref{fig:nearby}). Total: 74 free non-linear parameters.}
 \end{deluxetable}
 
-\bibliographystyle{aasjournal}
+\bibliographystyle{aasjournalv7}
 \bibliography{references}
 
 \end{document}

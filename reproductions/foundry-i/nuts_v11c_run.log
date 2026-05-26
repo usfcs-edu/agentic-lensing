@@ -1,0 +1,32 @@
+qz_mean shape: (74,)
+Smoke test target_log_prob_fn(qz_mean)...
+  log_p = -45225.42 (5.95s incl. JIT)
+
+NUTS config (v11c: fixed step_size, no adaptation):
+  max_tree_depth = 6 (static)
+  step_size      = 0.005 (FIXED, no DualAveragingStepSizeAdaptation)
+  num_burnin     = 200
+  num_results    = 500
+
+Starting NUTS sample_chain (200 burn + 500 kept) ...
+NUTS done in 44.3s (0.74 min)
+
+Diagnostics over 500 kept samples:
+  Acceptance rate:      0.000
+  target_log_prob range: [-45225.4, -45225.4], median=-45225.4
+  leapfrogs/step:       min=1, median=1, max=1
+  Step-to-step ||Δz||:  median=0.0000, max=0.0000
+  (if median << 1 chain is barely moving; expect O(1) in whitened space)
+
+Saved /raid/benson/git/agentic-lensing/reproductions/foundry-i/data/nuts_v11c_samples.npz
+
+v11c NUTS posterior (500 samples, paper-mode + empirical PSF, fixed step_size):
+       param    v11c median  (     +1σ/     -1σ)              v10 SVI       v11 (adapted)               paper
+     theta_E     +2.5659  ( +0.0000/ +0.0000)    +2.5659±0.0003   +2.5659±0.0004   +2.6463±0.0017
+       gamma     +2.1507  ( +0.0000/ +0.0000)    +2.1507±0.0004   +2.1513±0.0001   +1.3720±0.0230
+          e1     +0.1064  ( +0.0000/ +0.0000)    +0.1064±0.0004   +0.1082±0.0005   +0.1091±0.0020
+          e2     -0.0533  ( +0.0000/ +0.0000)    -0.0533±0.0002   -0.0534±0.0005   -0.1320±0.0020
+      gamma1     +0.0399  ( +0.0000/ +0.0000)    +0.0399±0.0003   +0.0408±0.0003   +0.0657±0.0024
+      gamma2     -0.0676  ( +0.0000/ +0.0000)    -0.0676±0.0002   -0.0679±0.0003   -0.0939±0.0022
+
+Done.

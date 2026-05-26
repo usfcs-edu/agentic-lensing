@@ -1,0 +1,42 @@
+v10 SVI cov: dtype=float32, shape=(74, 74)
+  diag stats: min=1.1631e-08, max=5.0619e-03
+  eigenvalue range: [-4.3714e-13, 1.7722e-02], rank ~ 64/74
+
+Jittering: cov_fixed = cov + 1e-06 * I  (raises min eigenvalue above 0)
+  eigenvalue range after jitter: [1.0000e-06, 1.7723e-02]
+  numpy chol(jittered) diag: min=1.0052e-03, max=6.1741e-02
+  any NaN in L: False
+
+log_p at SVI mean = -45225.42
+
+NUTS config (v11e: jittered preconditioner + DualAveraging adapter):
+  jitter on cov diag     = 1e-06
+  max_tree_depth         = 6 (static)
+  init step_size         = 0.1
+  num_burnin / num_kept  = 200 / 500
+  target_accept_prob     = 0.8
+
+Running NUTS sample_chain ...
+NUTS done in 161.1s (2.69 min)
+
+Diagnostics over 500 kept samples:
+  Acceptance rate     : 1.000
+  target_log_prob     : min=-40463.9, median=-40390.3, max=-40348.3
+  step_size           : start=2.1398e-06, final=2.1398e-06
+  leapfrogs/iter      : min=63, median=63, max=63
+  ||Δz|| step-to-step : median=0.0005, max=0.0012
+  per-param sample std: min=9.6541e-05, max=2.1280e-03
+  any NaN in samples  : False
+
+Saved /raid/benson/git/agentic-lensing/reproductions/foundry-i/data/nuts_v11e_samples.npz
+
+v11e NUTS posterior (jittered preconditioner, 500 kept samples):
+       param          v11e median ± 1σ              v10 SVI          paper (HMC)    v11e−paper
+     theta_E    +2.5660 (+0.0004/-0.0004)    +2.5659±0.0003    +2.6463±0.0017     -0.0803
+       gamma    +2.1508 (+0.0002/-0.0002)    +2.1507±0.0004    +1.3720±0.0230     +0.7788
+          e1    +0.1085 (+0.0006/-0.0003)    +0.1064±0.0004    +0.1091±0.0020     -0.0006
+          e2    -0.0541 (+0.0004/-0.0005)    -0.0533±0.0002    -0.1320±0.0020     +0.0779
+      gamma1    +0.0410 (+0.0003/-0.0002)    +0.0399±0.0003    +0.0657±0.0024     -0.0247
+      gamma2    -0.0682 (+0.0004/-0.0003)    -0.0676±0.0002    -0.0939±0.0022     +0.0257
+
+Done.

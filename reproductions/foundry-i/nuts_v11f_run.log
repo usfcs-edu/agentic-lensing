@@ -1,0 +1,36 @@
+v7 paper-mode start: log_p=-21788.7, chi2=7.722
+Preconditioner: jittered v10 SVI cov + 1e-06*I, chol diag in [1.0052e-03, 6.1741e-02]
+log_p at v7 paper-mode start = -99119.41
+
+NUTS config (v11f):
+  starting point         = v7 paper-mode MAP (log_p=-99119)
+  jitter on cov          = 1e-06
+  max_tree_depth         = 6 (static)
+  init step_size         = 0.5 (larger than v11e's 0.1)
+  num_burnin / num_kept  = 400 / 500
+  target_accept_prob     = 0.6 (looser than v11e's 0.8)
+
+Running NUTS sample_chain ...
+NUTS done in 199.3s (3.32 min)
+
+Diagnostics over 500 kept samples:
+  Acceptance rate     : 0.938
+  target_log_prob     : min=-64205.3, median=-63867.9, max=-63545.6
+  step_size           : start=3.3924e-06, final=3.3924e-06
+  leapfrogs/iter      : min=63, median=63, max=63
+  ||Δz|| step-to-step : median=0.0002, max=0.0017
+  per-param sample std: min=9.0724e-05, max=2.3153e-03
+  any NaN             : False
+
+Saved /raid/benson/git/agentic-lensing/reproductions/foundry-i/data/nuts_v11f_samples.npz
+
+v11f NUTS posterior (v7 paper-mode start, looser target, jittered precond, 500 kept):
+       param          v11f median ± 1σ              v10 SVI                paper    v11f−paper
+     theta_E    +2.6042 (+0.0012/-0.0024)    +2.5659±0.0003    +2.6463±0.0017     -0.0421
+       gamma    +2.2565 (+0.0001/-0.0001)    +2.1507±0.0004    +1.3720±0.0230     +0.8845
+          e1    +0.1592 (+0.0009/-0.0011)    +0.1064±0.0004    +0.1091±0.0020     +0.0501
+          e2    -0.1507 (+0.0021/-0.0003)    -0.0533±0.0002    -0.1320±0.0020     -0.0187
+      gamma1    +0.0543 (+0.0004/-0.0009)    +0.0399±0.0003    +0.0657±0.0024     -0.0114
+      gamma2    -0.1186 (+0.0013/-0.0004)    -0.0676±0.0002    -0.0939±0.0022     -0.0247
+
+Done.

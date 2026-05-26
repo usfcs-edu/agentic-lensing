@@ -5,11 +5,15 @@
 # back to the classic pdflatex -> bibtex -> pdflatex -> pdflatex 4-pass.
 #
 # Targets:
-#   pdf       Build main.pdf (requires aastex631.cls; install texlive-publishers
-#             on Debian/Ubuntu, or texlive-collection-publishers on Fedora/RHEL).
+#   pdf       Build main.pdf (requires aastex701.cls from a recent TeX Live).
 #   clean     Remove auxiliary build artifacts (keep main.pdf).
 #   distclean Remove auxiliary build artifacts AND main.pdf.
 # -----------------------------------------------------------------------------
+
+# Force TeX Live 2026 (which ships aastex701.cls) ahead of any older system
+# install at /usr/bin/pdflatex (e.g., TL2020 on AlmaLinux 9.7).
+TL2026_BIN  := /usr/local/texlive/2026/bin/aarch64-linux
+export PATH := $(TL2026_BIN):$(PATH)
 
 PAPER       := main
 TEX_SOURCE  := $(PAPER).tex

@@ -1,0 +1,29 @@
+Traceback (most recent call last):
+  File [35m"/raid/benson/git/agentic-lensing/reproductions/foundry-i/20_fit_nuts_v11.py"[0m, line [35m44[0m, in [35m<module>[0m
+    with [31mfits.open[0m[1;31m(DATA / "cutout_F140W.fits")[0m as h:
+         [31m~~~~~~~~~[0m[1;31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  File [35m"/home/benson/.venvs/gigalens/lib/python3.13/site-packages/astropy/io/fits/hdu/hdulist.py"[0m, line [35m220[0m, in [35mfitsopen[0m
+    return [31mHDUList.fromfile[0m[1;31m([0m
+           [31m~~~~~~~~~~~~~~~~[0m[1;31m^[0m
+        [1;31mname,[0m
+        [1;31m^^^^^[0m
+    ...<9 lines>...
+        [1;31m**kwargs,[0m
+        [1;31m^^^^^^^^^[0m
+    [1;31m)[0m
+    [1;31m^[0m
+  File [35m"/home/benson/.venvs/gigalens/lib/python3.13/site-packages/astropy/io/fits/hdu/hdulist.py"[0m, line [35m484[0m, in [35mfromfile[0m
+    return [31mcls._readfrom[0m[1;31m([0m
+           [31m~~~~~~~~~~~~~[0m[1;31m^[0m
+        [1;31mfileobj=fileobj,[0m
+        [1;31m^^^^^^^^^^^^^^^^[0m
+    ...<6 lines>...
+        [1;31m**kwargs,[0m
+        [1;31m^^^^^^^^^[0m
+    [1;31m)[0m
+    [1;31m^[0m
+  File [35m"/home/benson/.venvs/gigalens/lib/python3.13/site-packages/astropy/io/fits/hdu/hdulist.py"[0m, line [35m1239[0m, in [35m_readfrom[0m
+    raise OSError(
+    ...<3 lines>...
+    )
+[1;35mOSError[0m: [35mNo SIMPLE card found, this file does not appear to be a valid FITS file. If this is really a FITS file, try with ignore_missing_simple=True[0m
