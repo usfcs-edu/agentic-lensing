@@ -1,0 +1,20 @@
+{
+  "n_pairs_total": 13530,
+  "n_with_sigma_v": 4238,
+  "n_without_sigma_v": 9292,
+  "frac_with_sigma_v": 0.313229859571323,
+  "sigma_v_kms": {
+    "n": 4238,
+    "p16": 152.1157489013672,
+    "p50": 217.08814239501953,
+    "p84": 292.2651416015625
+  },
+  "theta_E_arcsec": {
+    "n": 4238,
+    "p16": 0.36103627894889556,
+    "p50": 0.6814775728707314,
+    "p84": 1.2345904631690516
+  },
+  "published_dimple_count": 318,
+  "note": "The published 318 dimple count (Hsu+2025 \u00a74.4) comes from human visual inspection of imaging morphology, not from a \u03c3_v cut. Our 'dimple_proxy' column is the algorithmic analogue (pairs lacking FastSpecFit \u03c3_v on the lens) but is NOT expected to match 318 exactly."
+}

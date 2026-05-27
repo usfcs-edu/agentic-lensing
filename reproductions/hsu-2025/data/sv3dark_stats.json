@@ -1,0 +1,26 @@
+{
+  "prefilter": {
+    "raw": 862947,
+    "after_zcat_primary": 862947,
+    "after_zwarn_zero": 540627,
+    "after_spectype_not_star": 522111,
+    "after_z_positive": 521201
+  },
+  "fof_zcut": {
+    "fof_total_objects_in_groups>=2": 4014,
+    "fof_groups_size>=2": 1999,
+    "after_z_ratio_groups": 560,
+    "after_z_ratio_spectra": 1125,
+    "multiplicity_counts": {
+      "2": 555,
+      "3": 5
+    },
+    "fof_wallclock_s": 8.407226085662842
+  },
+  "scaling": {
+    "filtered_local": 521201,
+    "filtered_full_dr1_pub": 15800000,
+    "expected_groups_local": 436.0275201265823,
+    "expected_spectra_local": 878.1577101898735
+  }
+}

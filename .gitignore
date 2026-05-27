@@ -4,3 +4,13 @@
 # (raw MAST products) and 02_inspect_cutout.py (the 128x128 cutout).
 reproductions/foundry-i/data/mastDownload/
 reproductions/foundry-i/data/cutout_F140W.fits
+
+# Heavy DESI DR1 data for Hsu-2025 reproduction — all regenerable via the
+# numbered scripts in reproductions/hsu-2025/ (01_download_dr1_zcatalog.py
+# and 02_download_fastspecfit.py do the heavy pulls; 09_download_dr10_cutouts.py
+# fetches per-pair cutouts).
+reproductions/hsu-2025/data/zall-pix-iron.fits
+reproductions/hsu-2025/data/zpix-sv3-dark.fits
+reproductions/hsu-2025/data/fastspecfit/
+reproductions/hsu-2025/figs/cutouts_jpeg_dr10/
+reproductions/hsu-2025/figs/cutouts_fits_dr10/

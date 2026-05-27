@@ -1,0 +1,12 @@
+[load] /raid/benson/git/agentic-lensing/reproductions/hsu-2025/data/zpix-sv3-dark.fits
+[load] 862,947 rows in 0.9 s
+[pre ] {'raw': 862947, 'after_zcat_primary': 862947, 'after_zwarn_zero': 540627, 'after_spectype_not_star': 522111, 'after_z_positive': 521201}
+[fof ] running spherimatch.fof on N=521,201 at link=3.00″
+[fof ] done in 0.8 s
+[fof ] {'fof_total_objects_in_groups>=2': 4014, 'fof_groups_size>=2': 1999, 'after_z_ratio_groups': 560, 'after_z_ratio_spectra': 1125, 'multiplicity_counts': {2: 555, 3: 5}, 'fof_wallclock_s': 8.407226085662842}
+[save] wrote /raid/benson/git/agentic-lensing/reproductions/hsu-2025/data/sv3dark_pairs.parquet  (1,125 rows)
+
+[scale] sv3-dark filtered 521,201 / published full-DR1 filtered ≈ 15,800,000
+[scale]   expected groups  ≈ 436, actual 560
+[scale]   expected spectra ≈ 878, actual 1,125
+[save] wrote /raid/benson/git/agentic-lensing/reproductions/hsu-2025/data/sv3dark_stats.json

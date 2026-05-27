@@ -1,0 +1,17 @@
+[load] /raid/benson/git/agentic-lensing/reproductions/hsu-2025/data/zall-pix-iron.fits
+[load] 28,425,963 rows in ZCATALOG HDU
+[load] 28,425,963 rows loaded in 70.7 s
+[pre ] {'raw': 28425963, 'after_zcat_primary': 27547223, 'after_zwarn_zero': 20415199, 'after_spectype_not_star': 15825763, 'after_z_positive': 15786243}
+[fof ] running spherimatch.fof on N=15,786,243 at link=3.00″
+[fof ] done in 35.9 s
+[fof ] 15,697,391 total groups
+[fof ] 86,885 groups of size >= 2 covering 175,737 spectra
+[fof ] {'fof_groups_total': 15697391, 'fof_groups_size>=2': 86885, 'fof_spectra_size>=2': 175737, 'after_z_ratio_groups': 13530, 'after_z_ratio_spectra': 27334, 'multiplicity_counts': {2: 13276, 3: 236, 4: 16, 5: 2}, 'fof_wallclock_s': 35.938788414001465}
+[save] wrote /raid/benson/git/agentic-lensing/reproductions/hsu-2025/data/dr1_pairs.parquet  (27,334 rows)
+
+[verify]  PUBLISHED  vs  OURS
+  filtered     15,800,000    15,786,243
+  groups           13,218        13,530
+  spectra          26,621        27,334
+  multiplicity {2: 13044, 3: 165, 4: 7, 5: 2}    {2: 13276, 3: 236, 4: 16, 5: 2}
+[save] wrote /raid/benson/git/agentic-lensing/reproductions/hsu-2025/data/dr1_stats.json

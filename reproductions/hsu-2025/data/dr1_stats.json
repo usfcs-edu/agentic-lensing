@@ -1,0 +1,34 @@
+{
+  "prefilter": {
+    "raw": 28425963,
+    "after_zcat_primary": 27547223,
+    "after_zwarn_zero": 20415199,
+    "after_spectype_not_star": 15825763,
+    "after_z_positive": 15786243
+  },
+  "fof_zcut": {
+    "fof_groups_total": 15697391,
+    "fof_groups_size>=2": 86885,
+    "fof_spectra_size>=2": 175737,
+    "after_z_ratio_groups": 13530,
+    "after_z_ratio_spectra": 27334,
+    "multiplicity_counts": {
+      "2": 13276,
+      "3": 236,
+      "4": 16,
+      "5": 2
+    },
+    "fof_wallclock_s": 35.938788414001465
+  },
+  "published": {
+    "filtered_pub": 15800000,
+    "groups_pub": 13218,
+    "spectra_pub": 26621,
+    "multiplicity_pub": {
+      "2": 13044,
+      "3": 165,
+      "4": 7,
+      "5": 2
+    }
+  }
+}

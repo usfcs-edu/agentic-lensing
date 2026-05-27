@@ -1,0 +1,332 @@
+{
+  "n_hsu_table2": 20,
+  "n_matched_within_3arcsec": 20,
+  "n_matched_within_1p5arcsec": 19,
+  "recall_3arcsec": 1.0,
+  "median_offset_arcsec": 0.9098483729998383,
+  "max_offset_arcsec": 1.5393330079879561,
+  "matches": [
+    {
+      "name": "DESI-004.5374+01.0382",
+      "hsu_ra": 4.5374,
+      "hsu_dec": 1.0382,
+      "nearest_group_id": 3002186,
+      "nearest_group_size": 2,
+      "offset_arcsec": 0.9433350425430432,
+      "member_targetids": [
+        39627808963560666,
+        39627808963560671
+      ],
+      "member_z": [
+        0.3266195325989532,
+        0.7497079335303389
+      ]
+    },
+    {
+      "name": "DESI-037.4253-03.3533",
+      "hsu_ra": 37.4253,
+      "hsu_dec": -3.3533,
+      "nearest_group_id": 2838488,
+      "nearest_group_size": 2,
+      "offset_arcsec": 0.5143119344001318,
+      "member_targetids": [
+        39627706844844387,
+        39627706844844374
+      ],
+      "member_z": [
+        0.27353446883483357,
+        1.0980209248112307
+      ]
+    },
+    {
+      "name": "DESI-043.3037+03.0729",
+      "hsu_ra": 43.3037,
+      "hsu_dec": 3.0729,
+      "nearest_group_id": 24327,
+      "nearest_group_size": 2,
+      "offset_arcsec": 0.9774032222461639,
+      "member_targetids": [
+        39627857932060177,
+        39627857932060172
+      ],
+      "member_z": [
+        0.6027309698264651,
+        2.3404366895881394
+      ]
+    },
+    {
+      "name": "DESI-063.4488-18.1813",
+      "hsu_ra": 63.4488,
+      "hsu_dec": -18.1813,
+      "nearest_group_id": 5788182,
+      "nearest_group_size": 2,
+      "offset_arcsec": 0.8023899165924046,
+      "member_targetids": [
+        39627351973170955,
+        39627351973170967
+      ],
+      "member_z": [
+        0.28600995823573716,
+        0.7851627183397343
+      ]
+    },
+    {
+      "name": "DESI-066.3585-16.5116",
+      "hsu_ra": 66.3585,
+      "hsu_dec": -16.5116,
+      "nearest_group_id": 3752847,
+      "nearest_group_size": 2,
+      "offset_arcsec": 0.9334902918935447,
+      "member_targetids": [
+        39627392410455711,
+        39627392410455708
+      ],
+      "member_z": [
+        0.2671506226305253,
+        0.7720579767259622
+      ]
+    },
+    {
+      "name": "DESI-119.2449+42.4903",
+      "hsu_ra": 119.2449,
+      "hsu_dec": 42.4903,
+      "nearest_group_id": 667020,
+      "nearest_group_size": 2,
+      "offset_arcsec": 1.2945575171033208,
+      "member_targetids": [
+        39633121687111837,
+        39633121687111850
+      ],
+      "member_z": [
+        0.12206746352168873,
+        2.0856207704293133
+      ]
+    },
+    {
+      "name": "DESI-132.2396-01.3110",
+      "hsu_ra": 132.2396,
+      "hsu_dec": -1.311,
+      "nearest_group_id": 10434244,
+      "nearest_group_size": 2,
+      "offset_arcsec": 0.7118185419176415,
+      "member_targetids": [
+        39627756744479423,
+        39627756744479434
+      ],
+      "member_z": [
+        0.3674467942205441,
+        0.7933143203600624
+      ]
+    },
+    {
+      "name": "DESI-152.1067-03.2930",
+      "hsu_ra": 152.1067,
+      "hsu_dec": -3.293,
+      "nearest_group_id": 4864833,
+      "nearest_group_size": 2,
+      "offset_arcsec": 1.5393330079879561,
+      "member_targetids": [
+        39627708765834243,
+        39627708765834248
+      ],
+      "member_z": [
+        0.28050465128236074,
+        0.8461640233467529
+      ]
+    },
+    {
+      "name": "DESI-162.5471+02.3538",
+      "hsu_ra": 162.5471,
+      "hsu_dec": 2.3538,
+      "nearest_group_id": 4775032,
+      "nearest_group_size": 2,
+      "offset_arcsec": 0.9275685965698027,
+      "member_targetids": [
+        39627841813349548,
+        39627841813349553
+      ],
+      "member_z": [
+        0.3311790146041899,
+        0.6340683038241779
+      ]
+    },
+    {
+      "name": "DESI-215.8346+35.7262",
+      "hsu_ra": 215.8346,
+      "hsu_dec": 35.7262,
+      "nearest_group_id": 1907179,
+      "nearest_group_size": 2,
+      "offset_arcsec": 1.2585862902546785,
+      "member_targetids": [
+        39632996143204674,
+        39632996143204684
+      ],
+      "member_z": [
+        0.4057324086102965,
+        0.9735730681982084
+      ]
+    },
+    {
+      "name": "DESI-227.5058+37.0509",
+      "hsu_ra": 227.5058,
+      "hsu_dec": 37.0509,
+      "nearest_group_id": 1413284,
+      "nearest_group_size": 2,
+      "offset_arcsec": 1.055766718555047,
+      "member_targetids": [
+        39633020663103573,
+        39633020663103576
+      ],
+      "member_z": [
+        0.4221463996700365,
+        2.0628435338286217
+      ]
+    },
+    {
+      "name": "DESI-227.9553+36.6557",
+      "hsu_ra": 227.9553,
+      "hsu_dec": 36.6557,
+      "nearest_group_id": 1411769,
+      "nearest_group_size": 2,
+      "offset_arcsec": 1.193710207719262,
+      "member_targetids": [
+        39633015827075289,
+        39633015827075301
+      ],
+      "member_z": [
+        2.8223596574834935,
+        0.36655054860739483
+      ]
+    },
+    {
+      "name": "DESI-228.8385+02.3565",
+      "hsu_ra": 228.8385,
+      "hsu_dec": 2.3565,
+      "nearest_group_id": 5267560,
+      "nearest_group_size": 2,
+      "offset_arcsec": 0.8921281494298741,
+      "member_targetids": [
+        39627842924841105,
+        39627842924841106
+      ],
+      "member_z": [
+        0.37817269400289655,
+        0.22751763596855756
+      ]
+    },
+    {
+      "name": "DESI-231.8344+01.6947",
+      "hsu_ra": 231.8344,
+      "hsu_dec": 1.6947,
+      "nearest_group_id": 5262711,
+      "nearest_group_size": 3,
+      "offset_arcsec": 0.8887711329387348,
+      "member_targetids": [
+        39627830895577396,
+        39627830895577377,
+        39627830895577391
+      ],
+      "member_z": [
+        0.30592277244061294,
+        1.4395346624682537,
+        0.3056420664463592
+      ]
+    },
+    {
+      "name": "DESI-249.7123+04.6103",
+      "hsu_ra": 249.7123,
+      "hsu_dec": 4.6103,
+      "nearest_group_id": 13577294,
+      "nearest_group_size": 2,
+      "offset_arcsec": 1.0222515918903572,
+      "member_targetids": [
+        39627897580814980,
+        39627897580814992
+      ],
+      "member_z": [
+        0.36268402798679794,
+        0.6369344365235142
+      ]
+    },
+    {
+      "name": "DESI-251.9827+32.5477",
+      "hsu_ra": 251.9827,
+      "hsu_dec": 32.5477,
+      "nearest_group_id": 1518741,
+      "nearest_group_size": 2,
+      "offset_arcsec": 0.8178688987841755,
+      "member_targetids": [
+        39632931534146108,
+        39632931534146100
+      ],
+      "member_z": [
+        0.34060136430250154,
+        1.1961821530382035
+      ]
+    },
+    {
+      "name": "DESI-259.9375+14.3606",
+      "hsu_ra": 259.9375,
+      "hsu_dec": 14.3606,
+      "nearest_group_id": 13833725,
+      "nearest_group_size": 2,
+      "offset_arcsec": 0.7235475481157,
+      "member_targetids": [
+        39628130075282690,
+        39628130075282704
+      ],
+      "member_z": [
+        1.2688172644971496,
+        0.556767465642193
+      ]
+    },
+    {
+      "name": "DESI-264.7547+30.3171",
+      "hsu_ra": 264.7547,
+      "hsu_dec": 30.3171,
+      "nearest_group_id": 5713177,
+      "nearest_group_size": 2,
+      "offset_arcsec": 0.6978163535514895,
+      "member_targetids": [
+        39628487190906935,
+        39628487190906923
+      ],
+      "member_z": [
+        0.31446251152225957,
+        0.6300542509727002
+      ]
+    },
+    {
+      "name": "DESI-285.9895+64.4143",
+      "hsu_ra": 285.9895,
+      "hsu_dec": 64.4143,
+      "nearest_group_id": 2706382,
+      "nearest_group_size": 2,
+      "offset_arcsec": 0.7316404067478981,
+      "member_targetids": [
+        39633438730358622,
+        39633438730358608
+      ],
+      "member_z": [
+        0.23122272412942102,
+        0.7567943343454447
+      ]
+    },
+    {
+      "name": "DESI-334.6393+00.6638",
+      "hsu_ra": 334.6393,
+      "hsu_dec": 0.6638,
+      "nearest_group_id": 3296712,
+      "nearest_group_size": 2,
+      "offset_arcsec": 0.777031037338254,
+      "member_targetids": [
+        39627808460248592,
+        39627808460248599
+      ],
+      "member_z": [
+        0.24511915509463403,
+        0.7202331337105432
+      ]
+    }
+  ]
+}

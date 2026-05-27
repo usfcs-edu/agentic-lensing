@@ -1,0 +1,125 @@
+[get ] https://data.desi.lbl.gov/public/dr1/spectro/redux/iron/zcatalog/v1/zpix-sv3-dark.fits
+[get ] -> /raid/benson/git/agentic-lensing/reproductions/hsu-2025/data/zpix-sv3-dark.fits  (resume_from=   0.0 B, target= 859.4 MiB)
+[prog] zpix-sv3-dark.fits:  592.0 MiB /  859.4 MiB ( 68.9%) @  114.3 MiB/s  ETA 0.0 min
+[done] zpix-sv3-dark.fits:  859.4 MiB in 0.1 min
+[skip] zall-pix-iron.fits (HSU_ONLY filter)
+
+
+[fits] zpix-sv3-dark.fits
+Filename: /raid/benson/git/agentic-lensing/reproductions/hsu-2025/data/zpix-sv3-dark.fits
+No.    Name      Ver    Type      Cards   Dimensions   Format
+  0  PRIMARY       1 PrimaryHDU       8   ()      
+  1  ZCATALOG      1 BinTableHDU    370   862947R x 120C   [K, J, J, D, D, K, D, 10D, K, 6A, 20A, K, D, J, D, D, E, E, E, K, B, 3A, D, J, I, 8A, J, J, 4A, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, I, E, E, E, E, K, 2A, E, E, E, E, 1A, K, K, K, K, K, K, K, K, K, D, D, I, E, I, I, E, E, E, E, E, D, E, D, E, D, D, D, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, I, L, 22A]   
+  2  EXP_FIBERMAP    1 BinTableHDU     82   1862718R x 29C   [K, J, D, J, J, D, J, D, I, J, K, J, J, E, E, E, D, D, K, D, D, D, D, D, D, D, L, L, L]   
+  HDU 1 (ZCATALOG) columns (120):
+    TARGETID, HEALPIX, SPGRPVAL, Z, ZERR, ZWARN
+    CHI2, COEFF, NPIXELS, SPECTYPE, SUBTYPE, NCOEFF
+    DELTACHI2, COADD_FIBERSTATUS, TARGET_RA, TARGET_DEC, PMRA, PMDEC
+    REF_EPOCH, FA_TARGET, FA_TYPE, OBJTYPE, SUBPRIORITY, OBSCONDITIONS
+    RELEASE, BRICKNAME, BRICKID, BRICK_OBJID, MORPHTYPE, EBV
+    FLUX_G, FLUX_R, FLUX_Z, FLUX_W1, FLUX_W2, FLUX_IVAR_G
+    FLUX_IVAR_R, FLUX_IVAR_Z, FLUX_IVAR_W1, FLUX_IVAR_W2, FIBERFLUX_G, FIBERFLUX_R
+    FIBERFLUX_Z, FIBERTOTFLUX_G, FIBERTOTFLUX_R, FIBERTOTFLUX_Z, MASKBITS, SERSIC
+    SHAPE_R, SHAPE_E1, SHAPE_E2, REF_ID, REF_CAT, GAIA_PHOT_G_MEAN_MAG
+    GAIA_PHOT_BP_MEAN_MAG, GAIA_PHOT_RP_MEAN_MAG, PARALLAX, PHOTSYS, PRIORITY_INIT, NUMOBS_INIT
+    SV3_DESI_TARGET, SV3_BGS_TARGET, SV3_MWS_TARGET, SV3_SCND_TARGET, DESI_TARGET, BGS_TARGET
+    MWS_TARGET, PLATE_RA, PLATE_DEC, COADD_NUMEXP, COADD_EXPTIME, COADD_NUMNIGHT
+    COADD_NUMTILE, MEAN_DELTA_X, RMS_DELTA_X, MEAN_DELTA_Y, RMS_DELTA_Y, MEAN_PSF_TO_FIBER_SPECFLUX
+    MEAN_FIBER_RA, STD_FIBER_RA, MEAN_FIBER_DEC, STD_FIBER_DEC, MIN_MJD, MAX_MJD
+    MEAN_MJD, TSNR2_GPBDARK_B, TSNR2_ELG_B, TSNR2_GPBBRIGHT_B, TSNR2_LYA_B, TSNR2_BGS_B
+    TSNR2_GPBBACKUP_B, TSNR2_QSO_B, TSNR2_LRG_B, TSNR2_GPBDARK_R, TSNR2_ELG_R, TSNR2_GPBBRIGHT_R
+    TSNR2_LYA_R, TSNR2_BGS_R, TSNR2_GPBBACKUP_R, TSNR2_QSO_R, TSNR2_LRG_R, TSNR2_GPBDARK_Z
+    TSNR2_ELG_Z, TSNR2_GPBBRIGHT_Z, TSNR2_LYA_Z, TSNR2_BGS_Z, TSNR2_GPBBACKUP_Z, TSNR2_QSO_Z
+    TSNR2_LRG_Z, TSNR2_GPBDARK, TSNR2_ELG, TSNR2_GPBBRIGHT, TSNR2_LYA, TSNR2_BGS
+    TSNR2_GPBBACKUP, TSNR2_QSO, TSNR2_LRG, ZCAT_NSPEC, ZCAT_PRIMARY, DESINAME
+[skip] zpix-sv3-dark.fits (HSU_ONLY filter)
+[get ] https://data.desi.lbl.gov/public/dr1/spectro/redux/iron/zcatalog/v1/zall-pix-iron.fits
+[get ] -> /raid/benson/git/agentic-lensing/reproductions/hsu-2025/data/zall-pix-iron.fits  (resume_from=   0.0 B, target=  20.8 GiB)
+[prog] zall-pix-iron.fits:  336.0 MiB /   20.8 GiB (  1.6%) @   63.2 MiB/s  ETA 5.5 min
+[prog] zall-pix-iron.fits:  656.0 MiB /   20.8 GiB (  3.1%) @   62.4 MiB/s  ETA 5.5 min
+[prog] zall-pix-iron.fits:  896.0 MiB /   20.8 GiB (  4.2%) @   57.6 MiB/s  ETA 5.9 min
+[prog] zall-pix-iron.fits:    1.2 GiB /   20.8 GiB (  5.8%) @   59.9 MiB/s  ETA 5.6 min
+[prog] zall-pix-iron.fits:    1.5 GiB /   20.8 GiB (  7.2%) @   58.5 MiB/s  ETA 5.6 min
+[prog] zall-pix-iron.fits:    1.8 GiB /   20.8 GiB (  8.5%) @   57.8 MiB/s  ETA 5.6 min
+[prog] zall-pix-iron.fits:    2.1 GiB /   20.8 GiB ( 10.1%) @   59.0 MiB/s  ETA 5.4 min
+[prog] zall-pix-iron.fits:    2.5 GiB /   20.8 GiB ( 11.9%) @   60.8 MiB/s  ETA 5.1 min
+[prog] zall-pix-iron.fits:    2.8 GiB /   20.8 GiB ( 13.6%) @   61.8 MiB/s  ETA 5.0 min
+[prog] zall-pix-iron.fits:    3.3 GiB /   20.8 GiB ( 15.7%) @   64.4 MiB/s  ETA 4.7 min
+[prog] zall-pix-iron.fits:    3.8 GiB /   20.8 GiB ( 18.4%) @   68.9 MiB/s  ETA 4.2 min
+[prog] zall-pix-iron.fits:    4.3 GiB /   20.8 GiB ( 20.8%) @   71.7 MiB/s  ETA 3.9 min
+[prog] zall-pix-iron.fits:    4.8 GiB /   20.8 GiB ( 22.9%) @   73.0 MiB/s  ETA 3.8 min
+[prog] zall-pix-iron.fits:    5.3 GiB /   20.8 GiB ( 25.6%) @   75.8 MiB/s  ETA 3.5 min
+[prog] zall-pix-iron.fits:    5.8 GiB /   20.8 GiB ( 27.7%) @   76.4 MiB/s  ETA 3.4 min
+[prog] zall-pix-iron.fits:    6.1 GiB /   20.8 GiB ( 29.4%) @   76.0 MiB/s  ETA 3.3 min
+[prog] zall-pix-iron.fits:    6.5 GiB /   20.8 GiB ( 31.3%) @   76.3 MiB/s  ETA 3.2 min
+[prog] zall-pix-iron.fits:    6.9 GiB /   20.8 GiB ( 33.0%) @   75.8 MiB/s  ETA 3.1 min
+[prog] zall-pix-iron.fits:    7.2 GiB /   20.8 GiB ( 34.6%) @   75.3 MiB/s  ETA 3.1 min
+[prog] zall-pix-iron.fits:    7.5 GiB /   20.8 GiB ( 35.8%) @   74.0 MiB/s  ETA 3.1 min
+[prog] zall-pix-iron.fits:    7.8 GiB /   20.8 GiB ( 37.4%) @   73.8 MiB/s  ETA 3.0 min
+[prog] zall-pix-iron.fits:    8.2 GiB /   20.8 GiB ( 39.4%) @   74.2 MiB/s  ETA 2.9 min
+[prog] zall-pix-iron.fits:    8.6 GiB /   20.8 GiB ( 41.2%) @   74.3 MiB/s  ETA 2.8 min
+[prog] zall-pix-iron.fits:    9.0 GiB /   20.8 GiB ( 43.3%) @   74.9 MiB/s  ETA 2.7 min
+[prog] zall-pix-iron.fits:    9.4 GiB /   20.8 GiB ( 45.2%) @   75.1 MiB/s  ETA 2.6 min
+[prog] zall-pix-iron.fits:    9.8 GiB /   20.8 GiB ( 46.9%) @   75.0 MiB/s  ETA 2.5 min
+[prog] zall-pix-iron.fits:   10.1 GiB /   20.8 GiB ( 48.6%) @   74.8 MiB/s  ETA 2.4 min
+[prog] zall-pix-iron.fits:   10.4 GiB /   20.8 GiB ( 49.9%) @   74.1 MiB/s  ETA 2.4 min
+[prog] zall-pix-iron.fits:   10.8 GiB /   20.8 GiB ( 51.6%) @   73.9 MiB/s  ETA 2.3 min
+[prog] zall-pix-iron.fits:   11.1 GiB /   20.8 GiB ( 53.5%) @   74.1 MiB/s  ETA 2.2 min
+[prog] zall-pix-iron.fits:   11.6 GiB /   20.8 GiB ( 55.5%) @   74.4 MiB/s  ETA 2.1 min
+[prog] zall-pix-iron.fits:   11.9 GiB /   20.8 GiB ( 57.2%) @   74.4 MiB/s  ETA 2.0 min
+[prog] zall-pix-iron.fits:   12.2 GiB /   20.8 GiB ( 58.7%) @   74.0 MiB/s  ETA 2.0 min
+[prog] zall-pix-iron.fits:   12.6 GiB /   20.8 GiB ( 60.7%) @   74.2 MiB/s  ETA 1.9 min
+[prog] zall-pix-iron.fits:   12.9 GiB /   20.8 GiB ( 62.0%) @   73.7 MiB/s  ETA 1.8 min
+[prog] zall-pix-iron.fits:   13.2 GiB /   20.8 GiB ( 63.6%) @   73.5 MiB/s  ETA 1.8 min
+[prog] zall-pix-iron.fits:   13.8 GiB /   20.8 GiB ( 66.0%) @   74.3 MiB/s  ETA 1.6 min
+[prog] zall-pix-iron.fits:   14.2 GiB /   20.8 GiB ( 68.4%) @   74.9 MiB/s  ETA 1.5 min
+[prog] zall-pix-iron.fits:   14.7 GiB /   20.8 GiB ( 70.6%) @   75.5 MiB/s  ETA 1.4 min
+[prog] zall-pix-iron.fits:   15.2 GiB /   20.8 GiB ( 73.0%) @   76.0 MiB/s  ETA 1.3 min
+[prog] zall-pix-iron.fits:   15.6 GiB /   20.8 GiB ( 74.8%) @   76.0 MiB/s  ETA 1.2 min
+[prog] zall-pix-iron.fits:   16.0 GiB /   20.8 GiB ( 77.0%) @   76.4 MiB/s  ETA 1.1 min
+[prog] zall-pix-iron.fits:   16.4 GiB /   20.8 GiB ( 78.6%) @   76.1 MiB/s  ETA 1.0 min
+[prog] zall-pix-iron.fits:   16.7 GiB /   20.8 GiB ( 80.0%) @   75.7 MiB/s  ETA 0.9 min
+[prog] zall-pix-iron.fits:   17.0 GiB /   20.8 GiB ( 81.4%) @   75.3 MiB/s  ETA 0.9 min
+[prog] zall-pix-iron.fits:   17.4 GiB /   20.8 GiB ( 83.7%) @   75.8 MiB/s  ETA 0.8 min
+[prog] zall-pix-iron.fits:   17.8 GiB /   20.8 GiB ( 85.2%) @   75.5 MiB/s  ETA 0.7 min
+[prog] zall-pix-iron.fits:   18.1 GiB /   20.8 GiB ( 86.7%) @   75.2 MiB/s  ETA 0.6 min
+[prog] zall-pix-iron.fits:   18.4 GiB /   20.8 GiB ( 88.4%) @   75.2 MiB/s  ETA 0.5 min
+[prog] zall-pix-iron.fits:   19.0 GiB /   20.8 GiB ( 91.2%) @   76.0 MiB/s  ETA 0.4 min
+[prog] zall-pix-iron.fits:   19.3 GiB /   20.8 GiB ( 92.5%) @   75.6 MiB/s  ETA 0.4 min
+[prog] zall-pix-iron.fits:   19.6 GiB /   20.8 GiB ( 94.0%) @   75.3 MiB/s  ETA 0.3 min
+[prog] zall-pix-iron.fits:   19.9 GiB /   20.8 GiB ( 95.3%) @   75.0 MiB/s  ETA 0.2 min
+[prog] zall-pix-iron.fits:   20.2 GiB /   20.8 GiB ( 96.8%) @   74.8 MiB/s  ETA 0.2 min
+[prog] zall-pix-iron.fits:   20.5 GiB /   20.8 GiB ( 98.2%) @   74.4 MiB/s  ETA 0.1 min
+[prog] zall-pix-iron.fits:   20.8 GiB /   20.8 GiB ( 99.9%) @   74.3 MiB/s  ETA 0.0 min
+[done] zall-pix-iron.fits:   20.8 GiB in 4.8 min
+
+
+[fits] zall-pix-iron.fits
+Filename: /raid/benson/git/agentic-lensing/reproductions/hsu-2025/data/zall-pix-iron.fits
+No.    Name      Ver    Type      Cards   Dimensions   Format
+  0  PRIMARY       1 PrimaryHDU       8   ()      
+  1  ZCATALOG      1 BinTableHDU    400   28425963R x 136C   [K, 7A, 6A, J, J, D, D, K, D, 10D, K, 6A, 20A, K, D, J, D, D, E, E, E, K, B, 3A, D, J, I, 8A, J, J, 4A, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, I, E, E, E, E, K, 2A, E, E, E, E, 1A, K, K, K, K, K, K, K, K, K, K, K, K, K, K, K, K, K, K, K, D, D, I, E, I, I, E, E, E, E, E, D, E, D, E, D, D, D, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, I, L, I, L, I, L, 22A]   
+  HDU 1 (ZCATALOG) columns (136):
+    TARGETID, SURVEY, PROGRAM, HEALPIX, SPGRPVAL, Z
+    ZERR, ZWARN, CHI2, COEFF, NPIXELS, SPECTYPE
+    SUBTYPE, NCOEFF, DELTACHI2, COADD_FIBERSTATUS, TARGET_RA, TARGET_DEC
+    PMRA, PMDEC, REF_EPOCH, FA_TARGET, FA_TYPE, OBJTYPE
+    SUBPRIORITY, OBSCONDITIONS, RELEASE, BRICKNAME, BRICKID, BRICK_OBJID
+    MORPHTYPE, EBV, FLUX_G, FLUX_R, FLUX_Z, FLUX_W1
+    FLUX_W2, FLUX_IVAR_G, FLUX_IVAR_R, FLUX_IVAR_Z, FLUX_IVAR_W1, FLUX_IVAR_W2
+    FIBERFLUX_G, FIBERFLUX_R, FIBERFLUX_Z, FIBERTOTFLUX_G, FIBERTOTFLUX_R, FIBERTOTFLUX_Z
+    MASKBITS, SERSIC, SHAPE_R, SHAPE_E1, SHAPE_E2, REF_ID
+    REF_CAT, GAIA_PHOT_G_MEAN_MAG, GAIA_PHOT_BP_MEAN_MAG, GAIA_PHOT_RP_MEAN_MAG, PARALLAX, PHOTSYS
+    PRIORITY_INIT, NUMOBS_INIT, CMX_TARGET, DESI_TARGET, BGS_TARGET, MWS_TARGET
+    SCND_TARGET, SV1_DESI_TARGET, SV1_BGS_TARGET, SV1_MWS_TARGET, SV1_SCND_TARGET, SV2_DESI_TARGET
+    SV2_BGS_TARGET, SV2_MWS_TARGET, SV2_SCND_TARGET, SV3_DESI_TARGET, SV3_BGS_TARGET, SV3_MWS_TARGET
+    SV3_SCND_TARGET, PLATE_RA, PLATE_DEC, COADD_NUMEXP, COADD_EXPTIME, COADD_NUMNIGHT
+    COADD_NUMTILE, MEAN_DELTA_X, RMS_DELTA_X, MEAN_DELTA_Y, RMS_DELTA_Y, MEAN_PSF_TO_FIBER_SPECFLUX
+    MEAN_FIBER_RA, STD_FIBER_RA, MEAN_FIBER_DEC, STD_FIBER_DEC, MIN_MJD, MAX_MJD
+    MEAN_MJD, TSNR2_GPBDARK_B, TSNR2_ELG_B, TSNR2_GPBBRIGHT_B, TSNR2_LYA_B, TSNR2_BGS_B
+    TSNR2_GPBBACKUP_B, TSNR2_QSO_B, TSNR2_LRG_B, TSNR2_GPBDARK_R, TSNR2_ELG_R, TSNR2_GPBBRIGHT_R
+    TSNR2_LYA_R, TSNR2_BGS_R, TSNR2_GPBBACKUP_R, TSNR2_QSO_R, TSNR2_LRG_R, TSNR2_GPBDARK_Z
+    TSNR2_ELG_Z, TSNR2_GPBBRIGHT_Z, TSNR2_LYA_Z, TSNR2_BGS_Z, TSNR2_GPBBACKUP_Z, TSNR2_QSO_Z
+    TSNR2_LRG_Z, TSNR2_GPBDARK, TSNR2_ELG, TSNR2_GPBBRIGHT, TSNR2_LYA, TSNR2_BGS
+    TSNR2_GPBBACKUP, TSNR2_QSO, TSNR2_LRG, MAIN_NSPEC, MAIN_PRIMARY, SV_NSPEC
+    SV_PRIMARY, ZCAT_NSPEC, ZCAT_PRIMARY, DESINAME

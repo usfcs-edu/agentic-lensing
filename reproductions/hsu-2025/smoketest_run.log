@@ -1,0 +1,11 @@
+[parity] N=10000 in 1.0°×1.0° patch, tolerance=3.0″ (8.333333e-04 deg)
+[parity] spherimatch groups (size>=2): 105
+[parity] astropy   groups (size>=2): 105
+[parity] OK — spherimatch matches astropy reference
+[timing] N=    1,000  fof=    0.02 s
+[timing] N=   10,000  fof=    0.07 s
+[timing] N=  100,000  fof=    0.13 s
+[timing] N=1,000,000  fof=    1.76 s
+[extrapolate] power-law fit  t ~ N^0.63
+[extrapolate] full-DR1 (N=28,000,000) predicted: 9 s  (0 min, 0.0 h)
+[done] wrote /raid/benson/git/agentic-lensing/reproductions/hsu-2025/data/smoketest_timings.json

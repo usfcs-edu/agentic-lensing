@@ -1,0 +1,16 @@
+[pair] /raid/benson/git/agentic-lensing/reproductions/hsu-2025/data/dr1_pairs.parquet: 27,334 rows / 13,530 groups
+[load] concatenating 5 σ_v shards
+[load] σ_v master: 1,728,995 rows across 1,728,971 unique TARGETIDs
+[load] after dedup: 1,728,971 unique TARGETIDs
+
+[stats] total pairs:                13,530
+[stats] with σ_v (conventional):    1,428 (10.6%)
+[stats] without σ_v (dimple proxy): 12,102 (89.4%)
+
+[σ_v ]   median = 250.0 km/s
+[σ_v ]   (16, 50, 84) = (227.1, 250.0, 250.0) km/s
+[θ_E ]   median = 0.893″
+[θ_E ]   (16, 50, 84) = (0.453, 0.893, 1.412)″
+
+[save] wrote /raid/benson/git/agentic-lensing/reproductions/hsu-2025/data/classified_pairs.parquet  (13,530 rows)
+[save] wrote /raid/benson/git/agentic-lensing/reproductions/hsu-2025/data/classified_stats.json
