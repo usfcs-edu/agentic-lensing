@@ -8,6 +8,40 @@ Source paper: **T. M. C. Abbott et al. (DES Collaboration), "Constraints on Dyna
 
 ---
 
+## Contents
+
+- [1. Executive Summary](#1-executive-summary)
+- [2. The DES Y6 Paper in Detail](#2-the-des-y6-paper-in-detail)
+  - [2.1 What is being measured](#21-what-is-being-measured)
+  - [2.2 The four probes](#22-the-four-probes)
+  - [2.3 Headline numbers and Table I](#23-headline-numbers-and-table-i)
+  - [2.4 Phantom-crossing and what it means](#24-phantom-crossing-and-what-it-means)
+  - [2.5 Robustness and caveats](#25-robustness-and-caveats)
+  - [2.6 The S₈ "tension" addendum (Supplemental Material Fig. S1)](#26-the-s₈-tension-addendum-supplemental-material-fig-s1)
+- [3. Huang's Strong-Lensing Program](#3-huangs-strong-lensing-program)
+  - [3.1 The program at a glance](#31-the-program-at-a-glance)
+  - [3.2 The cosmographic outputs the program is positioned to deliver](#32-the-cosmographic-outputs-the-program-is-positioned-to-deliver)
+  - [3.3 The current center of mass of the program is Discover + Characterize, not Cosmologize](#33-the-current-center-of-mass-of-the-program-is-discover--characterize-not-cosmologize)
+- [4. Implications for Huang's Work](#4-implications-for-huangs-work)
+  - [4.1 The DES result validates the strategic value of the lensing pillar](#41-the-des-result-validates-the-strategic-value-of-the-lensing-pillar)
+  - [4.2 Specific actions the group should consider](#42-specific-actions-the-group-should-consider)
+  - [4.3 Methodological transfers the Foundry team can adopt today](#43-methodological-transfers-the-foundry-team-can-adopt-today)
+- [5. Implications for the SpectrumFM Proposal](#5-implications-for-the-spectrumfm-proposal)
+  - [5.1 The strategic gap](#51-the-strategic-gap)
+  - [5.2 Concrete cosmological angles to add to the narrative](#52-concrete-cosmological-angles-to-add-to-the-narrative)
+  - [5.3 Phase II Rubin / Euclid / Roman alignment](#53-phase-ii-rubin--euclid--roman-alignment)
+  - [5.4 What the Stephen-Bailey LBNL connection makes possible](#54-what-the-stephen-bailey-lbnl-connection-makes-possible)
+- [6. The Agentic-AI Layer](#6-the-agentic-ai-layer)
+  - [6.1 Why agentic coordination is the missing layer](#61-why-agentic-coordination-is-the-missing-layer)
+  - [6.2 Five agent designs](#62-five-agent-designs)
+  - [6.3 Shared substrate](#63-shared-substrate)
+  - [6.4 Phasing](#64-phasing)
+- [7. What We Can Directly Use From the DES Y6 Result](#7-what-we-can-directly-use-from-the-des-y6-result)
+- [8. Risks and Caveats](#8-risks-and-caveats)
+- [9. Recommended Near-Term Actions](#9-recommended-near-term-actions)
+
+---
+
 ## 1. Executive Summary
 
 **The DES result.** Combining the full six-year DES dataset (cosmic shear + galaxy–galaxy lensing + galaxy clustering, type Ia supernovae, and baryon acoustic oscillations) with DESI DR2 BAO and primary CMB anisotropies (Planck + ACT DR6 + SPT-3G DR1) yields a CPL-parameterized dark-energy equation of state
