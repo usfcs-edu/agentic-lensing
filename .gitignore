@@ -14,3 +14,10 @@ reproductions/hsu-2025/data/zpix-sv3-dark.fits
 reproductions/hsu-2025/data/fastspecfit/
 reproductions/hsu-2025/figs/cutouts_jpeg_dr10/
 reproductions/hsu-2025/figs/cutouts_fits_dr10/
+
+# Heavy DECaLS cutouts for Huang-2020 reproduction — regenerable via
+# reproductions/huang-2020/03_download_decals_cutouts.py
+reproductions/huang-2020/data/cutouts_fits_dr9/
+reproductions/huang-2020/data/cutouts_jpeg_dr9/
+# Model checkpoint can be regenerated (or downloaded once published)
+reproductions/huang-2020/data/checkpoint_best.pt

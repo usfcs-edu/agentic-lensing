@@ -1,0 +1,6 @@
+[load] /raid/benson/git/agentic-lensing/reproductions/hsu-2025/data/zall-pix-iron.fits
+[load] 28,425,963 raw rows
+[load] 11,846,413 after DECaLS-footprint galaxy filter
+[mask] excluding within 10.0″ of 949 positives
+[mask] dropped 1 candidates near positives
+[save] /raid/benson/git/agentic-lensing/reproductions/huang-2020/data/negatives.parquet  (5,000 rows)

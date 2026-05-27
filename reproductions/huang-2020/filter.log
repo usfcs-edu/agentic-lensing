@@ -1,0 +1,7 @@
+[load] 1,312 rows after RA/Dec parse
+  resnet_model: {'L18': 949, 'shielded': 363}
+  region:       {'DECaLS': 1127, 'MzLS': 185}
+  score:        {2.0: 510, 2.5: 387, 3.0: 199, 3.5: 116, 4.0: 100}
+[save] /raid/benson/git/agentic-lensing/reproductions/huang-2020/data/positives_all.parquet  (1,312 rows)
+[save] /raid/benson/git/agentic-lensing/reproductions/huang-2020/data/positives_huang2020.parquet  (949 rows; L18-model only)
+[info] high-confidence subset (score>=3.0): 298

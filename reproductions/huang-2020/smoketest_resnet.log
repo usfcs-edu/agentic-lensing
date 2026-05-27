@@ -1,0 +1,5 @@
+[smoke] device=cuda
+[smoke] params: 3,508,833
+[smoke] input 45x45: logit=torch.Size([4]) prob∈[0.420, 0.498] loss=0.6885 grads_finite=True
+[smoke] input 101x101: logit=torch.Size([4]) prob∈[0.452, 0.484] loss=0.6803 grads_finite=True
+[smoke] OK
