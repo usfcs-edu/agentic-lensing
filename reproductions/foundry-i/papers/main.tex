@@ -1,18 +1,14 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%  Public-Data Reproduction of GIGA-Lens Modeling for the DESI Strong Lens
-%%  Foundry Demonstration System DESI-165.4754-06.0423
+%%  Phase 1 Internal Reproduction Report — DESI Strong Lens Foundry
+%%  demonstration system DESI-165.4754-06.0423 reproduced with GIGA-Lens.
 %%
-%%  Two-column AASTeX 7.0.1 manuscript, in preparation for ApJ (2026).
+%%  Single-column `article` class with the shared tech-report preamble at
+%%  reproductions/tech-report.sty. Builds with vanilla TeX Live (>= 2022).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\documentclass[twocolumn,linenumbers]{aastex701}
+\documentclass[11pt,letterpaper]{article}
+\usepackage{../../tech-report}
 
-\usepackage{amsmath}
-\usepackage{amssymb}
-\usepackage{booktabs}
-\usepackage{graphicx}
-\usepackage{hyperref}
-
-% Convenience macros
+% Phase-1-specific math macros (lensing)
 \newcommand{\thetaE}{\ensuremath{\theta_{\mathrm{E}}}}
 \newcommand{\gammaEPL}{\ensuremath{\gamma_{\mathrm{EPL}}}}
 \newcommand{\gext}{\ensuremath{\gamma_{\mathrm{ext}}}}
@@ -25,35 +21,22 @@
 \newcommand{\lenstronomy}{\textsc{lenstronomy}}
 \newcommand{\photutils}{\textsc{photutils}}
 
-\received{2026 May}
-\revised{}
-\accepted{In preparation; to be submitted to ApJ}
-
-\shorttitle{Reproducing DESI Foundry I on \foundry}
-\shortauthors{Benson \& Huang}
+\title{Public-Data Reproduction of GIGA-Lens Modeling for the\\
+       DESI Strong Lens Foundry Demonstration System\\
+       \foundry}
+\author{Greg Benson\thanks{\texttt{benson@cs.usfca.edu};
+        Department of Computer Science, University of San Francisco,
+        CA 94117, USA} \and
+        Xiaosheng Huang\thanks{\texttt{xhuang@usfca.edu};
+        Department of Physics \& Astronomy, University of San Francisco,
+        CA 94117; and Physics Division, Lawrence Berkeley National
+        Laboratory, CA 94720}}
+\date{May 2026 \\ \texttt{commit:~ef4c3c1}}
 
 \begin{document}
 
-\title{Public-Data Reproduction of GIGA-Lens Modeling for the DESI Strong
-Lens Foundry Demonstration System DESI--165.4754$-$06.0423}
-
-\correspondingauthor{Greg Benson}
-
-\author{Greg Benson}
-\affiliation{Department of Computer Science,
-University of San Francisco,
-San Francisco, CA 94117, USA}
-\email{benson@cs.usfca.edu}
-
-\author{Xiaosheng Huang}
-\affiliation{Department of Physics and Astronomy,
-University of San Francisco,
-San Francisco, CA 94117, USA}
-\affiliation{Physics Division,
-Lawrence Berkeley National Laboratory,
-Berkeley, CA 94720, USA}
-% TODO confirm preferred contact email for co-author before submission
-\email{xhuang@usfca.edu}
+\maketitle
+\subtitle{Phase 1 Internal Reproduction Report}
 
 \begin{abstract}
 We present an end-to-end, public-data reproduction of the GIGA-Lens
@@ -95,9 +78,9 @@ suitable for filing as GitHub issues, and provide the full software
 stack table to support future Foundry-series reproductions.
 \end{abstract}
 
-\keywords{Strong gravitational lensing (1643) ---
-Computational methods (1965) --- Open source software (1866) ---
-Reproducibility}
+\tableofcontents
+
+\bigskip
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
@@ -524,33 +507,38 @@ percentiles are computed by loading our 10\,000-sample posterior
 (\texttt{data/svi\_v10\_posterior\_mass.npz}) and applying
 \texttt{numpy.median} and \texttt{numpy.percentile}.
 
-\begin{deluxetable*}{lcccccc}
-\tablecaption{Headline mass-parameter reproduction. v10 SVI Gaussian
+\begin{table}[ht]
+\centering
+\caption{Headline mass-parameter reproduction. v10 SVI Gaussian
 variational posterior (this work) versus the HMC posterior of
-\citet[][Table 3]{huang2025foundry1}.\label{tab:mass}}
-\tablehead{
-\colhead{Param} & \colhead{v10 median} & \colhead{v10 $1\sigma$ width} &
-\colhead{Huang+2025a} & \colhead{Huang+2025a $1\sigma$} &
-\colhead{$\Delta_{\mathrm{med}}$} &
-\colhead{\% off, sign}
-}
-\startdata
+\citet[][Table 3]{huang2025foundry1}.}
+\label{tab:mass}
+\small
+\begin{tabular}{lcccccc}
+\toprule
+Param & v10 median & v10 $1\sigma$ width &
+Huang+2025a & Huang+2025a $1\sigma$ &
+$\Delta_{\mathrm{med}}$ &
+\% off, sign \\
+\midrule
 \thetaE\ (arcsec) & $+2.5659$ & $\pm0.0003$ & $+2.6463$ & $\pm0.0017$ & $-0.0804$ & $3.0\%$, $\checkmark$ \\
 \gammaEPL\        & $+2.1507$ & $\pm0.0004$ & $+1.372$  & $\pm0.023$  & $+0.7787$ & $56.8\%$, $\checkmark$ (both $>1$) \\
 \eone\            & $+0.1064$ & $\pm0.0004$ & $+0.1091$ & $\pm0.0020$ & $-0.0027$ & $2.5\%$, $\checkmark$ \\
 \etwo\            & $-0.0533$ & $\pm0.0002$ & $-0.1320$ & $\pm0.0020$ & $+0.0787$ & $59.6\%$, $\checkmark$ \\
 \gextone\         & $+0.0399$ & $\pm0.0003$ & $+0.0657$ & $\pm0.0024$ & $-0.0258$ & $39.3\%$, $\checkmark$ \\
 \gexttwo\         & $-0.0676$ & $\pm0.0002$ & $-0.0939$ & $\pm0.0022$ & $+0.0263$ & $28.0\%$, $\checkmark$ \\
-\enddata
-\tablecomments{Sign-quadrant agreement on all six mass parameters.
-\thetaE\ and \eone\ are reproduced to $\le3\%$ of the published median.
-The slope \gammaEPL\ converges to a higher local minimum than the
-published value, as discussed in \S\ref{sec:multimodal} and
-\S\ref{sec:discussion}.
-The 1-$\sigma$ widths reported in column 3 are widths of the
-{\it variational}\ Gaussian posterior; they underestimate the
-marginal posterior width if the latter is non-Gaussian.}
-\end{deluxetable*}
+\bottomrule
+\end{tabular}
+\par\smallskip
+{\footnotesize\textit{Note.} Sign-quadrant agreement on all six mass
+parameters. \thetaE\ and \eone\ are reproduced to $\le3\%$ of the
+published median. The slope \gammaEPL\ converges to a higher local
+minimum than the published value, as discussed in
+\S\ref{sec:multimodal} and \S\ref{sec:discussion}. The 1-$\sigma$ widths
+in column 3 are widths of the \textit{variational} Gaussian posterior;
+they underestimate the marginal posterior width if the latter is
+non-Gaussian.}
+\end{table}
 
 In polar form the lens ellipticity vectors are
 $|\varepsilon|=0.118$ at position angle $-13^{\circ}$ for our v10
@@ -577,30 +565,35 @@ posterior uncertainty. The Einstein radius at the v11f mode,
 $\thetaE=2.604''$, is $1.6\%$ off the published value --- the closest
 single-version reproduction of \thetaE\ that we have obtained.
 
-\begin{deluxetable}{lccc}
-\tablecaption{v11f NUTS second-mode point estimate.\label{tab:nuts_v11f}}
-\tablehead{
-\colhead{Param} & \colhead{v11f median} & \colhead{Huang+2025a} & \colhead{\% off}
-}
-\startdata
+\begin{table}[ht]
+\centering
+\caption{v11f NUTS second-mode point estimate.}
+\label{tab:nuts_v11f}
+\begin{tabular}{lccc}
+\toprule
+Param & v11f median & Huang+2025a & \% off \\
+\midrule
 \thetaE\ (arcsec) & $+2.6042$ & $+2.6463$ & $1.6\%$ \\
 \gammaEPL\        & $+2.2565$ & $+1.372$  & $64.5\%$ \\
 \eone\            & $+0.1592$ & $+0.1091$ & $45.9\%$ \\
 \etwo\            & $-0.1507$ & $-0.1320$ & $14.2\%$ \\
 \gextone\         & $+0.0543$ & $+0.0657$ & $17.3\%$ \\
 \gexttwo\         & $-0.1186$ & $-0.0939$ & $26.3\%$ \\
-\enddata
-\tablecomments{v11f is a NUTS chain initialised at the v7 paper-mode
-MAP point with a $10^{-6}\,\mathbb{I}$-jittered v10 SVI covariance as
-preconditioner and target acceptance $0.6$. The chain converged into
-a new local basin $\log p\approx-63{,}868$ (distinct from the v10
-SVI mode at $\log p\approx-40{,}400$) and remained there. The
-quoted medians are over 500 retained samples after 200 burn-in steps;
-$1\sigma$ widths are not reported because the chain did not mix.
-v11f reproduces \thetaE\ to $1.6\%$ but is more discrepant than v10
-in \gammaEPL\ and \eone. See \S\ref{sec:nuts} for the run details and
-\S\ref{sec:multimodal_v11} for the multimodality implication.}
-\end{deluxetable}
+\bottomrule
+\end{tabular}
+\par\smallskip
+{\footnotesize\textit{Note.} v11f is a NUTS chain initialised at the
+v7 paper-mode MAP point with a $10^{-6}\,\mathbb{I}$-jittered v10 SVI
+covariance as preconditioner and target acceptance $0.6$. The chain
+converged into a new local basin $\log p \approx -63{,}868$
+(distinct from the v10 SVI mode at $\log p \approx -40{,}400$) and
+remained there. The quoted medians are over 500 retained samples
+after 200 burn-in steps; $1\sigma$ widths are not reported because
+the chain did not mix. v11f reproduces \thetaE\ to $1.6\%$ but is
+more discrepant than v10 in \gammaEPL\ and \eone. See \S\ref{sec:nuts}
+for the run details and \S\ref{sec:multimodal_v11} for the
+multimodality implication.}
+\end{table}
 
 \subsection{Residual maps}
 \label{sec:residuals}
@@ -923,10 +916,14 @@ request and are planned for public release as a
 Table~\ref{tab:software} lists the exact pinned versions of the
 software stack on the run host.
 
-\begin{deluxetable}{ll}
-\tablecaption{Software stack versions.\label{tab:software}}
-\tablehead{\colhead{Package} & \colhead{Version}}
-\startdata
+\begin{table}[ht]
+\centering
+\caption{Software stack versions.}
+\label{tab:software}
+\begin{tabular}{ll}
+\toprule
+Package & Version \\
+\midrule
 Python                          & 3.13 \\
 JAX                             & 0.6.2 (with jax[cuda12]) \\
 TensorFlow                      & 2.20.0 \\
@@ -941,15 +938,17 @@ astroquery                      & 0.4.11 \\
 CUDA                            & 12 (host runtime 13.0 in PATH) \\
 Operating system                & AlmaLinux 9.7 (aarch64) \\
 GPUs used                       & 2$\times$NVIDIA L4 (UUID-pinned) \\
-\enddata
-\tablecomments{HMC at the 74-parameter model size was not obtained
-under this stack; we use the v10 Gaussian SVI as the headline
+\bottomrule
+\end{tabular}
+\par\smallskip
+{\footnotesize\textit{Note.} HMC at the 74-parameter model size was not
+obtained under this stack; we use the v10 Gaussian SVI as the headline
 variational-posterior surrogate (Table~\ref{tab:mass}). NUTS at the
-same model size {\it does}\ compile under this stack with a static
+same model size \textit{does} compile under this stack with a static
 \texttt{max\_tree\_depth} (\S\ref{sec:nuts}); v11f provides a
 second-mode point estimate (Table~\ref{tab:nuts_v11f}). See
 \S\ref{sec:upstream} for the full upstream-issues list.}
-\end{deluxetable}
+\end{table}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusions}
@@ -1064,52 +1063,54 @@ on this model, and --- in the v11f run --- converges into a third local
 mode with $\thetaE=2.604''$ ($1.6\%$ off the published value, our
 closest single-version match for \thetaE).
 
-\begin{deluxetable*}{lccccccc}
-\tablecaption{Ablation summary v1$\to$v11. Best-fit mass-parameter
-values for each version, paper values for reference.\label{tab:ablation}}
-\tablehead{
-\colhead{Version} & \colhead{\thetaE} & \colhead{\gammaEPL} & \colhead{\eone} &
-\colhead{\etwo} & \colhead{\gextone} & \colhead{\gexttwo} & \colhead{$\chi^{2}_{\mathrm{best}}$}
-}
-\startdata
-v1   & $+2.697$  & $+1.66$ & $-0.015$ & $+0.011$ & $+0.001$ & $+0.053$ & $24.65$ \\
-v2   & $+2.062$  & $+1.57$ & $+0.141$ & $-0.108$ & $-0.001$ & $+0.032$ & $7.98$  \\
-v4   & $+1.523$  & $+1.47$ & $-0.035$ & $-0.076$ & $-0.036$ & $-0.064$ & $3.45$ \tablenotemark{a}  \\
-v5   & $+2.658$  & $+1.72$ & $-0.102$ & $-0.179$ & $-0.059$ & $-0.110$ & $7.56$  \\
-v6   & $+2.632$  & $+1.73$ & $+0.128$ & $+0.073$ & $+0.065$ & $+0.005$ & $6.59$  \\
-v8 (SVI/TT) & $+2.619$ & $+2.20$ & $+0.146$ & $-0.150$ & $+0.044$ & $-0.106$ & $7.72$ \tablenotemark{b} \\
-v9 best (MAP/eP)  & $+2.578$ & $+2.16$ & $+0.103$ & $-0.045$ & $+0.034$ & $-0.067$ & $11.93$ \\
-v10 (SVI/eP)\tablenotemark{c}  & $+2.566$ & $+2.15$ & $+0.106$ & $-0.053$ & $+0.040$ & $-0.068$ & --- \\
-v11f (NUTS/eP)\tablenotemark{d} & $+2.604$ & $+2.26$ & $+0.159$ & $-0.151$ & $+0.054$ & $-0.119$ & --- \\
-\hline
-Paper (HMC)         & $+2.6463$ & $+1.372$ & $+0.1091$ & $-0.1320$ & $+0.0657$ & $-0.0939$ & --- \\
-\enddata
-\tablenotetext{a}{v4 has the lowest $\chi^{2}$ but is unphysical: the
-unconstrained \texttt{use\_lstsq=True} setting allows negative
-lens-light intensities; the resulting Einstein radius is $43\%$ low.}
-\tablenotetext{b}{v8 is the first SVI posterior; initialized from the
-best paper-mode chain of the v7 200-chain multi-start MAP with TinyTim
-PSF.}
-\tablenotetext{c}{v10 is the canonical posterior reported in
-Table~\ref{tab:mass}; initialized from the v9 global-best paper-mode
-chain (empirical PSF, $\chi^{2}=11.93$). v10 SVI does not produce a
-new $\chi^{2}$ value; the entry is left blank.}
-\tablenotetext{d}{v11f is the only NUTS variant of the v11 series
-(\S\ref{sec:nuts}) that converged into a basin distinct from the
-v10 SVI mode; it sits at $\log p\approx -63{,}868$ and reproduces
-\thetaE\ to $1.6\%$ but the chain did not mix and is reported as a
-second-mode point estimate, not a posterior. NUTS resolves the
-HMC JIT-compile blocker (v11) but \texttt{DualAveragingStepSizeAdaptation}
-collapses step size to $\sim$2--$3\times10^{-6}$ on this model
-(v11a/e/f), so the chain barely moves once in a basin.}
-\tablecomments{TT $=$ TinyTim PSF. eP $=$ empirical PSF. ``Paper-mode''
-is the sign quadrant $(\eone{>}0,\etwo{<}0,\gextone{>}0,\gexttwo{<}0)$.
-The flip in sign quadrant at v6$\to$v7 reflects multimodality, not
-a coding regression: v6 is a single-chain MAP at the global best
-under TinyTim, which lies in a different quadrant than the paper.
-v11f confirms a third distinct basin reached by gradient-based
-sampling.}
-\end{deluxetable*}
+\begin{table}[ht]
+\centering
+\caption{Ablation summary v1$\to$v11. Best-fit mass-parameter values
+for each version, paper values for reference.}
+\label{tab:ablation}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lccccccc}
+\toprule
+Version & \thetaE & \gammaEPL & \eone & \etwo & \gextone & \gexttwo & $\chi^{2}_{\mathrm{best}}$ \\
+\midrule
+v1                              & $+2.697$  & $+1.66$ & $-0.015$ & $+0.011$ & $+0.001$ & $+0.053$ & $24.65$ \\
+v2                              & $+2.062$  & $+1.57$ & $+0.141$ & $-0.108$ & $-0.001$ & $+0.032$ & $7.98$  \\
+v4$^{a}$                        & $+1.523$  & $+1.47$ & $-0.035$ & $-0.076$ & $-0.036$ & $-0.064$ & $3.45$  \\
+v5                              & $+2.658$  & $+1.72$ & $-0.102$ & $-0.179$ & $-0.059$ & $-0.110$ & $7.56$  \\
+v6                              & $+2.632$  & $+1.73$ & $+0.128$ & $+0.073$ & $+0.065$ & $+0.005$ & $6.59$  \\
+v8 (SVI/TT)$^{b}$               & $+2.619$  & $+2.20$ & $+0.146$ & $-0.150$ & $+0.044$ & $-0.106$ & $7.72$  \\
+v9 best (MAP/eP)                & $+2.578$  & $+2.16$ & $+0.103$ & $-0.045$ & $+0.034$ & $-0.067$ & $11.93$ \\
+v10 (SVI/eP)$^{c}$              & $+2.566$  & $+2.15$ & $+0.106$ & $-0.053$ & $+0.040$ & $-0.068$ & ---     \\
+v11f (NUTS/eP)$^{d}$            & $+2.604$  & $+2.26$ & $+0.159$ & $-0.151$ & $+0.054$ & $-0.119$ & ---     \\
+\midrule
+Paper (HMC)                     & $+2.6463$ & $+1.372$ & $+0.1091$ & $-0.1320$ & $+0.0657$ & $-0.0939$ & --- \\
+\bottomrule
+\end{tabular}}
+\par\smallskip
+{\footnotesize\textit{Notes.}
+$^{a}$~v4 has the lowest $\chi^{2}$ but is unphysical: the unconstrained
+\texttt{use\_lstsq=True} setting allows negative lens-light intensities;
+the resulting Einstein radius is $43\%$ low.\\
+$^{b}$~v8 is the first SVI posterior; initialized from the best
+paper-mode chain of the v7 200-chain multi-start MAP with TinyTim PSF.\\
+$^{c}$~v10 is the canonical posterior reported in Table~\ref{tab:mass};
+initialized from the v9 global-best paper-mode chain (empirical PSF,
+$\chi^{2}=11.93$). v10 SVI does not produce a new $\chi^{2}$ value.\\
+$^{d}$~v11f is the only NUTS variant of the v11 series
+(\S\ref{sec:nuts}) that converged into a basin distinct from the v10
+SVI mode; it sits at $\log p \approx -63{,}868$ and reproduces \thetaE\
+to $1.6\%$ but the chain did not mix and is reported as a second-mode
+point estimate, not a posterior. NUTS resolves the HMC JIT-compile
+blocker (v11) but \texttt{DualAveragingStepSizeAdaptation} collapses
+step size to $\sim 2$--$3\times 10^{-6}$ on this model (v11a/e/f), so
+the chain barely moves once in a basin.\\
+TT $=$ TinyTim PSF. eP $=$ empirical PSF. ``Paper-mode'' is the sign
+quadrant $(\eone{>}0,\etwo{<}0,\gextone{>}0,\gexttwo{<}0)$. The flip in
+sign quadrant at v6$\to$v7 reflects multimodality, not a coding
+regression: v6 is a single-chain MAP at the global best under TinyTim,
+which lies in a different quadrant than the paper. v11f confirms a
+third distinct basin reached by gradient-based sampling.}
+\end{table}
 
 \section{Prior Specification}
 \label{app:priors}
@@ -1118,59 +1119,62 @@ Table~\ref{tab:priors} reproduces our prior distributions, which
 closely follow \citet[][Table 2]{huang2025foundry1} with the
 modifications discussed in \S\ref{sec:model}.
 
-\begin{deluxetable}{lll}
-\tablecaption{Prior specification on the 74 free non-linear parameters
-of the lens model.\label{tab:priors}}
-\tablehead{
-\colhead{Parameter group/parameter} & \colhead{Distribution} &
-\colhead{Parameters}
-}
-\startdata
-\hline
+\begin{table}[ht]
+\centering
+\caption{Prior specification on the 74 free non-linear parameters of the
+lens model.}
+\label{tab:priors}
+\small
+\begin{tabular}{lll}
+\toprule
+Parameter group / parameter & Distribution & Parameters \\
+\midrule
 \multicolumn{3}{l}{\textit{Mass (EPL + external shear; 8 params)}} \\
-\thetaE\        & LogNormal       & $\mu=\log 2.5$, $\sigma=0.25$ \\
-\gammaEPL\      & TruncatedNormal & $\mu=2.0$, $\sigma=0.25$, $[1.0,2.7]$ \\
-$\eone^{\rm m}$       & Normal          & $\mu=0$, $\sigma=0.1$ \\
-$\etwo^{\rm m}$       & Normal          & $\mu=0$, $\sigma=0.1$ \\
-$c_{x}^{\rm mass}$ & Normal       & $\mu=0$, $\sigma=0.02$\,arcsec \\
-$c_{y}^{\rm mass}$ & Normal       & $\mu=0$, $\sigma=0.02$\,arcsec \\
-\gextone\       & Normal          & $\mu=0$, $\sigma=0.05$ \\
-\gexttwo\       & Normal          & $\mu=0$, $\sigma=0.05$ \\
-\hline
+\thetaE\           & LogNormal       & $\mu=\log 2.5$, $\sigma=0.25$ \\
+\gammaEPL\         & TruncatedNormal & $\mu=2.0$, $\sigma=0.25$, $[1.0,2.7]$ \\
+$\eone^{\rm m}$    & Normal          & $\mu=0$, $\sigma=0.1$ \\
+$\etwo^{\rm m}$    & Normal          & $\mu=0$, $\sigma=0.1$ \\
+$c_{x}^{\rm mass}$ & Normal          & $\mu=0$, $\sigma=0.02$\,arcsec \\
+$c_{y}^{\rm mass}$ & Normal          & $\mu=0$, $\sigma=0.02$\,arcsec \\
+\gextone\          & Normal          & $\mu=0$, $\sigma=0.05$ \\
+\gexttwo\          & Normal          & $\mu=0$, $\sigma=0.05$ \\
+\midrule
 \multicolumn{3}{l}{\textit{Lens light --- main lens (2$\times$ S\'{e}rsic, 14 params)}} \\
-$R_{\mathrm{eff}}$ (compact)  & LogNormal & $\mu=\log 0.4$, $\sigma=0.3$ \\
-$R_{\mathrm{eff}}$ (extended) & LogNormal & $\mu=\log 2.0$, $\sigma=0.3$ \\
-$n_{\rm S}$       & Uniform         & $[0.5, 8.0]$ \\
-$e_{1,2}^{\rm light}$  & TruncatedNormal & $\mu=0$, $\sigma=0.15$, $[-0.4,0.4]$ \\
-$c_{x},c_{y}$     & Normal          & $\mu=0$, $\sigma=0.02$\,arcsec \\
-$I_{e}$ (compact) & LogNormal       & $\mu=\log 5.0$, $\sigma=0.5$ \\
-$I_{e}$ (extended)& LogNormal       & $\mu=\log 2.0$, $\sigma=0.5$ \\
-\hline
+$R_{\mathrm{eff}}$ (compact)  & LogNormal       & $\mu=\log 0.4$, $\sigma=0.3$ \\
+$R_{\mathrm{eff}}$ (extended) & LogNormal       & $\mu=\log 2.0$, $\sigma=0.3$ \\
+$n_{\rm S}$                   & Uniform         & $[0.5, 8.0]$ \\
+$e_{1,2}^{\rm light}$         & TruncatedNormal & $\mu=0$, $\sigma=0.15$, $[-0.4,0.4]$ \\
+$c_{x},c_{y}$                 & Normal          & $\mu=0$, $\sigma=0.02$\,arcsec \\
+$I_{e}$ (compact)             & LogNormal       & $\mu=\log 5.0$, $\sigma=0.5$ \\
+$I_{e}$ (extended)            & LogNormal       & $\mu=\log 2.0$, $\sigma=0.5$ \\
+\midrule
 \multicolumn{3}{l}{\textit{Lens light --- nearby companion (2$\times$ S\'{e}rsic, 14 params)}} \\
-$R_{\mathrm{eff}}$ & LogNormal & $\mu=\log 0.3,\,0.6$, $\sigma=0.3$ \\
-$c_{x},c_{y}$ & Normal & $\mu=(-2.34,-2.86)$, $\sigma=0.1$\,arcsec \\
-$I_{e}$ & LogNormal & $\mu=\log 1.0,\,0.5$, $\sigma=0.5$ \\
-$e,n$ & As main lens & --- \\
-\hline
+$R_{\mathrm{eff}}$  & LogNormal & $\mu=\log 0.3,\,0.6$, $\sigma=0.3$ \\
+$c_{x},c_{y}$       & Normal    & $\mu=(-2.34,-2.86)$, $\sigma=0.1$\,arcsec \\
+$I_{e}$             & LogNormal & $\mu=\log 1.0,\,0.5$, $\sigma=0.5$ \\
+$e,n$               & As main lens & --- \\
+\midrule
 \multicolumn{3}{l}{\textit{Source S\'{e}rsic (7 params)}} \\
-$R_{\mathrm{eff}}$ & LogNormal & $\mu=\log 0.5$, $\sigma=0.3$ \\
-$n_{\rm S}$ & Uniform & $[0.5, 6.0]$ \\
+$R_{\mathrm{eff}}$  & LogNormal       & $\mu=\log 0.5$, $\sigma=0.3$ \\
+$n_{\rm S}$         & Uniform         & $[0.5, 6.0]$ \\
 $e_{1,2}^{\rm src}$ & TruncatedNormal & $\mu=0$, $\sigma=0.15$, $[-0.5,0.5]$ \\
-$c_{x},c_{y}$ & Normal & $\mu=0$, $\sigma=0.1$\,arcsec \\
-$I_{e}$ & LogNormal & $\mu=\log 2.0$, $\sigma=0.5$ \\
-\hline
+$c_{x},c_{y}$       & Normal          & $\mu=0$, $\sigma=0.1$\,arcsec \\
+$I_{e}$             & LogNormal       & $\mu=\log 2.0$, $\sigma=0.5$ \\
+\midrule
 \multicolumn{3}{l}{\textit{Source shapelets ($n_{\max}=6$, $1+2+28$ params)}} \\
-$\beta$ & LogNormal & $\mu=\log 0.1$, $\sigma=0.1$ \\
-$c_{x},c_{y}$ & Normal & $\mu=0$, $\sigma=0.05$\,arcsec \\
-amp$_{i}$, $i=0,\dots,27$ & Normal & $\mu=0$, $\sigma=5/\sqrt{i+1}$ \\
-\enddata
-\tablecomments{The shapelet amplitude scale follows the gigalens
-shapelets demonstration. The companion-light centroid prior centers
-on the source-extraction detection on the v2 residual map
+$\beta$                  & LogNormal & $\mu=\log 0.1$, $\sigma=0.1$ \\
+$c_{x},c_{y}$            & Normal    & $\mu=0$, $\sigma=0.05$\,arcsec \\
+amp$_{i}$, $i=0,\dots,27$ & Normal   & $\mu=0$, $\sigma=5/\sqrt{i+1}$ \\
+\bottomrule
+\end{tabular}
+\par\smallskip
+{\footnotesize\textit{Note.} The shapelet amplitude scale follows the
+gigalens shapelets demonstration. The companion-light centroid prior
+centers on the source-extraction detection on the v2 residual map
 (Figure~\ref{fig:nearby}). Total: 74 free non-linear parameters.}
-\end{deluxetable}
+\end{table}
 
-\bibliographystyle{aasjournalv7}
+\bibliographystyle{plainnat}
 \bibliography{references}
 
 \end{document}

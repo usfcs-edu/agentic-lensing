@@ -1,8 +1,17 @@
 # =============================================================================
-# Makefile — build the Phase 1 (Foundry I) internal reproduction report.
+# Makefile — build Phase 3a (Huang 2020) internal reproduction report.
 #
-# Same skeleton as Phase 2 (hsu-2025) and Phase 3a (huang-2020) papers/.
-# Builds with vanilla TeX Live (>= 2022); no special class file or PATH pin.
+# Targets:
+#   pdf       Build main.pdf via latexmk if available, else 4-pass fallback.
+#   clean     Remove LaTeX aux artefacts but keep main.pdf.
+#   distclean Remove aux artefacts AND main.pdf.
+#
+# Requires:
+#   pdflatex (TeX Live >= 2022)
+#   biber    (for biblatex bibliography)
+#   article  (standard LaTeX class, ships with every TeX Live)
+#
+# No special class file or TL version pin — vanilla TeX Live works.
 # =============================================================================
 PAPER       := main
 TEX_SOURCE  := $(PAPER).tex

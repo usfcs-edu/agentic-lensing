@@ -1,0 +1,103 @@
+% =============================================================================
+% tech-report.sty — Shared preamble for internal reproduction reports.
+%
+% Used by reproductions/{hsu-2025,huang-2020}/papers/main.tex. Single-column,
+% letterpaper, 1-inch margins, biblatex (author-year) + biber, microtype,
+% color-link hyperref. Builds with any vanilla TeX Live (>= 2022).
+%
+% Each phase's main.tex begins with:
+%
+%   \documentclass[11pt,letterpaper]{article}
+%   \usepackage{../tech-report}
+%
+%   \title{...}
+%   \subtitle{Internal Reproduction Report}  % from this package
+%   \author{Greg Benson \and Xiaosheng Huang}
+%   \date{May 2026}
+%   \addbibresource{references.bib}
+%
+% =============================================================================
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{tech-report}[2026/05/27 Internal reproduction-report preamble]
+
+% --- Page geometry -----------------------------------------------------------
+\RequirePackage[margin=1in]{geometry}
+
+% --- UTF-8 input handling for stray Unicode characters in copy-pasted text
+% (most notably U+2212 minus sign in DESI-RA−DEC system names).
+\DeclareUnicodeCharacter{2212}{-}      % U+2212 minus sign  -> ascii hyphen
+\DeclareUnicodeCharacter{2032}{$'$}    % U+2032 prime       -> math prime
+\DeclareUnicodeCharacter{2033}{$''$}   % U+2033 double prime
+\DeclareUnicodeCharacter{00B0}{$^\circ$} % degree sign
+\DeclareUnicodeCharacter{2013}{--}     % en-dash
+\DeclareUnicodeCharacter{2014}{---}    % em-dash
+\DeclareUnicodeCharacter{2248}{$\approx$} % almost-equal
+
+% --- Math + typography -------------------------------------------------------
+\RequirePackage{amsmath,amssymb}
+\RequirePackage{booktabs,graphicx,xcolor,caption}
+\RequirePackage{microtype}
+
+% --- Hyperref with subtle blue links ----------------------------------------
+\definecolor{linkblue}{HTML}{0F4D92}
+\RequirePackage[colorlinks=true,
+                 linkcolor=linkblue,
+                 citecolor=linkblue,
+                 urlcolor=linkblue]{hyperref}
+
+% --- Bibliography (natbib + bibtex, author-year) -----------------------------
+% Use natbib + bibtex instead of biblatex+biber because biber on this host
+% (TL2026 aarch64) needs libnsl.so.1 which is missing; natbib + bibtex are
+% pure C, no external libs, and ship with every TeX Live.
+\RequirePackage[round,authoryear,sort&compress]{natbib}
+% Provide \autocite / \textcite shims so per-phase papers can write modern
+% citation commands. Accept an optional [postnote] argument to match
+% biblatex's \autocite[Fig.~6]{key} signature, which natbib's \citep[postnote]
+% renders the same way.
+\providecommand{\autocite}[2][]{\citep[#1]{#2}}
+\providecommand{\textcite}[2][]{\citet[#1]{#2}}
+\providecommand{\addbibresource}[1]{}  % no-op for biblatex compatibility
+
+% --- Subtitle command (renders wherever it is called) ------------------------
+% Print-on-call so that the user can write either ordering:
+%   \subtitle{X} \maketitle    (subtitle ABOVE title block)
+%   \maketitle \subtitle{X}    (subtitle BELOW title block, preferred)
+% The macro just prints a centered italic large line at the current spot.
+\providecommand{\subtitle}[1]{%
+  \begin{center}\large\itshape #1\par\end{center}%
+  \medskip%
+}
+
+% --- Generic math macros (lensing-specific macros stay in per-phase main.tex)
+\providecommand{\AUC}{\ensuremath{\mathrm{AUC}}}
+\providecommand{\dd}{\mathrm{d}}
+\providecommand{\code}[1]{\texttt{#1}}
+
+% --- AASTeX-compatibility shims ----------------------------------------------
+% Standard `article` doesn't have the AASTeX `acknowledgments` environment.
+% Define it iff not already provided; the `\end...` half is automatic for
+% \newenvironment-style declarations.
+\@ifundefined{acknowledgments}{%
+  \newenvironment{acknowledgments}{\section*{Acknowledgments}}{}%
+}{}
+\providecommand{\keywords}[1]{}
+% \software{list, of, packages} — AASTeX renders as a small footnote-style
+% list. We render as a one-line paragraph for the tech-report.
+\providecommand{\software}[1]{\par\smallskip\noindent\textit{Software:} #1\par}
+% \facility{Inst.} / \facilities{Inst.A, Inst.B} — same idea.
+\providecommand{\facility}[1]{\par\smallskip\noindent\textit{Facility:} #1\par}
+\providecommand{\facilities}[1]{\par\smallskip\noindent\textit{Facilities:} #1\par}
+
+% --- AASTeX astronomy-units shortcuts (for ported Foundry-I content).
+% `0\farcs13` = 0.13 arcsec; `0\fdg4754` = 0.4754 degrees; `0\farcm 1` = 0.1 arcmin.
+\providecommand{\farcs}{\mbox{$\!\!\,.{}^{\prime\prime}\!\!\,$}}
+\providecommand{\fdg}{\mbox{$\!\!\,.{}^{\circ}\!\!\,$}}
+\providecommand{\farcm}{\mbox{$\!\!\,.{}^{\prime}\!\!\,$}}
+\providecommand{\degr}{\ensuremath{^{\circ}}}
+\providecommand{\arcsec}{\ensuremath{^{\prime\prime}}}
+\providecommand{\arcmin}{\ensuremath{^{\prime}}}
+
+% --- Caption styling: small + bold label -------------------------------------
+\captionsetup{font=small,labelfont=bf}
+
+\endinput

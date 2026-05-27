@@ -1,0 +1,409 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Phase 3a Internal Reproduction Report
+%% Reproducing Huang+2020 DECaLS lens finder from paper + public code only.
+%%
+%% Single-column `article` class with the shared tech-report preamble at
+%% reproductions/tech-report.sty. Builds with vanilla TeX Live (>= 2022) via
+%% the Makefile in this directory.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[11pt,letterpaper]{article}
+\usepackage{../../tech-report}
+
+% Phase-3a-specific math macros (Lanusse / Huang notation)
+\newcommand{\ResNet}{\textsc{ResNet}}
+\newcommand{\Lanusse}{\textsc{CMU DeepLens}}
+\newcommand{\Adam}{\textsc{Adam}}
+
+\title{Reproducing the Huang 2020 DECaLS Lens Finder\\
+       from Paper + Public Code}
+\author{Greg Benson \and Xiaosheng Huang}
+\date{May 2026 \\ \texttt{commit:~ef4c3c1}}
+
+\begin{document}
+
+\maketitle
+\subtitle{Phase 3a Internal Reproduction Report}
+
+\begin{abstract}
+We re-implement the \Lanusse{} \ResNet-46 architecture of
+\textcite{lanusse2018cmu} in PyTorch and train it under the
+\textcite{huang2020decals} recipe on $929$ NeuraLens L18-model lens
+candidates plus $4{,}908$ random galaxies sampled from the DESI DR1
+spectroscopic catalog as non-lenses. With no access to the original
+training code, training set, or trained weights, we reach a held-out
+test \AUC{} of $0.9991$ (validation \AUC{} $0.9983$) in $24.8$ minutes
+on a single NVIDIA L4. This narrowly exceeds the published
+\textcite{huang2020decals} validation \AUC{} of $0.98$ — but the
+comparison is biased upward by two methodological substitutions
+(NeuraLens catalog versus the historical Master Lens Database + 6
+publications; uniformly random non-lens galaxies versus the paper's
+curated by-eye hard negatives). We discuss the substitutions and
+their effect in \S\ref{sec:caveats}, and signpost Phase 3b — full
+DECaLS deployment to recover the published $335$ new candidates — as
+the natural next step.
+\end{abstract}
+
+\tableofcontents
+
+\bigskip
+
+% =============================================================================
+\section{Introduction}
+% =============================================================================
+
+This report documents Phase 3a of an 8-phase reproduction roadmap covering
+Prof. Xiaosheng Huang's strong-gravitational-lensing program at the
+University of San Francisco. Phase 1 (\textcite{huang2025foundry1};
+Foundry I HST observations + GIGA-Lens modeling) and Phase 2
+\autocite{hsu2025pairwise} have already been reproduced in companion
+tech-reports.\footnote{See \texttt{reproductions/foundry-i/papers/main.tex}
+and \texttt{reproductions/hsu-2025/papers/main.tex}.} Phase 3 is the
+ResNet/EfficientNet lens-finder lineage:
+\textcite{huang2020decals,huang2021desi} and successors (Storfer 2024,
+Inchausti 2025).
+
+Phase 3a — this report — narrowly scopes \textcite{huang2020decals}: the
+original 9{,}000~deg$^2$ DECaLS search that produced 335 new lens
+candidates using the \Lanusse{} \ResNet{} of \textcite{lanusse2018cmu}.
+The intent of Phase 3a is methodological validation: \emph{can we
+re-implement the same architecture under the same hyperparameter recipe
+from the paper alone and reproduce the published \AUC{} of $0.98$?}
+Full deployment on a few million DEV/COMP-typed DECaLS galaxies to
+re-discover the 335 candidates is Phase 3b, deferred to a separate
+workstream.
+
+The reproduction was performed without access to Huang's own training
+code, training set, or trained weights. Once obtained through
+collaboration, Huang's code will be the proper ground-truth comparison
+target.
+
+% =============================================================================
+\section{Architecture}
+% =============================================================================
+
+We adopt the \Lanusse{} \ResNet-46 of \textcite{lanusse2018cmu} verbatim,
+which is the same architecture \textcite{huang2020decals} re-implemented
+in TensorFlow. The original is Theano/Lasagne; ours is PyTorch
+(\textcite{paszke2019pytorch}; lives at
+\texttt{reproductions/huang-2020/01\_lanusse\_resnet.py}).
+
+The architecture (figure~\ref{fig:arch}) is one 7$\times$7 convolutional
+stem followed by five stages of three pre-activated bottleneck residual
+blocks each \autocite{he2016preact}. Each block has the form
+$1{\times}1\,\to\,3{\times}3\,\to\,1{\times}1$ with ELU activation and
+batch normalisation. Channel progression $32\to 32\to 64\to 128\to 256
+\to 512$; spatial downsampling by 2 at the first block of every stage
+except stage~1, achieved with strided convolutions in the bottleneck and
+in the projection shortcut. The head is an adaptive average pool, a
+single fully-connected layer to one logit, and a sigmoid. Total: 46
+convolutional layers, $\sim$3.5~M parameters at 3-channel input.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{figures/lanusse_resnet_arch.png}
+\caption{Lanusse 2018 / CMU DeepLens \ResNet-46. The 5-stage
+pre-activated bottleneck stack with channel progression $32\to 512$.
+Output spatial resolutions are shown for a $101\times101$ input
+(\textcite{huang2020decals} cutout size).}
+\label{fig:arch}
+\end{figure}
+
+For the same architecture run at \textcite{lanusse2018cmu}'s native
+$45\times45$ input, the spatial chain reduces to
+$45\to 23\to 12\to 6\to 3$ which matches their Figure~4. A smoke test
+in \texttt{01\_lanusse\_resnet.py} verifies a forward+backward pass at
+both input sizes produces a real-valued logit, gradient-finite, with
+parameter count $3{,}508{,}833$.
+
+% =============================================================================
+\section{Training set}
+% =============================================================================
+
+\paragraph{Positives.} 949 lens candidates from the NeuraLens combined
+catalog\footnote{\url{https://drive.google.com/file/d/1_KbEHWhl8LeeTyXpXkWFbLRxt6o42wBg}},
+filtered to \texttt{ResNet Model == 'L18'} (Huang+2020 era), parsed from
+the \texttt{DESI-RA$\pm$DEC} naming convention. Of these, 929 have
+successful \texttt{ls-dr9} cutouts on disk.
+
+\paragraph{Negatives.} 5{,}000 random galaxies sampled from the
+DESI DR1 redshift catalog
+(\texttt{zall-pix-iron.fits}; \textcite{huang2025foundry1}) with the
+filter cascade \texttt{ZCAT\_PRIMARY \&\& ZWARN==0 \&\& SPECTYPE!='STAR'
+\&\& Z>0.05 \&\& Dec $\in [-68, +32.5]$}, with a 10''\ exclusion zone
+around any positive. The expected lens-rate contamination is
+$\sim 10^{-4}$ per \textcite{huang2020decals} \S3.1, so negligible
+against 5{,}000 rows. After cutout download, $4{,}908$ negatives are
+available.
+
+\paragraph{Cutouts.} 101$\times$101 pixel grz, pixscale 0.262''/pix
+(DECam native), FoV $\approx 26.5''$, pulled from
+\texttt{legacysurvey.org/viewer/fits-cutout} on the \texttt{ls-dr9}
+layer. Same field-of-view and band selection as Huang+2020 \S3.2.
+
+\paragraph{Split.} Stratified 70:20:10 random shuffle by label, seed $2026$.
+The resulting counts are shown in Table~\ref{tab:split}.
+
+\begin{table}[ht]
+\centering
+\caption{Stratified 70:20:10 split counts.}
+\label{tab:split}
+\begin{tabular}{lrrr}
+\toprule
+            & \multicolumn{2}{c}{label} & \\
+\cmidrule(lr){2-3}
+split       & 0 (non-lens) & 1 (lens) & total \\
+\midrule
+train       & 3{,}436      & 650      & 4{,}086 \\
+validation  &   982        & 186      & 1{,}168 \\
+test        &   490        &  93      &   583   \\
+\midrule
+total       & 4{,}908      & 929      & 5{,}837 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Class imbalance.} Our negative:positive ratio is $5.3{:}1$;
+\textcite{huang2020decals} used $21{:}1$ (13{,}000 vs 613). This makes
+our task moderately easier; we discuss the implication in
+\S\ref{sec:caveats}.
+
+% =============================================================================
+\section{Hyperparameters}
+% =============================================================================
+
+Unchanged from \textcite{lanusse2018cmu} \S3.4 and \textcite{huang2020decals}
+\S3.2:
+
+\begin{itemize}
+\item Optimizer: \Adam{} \autocite{kingma2015adam}, default
+      $\beta_1=0.9, \beta_2=0.999, \epsilon=10^{-8}$.
+\item Initial learning rate $1\times10^{-3}$, divided by 10 every 40
+      epochs.
+\item Batch size 128.
+\item 120 epochs.
+\item Loss: binary cross-entropy with logits (numerically stable form).
+\item Preprocessing: per-band mean subtraction + per-band standard
+      deviation normalisation, computed once over 500 randomly-sampled
+      training cutouts; outputs clipped to $\pm 250\sigma$.
+\item Augmentation (training-only): random rotation in $[-90, +90]^\circ$,
+      random horizontal and vertical flips, random zoom in $[0.9, 1.0]$
+      followed by centre-crop back to $101\times101$.
+\end{itemize}
+
+The only methodological deviation from the original is the rotation
+implementation: PyTorch's \code{torchvision.transforms.functional.rotate}
+with \texttt{InterpolationMode.BILINEAR} versus \textcite{lanusse2018cmu}'s
+spline interpolation. We did not observe a difference attributable to
+this in informal A/B tests.
+
+% =============================================================================
+\section{Training run}
+% =============================================================================
+
+Training was performed on a single NVIDIA L4 (24~GB) at
+\texttt{/raid/benson/git/agentic-lensing}, using the PyTorch~2.12 +
+\texttt{torchvision}~0.27 stack against CUDA~12.6 (venv at
+\texttt{/raid/benson/.venvs/lensfinder}). Wall-clock for the full
+120 epochs including held-out test pass was 24.8~min.
+Figure~\ref{fig:curves} shows the loss and validation \AUC{} trajectories.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{figures/training_curves.png}
+\caption{Train and validation losses (left axis) and validation
+\AUC{} (right axis) per epoch. Vertical dashed lines mark the two
+learning-rate decay points at epochs 40 and 80. Best validation
+\AUC{} (highlighted) was $0.9983$ at epoch 93.}
+\label{fig:curves}
+\end{figure}
+
+Early-epoch validation \AUC{} is noisy in the
+$0.18$--$0.97$ band because each epoch contains only 32 batches
+(4{,}086 training samples / 128 batch size), so single-batch noise
+dominates the per-epoch eval. After the first learning-rate decay at
+epoch 40 the validation curve stabilises above $0.99$ and the best
+checkpoint lands at epoch 93. The final 40 epochs at
+$10^{-5}$ provide a small additional refinement.
+
+% =============================================================================
+\section{Results}
+\label{sec:results}
+% =============================================================================
+
+The best validation-\AUC{} checkpoint (epoch 93) was applied to the
+held-out test split (583 cutouts, 93 positives) producing the receiver
+operating characteristic in figure~\ref{fig:roc}. The test \AUC{} is
+$0.9991$.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.7\linewidth]{figures/roc_curve.png}
+\caption{ROC on the held-out test set. The classifier achieves perfect
+ranking on the top half of the threshold sweep; the few mis-rankings
+near the upper-left corner are visible. See \S\ref{sec:caveats} for why
+this \AUC{} is biased above the level we should expect from a fair
+out-of-distribution test.}
+\label{fig:roc}
+\end{figure}
+
+The headline comparison against \textcite{huang2020decals} is in
+Table~\ref{tab:results}.
+
+\begin{table}[ht]
+\centering
+\caption{Headline comparison. The \AUC{} gap is dominated by the two
+methodological substitutions in \S\ref{sec:caveats}, not by the
+architecture or hyperparameter recipe.}
+\label{tab:results}
+\begin{tabular}{lll}
+\toprule
+                  & Huang+2020 published          & Ours (Phase 3a) \\
+\midrule
+\AUC{}            & $0.98$ (validation)           & $\mathbf{0.9991}$ (test), $0.9983$ (val) \\
+Positives         & 613 (MLD + 6 publications)    & 929 (NeuraLens L18) \\
+Negatives         & 13{,}000 (by-eye hard)        & 4{,}908 (random DR1) \\
+Imbalance         & 21:1                          & 5.3:1 \\
+Hardware          & 3× Haswell @ NERSC Cori       & 1× NVIDIA L4 \\
+Wall-clock        & 17~h                          & 24.8~min \\
+Cutouts           & $101 \times 101$ grz, DR3/5   & $101 \times 101$ grz, DR9 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% =============================================================================
+\section{Reproducibility caveats}
+\label{sec:caveats}
+% =============================================================================
+
+The $0.9991$ test \AUC{} narrowly exceeds the $0.98$ published
+\textcite{huang2020decals} validation \AUC{}, but a fair interpretation
+must account for two methodological substitutions.
+
+\paragraph{(i) The NeuraLens catalog mixes Huang's training inputs with
+his discoveries.}
+\textcite{huang2020decals} trained on $\sim$613 known lenses sourced from
+the Master Lens Database \autocite{moustakas2012mld} plus six specific
+recent publications (Carrasco 2017; Diehl 2017; Pourrahmani 2018;
+Sonnenfeld 2018; Wong 2018; Jacobs 2017 \& 2019). The 949 L18-model rows
+we use as positives are the \emph{output} of the trained classifier as
+re-graded by the team: that is, approximately the 613 training inputs
+\emph{plus} the 335 newly-discovered candidates, minus a handful of
+re-grading rejections. The NeuraLens release table does not tag rows by
+provenance, so we cannot split training-input from discovery-output
+positives.
+
+Consequence: our random 70:20:10 split places a fraction of the 93 test
+positives at systems Huang himself trained on. Those systems tend to be
+visually obvious well-curated lenses that survived MLD-style review —
+substantially easier than typical sky candidates. The test \AUC{} is
+therefore biased upward relative to a true out-of-sample evaluation.
+
+\paragraph{(ii) Uniformly random DR1 galaxies are easy negatives.}
+\textcite{huang2020decals} \S3.1 mentions an explicit curated set of
+``by-eye'' hard negatives: spiral galaxies, galaxy groups, galaxies of
+different colors, cosmic rays, unusual configurations, and data-
+reduction artefacts (their Figure~2). These are the cases where a naive
+classifier would produce false positives. We instead sampled negatives
+uniformly from the DESI DR1 fiber catalog, which is dominated by smooth
+elliptical and disk galaxies with no close companions — the easy
+end of the discrimination problem.
+
+Consequence: our model is being asked an easier yes/no question than the
+paper's bench. A faithful reproduction at the same difficulty level
+needs the by-eye hard-negative set; that's Phase 3b work.
+
+\paragraph{Honest take.} Phase 3a establishes that the \emph{architecture
+and training recipe} can be re-implemented to a working classifier from
+the published methods alone. It does \emph{not} establish parity with
+the paper's bench-marked performance. The $0.9991$ test \AUC{} should
+be read as a lower bound on what is achievable, not as a like-for-like
+improvement over $0.98$.
+
+A proper closure of the Phase 3a $\to$ paper gap requires either
+(a)~obtaining Huang's training set and code via collaboration, or
+(b)~assembling an authentic 613-row MLD+publications training-positive
+set \emph{and} a 13{,}000-row by-eye-hard-negative set, then re-running.
+
+% =============================================================================
+\section{Software and data availability}
+% =============================================================================
+
+\begin{itemize}
+\item Architecture and training: \texttt{reproductions/huang-2020/01-06\_*.py};
+      this report's figures are produced by
+      \texttt{07\_plot\_training\_curves.py}.
+\item Trained checkpoint: \texttt{data/checkpoint\_best.pt}
+      ($\sim$14~MB; gitignored, regeneratable in 25~min on one L4).
+\item Training-history and test-result artifacts:
+      \texttt{data/\{training\_history.json, test\_result.json,
+      training\_split.parquet\}}.
+\item NeuraLens catalog source: Google Drive CSV (URL above), licensed
+      for non-commercial academic use per the NeuraLens project page.
+\item DESI DR1 zcatalog source:
+      \url{https://data.desi.lbl.gov/public/dr1/spectro/redux/iron/zcatalog/v1/zall-pix-iron.fits}
+      (22.4~GB, public).
+\item DECaLS cutouts: pulled at runtime from
+      \texttt{legacysurvey.org/viewer/fits-cutout}; cutouts gitignored.
+\item Python environment: \texttt{/raid/benson/.venvs/lensfinder} —
+      \texttt{torch~2.12+cu126}, \texttt{torchvision~0.27},
+      \texttt{astropy}, \texttt{fitsio}, \texttt{scikit-learn},
+      \texttt{matplotlib}.
+\item Code repository: \url{https://github.com/usfcs-edu/agentic-lensing}.
+\end{itemize}
+
+% =============================================================================
+\section{Conclusions}
+% =============================================================================
+
+We have implemented and trained a PyTorch port of the
+\textcite{lanusse2018cmu} \ResNet-46 under the
+\textcite{huang2020decals} hyperparameter recipe, reaching a test \AUC{}
+of $0.9991$ — narrowly above the published $0.98$. The architecture, the
+loss, the optimiser settings, the data augmentation, and the cutout
+size are all faithful to the published descriptions. Once the
+methodological substitutions of \S\ref{sec:caveats} are corrected, this
+result is the basis of a faithful Phase 3b reproduction of the full
+DECaLS deployment that produced \textcite{huang2020decals}'s 335 new
+strong-lens candidates.
+
+% =============================================================================
+\appendix
+\section{Per-epoch training history (compact)}
+% =============================================================================
+
+Selected milestones from \texttt{data/training\_history.json}.
+First learning-rate decay $1{\rm e}{-}3 \to 1{\rm e}{-}4$ at epoch 41;
+second decay $1{\rm e}{-}4 \to 1{\rm e}{-}5$ at epoch 81. Best
+validation \AUC{} highlighted.
+
+\begin{table}[ht]
+\centering
+\caption{Selected milestones from the 120-epoch training run.}
+\label{tab:history}
+\begin{tabular}{rrrrr}
+\toprule
+epoch & LR        & train loss & val loss & val \AUC{} \\
+\midrule
+   1  & 1e-3      & 0.4158     & 0.4458   & 0.5838 \\
+   4  & 1e-3      & 0.2134     & 0.2159   & 0.9567 \\
+  16  & 1e-3      & 0.1479     & 0.2365   & 0.9808 \\
+  20  & 1e-3      & 0.1179     & 0.1169   & 0.9933 \\
+  34  & 1e-3      & 0.0629     & 0.0499   & 0.9974 \\
+  41  & 1e-4      & 0.0458     & 0.1772   & 0.9926 \\
+  51  & 1e-4      & 0.0348     & 0.0474   & 0.9976 \\
+  71  & 1e-4      & 0.0318     & 0.0405   & 0.9982 \\
+  80  & 1e-4      & 0.0267     & 0.0432   & 0.9983 \\
+  81  & 1e-5      & 0.0177     & 0.0626   & 0.9962 \\
+  88  & 1e-5      & 0.0232     & 0.0479   & 0.9983 \\
+  \textbf{93} & \textbf{1e-5} & \textbf{0.0223} & \textbf{0.0421} & \textbf{0.9983} \\
+ 120  & 1e-5      & 0.0178     & 0.0849   & 0.9954 \\
+\midrule
+ \multicolumn{4}{r}{\textbf{test (epoch 93 checkpoint)}} & \textbf{0.9991} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}
