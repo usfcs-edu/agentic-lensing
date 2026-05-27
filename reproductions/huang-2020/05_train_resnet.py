@@ -172,7 +172,7 @@ def build_split(pos: pd.DataFrame, neg: pd.DataFrame, fits_dir: Path,
     rng = np.random.default_rng(seed)
     assign = []
     for lab in (0, 1):
-        idx = df.index[df["label"] == lab].to_numpy()
+        idx = df.index[df["label"] == lab].to_numpy().copy()
         rng.shuffle(idx)
         n = len(idx)
         n_train = int(round(0.7 * n))
