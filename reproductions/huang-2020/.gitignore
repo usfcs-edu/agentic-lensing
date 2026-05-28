@@ -1,0 +1,14 @@
+# Phase 3a/3b data files — too large or transient for git.
+data/dr7_sweep/
+data/brick_tmp/
+data/cutouts_fits_dr7/
+data/cutouts_jpeg_dr7/
+data/cutouts_fits_dr9/
+data/cutouts_jpeg_dr9/
+data/parent_dr7.parquet
+data/checkpoint_best.pt
+data/inference_scores.parquet
+data/inference_scores_shard*.parquet
+data/brick_manifest_shard*.csv
+*.log
+__pycache__/

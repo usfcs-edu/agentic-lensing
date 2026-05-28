@@ -9,4 +9,6 @@
 - [Project: Hsu 2025 reproduction status](project_hsu_2025_reproduction.md) — DR1 pair-wise FoF reproduces 13,218 groups/26,621 spectra within 2%; 20/20 Grade A recall; dimple class is morphological, not σ_v
 - [Project: Huang 2020 reproduction status](project_huang_2020_reproduction.md) — Phase 3a ResNet test AUC 0.9991 vs paper 0.98 in 25 min on one L4; from paper + NeuraLens catalog + DR1 zcat negatives, no Huang code
 - [Project: SpectrumFM Track 2 tooling](project_spectrumfm_tooling.md) — yaml-driven exp_run/exp_analyze harness at tools/spectrumfm/; redshifty venv hosts the tool; key approach-tag regex is `Training Approach X` not `SMOKE TEST: Approach X`
-- [Project: SpectrumFM Track 3 medium runs](project_spectrumfm_medium_runs.md) — 33-pixel/11.5k-spectrum local subset, V1 tokenizer val_recon=4.08, codecs val_r2=0.44, Approach A z_acc peak 3.8%; dr1_dataset.py memmap fix; 9 GB disk
+- [Project: SpectrumFM Track 3 medium + large runs](project_spectrumfm_medium_runs.md) — 219k-spectrum pull matches NERSC V1 tokenizer (val_recon=1.38); diagnostic showed _large had Phase 9 batch/lr × Phase 10 mask mismatch; _phase10 fix doubled peak z_acc 3.9→8.2% but still below author's 73.8%; remaining gap likely data scale (219k vs 394k)
+- [Reference: Host GPU topology](reference_host_hardware.md) — 10 GPUs total: 8×A16 (16 GB) + 2×L4 (24 GB); use BOTH L4s for Phase 3b inference
+- [Reference: legacysurvey bulk-download](reference_legacysurvey_bulk_download.md) — cutout endpoint caps at ~0.86 rows/sec; use brick-level FITS for ~150× speedup
