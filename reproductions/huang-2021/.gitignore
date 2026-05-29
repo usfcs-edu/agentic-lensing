@@ -1,0 +1,36 @@
+# Phase 4 (Huang 2021) data files — too large or transient for git.
+# Symlinked training inputs (point into ../huang-2020/data/) are not tracked here.
+data/cutouts_fits_dr9
+data/cutouts_fits_dr7_train
+data/positives_huang2020.parquet
+data/positives_all.parquet
+data/negatives.parquet
+data/neuralens_catalog.parquet
+data/neuralens_catalog.csv
+data/checkpoint_best.pt
+data/checkpoint_best_dr7.pt
+
+# DR8 deployment artefacts
+data/dr8_sweep/
+data/brick_tmp/
+data/parent_dr8.parquet
+data/cutouts_fits_dr8/
+data/cutouts_jpeg_dr8/
+
+# Trained shielded checkpoints (regeneratable from 05/05b)
+data/checkpoint_best_shielded_dr9.pt
+data/checkpoint_best_shielded_dr7.pt
+
+# Full inference score parquets (commit only the slim p>=thresh subsets)
+data/inference_scores_*.parquet
+!data/inference_scores_*_p_ge_*.parquet
+data/inference_scores_*_shard*.parquet
+data/brick_manifest_*_shard*.csv
+
+*.log
+__pycache__/
+
+# Inspection viewer outputs — large thumbs, regeneratable from 16.
+papers/figures/inspection/thumbs/
+papers/figures/inspection/page_*.html
+papers/figures/inspection/index.html

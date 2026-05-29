@@ -1,0 +1,369 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Phase 4 Internal Reproduction Report
+%% Reproducing Huang+2021 "shielded" DESI Legacy lens finder + DR8 deployment
+%% from paper + public code only.
+%%
+%% Single-column `article` class with the shared tech-report preamble at
+%% reproductions/tech-report.sty. Builds with vanilla TeX Live (>= 2022) via
+%% the Makefile in this directory.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[11pt,letterpaper]{article}
+\usepackage{../../tech-report}
+
+\newcommand{\ResNet}{\textsc{ResNet}}
+\newcommand{\Lanusse}{\textsc{CMU DeepLens}}
+\newcommand{\Shield}{\textsc{shield}}
+\newcommand{\Adam}{\textsc{Adam}}
+
+\title{Reproducing the Huang 2021 Shielded ResNet\\
+       and its DESI Legacy DR8 Deployment}
+\author{Greg Benson \and Xiaosheng Huang}
+\date{May 2026}
+
+\begin{document}
+
+\maketitle
+\subtitle{Phase 4 Internal Reproduction Report}
+
+\begin{abstract}
+\textcite{huang2021desi} extends the \textcite{huang2020decals} DECaLS lens
+search in three ways: a new ``shielded'' \ResNet{} architecture that inserts
+$1{\times}1$ convolutional layers between every three residual blocks of the
+\textcite{lanusse2018cmu} backbone, a deployment over the full $\sim$14{,}000~deg$^2$
+DR8 footprint (adding the northern BASS/MzLS sky the DR7 search lacked), and a
+two-model ensemble (original L18 + shielded) scored at a low $p\ge0.1$ threshold,
+yielding $1{,}312$ published candidates. We reproduce the shielding architecture
+from the methods section alone: our reconstruction has $59{,}905$ trainable
+parameters (a $58.6\times$ reduction from the L18 backbone's $3{,}508{,}833$),
+$4$ shields, and the full $15$-block depth, reproducing the paper's
+``$\sim$60 thousand parameters'' and ``$\sim$50$\times$ reduction.'' Trained on
+the identical cutouts/seed/split as our L18 baseline, the shielded net matches
+the L18 held-out \AUC{} to within $\pm0.002$ ($0.9988$ vs $0.9991$ on DR9;
+$0.9955$ vs $0.9943$ on DR7) --- a faithful reproduction of the paper's central
+claim that shielding removes $\sim$98\% of parameters \emph{without} degrading
+performance. We rebuild the published $1{,}312$-candidate catalog from the
+NeuraLens release, recovering the paper's grade breakdown exactly
+($216$~A~$+$~$199$~B~$+$~$897$~C). We then describe the DR8 two-model deployment
+pipeline (footprint-aware brick inference over both the south DECaLS and north
+BASS/MzLS coadds) and the leakage-aware recovery framework that isolates the
+$363$ shielded-model discoveries our networks never saw in training from the
+$\sim$949 training-set positives. \S\ref{sec:caveats} discusses the
+methodological substitutions, which (as in Phase 3) bias our absolute \AUC{}s
+upward relative to the paper's $0.992/0.997$.
+\end{abstract}
+
+\tableofcontents
+\bigskip
+
+% =============================================================================
+\section{Introduction}
+% =============================================================================
+
+This report documents Phase~4 of an 8-phase reproduction roadmap covering
+Prof.\ Xiaosheng Huang's strong-gravitational-lensing program. Phase~1
+(\textcite{huang2025foundry1}; Foundry~I), Phase~2 \autocite{hsu2025pairwise},
+and Phase~3 (\textcite{huang2020decals}; the DECaLS DR7 lens finder, in Phases
+3a training and 3b full deployment) are reproduced in companion
+tech-reports.\footnote{\texttt{reproductions/\{foundry-i,hsu-2025,huang-2020\}/papers/main.tex}.}
+Phase~4 reproduces \textcite{huang2021desi}, the immediate successor to
+\textcite{huang2020decals} in the lens-finder lineage.
+
+\textcite{huang2021desi} is not a re-run of the 2020 search with more sky; it
+introduces a genuinely new architecture (\S\ref{sec:shield}) and was the first
+of the Huang-group searches to cover the northern BASS/MzLS footprint. As with
+all prior phases, the reproduction was performed without access to Huang's
+training code, training set, or trained weights. We split the work into
+\textbf{Phase~4a} (the shielded architecture, validated by a controlled
+comparison against our L18 baseline; \S\ref{sec:shield}--\ref{sec:compare}) and
+\textbf{Phase~4b/4c} (the DR8 two-model deployment and recovery of the published
+candidates; \S\ref{sec:deploy}--\ref{sec:recovery}).
+
+% =============================================================================
+\section{The shielding architecture}
+\label{sec:shield}
+% =============================================================================
+
+The backbone is the \Lanusse{} \ResNet{} of \textcite{lanusse2018cmu} reproduced
+in Phase~3a: a $7{\times}7$ stem followed by five stages of three pre-activated
+bottleneck blocks \autocite{he2016preact}, $15$ blocks in total, with channel
+progression $32\to32\to64\to128\to256\to512$ and a strided downsample at the
+first block of stages~2--5. At $101{\times}101{\times}3$ input this is
+$3{,}508{,}833$ parameters, of which the wide $256/512$-channel final stage
+alone accounts for $\sim$75\%.
+
+\textcite{huang2021desi} (\S3.3) modify this with ``shielding'' layers, quoting:
+\begin{quote}\small
+These `shields' are $1{\times}1$ convolutional layers inserted between every
+three blocks of the L18 architecture\ldots they have the effect of reducing
+dimensionality\ldots we reduce the number of trainable parameters by a factor of
+50 (from 3 million to 60 thousand)\ldots the validation \AUC{} has increased
+from 0.992\ldots to 0.997. \ldots in the final block\ldots we experimented with
+reducing the output from 512 channels to 256, 128, 64, 32, and 16 channels. We
+find that `shields' that keep the output to 32 channels perform the best.
+\end{quote}
+The rationale is regularisation by dimensionality compression: telling lenses
+from non-lenses, though hard, needs only a low-dimensional latent space, so
+shields ``[force] the network to learn only the most salient features''
+(inspired by the InceptionNet $1{\times}1$ bottlenecks of
+\textcite{szegedy2015inception}).
+
+\paragraph{Reconstruction.} The paper does not publish the exact intermediate
+channel counts, so we reconstruct (lives at
+\texttt{01b\_shielded\_resnet.py}): a pre-activated shield
+(\textsc{BN}~$\to$~ELU~$\to$~$1{\times}1$~conv) is inserted after each of the
+\emph{first four} three-block stages --- four shields, ``between every three
+blocks'' --- each squeezing the channel count to $16$, while the per-stage block
+width is capped at $32$ output channels and the final stage outputs
+$\mathtt{final\_out}$ channels. The L18 depth ($15$ blocks) and spatial
+downsampling schedule are preserved; only the wide final stages, which dominate
+the L18 parameter count, are collapsed. The swept channel ladder reproduces the
+paper's experiment:
+
+\begin{center}\small
+\begin{tabular}{r r}
+\toprule
+\texttt{final\_out} & parameters \\
+\midrule
+512 & 2{,}493{,}025 \\
+256 & 664{,}929 \\
+128 & 205{,}537 \\
+64  & 89{,}505 \\
+\textbf{32} & \textbf{59{,}905} \\
+16  & 58{,}257 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+At the paper's preferred $\mathtt{final\_out}=32$ the model has $59{,}905$
+parameters --- matching the paper's ``$\sim$60 thousand'' --- a $58.6\times$
+reduction from the L18 backbone. A smoke test asserts the param count, exactly
+four shields, $15$ bottleneck blocks, and a $\ge50\times$ reduction
+(figure~\ref{fig:shieldarch}).
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{figures/shielded_arch.png}
+\caption{The reconstructed shielded \ResNet{}: stem, then
+$[\text{stage}\times3 \to \Shield]\times4$, then a final 3-block stage and the
+pooled $\mathrm{FC}(32\to1)$ head. Four $1{\times}1$ shields, $\sim$60K
+parameters.}
+\label{fig:shieldarch}
+\end{figure}
+
+% =============================================================================
+\section{Controlled architecture comparison (Phase 4a)}
+\label{sec:compare}
+% =============================================================================
+
+To isolate the architecture as the only variable we train the shielded net on
+\emph{exactly} the inputs of our Phase~3a/3b L18 reproduction --- the same
+$949$ NeuraLens L18-model positives, the same random DR1 negatives, the same
+$\mathrm{seed}=2026$, the same $70/20/10$ stratified split --- for both the DR9
+and the (paper-exact) DR7 cutout sets. This mirrors the paper's own
+same-data L18-vs-shielded comparison. Training is the unchanged Lanusse recipe
+(\Adam, $\mathrm{lr}=10^{-3}$ decayed $/10$ every $40$ epochs, batch $128$, $120$
+epochs); the $60$K-parameter model trains in $\sim$15~min on one L4.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{l r r r}
+\toprule
+Run & parameters & val \AUC{} & test \AUC{} \\
+\midrule
+L18 / DR9            & 3{,}508{,}833 & 0.9983 & 0.9991 \\
+L18 / DR7            & 3{,}508{,}833 & 0.9890 & 0.9943 \\
+\textbf{shielded / DR9} & \textbf{59{,}905} & \textbf{0.9989} & \textbf{0.9988} \\
+\textbf{shielded / DR7} & \textbf{59{,}905} & \textbf{0.9875} & \textbf{0.9955} \\
+\bottomrule
+\end{tabular}
+\caption{Phase~4a controlled comparison. The shielded net matches the L18
+baseline to within $\pm0.002$ \AUC{} at $58.6\times$ fewer parameters. On DR9
+the shielded \emph{validation} \AUC{} edges L18 ($+0.0006$); on DR7 the shielded
+\emph{test} \AUC{} edges L18 ($+0.0012$). Built by
+\texttt{06\_compare\_architectures.py}.}
+\label{tab:arch}
+\end{table}
+
+Table~\ref{tab:arch} is the headline Phase~4a result. The differences between
+the two architectures are within run-to-run noise ($\pm0.001$--$0.002$ \AUC{}),
+so our reproduction confirms the paper's qualitative claim --- shielding removes
+$\sim$98\% of the parameters without degrading discrimination --- even though we
+do not reproduce the paper's specific $0.992\to0.997$ \emph{increase}. The
+direction of the gap is consistent: in our leakage-affected setup both
+architectures already sit at \AUC{}~$\approx0.99$ (see \S\ref{sec:caveats}),
+leaving little headroom for shielding to demonstrate an improvement. The honest
+comparison is the DR7-trained pair, where the L18 baseline is not inflated by
+the DR9 NeuraLens overlap; there the shielded net is marginally \emph{better} on
+the held-out test set. Figures~\ref{fig:archcmp} show the parameter-vs-\AUC{}
+trade-off and the validation-\AUC{} training curves.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.49\linewidth]{figures/arch_comparison.png}
+\hfill
+\includegraphics[width=0.49\linewidth]{figures/arch_training_curves.png}
+\caption{Left: held-out test \AUC{} vs.\ trainable parameters (log scale); the
+shielded points sit $\sim$60$\times$ to the left of the L18 points at the same
+\AUC{}. Right: validation \AUC{} per epoch, shielded (DR9, DR7) vs.\ the L18 DR7
+baseline.}
+\label{fig:archcmp}
+\end{figure}
+
+% =============================================================================
+\section{The published catalog}
+\label{sec:catalog}
+% =============================================================================
+
+\textcite{huang2021desi} publish $1{,}312$ candidates via the NeuraLens
+release.\footnote{\url{https://sites.google.com/usfca.edu/neuralens}} The
+release table (on disk as \texttt{neuralens\_catalog.csv}) carries, per
+candidate, the \texttt{DESI-RA$\pm$DEC} name, the averaged visual grade
+(Score $\in\{2.0,2.5,3.0,3.5,4.0\}$), the discovering model (\texttt{L18} or
+\texttt{shielded}), and the survey region (\texttt{DECaLS} or \texttt{MzLS}).
+Applying the paper's letter-grade mapping (\S3.5: A~$\ge3.5$, B~$=3.0$,
+C~$\in\{2.0,2.5\}$) in \texttt{13\_extract\_huang2021\_catalog.py} reproduces
+Table~3 of \textcite{huang2021desi} exactly:
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{l r r r r}
+\toprule
+Grade & L18 model & shielded model & total & paper Table 3 \\
+\midrule
+A   & 159 & 57  & 216 & 216 \\
+B   & 139 & 60  & 199 & 199 \\
+C   & 651 & 246 & 897 & 897 \\
+\midrule
+Total & 949 & 363 & 1{,}312 & 1{,}312 \\
+\bottomrule
+\end{tabular}
+\caption{Published Huang+2021 candidate catalog, reconstructed from the
+NeuraLens release. The grade counts, the per-model split, and the total all
+match the paper exactly. $185$ of the $1{,}312$ lie in the northern MzLS region
+--- the footprint Phase~3b's DR7 search could not reach.}
+\label{tab:catalog}
+\end{table}
+
+This catalog is the recovery target for Phase~4b/4c (\S\ref{sec:recovery}). Note
+that the $949$ L18-model rows are precisely the positives our networks were
+trained on (Phase~3a), so they constitute training-set leakage; the $363$
+shielded-model rows were never in training and are the leak-free test set.
+
+% =============================================================================
+\section{DR8 two-model deployment (Phase 4b)}
+\label{sec:deploy}
+% =============================================================================
+
+\paragraph{Parent sample.} \textcite{huang2021desi} score every DR8 galaxy with
+$\ge3$ passes in each of $grz$, $z$-band magnitude $<20.0$, typed DEV or COMP
+(the REX type is a secondary pass). We reproduce these cuts over both DR8 sweep
+regions --- \texttt{dr8/south/sweep/8.0/} ($437$ files, DECaLS/DECam) and
+\texttt{dr8/north/sweep/8.0/} ($286$ files, BASS+MzLS) --- in
+\texttt{10\_select\_parent\_sample\_dr8.py}, tagging each surviving row with a
+\texttt{footprint} column derived from its sweep region. The paper reports
+$\sim$15.4~M DEV/COMP cutouts over $\sim$14{,}000~deg$^2$.
+
+\paragraph{Footprint-aware brick inference.} We reuse the Phase~3b engineering
+pivot --- per-brick coadd FITS downloads with local WCS slicing, $\sim$200$\times$
+faster than the rate-limited cutout endpoint --- generalised in
+\texttt{11b\_brick\_inference\_dr8.py} to (i) route each brick's $grz$ image
+download to the correct \texttt{dr8/\{south,north\}/coadd/} directory using the
+row's footprint, and (ii) score every brick with \emph{both} the L18 and
+shielded checkpoints in a single download pass (network being the bottleneck),
+each model normalised with its own stored band statistics. Work is partitioned
+into shards by a hash of the \texttt{(footprint, brickname)} key and run across
+the two L4 GPUs. The north footprint is the highest-risk new code path; a
+gate (\texttt{08\_smoketest\_dr8.py}) verifies that known lenses in both the
+south (DECaLS) and north (MzLS) regions download, slice, and score correctly
+before the full run.\footnote{North DR8 coadds are only $\sim$50\% $grz$-complete
+at the brick level, but parent-sample galaxies (which require $\mathrm{NOBS}_z\ge3$)
+live only in $z$-covered, hence $grz$-complete, bricks --- so the partial bricks
+never enter the deployment.}
+
+\emph{Status: the DR8 sweep download and two-model inference are in progress at
+the time of writing; the recovery results below will be populated on
+completion.}
+
+% =============================================================================
+\section{Recovery and leakage analysis (Phase 4c)}
+\label{sec:recovery}
+% =============================================================================
+
+\texttt{14\_crossmatch\_recovery\_dr8.py} cross-matches both models' DR8 scores
+against the $1{,}312$ published candidates (5\arcsec\ radius) at thresholds
+$\{0.1,0.5,0.9\}$, broken out by grade and by model. Crucially, it tags each
+published candidate as \emph{leaked} (within 5\arcsec\ of a training positive ---
+the $\sim$949 L18-model rows) or \emph{leak-free} (the $363$ shielded-model
+discoveries). Because our networks never saw the shielded-model candidates in
+training, their recovery is the honest measure of whether the architecture
+generalises to genuinely new lenses --- the Phase~4c headline, to be reported
+once the deployment completes. \texttt{15\_extended\_crossmatch.py} then
+classifies the top-$N$ candidates by provenance (training leak / previously
+published in Huang+2020, Huang+2021, or Hsu+2025 / unmatched), and
+\texttt{16\_build\_inspection\_viewer.py} renders Lupton-stretched $grz$
+thumbnails of the top scorers per model for visual grading.
+
+% =============================================================================
+\section{Reproducibility caveats}
+\label{sec:caveats}
+% =============================================================================
+
+\begin{enumerate}
+\item \textbf{No Huang code released.} The shielded architecture, the training
+set, and the deployment glue are reconstructed from the methods section.
+\item \textbf{Shield channel counts are a design choice.} The paper specifies
+only ``$1{\times}1$ between every three blocks,'' ``final block $32$ best,'' and
+``$\sim$60K parameters.'' Our $\mathtt{SHIELD\_CH}=16$ reconstruction lands at
+$59{,}905$ parameters --- the closest principled fit --- but the exact
+intermediate widths may differ from Huang's.
+\item \textbf{Training-set leakage.} As in Phase~3a, our positives are the
+NeuraLens L18-model rows, which are themselves Huang+2021 candidates. This
+inflates our absolute \AUC{}s ($\sim$0.99 vs.\ the paper's $0.992/0.997$) and
+means the controlled comparison (Table~\ref{tab:arch}) is the trustworthy
+result, not the absolute numbers. The leak-free recovery of the $363$
+shielded-model candidates (\S\ref{sec:recovery}) is designed to side-step this.
+\item \textbf{Random vs.\ curated negatives.} We use uniformly random DR1
+galaxies as non-lenses, not the paper's by-eye hard negatives (spirals, rings,
+mergers, artefacts), which were not released.
+\item \textbf{GPU device ordering.} On this host (8$\times$A16~$+$~2$\times$L4),
+CUDA's default \texttt{FASTEST\_FIRST} ordering does not match \texttt{nvidia-smi}
+indices; \texttt{CUDA\_DEVICE\_ORDER=PCI\_BUS\_ID} is required to target the two
+L4s.
+\end{enumerate}
+
+% =============================================================================
+\section{Software and data availability}
+% =============================================================================
+
+All code lives at \texttt{reproductions/huang-2021/} (scripts \texttt{01b},
+\texttt{05}--\texttt{16}); the L18 backbone (\texttt{01\_lanusse\_resnet.py}) and
+all training inputs are shared with \texttt{huang-2020/} via symlink. The
+shielded architecture is \texttt{01b\_shielded\_resnet.py}; the controlled
+comparison is reproduced by \texttt{06\_compare\_architectures.py}. DR8 sweep
+catalogs ($\sim$1.5~TB) and per-brick coadds are streamed from the NERSC Legacy
+Surveys portal and not redistributed. The reconstructed published catalog
+(\texttt{data/huang2021\_published\_catalog.csv}) and the architecture-comparison
+table (\texttt{data/arch\_comparison.csv}) are committed.
+
+% =============================================================================
+\section{Conclusions}
+% =============================================================================
+
+Phase~4a reproduces the central methodological contribution of
+\textcite{huang2021desi}: a shielded \ResNet{} with $58.6\times$ fewer
+parameters ($59{,}905$ vs $3{,}508{,}833$) that matches the L18 backbone's
+held-out \AUC{} to within $\pm0.002$ on identical data. We reconstruct the
+published $1{,}312$-candidate catalog exactly, including its grade and
+per-model breakdown and its $185$ northern MzLS candidates. The DR8 two-model
+deployment (\S\ref{sec:deploy}) --- the first Huang-group search this
+reproduction extends into the northern BASS/MzLS footprint --- and the
+leakage-aware recovery of the $363$ shielded-only discoveries (\S\ref{sec:recovery})
+are in progress and will complete the Phase~4 reproduction. The natural Phase~5
+is the DR9/DR10 successors (Storfer~2024, Inchausti~2025), which add a second
+backbone (EfficientNetV2) and a meta-learner on top of the shielded \ResNet{}
+reproduced here.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}
