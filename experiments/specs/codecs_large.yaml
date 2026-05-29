@@ -1,0 +1,17 @@
+name: codecs_large
+repo: codecs
+description: 5000-step codecs Mamba3+RFSQ training on the larger DESI subset HDF5 cache
+tags: [large-scale, codecs, track3]
+
+launch:
+  command:
+    - torchrun
+    - --nproc_per_node=1
+    - --master_port=29503
+    - scripts/train.py
+    - --config
+    - /raid/benson/data/desi_dr1_medium/codecs_large.yaml
+
+env:
+  CUDA_VISIBLE_DEVICES: "9"
+  TORCHDYNAMO_DISABLE: "1"

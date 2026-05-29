@@ -1,0 +1,17 @@
+name: codecs_medium
+repo: codecs
+description: 2000-step codecs Mamba3+RFSQ training on local medium (~11.5k spectra) HDF5 cache
+tags: [medium-real, codecs, track3]
+
+launch:
+  command:
+    - torchrun
+    - --nproc_per_node=1
+    - --master_port=29502
+    - scripts/train.py
+    - --config
+    - /raid/benson/data/desi_dr1_medium/codecs_medium.yaml
+
+env:
+  CUDA_VISIBLE_DEVICES: "9"        # second L4
+  TORCHDYNAMO_DISABLE: "1"

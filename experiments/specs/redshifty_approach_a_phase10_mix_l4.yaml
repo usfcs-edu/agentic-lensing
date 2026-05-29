@@ -1,0 +1,66 @@
+name: redshifty_approach_a_phase10_mix_l4
+repo: redshifty
+description: |
+  Re-run of the mix-data Phase-10 Approach-A spec on a real L4 GPU. The
+  prior `_mix` run mapped CUDA_VISIBLE_DEVICES=8 to an A16 because CUDA's
+  default FASTEST_FIRST device ordering reorders L4s in front of A16s.
+  Setting CUDA_DEVICE_ORDER=PCI_BUS_ID restores the nvidia-smi-index
+  mapping so device "8" is the L4 (faster, 23 GiB).
+
+  Also bumps --ar-eval-batches from 8 to 32 so the honest AR z_acc
+  metric is no longer noise-dominated (n_samples ~ 758 vs 226).
+
+  Same data, same hparams, same tokenizer as `_mix` — should reproduce
+  the ignition signature in roughly half the wallclock with a sharper
+  AR signal.
+tags: [xlarge-scale, transformer, approach-a, track3, l4-rerun]
+
+launch:
+  command:
+    - python
+    - nersc/train_transformer.py
+    - --manifest
+    - /raid/benson/data/desi_dr1_medium/manifest_mix.jsonl
+    - --tokenizer-ckpt
+    - /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v1_large/best.pt
+    - --tokenizer-kind
+    - v1
+    - --approach
+    - a
+    - --steps
+    - "10000"
+    - --batch-size
+    - "32"
+    - --lr
+    - "4e-4"
+    - --warmup
+    - "500"
+    - --healpix-holdout-frac
+    - "0.05"
+    - --val-every
+    - "500"
+    - --save-every
+    - "2500"
+    - --log-every
+    - "100"
+    - --num-workers
+    - "4"
+    - --amp
+    - --redshift-loss-weight
+    - "50.0"
+    - --encoder-mask-ratio
+    - "0.50"
+    - --ar-eval-batches
+    - "32"                          # bumped from 8 — n_samples ~ 758 vs 226
+    - --run-name
+    - approach_a_phase10_mix_l4
+    - --scratch-out
+    - /raid/benson/data/desi_dr1_medium/checkpoints
+    - --wandb-mode
+    - disabled
+    - --no-push-wandb-artifact
+
+env:
+  CUDA_DEVICE_ORDER: PCI_BUS_ID    # restore nvidia-smi indexing
+  CUDA_VISIBLE_DEVICES: "8"        # under PCI_BUS_ID, this is the actual L4
+  SCRATCH: /raid/benson/data/desi_dr1_medium
