@@ -1,0 +1,1 @@
+/home/benson/.venvs/codecs/bin/torchrun --nproc_per_node=1 --master_port=29503 scripts/train.py --config /raid/benson/data/desi_dr1_medium/codecs_large.yaml

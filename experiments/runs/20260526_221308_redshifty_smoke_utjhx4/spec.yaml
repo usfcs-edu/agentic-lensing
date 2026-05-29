@@ -1,0 +1,12 @@
+name: redshifty_smoke
+repo: redshifty
+description: 3-epoch Approach A+B smoke test on 50-spectrum subset (mirrors scripts/smoke_test.py)
+tags: [smoke, track2-mvp]
+
+launch:
+  command:
+    - python
+    - scripts/smoke_test.py
+
+env:
+  WANDB_MODE: offline

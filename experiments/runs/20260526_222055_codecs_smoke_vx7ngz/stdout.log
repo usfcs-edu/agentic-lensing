@@ -1,0 +1,69 @@
+Dataset: 231 train  |  16 val
+Parameters: 2,438,418
+max_steps=20
+
+Training:   0%|          | 0/20 [00:00<?, ?step/s]
+Training:   5%|▌         | 1/20 [00:23<07:17, 23.05s/step]
+Training:  10%|█         | 2/20 [00:23<02:52,  9.56s/step]
+                                                          
+  step      2  train_loss=941.00  lr=1.00e-04  val_nll=161.8750  val_r2=-7.7109  val_mask_bce=0.9414  val_perplexity=0.1740
+
+Training:  10%|█         | 2/20 [00:23<02:52,  9.56s/step]
+Training:  15%|█▌        | 3/20 [00:23<01:31,  5.36s/step]
+Training:  20%|██        | 4/20 [00:23<00:52,  3.29s/step]
+                                                          
+  step      4  train_loss=134.25  lr=9.73e-05  val_nll=49.6250  val_r2=-2.3047  val_mask_bce=0.8428  val_perplexity=0.1483
+
+Training:  20%|██        | 4/20 [00:23<00:52,  3.29s/step]
+Training:  25%|██▌       | 5/20 [00:23<00:33,  2.22s/step]
+Training:  30%|███       | 6/20 [00:24<00:21,  1.51s/step]
+                                                          
+  step      6  train_loss=34.50  lr=8.95e-05  val_nll=16.8359  val_r2=-0.9868  val_mask_bce=0.7471  val_perplexity=0.1630
+
+Training:  30%|███       | 6/20 [00:24<00:21,  1.51s/step]
+Training:  35%|███▌      | 7/20 [00:24<00:14,  1.12s/step]
+Training:  40%|████      | 8/20 [00:24<00:09,  1.25step/s]
+                                                          
+  step      8  train_loss=45.25  lr=7.75e-05  val_nll=22.9336  val_r2=-0.9897  val_mask_bce=0.7207  val_perplexity=0.1474
+
+Training:  40%|████      | 8/20 [00:24<00:09,  1.25step/s]
+Training:  45%|████▌     | 9/20 [00:24<00:07,  1.53step/s]
+Training:  50%|█████     | 10/20 [00:24<00:04,  2.05step/s]
+                                                           
+  step     10  train_loss=45.50  lr=6.28e-05  val_nll=29.5234  val_r2=-1.1313  val_mask_bce=0.7012  val_perplexity=0.1571
+
+Training:  50%|█████     | 10/20 [00:25<00:04,  2.05step/s]
+Training:  55%|█████▌    | 11/20 [00:25<00:04,  2.14step/s]
+Training:  60%|██████    | 12/20 [00:25<00:02,  2.76step/s]
+                                                           
+  step     12  train_loss=26.47  lr=4.72e-05  val_nll=19.8164  val_r2=-0.7754  val_mask_bce=0.7109  val_perplexity=0.1400
+
+Training:  60%|██████    | 12/20 [00:25<00:02,  2.76step/s]
+Training:  65%|██████▌   | 13/20 [00:25<00:02,  2.84step/s]
+Training:  70%|███████   | 14/20 [00:25<00:01,  3.55step/s]
+                                                           
+  step     14  train_loss=38.45  lr=3.25e-05  val_nll=13.2266  val_r2=-0.4761  val_mask_bce=0.7080  val_perplexity=0.1373
+
+Training:  70%|███████   | 14/20 [00:26<00:01,  3.55step/s]
+Training:  75%|███████▌  | 15/20 [00:26<00:01,  3.38step/s]
+Training:  80%|████████  | 16/20 [00:26<00:00,  4.12step/s]
+                                                           
+  step     16  train_loss=27.44  lr=2.05e-05  val_nll=9.9473  val_r2=-0.3193  val_mask_bce=0.7061  val_perplexity=0.1417
+
+Training:  80%|████████  | 16/20 [00:26<00:00,  4.12step/s]
+Training:  85%|████████▌ | 17/20 [00:26<00:00,  3.73step/s]
+Training:  90%|█████████ | 18/20 [00:26<00:00,  4.49step/s]
+                                                           
+  step     18  train_loss=25.81  lr=1.27e-05  val_nll=8.4980  val_r2=-0.2515  val_mask_bce=0.7021  val_perplexity=0.1435
+
+Training:  90%|█████████ | 18/20 [00:27<00:00,  4.49step/s]
+Training:  95%|█████████▌| 19/20 [00:27<00:00,  3.93step/s]
+Training: 100%|██████████| 20/20 [00:27<00:00,  4.69step/s]
+                                                           
+  step     20  train_loss=12.31  lr=1.00e-05  val_nll=7.9355  val_r2=-0.2227  val_mask_bce=0.6992  val_perplexity=0.1438
+
+Training: 100%|██████████| 20/20 [00:27<00:00,  4.69step/s]
+Training: 100%|██████████| 20/20 [00:27<00:00,  1.38s/step]
+
+Done. val_nll=7.9355  val_r2=-0.2227
+Model saved to /raid/benson/data/desi_dr1_mini/outputs/smoke/model.pt

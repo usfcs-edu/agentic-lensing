@@ -1,0 +1,143 @@
+[setup] rank=0/1 device=cuda amp=True steps=5000
+[setup] scratch_out=/raid/benson/data/desi_dr1_medium/checkpoints
+[data] loading manifest /raid/benson/data/desi_dr1_medium/manifest.jsonl
+[data] 33 healpix records
+[data] 11483 spectra in flat index
+[data] train=10909 val=574
+[model] params=24,286,426 (~24.3M)
+[step      0] loss=146.3657 (recon=146.1228, quant=0.2429) lr=1.50e-06 0.1 step/s
+[step     50] loss=3.3894 (recon=3.2504, quant=0.1390) lr=7.65e-05 1.0 step/s
+[step    100] loss=20.2218 (recon=20.1060, quant=0.1158) lr=1.51e-04 1.4 step/s
+[step    150] loss=5.0853 (recon=4.9851, quant=0.1002) lr=2.26e-04 1.6 step/s
+[step    200] loss=17.6512 (recon=17.5805, quant=0.0707) lr=3.00e-04 1.7 step/s
+[step    250] loss=4.6453 (recon=4.5907, quant=0.0546) lr=3.00e-04 1.9 step/s
+[val      250] total=7.1260 recon=7.0728 quant=0.0532
+  *** new best val_loss=7.1260 -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v1_medium/best.pt
+[step    300] loss=2.9697 (recon=2.9240, quant=0.0457) lr=3.00e-04 1.6 step/s
+[step    350] loss=2.2907 (recon=2.2478, quant=0.0429) lr=2.99e-04 1.7 step/s
+[step    400] loss=7.8251 (recon=7.7797, quant=0.0454) lr=2.99e-04 1.8 step/s
+[step    450] loss=17.1978 (recon=17.1443, quant=0.0535) lr=2.98e-04 1.8 step/s
+[step    500] loss=8.6023 (recon=8.5495, quant=0.0527) lr=2.97e-04 1.8 step/s
+[val      500] total=5.4662 recon=5.4129 quant=0.0534
+  *** new best val_loss=5.4662 -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v1_medium/best.pt
+[step    550] loss=2.6417 (recon=2.5791, quant=0.0626) lr=2.96e-04 1.7 step/s
+[step    600] loss=2.7208 (recon=2.6604, quant=0.0604) lr=2.95e-04 1.8 step/s
+[step    650] loss=3.1073 (recon=3.0495, quant=0.0578) lr=2.94e-04 1.8 step/s
+[step    700] loss=9.7328 (recon=9.6743, quant=0.0585) lr=2.93e-04 1.8 step/s
+[step    750] loss=5.9280 (recon=5.8631, quant=0.0649) lr=2.91e-04 1.9 step/s
+[val      750] total=5.1261 recon=5.0636 quant=0.0625
+  *** new best val_loss=5.1261 -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v1_medium/best.pt
+[step    800] loss=2.0505 (recon=1.9888, quant=0.0617) lr=2.90e-04 1.8 step/s
+[step    850] loss=2.6793 (recon=2.6104, quant=0.0689) lr=2.88e-04 1.8 step/s
+[step    900] loss=2.5951 (recon=2.5196, quant=0.0755) lr=2.86e-04 1.8 step/s
+[step    950] loss=2.9848 (recon=2.9223, quant=0.0625) lr=2.84e-04 1.8 step/s
+[step   1000] loss=3.7521 (recon=3.6935, quant=0.0586) lr=2.82e-04 1.9 step/s
+[val     1000] total=5.0410 recon=4.9772 quant=0.0637
+  *** new best val_loss=5.0410 -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v1_medium/best.pt
+  ckpt -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v1_medium/step_00001000.pt
+[step   1050] loss=5.0623 (recon=4.9991, quant=0.0632) lr=2.80e-04 1.8 step/s
+[step   1100] loss=5.3682 (recon=5.2889, quant=0.0794) lr=2.77e-04 1.8 step/s
+[step   1150] loss=3.6104 (recon=3.5464, quant=0.0640) lr=2.75e-04 1.8 step/s
+[step   1200] loss=3.5000 (recon=3.4363, quant=0.0637) lr=2.72e-04 1.8 step/s
+[step   1250] loss=6.0576 (recon=5.9899, quant=0.0677) lr=2.69e-04 1.9 step/s
+[val     1250] total=5.0708 recon=5.0047 quant=0.0661
+[step   1300] loss=2.9569 (recon=2.8869, quant=0.0700) lr=2.66e-04 1.8 step/s
+[step   1350] loss=8.6004 (recon=8.5293, quant=0.0711) lr=2.64e-04 1.8 step/s
+[step   1400] loss=7.1080 (recon=7.0336, quant=0.0743) lr=2.60e-04 1.8 step/s
+[step   1450] loss=2.8861 (recon=2.8147, quant=0.0714) lr=2.57e-04 1.9 step/s
+[step   1500] loss=4.1808 (recon=4.1147, quant=0.0662) lr=2.54e-04 1.9 step/s
+[val     1500] total=4.8856 recon=4.8161 quant=0.0695
+  *** new best val_loss=4.8856 -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v1_medium/best.pt
+[step   1550] loss=2.1630 (recon=2.0932, quant=0.0698) lr=2.51e-04 1.8 step/s
+[step   1600] loss=3.1681 (recon=3.0928, quant=0.0753) lr=2.47e-04 1.8 step/s
+[step   1650] loss=16.1033 (recon=16.0240, quant=0.0793) lr=2.44e-04 1.9 step/s
+[step   1700] loss=4.4913 (recon=4.4182, quant=0.0731) lr=2.40e-04 1.9 step/s
+[step   1750] loss=5.4743 (recon=5.3888, quant=0.0855) lr=2.36e-04 1.9 step/s
+[val     1750] total=4.9679 recon=4.8883 quant=0.0796
+[step   1800] loss=2.4682 (recon=2.3918, quant=0.0764) lr=2.32e-04 1.8 step/s
+[step   1850] loss=3.9922 (recon=3.9027, quant=0.0895) lr=2.29e-04 1.8 step/s
+[step   1900] loss=2.3097 (recon=2.2252, quant=0.0845) lr=2.25e-04 1.9 step/s
+[step   1950] loss=2.8990 (recon=2.8083, quant=0.0907) lr=2.21e-04 1.9 step/s
+[step   2000] loss=2.6365 (recon=2.5406, quant=0.0959) lr=2.17e-04 1.9 step/s
+[val     2000] total=4.8416 recon=4.7501 quant=0.0914
+  *** new best val_loss=4.8416 -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v1_medium/best.pt
+  ckpt -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v1_medium/step_00002000.pt
+[step   2050] loss=2.8835 (recon=2.7970, quant=0.0864) lr=2.13e-04 1.8 step/s
+[step   2100] loss=35.3732 (recon=35.2702, quant=0.1030) lr=2.08e-04 1.9 step/s
+[step   2150] loss=2.1972 (recon=2.0949, quant=0.1022) lr=2.04e-04 1.9 step/s
+[step   2200] loss=4.5870 (recon=4.4952, quant=0.0918) lr=2.00e-04 1.9 step/s
+[step   2250] loss=3.3411 (recon=3.2303, quant=0.1108) lr=1.96e-04 1.9 step/s
+[val     2250] total=4.7740 recon=4.6748 quant=0.0992
+  *** new best val_loss=4.7740 -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v1_medium/best.pt
+[step   2300] loss=2.3431 (recon=2.2476, quant=0.0956) lr=1.91e-04 1.9 step/s
+[step   2350] loss=2.3164 (recon=2.2291, quant=0.0872) lr=1.87e-04 1.9 step/s
+[step   2400] loss=2.4248 (recon=2.3298, quant=0.0950) lr=1.83e-04 1.9 step/s
+[step   2450] loss=8.0367 (recon=7.9293, quant=0.1074) lr=1.78e-04 1.9 step/s
+[step   2500] loss=4.4466 (recon=4.3447, quant=0.1019) lr=1.74e-04 1.9 step/s
+[val     2500] total=4.3988 recon=4.3015 quant=0.0973
+  *** new best val_loss=4.3988 -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v1_medium/best.pt
+[step   2550] loss=2.5977 (recon=2.5083, quant=0.0894) lr=1.69e-04 1.9 step/s
+[step   2600] loss=2.6637 (recon=2.5787, quant=0.0850) lr=1.65e-04 1.9 step/s
+[step   2650] loss=12.3423 (recon=12.2292, quant=0.1131) lr=1.61e-04 1.9 step/s
+[step   2700] loss=2.5884 (recon=2.4870, quant=0.1014) lr=1.56e-04 1.9 step/s
+[step   2750] loss=3.6480 (recon=3.5574, quant=0.0906) lr=1.52e-04 1.9 step/s
+[val     2750] total=4.3153 recon=4.2203 quant=0.0950
+  *** new best val_loss=4.3153 -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v1_medium/best.pt
+[step   2800] loss=8.9229 (recon=8.8256, quant=0.0973) lr=1.47e-04 1.9 step/s
+[step   2850] loss=2.6613 (recon=2.5732, quant=0.0881) lr=1.43e-04 1.9 step/s
+[step   2900] loss=3.2811 (recon=3.1752, quant=0.1059) lr=1.39e-04 1.9 step/s
+[step   2950] loss=2.5174 (recon=2.4281, quant=0.0893) lr=1.34e-04 1.9 step/s
+[step   3000] loss=3.1832 (recon=3.0831, quant=0.1001) lr=1.30e-04 1.9 step/s
+[val     3000] total=4.5427 recon=4.4410 quant=0.1017
+  ckpt -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v1_medium/step_00003000.pt
+[step   3050] loss=6.3700 (recon=6.2670, quant=0.1030) lr=1.26e-04 1.9 step/s
+[step   3100] loss=2.7302 (recon=2.6239, quant=0.1063) lr=1.22e-04 1.9 step/s
+[step   3150] loss=3.6356 (recon=3.5394, quant=0.0962) lr=1.17e-04 1.9 step/s
+[step   3200] loss=2.1366 (recon=2.0373, quant=0.0992) lr=1.13e-04 1.9 step/s
+[step   3250] loss=6.6483 (recon=6.5408, quant=0.1075) lr=1.09e-04 1.9 step/s
+[val     3250] total=4.6528 recon=4.5508 quant=0.1021
+[step   3300] loss=4.2182 (recon=4.1146, quant=0.1036) lr=1.05e-04 1.9 step/s
+[step   3350] loss=2.8255 (recon=2.7182, quant=0.1074) lr=1.01e-04 1.9 step/s
+[step   3400] loss=3.6472 (recon=3.5378, quant=0.1094) lr=9.75e-05 1.9 step/s
+[step   3450] loss=7.5015 (recon=7.3904, quant=0.1110) lr=9.37e-05 1.9 step/s
+[step   3500] loss=1.8975 (recon=1.7818, quant=0.1156) lr=9.00e-05 1.9 step/s
+[val     3500] total=4.5020 recon=4.3986 quant=0.1035
+[step   3550] loss=2.9624 (recon=2.8596, quant=0.1027) lr=8.64e-05 1.9 step/s
+[step   3600] loss=4.1053 (recon=4.0036, quant=0.1017) lr=8.28e-05 1.9 step/s
+[step   3650] loss=1.8416 (recon=1.7425, quant=0.0991) lr=7.94e-05 1.9 step/s
+[step   3700] loss=18.3071 (recon=18.2008, quant=0.1063) lr=7.60e-05 1.9 step/s
+[step   3750] loss=3.6998 (recon=3.5783, quant=0.1215) lr=7.27e-05 1.9 step/s
+[val     3750] total=4.5775 recon=4.4732 quant=0.1043
+[step   3800] loss=2.4726 (recon=2.3629, quant=0.1096) lr=6.95e-05 1.9 step/s
+[step   3850] loss=3.4949 (recon=3.3929, quant=0.1020) lr=6.65e-05 1.9 step/s
+[step   3900] loss=2.8888 (recon=2.7828, quant=0.1060) lr=6.35e-05 1.9 step/s
+[step   3950] loss=2.8497 (recon=2.7552, quant=0.0945) lr=6.06e-05 1.9 step/s
+[step   4000] loss=2.7331 (recon=2.6256, quant=0.1076) lr=5.79e-05 1.9 step/s
+[val     4000] total=4.2766 recon=4.1705 quant=0.1061
+  *** new best val_loss=4.2766 -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v1_medium/best.pt
+  ckpt -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v1_medium/step_00004000.pt
+[step   4050] loss=2.5756 (recon=2.4717, quant=0.1038) lr=5.53e-05 1.9 step/s
+[step   4100] loss=2.2389 (recon=2.1357, quant=0.1032) lr=5.28e-05 1.9 step/s
+[step   4150] loss=4.8054 (recon=4.6844, quant=0.1210) lr=5.04e-05 1.9 step/s
+[step   4200] loss=2.1993 (recon=2.0789, quant=0.1204) lr=4.81e-05 1.9 step/s
+[step   4250] loss=2.6041 (recon=2.4955, quant=0.1087) lr=4.59e-05 1.9 step/s
+[val     4250] total=4.1966 recon=4.0827 quant=0.1139
+  *** new best val_loss=4.1966 -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v1_medium/best.pt
+[step   4300] loss=4.8548 (recon=4.7313, quant=0.1235) lr=4.39e-05 1.9 step/s
+[step   4350] loss=2.2967 (recon=2.2031, quant=0.0936) lr=4.20e-05 1.9 step/s
+[step   4400] loss=4.5701 (recon=4.4395, quant=0.1306) lr=4.03e-05 1.9 step/s
+[step   4450] loss=2.1990 (recon=2.0843, quant=0.1148) lr=3.87e-05 1.9 step/s
+[step   4500] loss=2.7978 (recon=2.6785, quant=0.1193) lr=3.72e-05 1.9 step/s
+[val     4500] total=4.4481 recon=4.3376 quant=0.1105
+[step   4550] loss=2.6188 (recon=2.5183, quant=0.1004) lr=3.58e-05 1.9 step/s
+[step   4600] loss=5.6675 (recon=5.5347, quant=0.1327) lr=3.46e-05 1.9 step/s
+[step   4650] loss=3.7604 (recon=3.6411, quant=0.1193) lr=3.35e-05 1.9 step/s
+[step   4700] loss=9.4631 (recon=9.3504, quant=0.1127) lr=3.26e-05 1.9 step/s
+[step   4750] loss=4.0947 (recon=3.9776, quant=0.1171) lr=3.18e-05 1.9 step/s
+[val     4750] total=4.6561 recon=4.5442 quant=0.1119
+[step   4800] loss=2.5288 (recon=2.4273, quant=0.1014) lr=3.12e-05 1.9 step/s
+[step   4850] loss=2.3372 (recon=2.2275, quant=0.1097) lr=3.07e-05 1.9 step/s
+[step   4900] loss=2.8648 (recon=2.7696, quant=0.0952) lr=3.03e-05 1.9 step/s
+[step   4950] loss=5.1295 (recon=5.0104, quant=0.1191) lr=3.01e-05 1.9 step/s
+[done] final -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v1_medium/final.pt
+[done] best val_loss=4.1966

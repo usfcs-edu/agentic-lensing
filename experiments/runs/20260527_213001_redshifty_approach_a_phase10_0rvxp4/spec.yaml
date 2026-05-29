@@ -1,0 +1,58 @@
+name: redshifty_approach_a_phase10
+repo: redshifty
+description: |
+  Approach A transformer matching the redshifty author's Phase 10 final NERSC config
+  exactly — batch=32, lr=4e-4 (the combo we mistakenly skipped in _large by using
+  Phase 9's batch=8 lr=2e-4 together with Phase 10's mask=0.50). 10k steps on the
+  same 219k-spectrum/V1-large-tokenizer setup. Diagnostic: should fire redshift
+  ignition by step ~4000-6500 if the hparam-mismatch hypothesis is right.
+tags: [large-scale, transformer, approach-a, track3, diagnostic, phase10-match]
+
+launch:
+  command:
+    - python
+    - nersc/train_transformer.py
+    - --manifest
+    - /raid/benson/data/desi_dr1_medium/manifest.jsonl
+    - --tokenizer-ckpt
+    - /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v1_large/best.pt
+    - --tokenizer-kind
+    - v1
+    - --approach
+    - a
+    - --steps
+    - "10000"
+    - --batch-size
+    - "32"               # Phase 10 final knob (was 8 in our _large)
+    - --lr
+    - "4e-4"             # Phase 10 final knob, sqrt-scaled for batch 4× (was 2e-4)
+    - --warmup
+    - "500"
+    - --healpix-holdout-frac
+    - "0.05"
+    - --val-every
+    - "500"
+    - --save-every
+    - "2500"
+    - --log-every
+    - "100"
+    - --num-workers
+    - "4"
+    - --amp
+    - --redshift-loss-weight
+    - "50.0"
+    - --encoder-mask-ratio
+    - "0.50"
+    - --ar-eval-batches
+    - "4"
+    - --run-name
+    - approach_a_phase10
+    - --scratch-out
+    - /raid/benson/data/desi_dr1_medium/checkpoints
+    - --wandb-mode
+    - disabled
+    - --no-push-wandb-artifact
+
+env:
+  CUDA_VISIBLE_DEVICES: "8"
+  SCRATCH: /raid/benson/data/desi_dr1_medium

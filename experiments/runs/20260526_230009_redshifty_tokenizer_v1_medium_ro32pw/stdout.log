@@ -1,0 +1,48 @@
+[setup] rank=0/1 device=cuda amp=True steps=5000
+[setup] scratch_out=/raid/benson/data/desi_dr1_medium/checkpoints
+[data] loading manifest /raid/benson/data/desi_dr1_medium/manifest.jsonl
+[data] 33 healpix records
+[data] 11483 spectra in flat index
+[data] train=10909 val=574
+[model] params=24,286,426 (~24.3M)
+Traceback (most recent call last):
+  File "/raid/benson/lensing-repos/redshifty/nersc/pretrain_tokenizer.py", line 411, in <module>
+    main()
+    ~~~~^^
+  File "/raid/benson/lensing-repos/redshifty/nersc/pretrain_tokenizer.py", line 265, in main
+    batch = next(train_iter)
+  File "/home/benson/.venvs/redshifty/lib/python3.13/site-packages/torch/utils/data/dataloader.py", line 718, in __next__
+    data = self._next_data()
+  File "/home/benson/.venvs/redshifty/lib/python3.13/site-packages/torch/utils/data/dataloader.py", line 1525, in _next_data
+    return self._process_data(data, worker_id)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/benson/.venvs/redshifty/lib/python3.13/site-packages/torch/utils/data/dataloader.py", line 1563, in _process_data
+    data.reraise()
+    ~~~~~~~~~~~~^^
+  File "/home/benson/.venvs/redshifty/lib/python3.13/site-packages/torch/_utils.py", line 774, in reraise
+    raise exception
+ValueError: Caught ValueError in DataLoader worker process 0.
+Original Traceback (most recent call last):
+  File "/home/benson/.venvs/redshifty/lib/python3.13/site-packages/torch/utils/data/_utils/worker.py", line 374, in _worker_loop
+    data = fetcher.fetch(index)  # type: ignore[possibly-undefined]
+  File "/home/benson/.venvs/redshifty/lib/python3.13/site-packages/torch/utils/data/_utils/fetch.py", line 52, in fetch
+    data = self.dataset.__getitems__(possibly_batched_index)
+  File "/home/benson/.venvs/redshifty/lib/python3.13/site-packages/torch/utils/data/dataset.py", line 443, in __getitems__
+    return [self.dataset[self.indices[idx]] for idx in indices]
+            ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/raid/benson/lensing-repos/redshifty/nersc/dr1_dataset.py", line 132, in __getitem__
+    b_mask = coadd["B_MASK"].data[row] != 0
+             ^^^^^^^^^^^^^^^^^^^^
+  File "/home/benson/.venvs/redshifty/lib/python3.13/site-packages/astropy/utils/decorators.py", line 949, in __get__
+    val = self.fget(obj)
+  File "/home/benson/.venvs/redshifty/lib/python3.13/site-packages/astropy/io/fits/hdu/image.py", line 245, in data
+    data = self._get_scaled_image_data(self._data_offset, self.shape)
+  File "/home/benson/.venvs/redshifty/lib/python3.13/site-packages/astropy/io/fits/hdu/image.py", line 802, in _get_scaled_image_data
+    return self._scale_data(raw_data)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/benson/.venvs/redshifty/lib/python3.13/site-packages/astropy/io/fits/hdu/image.py", line 813, in _scale_data
+    raise ValueError(
+    ...<3 lines>...
+    )
+ValueError: Cannot load a memory-mapped image: BZERO/BSCALE/BLANK header keywords present. Set memmap=False.
+

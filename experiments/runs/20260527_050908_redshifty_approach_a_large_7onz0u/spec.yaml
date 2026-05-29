@@ -1,0 +1,53 @@
+name: redshifty_approach_a_large
+repo: redshifty
+description: Approach A transformer on large subset with V1-large tokenizer (10k steps targeting redshift-ignition point ~6.5k seen by author)
+tags: [large-scale, transformer, approach-a, track3]
+
+launch:
+  command:
+    - python
+    - nersc/train_transformer.py
+    - --manifest
+    - /raid/benson/data/desi_dr1_medium/manifest.jsonl
+    - --tokenizer-ckpt
+    - /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v1_large/best.pt
+    - --tokenizer-kind
+    - v1
+    - --approach
+    - a
+    - --steps
+    - "10000"
+    - --batch-size
+    - "8"
+    - --lr
+    - "2e-4"
+    - --warmup
+    - "500"
+    - --healpix-holdout-frac
+    - "0.05"
+    - --val-every
+    - "500"
+    - --save-every
+    - "2500"
+    - --log-every
+    - "100"
+    - --num-workers
+    - "4"
+    - --amp
+    - --redshift-loss-weight
+    - "50.0"
+    - --encoder-mask-ratio
+    - "0.50"
+    - --ar-eval-batches
+    - "4"
+    - --run-name
+    - approach_a_large
+    - --scratch-out
+    - /raid/benson/data/desi_dr1_medium/checkpoints
+    - --wandb-mode
+    - disabled
+    - --no-push-wandb-artifact
+
+env:
+  CUDA_VISIBLE_DEVICES: "8"
+  SCRATCH: /raid/benson/data/desi_dr1_medium

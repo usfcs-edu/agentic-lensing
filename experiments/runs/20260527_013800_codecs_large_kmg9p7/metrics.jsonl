@@ -1,0 +1,10 @@
+{"kind": "step", "step": 500, "train_loss": 134.13, "lr": 9.94e-05, "val_nll": 15.8483, "val_r2": 0.2668, "val_mask_bce": 0.0634, "val_perplexity": 0.0618}
+{"kind": "step", "step": 1000, "train_loss": 12.0, "lr": 9.46e-05, "val_nll": 8.9542, "val_r2": 0.3759, "val_mask_bce": 0.0282, "val_perplexity": 0.0915}
+{"kind": "step", "step": 1500, "train_loss": 7.31, "lr": 8.55e-05, "val_nll": 4.7588, "val_r2": 0.4103, "val_mask_bce": 0.0217, "val_perplexity": 0.1906}
+{"kind": "step", "step": 2000, "train_loss": 5.3, "lr": 7.31e-05, "val_nll": 6.4654, "val_r2": 0.4212, "val_mask_bce": 0.0173, "val_perplexity": 0.2262}
+{"kind": "step", "step": 2500, "train_loss": 4.57, "lr": 5.87e-05, "val_nll": 3.6504, "val_r2": 0.4326, "val_mask_bce": 0.0154, "val_perplexity": 0.2271}
+{"kind": "step", "step": 3000, "train_loss": 3.45, "lr": 4.4e-05, "val_nll": 3.6652, "val_r2": 0.4356, "val_mask_bce": 0.0131, "val_perplexity": 0.2572}
+{"kind": "step", "step": 3500, "train_loss": 2.58, "lr": 3.04e-05, "val_nll": 2.8933, "val_r2": 0.4452, "val_mask_bce": 0.0105, "val_perplexity": 0.3122}
+{"kind": "step", "step": 4000, "train_loss": 2.13, "lr": 1.95e-05, "val_nll": 2.8758, "val_r2": 0.4532, "val_mask_bce": 0.0096, "val_perplexity": 0.3659}
+{"kind": "step", "step": 4500, "train_loss": 2.09, "lr": 1.24e-05, "val_nll": 2.3787, "val_r2": 0.4597, "val_mask_bce": 0.0092, "val_perplexity": 0.3643}
+{"kind": "step", "step": 5000, "train_loss": 1.8, "lr": 1e-05, "val_nll": 2.3207, "val_r2": 0.4615, "val_mask_bce": 0.0094, "val_perplexity": 0.3779}

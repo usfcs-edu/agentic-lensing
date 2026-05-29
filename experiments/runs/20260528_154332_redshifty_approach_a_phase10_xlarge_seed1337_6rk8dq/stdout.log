@@ -1,0 +1,149 @@
+[setup] rank=0/1 device=cuda approach=a steps=10000 mask_ratio=0.5 redshift_weight=50.0
+[data] loading manifest /raid/benson/data/desi_dr1_medium/manifest.jsonl
+[data] 373 healpix records
+[data] healpix split: 354 train, 19 val (frac=0.05)
+[tok] loading spectrum tokenizer /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v1_large/best.pt (kind=v1)
+[tok] fitting redshift tokenizer on up to 200 redrock files
+[tok]   gathered 261516 z values, min=-0.0019 max=5.6786
+[data] train_ds=692271 val_ds=37627
+[model] params=103,671,040 (~103.7M)
+[step      0] loss=402.3175 z_loss=7.779 spec_loss=7.756 z_acc=0.000 spec_acc=0.000 masked_acc=0.000 rz_masked_acc=0.000 mask_r2=0.000 mask_auc=nan all_r2=0.000 all_auc=nan 0.1 step/s
+[step    100] loss=264.2588 z_loss=5.075 spec_loss=5.639 z_acc=0.000 spec_acc=0.253 masked_acc=0.249 rz_masked_acc=0.000 mask_r2=0.260 mask_auc=nan all_r2=0.261 all_auc=nan 0.5 step/s
+[step    200] loss=242.5795 z_loss=4.681 spec_loss=3.883 z_acc=0.000 spec_acc=0.181 masked_acc=0.183 rz_masked_acc=0.000 mask_r2=0.500 mask_auc=nan all_r2=0.491 all_auc=nan 0.5 step/s
+[step    300] loss=264.1084 z_loss=5.117 spec_loss=3.330 z_acc=0.000 spec_acc=0.252 masked_acc=0.255 rz_masked_acc=0.000 mask_r2=0.569 mask_auc=nan all_r2=0.564 all_auc=nan 0.5 step/s
+[step    400] loss=233.5312 z_loss=4.520 spec_loss=3.124 z_acc=0.050 spec_acc=0.280 masked_acc=0.282 rz_masked_acc=0.000 mask_r2=0.589 mask_auc=nan all_r2=0.590 all_auc=nan 0.5 step/s
+[step    500] loss=245.8643 z_loss=4.766 spec_loss=2.863 z_acc=0.000 spec_acc=0.301 masked_acc=0.296 rz_masked_acc=0.000 mask_r2=0.622 mask_auc=nan all_r2=0.625 all_auc=nan 0.5 step/s
+[val      500] loss=242.7735 overall_acc=0.3270 redshift_acc=0.0308 spectrum_acc=0.3280 loss_redshift=4.7101 loss_spectrum=2.7207 loss_total=2.7280 masked_spec_acc=0.3335 redshift_acc_masked=0.0252 mean_mask_auc=nan masked_spec_r2=nan all_mean_auc=nan all_spec_r2=nan
+  *** new best val_loss=242.7735 -> /raid/benson/data/desi_dr1_medium/checkpoints/checkpoints/approach_a_phase10_xlarge_seed1337/best.pt
+  [ar_best    500] ar_redshift_acc=0.010869565217391304 ar_spectrum_acc=0.008162127727345118 ar_mean_mask_auc=nan ar_masked_spec_r2=nan ar_all_mean_auc=nan ar_all_spec_r2=nan n_samples=184
+[step    600] loss=228.7700 z_loss=4.433 spec_loss=2.836 z_acc=0.062 spec_acc=0.282 masked_acc=0.273 rz_masked_acc=0.000 mask_r2=0.631 mask_auc=nan all_r2=0.628 all_auc=nan 0.4 step/s
+[step    700] loss=247.4131 z_loss=4.798 spec_loss=2.770 z_acc=0.136 spec_acc=0.323 masked_acc=0.326 rz_masked_acc=0.067 mask_r2=0.639 mask_auc=nan all_r2=0.637 all_auc=nan 0.4 step/s
+[step    800] loss=223.0058 z_loss=4.322 spec_loss=2.720 z_acc=0.136 spec_acc=0.297 masked_acc=0.303 rz_masked_acc=0.077 mask_r2=0.646 mask_auc=nan all_r2=0.643 all_auc=nan 0.4 step/s
+[step    900] loss=222.9444 z_loss=4.324 spec_loss=2.453 z_acc=0.045 spec_acc=0.362 masked_acc=0.362 rz_masked_acc=0.091 mask_r2=0.679 mask_auc=nan all_r2=0.678 all_auc=nan 0.4 step/s
+[step   1000] loss=233.8103 z_loss=4.540 spec_loss=2.533 z_acc=0.000 spec_acc=0.354 masked_acc=0.355 rz_masked_acc=0.000 mask_r2=0.670 mask_auc=nan all_r2=0.668 all_auc=nan 0.4 step/s
+[val     1000] loss=231.4415 overall_acc=0.3610 redshift_acc=0.0211 spectrum_acc=0.3622 loss_redshift=4.4912 loss_spectrum=2.4190 loss_total=2.4266 masked_spec_acc=0.3655 redshift_acc_masked=0.0241 mean_mask_auc=nan masked_spec_r2=nan all_mean_auc=nan all_spec_r2=nan
+  *** new best val_loss=231.4415 -> /raid/benson/data/desi_dr1_medium/checkpoints/checkpoints/approach_a_phase10_xlarge_seed1337/best.pt
+  [ar_best   1000] ar_redshift_acc=0.005434782608695652 ar_spectrum_acc=0.16415830546265328 ar_mean_mask_auc=nan ar_masked_spec_r2=nan ar_all_mean_auc=nan ar_all_spec_r2=nan n_samples=184
+[step   1100] loss=239.9087 z_loss=4.658 spec_loss=2.432 z_acc=0.000 spec_acc=0.343 masked_acc=0.354 rz_masked_acc=0.000 mask_r2=0.683 mask_auc=nan all_r2=0.681 all_auc=nan 0.4 step/s
+[step   1200] loss=229.0044 z_loss=4.442 spec_loss=2.496 z_acc=0.000 spec_acc=0.336 masked_acc=0.348 rz_masked_acc=0.000 mask_r2=0.678 mask_auc=nan all_r2=0.673 all_auc=nan 0.4 step/s
+[step   1300] loss=228.9561 z_loss=4.449 spec_loss=2.295 z_acc=0.048 spec_acc=0.384 masked_acc=0.375 rz_masked_acc=0.000 mask_r2=0.693 mask_auc=nan all_r2=0.699 all_auc=nan 0.4 step/s
+[step   1400] loss=229.3567 z_loss=4.450 spec_loss=2.474 z_acc=0.045 spec_acc=0.329 masked_acc=0.332 rz_masked_acc=0.077 mask_r2=0.676 mask_auc=nan all_r2=0.676 all_auc=nan 0.4 step/s
+[step   1500] loss=215.8358 z_loss=4.184 spec_loss=2.532 z_acc=0.000 spec_acc=0.315 masked_acc=0.334 rz_masked_acc=0.000 mask_r2=0.673 mask_auc=nan all_r2=0.668 all_auc=nan 0.4 step/s
+[val     1500] loss=230.3437 overall_acc=0.3824 redshift_acc=0.0181 spectrum_acc=0.3837 loss_redshift=4.4736 loss_spectrum=2.3004 loss_total=2.3083 masked_spec_acc=0.3857 redshift_acc_masked=0.0136 mean_mask_auc=nan masked_spec_r2=nan all_mean_auc=nan all_spec_r2=nan
+  *** new best val_loss=230.3437 -> /raid/benson/data/desi_dr1_medium/checkpoints/checkpoints/approach_a_phase10_xlarge_seed1337/best.pt
+  [ar_best   1500] ar_redshift_acc=0.016304347826086956 ar_spectrum_acc=0.1590619525402134 ar_mean_mask_auc=nan ar_masked_spec_r2=nan ar_all_mean_auc=nan ar_all_spec_r2=nan n_samples=184
+[step   1600] loss=248.7902 z_loss=4.831 spec_loss=2.519 z_acc=0.000 spec_acc=0.328 masked_acc=0.329 rz_masked_acc=0.000 mask_r2=0.669 mask_auc=nan all_r2=0.670 all_auc=nan 0.4 step/s
+[step   1700] loss=219.2318 z_loss=4.247 spec_loss=2.569 z_acc=0.000 spec_acc=0.318 masked_acc=0.318 rz_masked_acc=0.000 mask_r2=0.669 mask_auc=nan all_r2=0.663 all_auc=nan 0.4 step/s
+[step   1800] loss=242.4427 z_loss=4.711 spec_loss=2.337 z_acc=0.043 spec_acc=0.360 masked_acc=0.349 rz_masked_acc=0.083 mask_r2=0.693 mask_auc=nan all_r2=0.694 all_auc=nan 0.4 step/s
+[step   1900] loss=232.2686 z_loss=4.512 spec_loss=2.250 z_acc=0.000 spec_acc=0.385 masked_acc=0.377 rz_masked_acc=0.000 mask_r2=0.701 mask_auc=nan all_r2=0.705 all_auc=nan 0.4 step/s
+[step   2000] loss=234.7676 z_loss=4.562 spec_loss=2.228 z_acc=0.000 spec_acc=0.408 masked_acc=0.407 rz_masked_acc=0.000 mask_r2=0.710 mask_auc=nan all_r2=0.708 all_auc=nan 0.4 step/s
+[val     2000] loss=224.4937 overall_acc=0.3940 redshift_acc=0.0398 spectrum_acc=0.3953 loss_redshift=4.3596 loss_spectrum=2.2377 loss_total=2.2454 masked_spec_acc=0.3939 redshift_acc_masked=0.0339 mean_mask_auc=nan masked_spec_r2=nan all_mean_auc=nan all_spec_r2=nan
+  *** new best val_loss=224.4937 -> /raid/benson/data/desi_dr1_medium/checkpoints/checkpoints/approach_a_phase10_xlarge_seed1337/best.pt
+  [ar_best   2000] ar_redshift_acc=0.016304347826086956 ar_spectrum_acc=0.17930801082974995 ar_mean_mask_auc=nan ar_masked_spec_r2=nan ar_all_mean_auc=nan ar_all_spec_r2=nan n_samples=184
+[step   2100] loss=217.2574 z_loss=4.217 spec_loss=2.295 z_acc=0.000 spec_acc=0.382 masked_acc=0.380 rz_masked_acc=0.000 mask_r2=0.698 mask_auc=nan all_r2=0.699 all_auc=nan 0.4 step/s
+[step   2200] loss=214.0184 z_loss=4.153 spec_loss=2.201 z_acc=0.100 spec_acc=0.393 masked_acc=0.384 rz_masked_acc=0.091 mask_r2=0.709 mask_auc=nan all_r2=0.711 all_auc=nan 0.4 step/s
+[step   2300] loss=226.9152 z_loss=4.406 spec_loss=2.233 z_acc=0.048 spec_acc=0.415 masked_acc=0.419 rz_masked_acc=0.000 mask_r2=0.708 mask_auc=nan all_r2=0.707 all_auc=nan 0.4 step/s
+[step   2400] loss=230.1560 z_loss=4.461 spec_loss=2.528 z_acc=0.095 spec_acc=0.350 masked_acc=0.343 rz_masked_acc=0.000 mask_r2=0.664 mask_auc=nan all_r2=0.669 all_auc=nan 0.4 step/s
+[step   2500] loss=221.6841 z_loss=4.304 spec_loss=2.218 z_acc=0.040 spec_acc=0.410 masked_acc=0.404 rz_masked_acc=0.000 mask_r2=0.707 mask_auc=nan all_r2=0.709 all_auc=nan 0.4 step/s
+[val     2500] loss=216.9449 overall_acc=0.4037 redshift_acc=0.0876 spectrum_acc=0.4049 loss_redshift=4.2091 loss_spectrum=2.2006 loss_total=2.2079 masked_spec_acc=0.4031 redshift_acc_masked=0.0806 mean_mask_auc=nan masked_spec_r2=nan all_mean_auc=nan all_spec_r2=nan
+  *** new best val_loss=216.9449 -> /raid/benson/data/desi_dr1_medium/checkpoints/checkpoints/approach_a_phase10_xlarge_seed1337/best.pt
+  [ar_best   2500] ar_redshift_acc=0.010869565217391304 ar_spectrum_acc=0.1746098104793757 ar_mean_mask_auc=nan ar_masked_spec_r2=nan ar_all_mean_auc=nan ar_all_spec_r2=nan n_samples=184
+  ckpt -> /raid/benson/data/desi_dr1_medium/checkpoints/checkpoints/approach_a_phase10_xlarge_seed1337/step_00002500.pt
+[step   2600] loss=211.0126 z_loss=4.093 spec_loss=2.210 z_acc=0.045 spec_acc=0.400 masked_acc=0.396 rz_masked_acc=0.083 mask_r2=0.706 mask_auc=nan all_r2=0.710 all_auc=nan 0.4 step/s
+[step   2700] loss=250.0843 z_loss=4.865 spec_loss=2.120 z_acc=0.053 spec_acc=0.432 masked_acc=0.428 rz_masked_acc=0.067 mask_r2=0.720 mask_auc=nan all_r2=0.722 all_auc=nan 0.4 step/s
+[step   2800] loss=233.6358 z_loss=4.538 spec_loss=2.268 z_acc=0.040 spec_acc=0.374 masked_acc=0.368 rz_masked_acc=0.125 mask_r2=0.701 mask_auc=nan all_r2=0.703 all_auc=nan 0.4 step/s
+[step   2900] loss=212.0930 z_loss=4.119 spec_loss=2.032 z_acc=0.000 spec_acc=0.435 masked_acc=0.431 rz_masked_acc=0.000 mask_r2=0.733 mask_auc=nan all_r2=0.734 all_auc=nan 0.4 step/s
+[step   3000] loss=239.3260 z_loss=4.654 spec_loss=2.114 z_acc=0.042 spec_acc=0.436 masked_acc=0.440 rz_masked_acc=0.000 mask_r2=0.723 mask_auc=nan all_r2=0.723 all_auc=nan 0.4 step/s
+[val     3000] loss=218.8726 overall_acc=0.4118 redshift_acc=0.0133 spectrum_acc=0.4132 loss_redshift=4.2492 loss_spectrum=2.1577 loss_total=2.1653 masked_spec_acc=0.4099 redshift_acc_masked=0.0090 mean_mask_auc=nan masked_spec_r2=nan all_mean_auc=nan all_spec_r2=nan
+[step   3100] loss=225.0365 z_loss=4.367 spec_loss=2.304 z_acc=0.040 spec_acc=0.385 masked_acc=0.394 rz_masked_acc=0.067 mask_r2=0.700 mask_auc=nan all_r2=0.698 all_auc=nan 0.4 step/s
+[step   3200] loss=204.5870 z_loss=3.972 spec_loss=2.064 z_acc=0.136 spec_acc=0.431 masked_acc=0.430 rz_masked_acc=0.111 mask_r2=0.734 mask_auc=nan all_r2=0.729 all_auc=nan 0.4 step/s
+[step   3300] loss=219.5647 z_loss=4.262 spec_loss=2.293 z_acc=0.083 spec_acc=0.368 masked_acc=0.374 rz_masked_acc=0.083 mask_r2=0.703 mask_auc=nan all_r2=0.699 all_auc=nan 0.4 step/s
+[step   3400] loss=225.8802 z_loss=4.385 spec_loss=2.156 z_acc=0.053 spec_acc=0.404 masked_acc=0.410 rz_masked_acc=0.000 mask_r2=0.717 mask_auc=nan all_r2=0.717 all_auc=nan 0.4 step/s
+[step   3500] loss=240.3468 z_loss=4.674 spec_loss=2.191 z_acc=0.000 spec_acc=0.396 masked_acc=0.395 rz_masked_acc=0.000 mask_r2=0.709 mask_auc=nan all_r2=0.713 all_auc=nan 0.4 step/s
+[val     3500] loss=224.6163 overall_acc=0.4164 redshift_acc=0.0175 spectrum_acc=0.4178 loss_redshift=4.3630 loss_spectrum=2.1310 loss_total=2.1392 masked_spec_acc=0.4157 redshift_acc_masked=0.0123 mean_mask_auc=nan masked_spec_r2=nan all_mean_auc=nan all_spec_r2=nan
+[step   3600] loss=220.4090 z_loss=4.278 spec_loss=2.296 z_acc=0.000 spec_acc=0.381 masked_acc=0.378 rz_masked_acc=0.000 mask_r2=0.696 mask_auc=nan all_r2=0.699 all_auc=nan 0.4 step/s
+[step   3700] loss=222.2844 z_loss=4.315 spec_loss=2.235 z_acc=0.000 spec_acc=0.404 masked_acc=0.408 rz_masked_acc=0.000 mask_r2=0.707 mask_auc=nan all_r2=0.707 all_auc=nan 0.4 step/s
+[step   3800] loss=217.7210 z_loss=4.224 spec_loss=2.271 z_acc=0.000 spec_acc=0.386 masked_acc=0.380 rz_masked_acc=0.000 mask_r2=0.700 mask_auc=nan all_r2=0.702 all_auc=nan 0.4 step/s
+[step   3900] loss=217.5046 z_loss=4.227 spec_loss=1.880 z_acc=0.042 spec_acc=0.467 masked_acc=0.469 rz_masked_acc=0.000 mask_r2=0.752 mask_auc=nan all_r2=0.753 all_auc=nan 0.4 step/s
+[step   4000] loss=227.2293 z_loss=4.415 spec_loss=2.101 z_acc=0.056 spec_acc=0.409 masked_acc=0.404 rz_masked_acc=0.125 mask_r2=0.724 mask_auc=nan all_r2=0.725 all_auc=nan 0.4 step/s
+[val     4000] loss=214.7856 overall_acc=0.4173 redshift_acc=0.0563 spectrum_acc=0.4186 loss_redshift=4.1697 loss_spectrum=2.1189 loss_total=2.1263 masked_spec_acc=0.4167 redshift_acc_masked=0.0449 mean_mask_auc=nan masked_spec_r2=nan all_mean_auc=nan all_spec_r2=nan
+  *** new best val_loss=214.7856 -> /raid/benson/data/desi_dr1_medium/checkpoints/checkpoints/approach_a_phase10_xlarge_seed1337/best.pt
+  [ar_best   4000] ar_redshift_acc=0.02717391304347826 ar_spectrum_acc=0.1817566491479535 ar_mean_mask_auc=nan ar_masked_spec_r2=nan ar_all_mean_auc=nan ar_all_spec_r2=nan n_samples=184
+[step   4100] loss=219.9332 z_loss=4.271 spec_loss=2.161 z_acc=0.000 spec_acc=0.393 masked_acc=0.387 rz_masked_acc=0.000 mask_r2=0.713 mask_auc=nan all_r2=0.717 all_auc=nan 0.4 step/s
+[step   4200] loss=231.8711 z_loss=4.508 spec_loss=2.033 z_acc=0.000 spec_acc=0.446 masked_acc=0.439 rz_masked_acc=0.000 mask_r2=0.731 mask_auc=nan all_r2=0.733 all_auc=nan 0.4 step/s
+[step   4300] loss=213.1869 z_loss=4.142 spec_loss=1.989 z_acc=0.000 spec_acc=0.458 masked_acc=0.461 rz_masked_acc=0.000 mask_r2=0.737 mask_auc=nan all_r2=0.739 all_auc=nan 0.4 step/s
+[step   4400] loss=205.5500 z_loss=3.991 spec_loss=1.995 z_acc=0.100 spec_acc=0.428 masked_acc=0.415 rz_masked_acc=0.111 mask_r2=0.736 mask_auc=nan all_r2=0.738 all_auc=nan 0.4 step/s
+[step   4500] loss=222.3338 z_loss=4.319 spec_loss=2.042 z_acc=0.053 spec_acc=0.431 masked_acc=0.421 rz_masked_acc=0.000 mask_r2=0.730 mask_auc=nan all_r2=0.732 all_auc=nan 0.4 step/s
+[val     4500] loss=225.3549 overall_acc=0.4218 redshift_acc=0.0333 spectrum_acc=0.4232 loss_redshift=4.3785 loss_spectrum=2.1053 loss_total=2.1136 masked_spec_acc=0.4197 redshift_acc_masked=0.0291 mean_mask_auc=nan masked_spec_r2=nan all_mean_auc=nan all_spec_r2=nan
+[step   4600] loss=221.4764 z_loss=4.302 spec_loss=2.145 z_acc=0.038 spec_acc=0.414 masked_acc=0.417 rz_masked_acc=0.000 mask_r2=0.717 mask_auc=nan all_r2=0.719 all_auc=nan 0.4 step/s
+[step   4700] loss=203.6221 z_loss=3.954 spec_loss=2.018 z_acc=0.000 spec_acc=0.423 masked_acc=0.430 rz_masked_acc=0.000 mask_r2=0.740 mask_auc=nan all_r2=0.735 all_auc=nan 0.4 step/s
+[step   4800] loss=215.9173 z_loss=4.192 spec_loss=2.120 z_acc=0.000 spec_acc=0.418 masked_acc=0.418 rz_masked_acc=0.000 mask_r2=0.722 mask_auc=nan all_r2=0.722 all_auc=nan 0.4 step/s
+[step   4900] loss=236.5785 z_loss=4.596 spec_loss=2.160 z_acc=0.000 spec_acc=0.412 masked_acc=0.407 rz_masked_acc=0.000 mask_r2=0.714 mask_auc=nan all_r2=0.717 all_auc=nan 0.4 step/s
+[step   5000] loss=221.3673 z_loss=4.299 spec_loss=2.100 z_acc=0.100 spec_acc=0.403 masked_acc=0.394 rz_masked_acc=0.077 mask_r2=0.723 mask_auc=nan all_r2=0.725 all_auc=nan 0.4 step/s
+[val     5000] loss=227.3311 overall_acc=0.4258 redshift_acc=0.0197 spectrum_acc=0.4273 loss_redshift=4.4188 loss_spectrum=2.0811 loss_total=2.0896 masked_spec_acc=0.4242 redshift_acc_masked=0.0129 mean_mask_auc=nan masked_spec_r2=nan all_mean_auc=nan all_spec_r2=nan
+  ckpt -> /raid/benson/data/desi_dr1_medium/checkpoints/checkpoints/approach_a_phase10_xlarge_seed1337/step_00005000.pt
+[step   5100] loss=209.9910 z_loss=4.071 spec_loss=2.352 z_acc=0.083 spec_acc=0.380 masked_acc=0.378 rz_masked_acc=0.100 mask_r2=0.690 mask_auc=nan all_r2=0.692 all_auc=nan 0.4 step/s
+[step   5200] loss=234.1653 z_loss=4.548 spec_loss=2.156 z_acc=0.000 spec_acc=0.402 masked_acc=0.388 rz_masked_acc=0.000 mask_r2=0.713 mask_auc=nan all_r2=0.717 all_auc=nan 0.4 step/s
+[step   5300] loss=224.4392 z_loss=4.363 spec_loss=2.029 z_acc=0.000 spec_acc=0.444 masked_acc=0.440 rz_masked_acc=0.000 mask_r2=0.732 mask_auc=nan all_r2=0.734 all_auc=nan 0.4 step/s
+[step   5400] loss=219.2506 z_loss=4.260 spec_loss=2.025 z_acc=0.000 spec_acc=0.426 masked_acc=0.426 rz_masked_acc=0.000 mask_r2=0.736 mask_auc=nan all_r2=0.735 all_auc=nan 0.4 step/s
+[step   5500] loss=218.1800 z_loss=4.233 spec_loss=2.163 z_acc=0.000 spec_acc=0.401 masked_acc=0.396 rz_masked_acc=0.000 mask_r2=0.715 mask_auc=nan all_r2=0.716 all_auc=nan 0.4 step/s
+[val     5500] loss=223.2577 overall_acc=0.4278 redshift_acc=0.0290 spectrum_acc=0.4293 loss_redshift=4.3371 loss_spectrum=2.0720 loss_total=2.0802 masked_spec_acc=0.4258 redshift_acc_masked=0.0330 mean_mask_auc=nan masked_spec_r2=nan all_mean_auc=nan all_spec_r2=nan
+[step   5600] loss=226.5048 z_loss=4.400 spec_loss=2.157 z_acc=0.040 spec_acc=0.403 masked_acc=0.392 rz_masked_acc=0.000 mask_r2=0.711 mask_auc=nan all_r2=0.717 all_auc=nan 0.4 step/s
+[step   5700] loss=235.3232 z_loss=4.574 spec_loss=2.114 z_acc=0.000 spec_acc=0.404 masked_acc=0.397 rz_masked_acc=0.000 mask_r2=0.720 mask_auc=nan all_r2=0.723 all_auc=nan 0.4 step/s
+[step   5800] loss=233.4149 z_loss=4.537 spec_loss=2.029 z_acc=0.038 spec_acc=0.422 masked_acc=0.423 rz_masked_acc=0.000 mask_r2=0.738 mask_auc=nan all_r2=0.734 all_auc=nan 0.4 step/s
+[step   5900] loss=243.3839 z_loss=4.730 spec_loss=2.150 z_acc=0.000 spec_acc=0.418 masked_acc=0.417 rz_masked_acc=0.000 mask_r2=0.717 mask_auc=nan all_r2=0.718 all_auc=nan 0.4 step/s
+[step   6000] loss=219.3857 z_loss=4.261 spec_loss=2.279 z_acc=0.100 spec_acc=0.359 masked_acc=0.355 rz_masked_acc=0.125 mask_r2=0.702 mask_auc=nan all_r2=0.701 all_auc=nan 0.4 step/s
+[val     6000] loss=215.4756 overall_acc=0.4309 redshift_acc=0.0322 spectrum_acc=0.4324 loss_redshift=4.1848 loss_spectrum=2.0551 loss_total=2.0629 masked_spec_acc=0.4314 redshift_acc_masked=0.0307 mean_mask_auc=nan masked_spec_r2=nan all_mean_auc=nan all_spec_r2=nan
+[step   6100] loss=211.8878 z_loss=4.111 spec_loss=2.136 z_acc=0.000 spec_acc=0.405 masked_acc=0.391 rz_masked_acc=0.000 mask_r2=0.717 mask_auc=nan all_r2=0.720 all_auc=nan 0.4 step/s
+[step   6200] loss=214.2844 z_loss=4.161 spec_loss=2.112 z_acc=0.042 spec_acc=0.411 masked_acc=0.399 rz_masked_acc=0.111 mask_r2=0.718 mask_auc=nan all_r2=0.723 all_auc=nan 0.4 step/s
+[step   6300] loss=218.2515 z_loss=4.237 spec_loss=2.178 z_acc=0.000 spec_acc=0.405 masked_acc=0.405 rz_masked_acc=0.000 mask_r2=0.716 mask_auc=nan all_r2=0.714 all_auc=nan 0.4 step/s
+[step   6400] loss=205.9297 z_loss=3.997 spec_loss=2.007 z_acc=0.160 spec_acc=0.427 masked_acc=0.426 rz_masked_acc=0.200 mask_r2=0.734 mask_auc=nan all_r2=0.737 all_auc=nan 0.4 step/s
+[step   6500] loss=205.4926 z_loss=3.988 spec_loss=2.066 z_acc=0.045 spec_acc=0.434 masked_acc=0.427 rz_masked_acc=0.000 mask_r2=0.726 mask_auc=nan all_r2=0.729 all_auc=nan 0.4 step/s
+[val     6500] loss=213.7717 overall_acc=0.4349 redshift_acc=0.0607 spectrum_acc=0.4362 loss_redshift=4.1513 loss_spectrum=2.0408 loss_total=2.0485 masked_spec_acc=0.4347 redshift_acc_masked=0.0602 mean_mask_auc=nan masked_spec_r2=nan all_mean_auc=nan all_spec_r2=nan
+  *** new best val_loss=213.7717 -> /raid/benson/data/desi_dr1_medium/checkpoints/checkpoints/approach_a_phase10_xlarge_seed1337/best.pt
+  [ar_best   6500] ar_redshift_acc=0.016304347826086956 ar_spectrum_acc=0.20486940595636247 ar_mean_mask_auc=nan ar_masked_spec_r2=nan ar_all_mean_auc=nan ar_all_spec_r2=nan n_samples=184
+[step   6600] loss=212.0950 z_loss=4.117 spec_loss=2.141 z_acc=0.048 spec_acc=0.387 masked_acc=0.375 rz_masked_acc=0.000 mask_r2=0.714 mask_auc=nan all_r2=0.719 all_auc=nan 0.4 step/s
+[step   6700] loss=198.9301 z_loss=3.858 spec_loss=2.086 z_acc=0.045 spec_acc=0.426 masked_acc=0.418 rz_masked_acc=0.083 mask_r2=0.727 mask_auc=nan all_r2=0.727 all_auc=nan 0.4 step/s
+[step   6800] loss=254.1834 z_loss=4.947 spec_loss=1.973 z_acc=0.000 spec_acc=0.436 masked_acc=0.435 rz_masked_acc=0.000 mask_r2=0.740 mask_auc=nan all_r2=0.741 all_auc=nan 0.4 step/s
+[step   6900] loss=216.4661 z_loss=4.203 spec_loss=1.970 z_acc=0.118 spec_acc=0.468 masked_acc=0.476 rz_masked_acc=0.200 mask_r2=0.744 mask_auc=nan all_r2=0.742 all_auc=nan 0.4 step/s
+[step   7000] loss=211.3334 z_loss=4.101 spec_loss=2.116 z_acc=0.111 spec_acc=0.410 masked_acc=0.402 rz_masked_acc=0.100 mask_r2=0.724 mask_auc=nan all_r2=0.723 all_auc=nan 0.4 step/s
+[val     7000] loss=213.9827 overall_acc=0.4342 redshift_acc=0.0390 spectrum_acc=0.4357 loss_redshift=4.1558 loss_spectrum=2.0396 loss_total=2.0473 masked_spec_acc=0.4343 redshift_acc_masked=0.0376 mean_mask_auc=nan masked_spec_r2=nan all_mean_auc=nan all_spec_r2=nan
+[step   7100] loss=230.4028 z_loss=4.475 spec_loss=2.095 z_acc=0.000 spec_acc=0.422 masked_acc=0.437 rz_masked_acc=0.000 mask_r2=0.729 mask_auc=nan all_r2=0.725 all_auc=nan 0.4 step/s
+[step   7200] loss=214.7401 z_loss=4.171 spec_loss=2.029 z_acc=0.000 spec_acc=0.420 masked_acc=0.420 rz_masked_acc=0.000 mask_r2=0.735 mask_auc=nan all_r2=0.734 all_auc=nan 0.4 step/s
+[step   7300] loss=214.0409 z_loss=4.155 spec_loss=2.138 z_acc=0.043 spec_acc=0.404 masked_acc=0.401 rz_masked_acc=0.111 mask_r2=0.719 mask_auc=nan all_r2=0.720 all_auc=nan 0.4 step/s
+[step   7400] loss=209.6030 z_loss=4.073 spec_loss=1.856 z_acc=0.000 spec_acc=0.474 masked_acc=0.469 rz_masked_acc=0.000 mask_r2=0.756 mask_auc=nan all_r2=0.757 all_auc=nan 0.4 step/s
+[step   7500] loss=200.1330 z_loss=3.882 spec_loss=2.177 z_acc=0.105 spec_acc=0.386 masked_acc=0.385 rz_masked_acc=0.091 mask_r2=0.713 mask_auc=nan all_r2=0.715 all_auc=nan 0.4 step/s
+[val     7500] loss=214.1412 overall_acc=0.4368 redshift_acc=0.0343 spectrum_acc=0.4383 loss_redshift=4.1586 loss_spectrum=2.0307 loss_total=2.0385 masked_spec_acc=0.4364 redshift_acc_masked=0.0217 mean_mask_auc=nan masked_spec_r2=nan all_mean_auc=nan all_spec_r2=nan
+  ckpt -> /raid/benson/data/desi_dr1_medium/checkpoints/checkpoints/approach_a_phase10_xlarge_seed1337/step_00007500.pt
+[step   7600] loss=207.4151 z_loss=4.031 spec_loss=1.902 z_acc=0.111 spec_acc=0.470 masked_acc=0.487 rz_masked_acc=0.000 mask_r2=0.758 mask_auc=nan all_r2=0.751 all_auc=nan 0.4 step/s
+[step   7700] loss=215.6108 z_loss=4.184 spec_loss=2.146 z_acc=0.000 spec_acc=0.410 masked_acc=0.399 rz_masked_acc=0.000 mask_r2=0.713 mask_auc=nan all_r2=0.719 all_auc=nan 0.4 step/s
+[step   7800] loss=200.3104 z_loss=3.890 spec_loss=1.902 z_acc=0.095 spec_acc=0.472 masked_acc=0.465 rz_masked_acc=0.091 mask_r2=0.748 mask_auc=nan all_r2=0.751 all_auc=nan 0.4 step/s
+[step   7900] loss=231.1977 z_loss=4.498 spec_loss=1.877 z_acc=0.000 spec_acc=0.477 masked_acc=0.477 rz_masked_acc=0.000 mask_r2=0.752 mask_auc=nan all_r2=0.754 all_auc=nan 0.4 step/s
+[step   8000] loss=205.3009 z_loss=3.983 spec_loss=2.137 z_acc=0.053 spec_acc=0.405 masked_acc=0.402 rz_masked_acc=0.000 mask_r2=0.717 mask_auc=nan all_r2=0.720 all_auc=nan 0.4 step/s
+[val     8000] loss=214.7732 overall_acc=0.4383 redshift_acc=0.0352 spectrum_acc=0.4397 loss_redshift=4.1716 loss_spectrum=2.0233 loss_total=2.0312 masked_spec_acc=0.4383 redshift_acc_masked=0.0226 mean_mask_auc=nan masked_spec_r2=nan all_mean_auc=nan all_spec_r2=nan
+[step   8100] loss=218.1030 z_loss=4.233 spec_loss=2.157 z_acc=0.100 spec_acc=0.387 masked_acc=0.381 rz_masked_acc=0.167 mask_r2=0.715 mask_auc=nan all_r2=0.717 all_auc=nan 0.4 step/s
+[step   8200] loss=236.3407 z_loss=4.591 spec_loss=2.135 z_acc=0.000 spec_acc=0.396 masked_acc=0.386 rz_masked_acc=0.000 mask_r2=0.713 mask_auc=nan all_r2=0.720 all_auc=nan 0.4 step/s
+[step   8300] loss=210.1401 z_loss=4.082 spec_loss=1.934 z_acc=0.043 spec_acc=0.467 masked_acc=0.457 rz_masked_acc=0.000 mask_r2=0.740 mask_auc=nan all_r2=0.747 all_auc=nan 0.4 step/s
+[step   8400] loss=195.7598 z_loss=3.799 spec_loss=1.925 z_acc=0.118 spec_acc=0.451 masked_acc=0.454 rz_masked_acc=0.000 mask_r2=0.746 mask_auc=nan all_r2=0.748 all_auc=nan 0.4 step/s
+[step   8500] loss=223.8802 z_loss=4.352 spec_loss=1.980 z_acc=0.000 spec_acc=0.447 masked_acc=0.453 rz_masked_acc=0.000 mask_r2=0.742 mask_auc=nan all_r2=0.740 all_auc=nan 0.4 step/s
+[val     8500] loss=217.1903 overall_acc=0.4382 redshift_acc=0.0453 spectrum_acc=0.4397 loss_redshift=4.2193 loss_spectrum=2.0224 loss_total=2.0305 masked_spec_acc=0.4376 redshift_acc_masked=0.0446 mean_mask_auc=nan masked_spec_r2=nan all_mean_auc=nan all_spec_r2=nan
+[step   8600] loss=214.8495 z_loss=4.171 spec_loss=2.005 z_acc=0.000 spec_acc=0.433 masked_acc=0.425 rz_masked_acc=0.000 mask_r2=0.736 mask_auc=nan all_r2=0.737 all_auc=nan 0.4 step/s
+[step   8700] loss=203.0653 z_loss=3.943 spec_loss=2.020 z_acc=0.053 spec_acc=0.425 masked_acc=0.423 rz_masked_acc=0.000 mask_r2=0.734 mask_auc=nan all_r2=0.735 all_auc=nan 0.4 step/s
+[step   8800] loss=215.7075 z_loss=4.187 spec_loss=2.152 z_acc=0.000 spec_acc=0.391 masked_acc=0.377 rz_masked_acc=0.000 mask_r2=0.712 mask_auc=nan all_r2=0.718 all_auc=nan 0.4 step/s
+[step   8900] loss=201.9583 z_loss=3.922 spec_loss=1.905 z_acc=0.000 spec_acc=0.451 masked_acc=0.446 rz_masked_acc=0.000 mask_r2=0.750 mask_auc=nan all_r2=0.750 all_auc=nan 0.4 step/s
+[step   9000] loss=222.6385 z_loss=4.321 spec_loss=2.145 z_acc=0.000 spec_acc=0.399 masked_acc=0.403 rz_masked_acc=0.000 mask_r2=0.717 mask_auc=nan all_r2=0.719 all_auc=nan 0.4 step/s
+[val     9000] loss=209.5275 overall_acc=0.4399 redshift_acc=0.0542 spectrum_acc=0.4413 loss_redshift=4.0684 loss_spectrum=2.0115 loss_total=2.0190 masked_spec_acc=0.4387 redshift_acc_masked=0.0488 mean_mask_auc=nan masked_spec_r2=nan all_mean_auc=nan all_spec_r2=nan
+  *** new best val_loss=209.5275 -> /raid/benson/data/desi_dr1_medium/checkpoints/checkpoints/approach_a_phase10_xlarge_seed1337/best.pt
+  [ar_best   9000] ar_redshift_acc=0.03804347826086957 ar_spectrum_acc=0.21697324414715718 ar_mean_mask_auc=nan ar_masked_spec_r2=nan ar_all_mean_auc=nan ar_all_spec_r2=nan n_samples=184
+[step   9100] loss=230.3643 z_loss=4.473 spec_loss=2.149 z_acc=0.000 spec_acc=0.407 masked_acc=0.413 rz_masked_acc=0.000 mask_r2=0.718 mask_auc=nan all_r2=0.718 all_auc=nan 0.4 step/s
+[step   9200] loss=207.6827 z_loss=4.033 spec_loss=2.000 z_acc=0.048 spec_acc=0.426 masked_acc=0.416 rz_masked_acc=0.000 mask_r2=0.733 mask_auc=nan all_r2=0.738 all_auc=nan 0.4 step/s
+[step   9300] loss=221.6288 z_loss=4.305 spec_loss=2.106 z_acc=0.000 spec_acc=0.418 masked_acc=0.418 rz_masked_acc=0.000 mask_r2=0.723 mask_auc=nan all_r2=0.724 all_auc=nan 0.4 step/s
+[step   9400] loss=231.4348 z_loss=4.500 spec_loss=2.039 z_acc=0.130 spec_acc=0.422 masked_acc=0.419 rz_masked_acc=0.143 mask_r2=0.734 mask_auc=nan all_r2=0.733 all_auc=nan 0.4 step/s
+[step   9500] loss=230.8016 z_loss=4.486 spec_loss=2.065 z_acc=0.000 spec_acc=0.412 masked_acc=0.417 rz_masked_acc=0.000 mask_r2=0.729 mask_auc=nan all_r2=0.729 all_auc=nan 0.4 step/s
+[val     9500] loss=211.8311 overall_acc=0.4406 redshift_acc=0.0427 spectrum_acc=0.4421 loss_redshift=4.1135 loss_spectrum=2.0120 loss_total=2.0197 masked_spec_acc=0.4405 redshift_acc_masked=0.0369 mean_mask_auc=nan masked_spec_r2=nan all_mean_auc=nan all_spec_r2=nan
+[step   9600] loss=207.9164 z_loss=4.036 spec_loss=2.046 z_acc=0.048 spec_acc=0.436 masked_acc=0.425 rz_masked_acc=0.000 mask_r2=0.725 mask_auc=nan all_r2=0.732 all_auc=nan 0.4 step/s
+[step   9700] loss=209.4997 z_loss=4.070 spec_loss=1.933 z_acc=0.062 spec_acc=0.435 masked_acc=0.426 rz_masked_acc=0.000 mask_r2=0.739 mask_auc=nan all_r2=0.747 all_auc=nan 0.4 step/s
+[step   9800] loss=216.0710 z_loss=4.197 spec_loss=2.043 z_acc=0.040 spec_acc=0.422 masked_acc=0.418 rz_masked_acc=0.000 mask_r2=0.732 mask_auc=nan all_r2=0.732 all_auc=nan 0.4 step/s
+[step   9900] loss=209.9792 z_loss=4.073 spec_loss=2.243 z_acc=0.042 spec_acc=0.371 masked_acc=0.371 rz_masked_acc=0.000 mask_r2=0.708 mask_auc=nan all_r2=0.706 all_auc=nan 0.4 step/s
+[done] final -> /raid/benson/data/desi_dr1_medium/checkpoints/checkpoints/approach_a_phase10_xlarge_seed1337/final.pt  best_val_loss=209.5275
+[ar_final  10000] ar_redshift_acc=0.016304347826086956 ar_spectrum_acc=0.21836677814938685 ar_mean_mask_auc=nan ar_masked_spec_r2=nan ar_all_mean_auc=nan ar_all_spec_r2=nan n_samples=184

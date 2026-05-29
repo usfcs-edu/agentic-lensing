@@ -1,0 +1,1 @@
+/home/benson/.venvs/redshifty/bin/python scripts/smoke_test.py

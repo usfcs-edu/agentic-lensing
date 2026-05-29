@@ -1,0 +1,10 @@
+{"kind": "step", "step": 2, "train_loss": 941.0, "lr": 0.0001, "val_nll": 161.875, "val_r2": -7.7109, "val_mask_bce": 0.9414, "val_perplexity": 0.174}
+{"kind": "step", "step": 4, "train_loss": 134.25, "lr": 9.73e-05, "val_nll": 49.625, "val_r2": -2.3047, "val_mask_bce": 0.8428, "val_perplexity": 0.1483}
+{"kind": "step", "step": 6, "train_loss": 34.5, "lr": 8.95e-05, "val_nll": 16.8359, "val_r2": -0.9868, "val_mask_bce": 0.7471, "val_perplexity": 0.163}
+{"kind": "step", "step": 8, "train_loss": 45.25, "lr": 7.75e-05, "val_nll": 22.9336, "val_r2": -0.9897, "val_mask_bce": 0.7207, "val_perplexity": 0.1474}
+{"kind": "step", "step": 10, "train_loss": 45.5, "lr": 6.28e-05, "val_nll": 29.5234, "val_r2": -1.1313, "val_mask_bce": 0.7012, "val_perplexity": 0.1571}
+{"kind": "step", "step": 12, "train_loss": 26.47, "lr": 4.72e-05, "val_nll": 19.8164, "val_r2": -0.7754, "val_mask_bce": 0.7109, "val_perplexity": 0.14}
+{"kind": "step", "step": 14, "train_loss": 38.45, "lr": 3.25e-05, "val_nll": 13.2266, "val_r2": -0.4761, "val_mask_bce": 0.708, "val_perplexity": 0.1373}
+{"kind": "step", "step": 16, "train_loss": 27.44, "lr": 2.05e-05, "val_nll": 9.9473, "val_r2": -0.3193, "val_mask_bce": 0.7061, "val_perplexity": 0.1417}
+{"kind": "step", "step": 18, "train_loss": 25.81, "lr": 1.27e-05, "val_nll": 8.498, "val_r2": -0.2515, "val_mask_bce": 0.7021, "val_perplexity": 0.1435}
+{"kind": "step", "step": 20, "train_loss": 12.31, "lr": 1e-05, "val_nll": 7.9355, "val_r2": -0.2227, "val_mask_bce": 0.6992, "val_perplexity": 0.1438}

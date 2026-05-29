@@ -1,0 +1,58 @@
+name: redshifty_approach_a_phase10_xlarge_seed1337
+repo: redshifty
+description: |
+  Approach A xlarge with seed=1337 — seed sweep arm #2 (arm #1 = the existing
+  xlarge run @ seed=42). Tests whether redshift-ignition is initialization-
+  sensitive. Same data (729k spectra) and hparams as _phase10_xlarge.
+tags: [xlarge-scale, transformer, approach-a, track3, seed-sweep]
+
+launch:
+  command:
+    - python
+    - nersc/train_transformer.py
+    - --manifest
+    - /raid/benson/data/desi_dr1_medium/manifest.jsonl
+    - --tokenizer-ckpt
+    - /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v1_large/best.pt
+    - --tokenizer-kind
+    - v1
+    - --approach
+    - a
+    - --steps
+    - "10000"
+    - --batch-size
+    - "32"
+    - --lr
+    - "4e-4"
+    - --warmup
+    - "500"
+    - --healpix-holdout-frac
+    - "0.05"
+    - --val-every
+    - "500"
+    - --save-every
+    - "2500"
+    - --log-every
+    - "100"
+    - --num-workers
+    - "4"
+    - --amp
+    - --redshift-loss-weight
+    - "50.0"
+    - --encoder-mask-ratio
+    - "0.50"
+    - --ar-eval-batches
+    - "8"
+    - --seed
+    - "1337"
+    - --run-name
+    - approach_a_phase10_xlarge_seed1337
+    - --scratch-out
+    - /raid/benson/data/desi_dr1_medium/checkpoints
+    - --wandb-mode
+    - disabled
+    - --no-push-wandb-artifact
+
+env:
+  CUDA_VISIBLE_DEVICES: "8"
+  SCRATCH: /raid/benson/data/desi_dr1_medium

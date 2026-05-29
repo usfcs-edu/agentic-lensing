@@ -1,0 +1,17 @@
+# redshifty_tokenizer_v1_medium
+
+_V1 ConvNeXt+LFQ tokenizer pretrain on local 33-pixel/11.5k-spectrum medium subset_
+
+- **run dir:** `/raid/benson/git/agentic-lensing/experiments/runs/20260526_230009_redshifty_tokenizer_v1_medium_ro32pw`
+- **repo:** redshifty
+- **started:** 2026-05-26 23:00:09 UTC
+- **finished:** 2026-05-26 23:00:34 UTC
+- **wallclock:** 24.4s
+- **exit code:** 1
+- **tags:** medium-real, tokenizer, track3
+
+## Command
+```
+/home/benson/.venvs/redshifty/bin/python nersc/pretrain_tokenizer.py --manifest /raid/benson/data/desi_dr1_medium/manifest.jsonl --steps 5000 --batch-size 16 --lr 3e-4 --warmup 200 --val-frac 0.05 --val-every 250 --save-every 1000 --log-every 50 --num-workers 4 --amp --run-name tokenizer_v1_medium --scratch-out /raid/benson/data/desi_dr1_medium/checkpoints --wandb-mode disabled --no-push-wandb-artifact
+```
+
