@@ -578,6 +578,125 @@ $\sim$10\,h on two L4 GPUs and produces a top-$p \geq 0.9$ candidate
 pool ($25{,}792$) within $\sim$50\% of the paper's $\sim$50{,}000.
 
 % =============================================================================
+\section{Future work}
+\label{sec:future-work}
+% =============================================================================
+
+The Phase 3b sweep produces a ranked candidate pool, not a discovery
+list. Converting one to the other requires (i) cross-matching against
+\emph{all} previously published lens catalogs to remove already-known
+systems, and (ii) the same visual-grading workflow that
+\textcite{huang2020decals} used to produce their final 342 A/B/C
+candidates.
+
+\subsection{Extended cross-match against known catalogs}
+
+\texttt{17\_extended\_crossmatch.py} matches the top-$2{,}000$
+DR7-trained candidates (all at $p \geq 0.998$) against every published
+lens catalog we have on disk:
+
+\begin{itemize}
+\item \textbf{NeuraLens-1{,}312} (L18-949 + shielded-363) — the
+      composite Huang-group lens catalog. L18 is our Phase 3a/3b
+      training-positive set, so high model scores at those positions
+      are partly memorization.
+\item \textbf{Huang+2020 published 342} — the catalog this report is
+      benchmarked against (re-matched at 10$''$ to allow for the
+      centroid shifts noted in \S\ref{sec:caveats-phase3b}).
+\item \textbf{Huang+2021 published $\sim$1{,}200} — only $89$ DESI-
+      names were text-extractable from the PDF; the bulk of
+      \textcite{huang2021desi}'s tables appear to be image-based and
+      were not recoverable by \texttt{pypdf}. This matching is therefore
+      \emph{incomplete}.
+\item \textbf{Hsu+2025 13{,}530} (\textit{spectroscopic pair-wise
+      candidates}) — DESI DR1 group lens-light pairs from
+      \texttt{reproductions/hsu-2025/data/classified\_pairs.parquet}.
+\end{itemize}
+
+The provenance breakdown of the top $2{,}000$ at a $10''$ match radius
+is summarised in Table~\ref{tab:provenance}.
+
+\begin{table}[ht]
+\centering
+\caption{Provenance of the top-$2{,}000$ DR7-trained candidates
+($p \geq 0.998$) at a $10''$ cross-match radius. ``In any known
+catalog'' is the union over all four sources. Huang+2021 is partial
+(89 of $\sim 1{,}200$ candidates extracted from the PDF).}
+\label{tab:provenance}
+\begin{tabular}{lrr}
+\toprule
+Catalog & matches & \% of top-2000 \\
+\midrule
+NeuraLens L18 (\emph{training set}) & 95 & 4.8\% \\
+NeuraLens shielded (post-2020)      & 14 & 0.7\% \\
+Huang+2020 published                & 90 & 4.5\% \\
+Huang+2021 published (partial)      & 5  & 0.2\% \\
+Hsu+2025 spectroscopic pairs        & 28 & 1.4\% \\
+\midrule
+\textbf{In ANY known catalog}       & \textbf{218} & \textbf{10.9\%} \\
+\textbf{Unmatched (potentially new)}& \textbf{1{,}782} & \textbf{89.1\%} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The $1{,}782$ unmatched candidates are \emph{not} a discovery list.
+\textcite{huang2020decals} graded $\sim$50{,}000 cutouts at
+$p \geq 0.9$ down to $342$ surviving A/B/C systems — a $0.7\%$
+through-rate. Naively applying that rate to our 1{,}782 yields a
+realistic upper bound of \textbf{$\sim$10--25 candidates that might
+survive the same visual filter}. Of those, a further fraction will
+turn out to be published in catalogs we do not currently have on disk
+— SDSS BOSS, KiDS, CFHT, the Bologna challenge follow-ups
+(Petrillo+, Sonnenfeld+, Jacobs+, Carrasco+, Storfer+, Stein+).
+Without those queries plus a visual-grading pass we cannot honestly
+claim any genuinely new discoveries.
+
+\subsection{Visual-grading pipeline}
+
+\texttt{16\_build\_inspection\_viewer.py} generates a paginated static
+HTML viewer of the top-$N$ DR7-trained candidates with Lupton-stretched
+grz thumbnails ($Q = 8$, $\mathrm{stretch} = 0.5$, 200$\times$200~px
+upscale of the $101\times 101$ local cutout). Output:
+\verb|papers/figures/inspection/index.html|. Tiles
+that match the published Huang+2020 catalog within $5''$ are flagged
+with a star ($\star$) badge so the inspector can focus on the unflagged
+majority. Top-$2{,}000$ generation runs in 17~s; thumbs and per-page
+HTML are gitignored and regenerable from \texttt{data/cutouts\_fits\_dr7/}.
+
+A full grading pass following \textcite{huang2020decals}'s five visual
+criteria (small blue galaxy(ies) 1--5$''$ from a red galaxy, low surface
+brightness, curving toward the red galaxy, counter/multiple images of
+similar colours, elongated/arc-like morphology) plus an A/B/C
+quality cut would reduce the 1{,}782 unmatched candidates to the
+~10--25 plausibly-new pool noted above. This is the natural next step.
+
+\subsection{Phase 3c: BASS / MzLS transfer learning}
+
+\textcite{huang2020decals} \S2 explicitly notes ``we intend in future
+work to apply the machine-learning framework we have developed for
+DECaLS to the northern BASS/MzLS area, by possibly incorporating
+transfer learning, active learning, or domain adaptation''. The DR7
+sweep parent sample we built excludes the BASS/MzLS footprint
+($\delta \gtrsim +32^\circ$) by construction. Extending the pipeline
+north would re-use \texttt{11b\_brick\_inference\_dr7.py} essentially
+unchanged with the BASS/MzLS coadds (also accessible via the NERSC
+portal), but the BASS $g, r$ PSFs are noticeably worse (median seeing
+$1.61''$, $1.47''$) than DECaLS, so fine-tuning the L4 checkpoint on
+a small BASS/MzLS lens sample (transfer learning) is likely necessary
+to maintain Grade-A recall.
+
+\subsection{Subsequent papers in the Huang-group lineage}
+
+A natural Phase 4 is reproducing \textcite{huang2021desi} (shielded
+ResNet, $\sim 1{,}200$ candidates), which trains on the Huang+2020
+output (the L18 stage) and adds a shielded-bottleneck regulariser to
+the L18 architecture. The training and deployment infrastructure in
+this directory transfers directly; the architecture change is small.
+Beyond that, \textcite{huang2025foundry1} (DESI Strong Lens Foundry I)
+is the bridge to the Phase 1 GIGA-Lens modeling reproduction at
+\texttt{reproductions/foundry-i/}.
+
+% =============================================================================
 \section{Conclusions}
 % =============================================================================
 
