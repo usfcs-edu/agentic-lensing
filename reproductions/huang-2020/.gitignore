@@ -21,3 +21,9 @@ data/brick_manifest_dr9trained_shard*.csv
 data/brick_manifest_dr7trained_shard*.csv
 *.log
 __pycache__/
+
+# Inspection viewer outputs — large (60 MB thumbs) and regeneratable from
+# 16_build_inspection_viewer.py if data/cutouts_fits_dr7/ is present.
+papers/figures/inspection/thumbs/
+papers/figures/inspection/page_*.html
+papers/figures/inspection/index.html

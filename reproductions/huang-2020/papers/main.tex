@@ -466,12 +466,18 @@ relative to the random-galaxy background.}
       directory + a paginated HTML viewer in
       \texttt{papers/figures/inspection/} (M5) support this workflow,
       but we have not actually performed the visual grading at scale.
-\item \textbf{The 7 ``missing'' published candidates.} 7/342 fall just
-      outside our parent sample. The most likely reason is that their
-      DR7 type or magnitude differs slightly from the paper-time
-      catalog (e.g., subsequent Tractor reprocessing reclassified
-      \texttt{DEV $\to$ REX}). The published catalog is therefore not
-      fully derivable from a single static DR7 snapshot.
+\item \textbf{The 7 ``missing'' published candidates are not pipeline
+      failures.} \texttt{15\_diagnose\_missing\_seven.py} queries the
+      raw DR7 sweeps at each missing position: all 7 have a DR7 source
+      within $0.8''$ of the published RA/Dec, but each fails one of
+      the paper's own selection cuts. Concretely:
+      5 of 7 fail \verb|z-mag <= 20.0| by tight margin (z-mag
+      20.22--20.78); 2 of 7 are typed \verb|EXP| (not \verb|DEV| or
+      \verb|COMP|); 1 of 7 has \verb|NOBS_G = 2|. Huang+2020 \S4.1
+      notes that ``92\% of known lenses'' pass the z-mag cut by design,
+      so a $\sim$8\% loss at the cut edge is expected; we observe
+      $5/342 \approx 1.5\%$, well below that. Output:
+      \texttt{data/missing\_seven\_diagnostic.csv}.
 \item \textbf{Grade-C recovery is moderate ($43.8\%$ at $p \geq 0.9$).}
       Grade C candidates have small/faint deflections close to the
       seeing; our random-DR9-negative training set under-represents

@@ -52,6 +52,8 @@ Candidate-pool size at p ≥ 0.9: 74,011 (DR9-trained) vs **25,792
 | `13_extract_huang2020_catalog.py` | pypdf-parse 342 candidates from paper PDF | 3b | < 1 min |
 | `14_crossmatch_recovery.py` | Recovery-by-grade analysis for one run | 3b | < 1 min |
 | `14b_recovery_comparison.py` | Side-by-side DR9-trained vs DR7-trained recovery | 3b | < 1 min |
+| `15_diagnose_missing_seven.py` | Why 7 published candidates miss our cuts (z-mag, TYPE, NOBS) | 3b | < 1 min |
+| `16_build_inspection_viewer.py` | Paginated HTML viewer of top-N candidates with Lupton-stretched thumbnails | 3b | < 1 min |
 
 `11b` was the key engineering pivot. The naïve `11` design pulls one
 cutout at a time from `legacysurvey.org/viewer/fits-cutout`, which caps at
@@ -137,5 +139,25 @@ Source: [`papers/main.tex`](papers/main.tex); shared preamble at
    publicly released. We use uniformly-random DR1 negatives instead, which
    makes Grade-C recovery harder (43.8% DR9, 27.8% DR7).
 4. **DR7 footprint coverage.** 7 of 342 published candidates fall outside
-   the DR7 sweep parent sample (likely due to subsequent Tractor type
-   reclassification), so the achievable ceiling is 335/342.
+   the DR7 sweep parent sample, so the achievable ceiling is 335/342.
+   `15_diagnose_missing_seven.py` confirms: 5/7 fail z-mag ≤ 20.0 by a
+   tight margin (z-mag 20.22–20.78), 2/7 are Tractor TYPE=EXP, 1/7 has
+   NOBS_G=2. All 7 are present in DR7 imaging within 0.8″ of the
+   published position — these are honest cut-edge effects, not pipeline
+   failures.
+
+## Visual-inspection viewer
+
+After Phase 3b produced the ranked candidate pool, `16_build_inspection_viewer.py`
+generates a paginated HTML viewer with Lupton-stretched (Q=8, stretch=0.5)
+grz thumbnails:
+
+```bash
+./16_build_inspection_viewer.py --top-n 2000 --per-page 50
+open papers/figures/inspection/index.html
+```
+
+Top 2,000 DR7-trained candidates at p ≥ 0.998 → 40 pages of 50 tiles.
+Published Huang+2020 candidates (within 5″) are flagged with ★. 84/2000
+(4.2%) of the top scorers are already in the published catalog; the rest
+are candidates for visual grading.

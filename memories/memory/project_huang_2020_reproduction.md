@@ -1,112 +1,135 @@
 ---
 name: project-huang-2020-reproduction
-description: Phase 3a reproduction of Huang+2020 DECaLS ResNet lens finder — surprising facts about architecture, training data, and AUC parity
+description: Huang+2020 reproduction status — Phase 3a + 3b + DR7 ablation done; brick-driven pipeline pivot was the key engineering finding
 metadata:
   type: project
 ---
 
-# Huang et al. 2020 (arXiv:1906.00970) reproduction — Phase 3a
+# Huang+2020 (arXiv:1906.00970) reproduction — Phases 3a + 3b complete
 
 Lives at `/raid/benson/git/agentic-lensing/reproductions/huang-2020/` (scripts
-01-06, mirroring foundry-i + hsu-2025 numbered pattern). Trains a PyTorch port
-of the Lanusse 2018 *CMU DeepLens* ResNet-46 from paper + public code only —
-NO Huang training code, NO Bologna challenge data. Test AUC = 0.9991 vs
-Huang+2020 published 0.98.
+01-16). Three completed runs:
 
-**Why:** Phase 3 of the 8-phase Huang-group reproduction roadmap is the
-ResNet/EfficientNet lens-finder lineage. Phase 3a = baseline ResNet on real
-DECaLS, validating the pipeline. Phase 3b = full DECaLS deployment + recover
-the 335 candidates (deferred). Per-paper plan: see
-[[project-foundry-i-reproduction]] and [[project-hsu-2025-reproduction]] for
-the surrounding context.
+- **Phase 3a (DR9-trained)**: PyTorch port of Lanusse-2018 CMU DeepLens
+  ResNet-46 on 929 NeuraLens positives + 4,908 DR1-zcat negatives at
+  DR9 cutouts. test_auc = 0.9991 (vs paper's 0.98) in 25 min on one L4.
+- **Phase 3b (DR9-trained deployment)**: brick-driven full DECaLS DR7
+  sweep (6,242,507 DEV/COMP galaxies at z-mag ≤ 20.0) using the DR9
+  checkpoint. 90% Grade-A recovery at p ≥ 0.9.
+- **DR7-trained ablation**: same architecture retrained on DR7-cutouts at
+  the same positions (591 positives — many NeuraLens lenses fall outside
+  DR7's Dec ≤ +32° footprint). val_auc = 0.989, test_auc = 0.9943.
+  Headline 83.3% Grade-A recovery at p ≥ 0.9 — the paper-exact baseline.
 
-**How to apply:** when extending to Huang 2021 (shielded ResNet) or
-Inchausti 2025 (dual ResNet + EfficientNetV2 + meta-learner), the
-architecture, training loop, and data-loading infrastructure in this
-directory are directly reusable.
+Tech-report at `papers/main.pdf` (12 pages); operator's guide at
+`reproductions/huang-2020/README.md`. See sibling phases
+[[project-foundry-i-reproduction]] and [[project-hsu-2025-reproduction]]
+for the surrounding context.
 
-## Non-obvious facts
+## Headline recovery (vs Huang+2020 published 342 = 60 A + 106 B + 176 C)
 
-1. **AUC 0.99+ is reachable in 25 minutes on a single L4** with the Lanusse
+| Grade   | DR9-trained p≥0.9 | DR7-trained p≥0.9 |
+| :------ | :---------------: | :---------------: |
+| A       | 90.0%             | **83.3%**         |
+| B       | 68.9%             | 64.2%             |
+| C       | 43.8%             | 27.8%             |
+| **ALL** | **59.6%**         | **48.8%**         |
+
+The ~10pp DR9 advantage is test-set leakage via the L18 NeuraLens
+catalog — paper-exact (DR7-trained) is the honest baseline.
+
+## Non-obvious engineering facts
+
+1. **Brick-driven >>> cutout-endpoint at scale.** The
+   `legacysurvey.org/viewer/fits-cutout` endpoint caps at ~0.86 rows/sec
+   server-side (CPU-bound cutout generation), regardless of worker count.
+   Per-brick FITS downloads (~45 MB per brick × 113K bricks) + local
+   WCS-based slicing reaches ~1.7 bricks/sec/shard = ~100 galaxies/sec/shard.
+   This is a ~200× speedup. The two L4s ran in parallel; the full 6.24M
+   sweep finished in 10h on both checkpoints. See script `11b_brick_inference_dr7.py`
+   and [[reference-legacysurvey-bulk-download]].
+
+2. **DR9-vs-DR7 calibration shift is small for known lenses.** Smoke test
+   (`08_smoketest_dr7.py`) on 6 Grade-A's at DR7 with DR9-trained
+   checkpoint: all scored 0.946-1.000, mean 0.984. So the DR9-trained
+   model generalizes to DR7 imaging without retraining. The
+   DR7-trained ablation isn't necessary for the pipeline to work — it's
+   necessary for **methodological honesty** about test-set overlap.
+
+3. **The "7 missing" published candidates aren't pipeline failures.** All 7
+   have a DR7 source within 0.8″ of published position; they just fail
+   the paper's own cuts. Diagnostic at `data/missing_seven_diagnostic.csv`:
+   - 5/7 fail z-mag ≤ 20.0 by tight margin (z-mag 20.2-20.8)
+   - 2/7 fail TYPE = DEV/COMP (Tractor classifies them EXP in DR7)
+   - 1/7 fails NOBS ≥ 3 (NOBS_G = 2)
+   The paper's stated "92% of known lenses pass z-mag ≤ 20.0" predicts
+   ~8% near-miss at the cut; we measure 5/342 = 1.5%, well within that.
+
+4. **AUC 0.99+ is reachable in 25 minutes on a single L4** with the Lanusse
    ResNet, 949 positives + 5000 negatives, batch=128, 120 epochs. The
-   architecture is small (3.5 M params) and converges fast on 101×101 grz.
-   The plan-doc estimate of "weeks on NERSC Perlmutter" was 1000× too
-   conservative for the *training* step alone; deployment-time inference on
-   millions of DECaLS DEV/COMP galaxies is the actual long pole.
+   architecture is small (3.5M params); the deployment is the long pole,
+   not training.
 
-2. **The NeuraLens catalog has 1,312 rows split L18 / shielded.** A common
-   misread of Huang+2020 is "335 candidates" — that's the *new* candidate
-   count, not the training-positive count. The NeuraLens release table
-   (`drive.google.com/file/d/1_KbEHWhl8LeeTyXpXkWFbLRxt6o42wBg`) has 949
-   L18-model rows (Huang 2020-era) + 363 shielded rows (Huang 2021-era).
-   For Phase 3a training we use all 949 L18 rows as positives; this is the
-   group's *output* used as our *input*, which is acceptable because Phase 3a
-   is about reproducing the methodology + AUC, not the candidate discovery.
+5. **The NeuraLens catalog has 1,312 rows split L18 (949) / shielded (363).**
+   For Phase 3a training we use all 949 L18 rows as positives. The 342
+   Huang+2020 candidates are partially derived from L18 → test-set leakage
+   in Phase 3a. Phase 3b (DR7-trained) intentionally re-trains with
+   DR7-coverage-only positives (591) to bound this leakage; recovery drops
+   ~10pp as expected.
 
-3. **DR1 fibers make excellent fast non-lens training negatives.** Sampling
-   5000 random galaxies from the already-downloaded
-   `reproductions/hsu-2025/data/zall-pix-iron.fits` with filter
-   (ZWARN=0, !STAR, Z>0.05, Dec in [-68, +32.5]) gives realistic DECaLS-
-   footprint galaxies and avoids needing to query NOIRLab DataLab or
-   download Tractor sweeps. Lens contamination is statistically negligible
-   (lens rate ~10⁻⁴ per Huang §3.1). We exclude 10″ around any positive.
+6. **DR7 sweep parent-sample sanity numbers.** Total 6,242,507 rows
+   (88% DEV, 12% COMP, median z-mag 18.99) from 292 sweep catalogs
+   (~511 GB). Within ~10% of the paper's stated 5.7M.
 
-4. **Lanusse 2018 ResNet-46 architecture is 5 stages × 3 pre-activated
-   bottleneck blocks** (1×1 → 3×3 → 1×1), ELU activation, channel
-   progression 32 → 32 → 64 → 128 → 256 → 512 with /2 downsample at every
-   stage except the first. Initial 7×7 conv + ELU + BN; AdaptiveAvgPool +
-   FC(512→1) + sigmoid head. 3,508,833 params at 3-channel input. See
-   `01_lanusse_resnet.py` for the PyTorch port; smoke-test at input sizes
-   45×45 (L18 native) and 101×101 (Huang 2020) both work.
+7. **DR7 brick FITS structure**: `legacysurvey-NNNN-image-{g,r,z}.fits.fz`
+   at `portal.nersc.gov/cfs/cosmo/data/legacysurvey/dr7/coadd/AAA/NNNN/`
+   where AAA = first 3 chars of NNNN. Each brick is 3600×3600 px float32,
+   ~15 MB compressed per band, WCS in CompImageHDU header (HDU 1).
 
-5. **FITS columns are big-endian → torch is little-endian** — already
-   documented in [[project-hsu-2025-reproduction]] but worth re-emphasizing:
-   wrap every cutout-read in `np.ascontiguousarray(arr).astype(np.float32)`.
-   `astropy.io.fits` returns `>f4` (big-endian float32); pyarrow can't
-   accept big-endian arrays. The Lanusse-2018 input pipeline silently
-   ignores this and trains on byte-swapped data with awful AUC.
+8. **FITS columns are big-endian → torch is little-endian** — wrap every
+   cutout-read with `arr.astype(arr.dtype.newbyteorder("="))` for numeric
+   columns or pyarrow conversion fails. Strings need
+   `np.char.strip(arr).astype(object)` because the FITS-fixed-width pad
+   doesn't round-trip cleanly to pandas/parquet equality.
 
-6. **DECam pixel scale is 0.262″/px**, not the 0.27 that Phase 2's Hsu
-   reproduction used. For Huang-2020-faithful cutouts use
-   `pixscale=0.262`. At 101×101 the FoV is 26.5″, comfortable for typical
-   Einstein-radius systems (1-3″).
-
-7. **`ls-dr9` is the correct layer name** for the modern DECaLS imaging
-   accessible via `legacysurvey.org/viewer/fits-cutout`. Huang+2020 used
-   DR5; the morphology of DEV/COMP elliptical galaxies has not changed,
-   only the photometric depth and reductions. DR9 is the closest available
-   analogue.
-
-## Layout
+## Layout (current)
 
 ```
 reproductions/huang-2020/
-  01_lanusse_resnet.py            # PyTorch port + smoke test
-  02_filter_catalog.py            # parse NeuraLens CSV → positives parquet
-  03_download_decals_cutouts.py   # resumable ls-dr9 cutout puller
-  04_build_negatives.py           # sample 5000 DR1 galaxies as non-lenses
-  05_train_resnet.py              # Adam(1e-3, /10 @ 40 epochs), 120 epochs
-  06_write_reproduction_report.py # papers/REPRODUCTION.md template
-  data/cutouts_fits_dr9/          # 929 + 4908 = 5837 grz FITS cutouts (gitignored)
-  data/positives_huang2020.parquet
-  data/negatives.parquet
-  data/training_history.json      # per-epoch loss/AUC/lr
-  data/test_result.json           # final AUC numbers
-  data/checkpoint_best.pt         # 14 MB ResNet state-dict (gitignored)
-  papers/REPRODUCTION.md
+  01_lanusse_resnet.py            # PyTorch ResNet-46 port
+  02_filter_catalog.py            # NeuraLens CSV → positives parquet
+  03_download_decals_cutouts.py   # Phase 3a DR9-layer cutout puller
+  03b_download_dr7_train_cutouts.py # DR7 variant of 03
+  04_build_negatives.py           # DR1 zcat → negatives parquet
+  05_train_resnet.py              # Phase 3a training (DR9, writes checkpoint_best.pt)
+  05b_train_resnet_dr7.py         # DR7 variant (writes checkpoint_best_dr7.pt)
+  06_write_reproduction_report.py # papers/REPRODUCTION.md (early markdown report)
+  07_plot_training_curves.py      # training-curve + ROC + arch figures
+  08_smoketest_dr7.py             # Phase 3b decision gate
+  09_download_dr7_sweeps.py       # 292 DR7 sweep catalogs (~511 GB)
+  10_select_parent_sample.py      # filter to 6.24M-row parent_dr7.parquet
+  11_stream_inference_dr7.py      # endpoint-driven (rate-limited; smoke tests only)
+  11b_brick_inference_dr7.py      # brick-driven 2-shard production sweep
+  12_merge_shards.py              # concat per-shard parquets
+  13_extract_huang2020_catalog.py # pypdf parse paper Tables 1-3
+  14_crossmatch_recovery.py       # recovery analysis for one run
+  14b_recovery_comparison.py      # side-by-side DR9 vs DR7 trained
+  15_diagnose_missing_seven.py    # why 7 published candidates fail our cuts
+  16_build_inspection_viewer.py   # paginated HTML viewer of top-N
+  papers/main.tex / main.pdf      # 12-page tech-report
+  papers/figures/                 # recovery + score-hist + inspection viewer
+  data/*                          # mostly gitignored, slim derived CSVs committed
 ```
 
-New venv: `/raid/benson/.venvs/lensfinder` (torch 2.12 cu126 + torchvision +
-astropy stack; needs ~5 GB; lives on /raid not /home to dodge quota).
+Venv: `/raid/benson/.venvs/lensfinder` (PyTorch 2.12 + CUDA 12.6,
+sees all 10 GPUs; needs pypdf for catalog extraction).
 
-## Out of scope (Phase 3b)
+## Remaining work (not started)
 
-- Full DECaLS deployment: query Tractor sweeps for all DEV/COMP galaxies in
-  DECaLS footprint (~3 × 10⁶ rows), pull cutouts, infer ResNet scores, rank,
-  and visually inspect the top scorers to recover the 335 published
-  candidates.
-- Curated by-eye hard negatives (Huang+2020 §3.1 mentions spirals, galaxy
-  groups, cosmic rays, unusual configs, artifacts) — would lift Phase 3a's
-  trivial 0.999 AUC into the regime where the published 0.98 was actually
-  challenged.
-- Comparison against Huang's own code once obtained via collaboration.
+- **Phase 3c (BASS/MzLS transfer learning)** — Huang+2020 §2 mentions this
+  as future work. Extends deployment to northern footprint.
+- **Visual grading of top-N candidates** — viewer at
+  `papers/figures/inspection/index.html` (top 2000 thumbnails) is built
+  but no human pass has been done. Without it we can claim "recovery vs
+  published" but not "new candidates discovered."
+- **Huang+2021 reproduction** (shielded ResNet) — natural Phase 4.
