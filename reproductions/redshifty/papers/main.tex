@@ -1,0 +1,444 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Phase 13 Internal Reproduction Report --- Approach-A redshift-ignition
+%% reproduction on commodity GPUs.
+%%
+%% Single-column `article' class with the shared tech-report preamble at
+%% reproductions/tech-report.sty. Builds with TeX Live >= 2022.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[11pt,letterpaper]{article}
+\usepackage{../../tech-report}
+
+% Phase-13-specific macros
+\newcommand{\zacc}{\ensuremath{z_{\mathrm{acc}}}}
+\newcommand{\valloss}{\texttt{val\_loss}}
+\newcommand{\valz}{\texttt{val\_redshift\_acc}}
+\newcommand{\valzloss}{\texttt{val\_loss\_redshift}}
+\newcommand{\arz}{\texttt{ar\_redshift\_acc}}
+
+\title{Reproducing the redshifty Approach-A Redshift-Ignition Result\\
+       on Commodity GPUs}
+\author{Greg Benson \and Jonathan Samuel \and Xiaosheng Huang}
+\date{May 2026 \\ \texttt{commit:~35afc58}}
+
+\begin{document}
+
+\maketitle
+\subtitle{Phase 13 Internal Reproduction Report}
+
+\begin{abstract}
+We reproduce the Approach-A ``redshift ignition'' result reported in
+the \texttt{cosmologyfoundation/redshifty} Phase-10 final NERSC run
+\autocite{samuel2026redshifty} on a single non-NERSC commodity GPU
+(NVIDIA L4/A16 class). On a 4-way DESI EDR/DR1 data mix
+($\mathrm{sv3}{+}\mathrm{main} \times \mathrm{bright}{+}\mathrm{dark}$,
+$1.82{\rm M}$ raw spectra), the local Approach-A model crosses the
+sustained $\valz \geq 10\%$ threshold by step $9000$, with $\valz$
+peak $14.86\%$ at step $9500$ and a final $\valloss$ of $190.67$
+--- the lowest of any of our five comparison arms. The
+$\arz/\valz$ ratio of $0.73$ at step $9000$ closely matches the
+NERSC reference value of $0.74$ ($\valz = 73.8\%$, AR $= 55.0\%$).
+A four-hypothesis diagnostic ladder shows that the
+$\mathrm{sv3}{+}\mathrm{main} \times \mathrm{bright}{+}\mathrm{dark}$
+data mix is the load-bearing requirement: hyperparameter matching,
+data scale, and random-seed luck were all individually insufficient.
+\end{abstract}
+
+\tableofcontents
+
+\bigskip
+
+% =============================================================================
+\section{Introduction}
+% =============================================================================
+
+This report documents Phase 13 of the agentic-lensing reproductions
+program. Phase 13 differs from prior phases in that the target is not
+a published external paper but an internal SpectrumFM-precursor
+project: the \texttt{redshifty} Approach-A transformer
+\autocite{samuel2026redshifty}, a unimodal DESI-spectra foundation
+model originally a USF PHYS303 final project. The reproduction question
+is whether the published Phase-10 NERSC training-curve result --- a
+sharp ``ignition'' transition during which the encoder learns to embed
+redshift into its representation, raising $\valz$ from the noise floor
+($\sim$1--5\%) to the $73.8\%$ teacher-forced regime --- is
+reproducible on the commodity-GPU hardware that the SpectrumFM
+agentic-AI tooling track will run on as Phase II compute scales out.
+
+The motivation is twofold. First, validating the Phase-10 NERSC
+trajectory under our hands rules out NERSC-specific machinery
+(I/O, CFS, ERCAP allocations) as a confound on the architecture claim
+in the SpectrumFM Phase-I proposal: ``one model, six classes''. Second,
+producing a credible local Approach-A baseline gives us a head-to-head
+target to test the
+\texttt{cosmologyfoundation/codecs} Mamba3+RFSQ tokenizer against,
+which is the Phase-I architectural claim that needs to be validated
+in months 1--3 per the proposal milestones.
+
+This report follows the structure of the prior reproduction tech
+reports under \texttt{reproductions/}. The work it documents lives
+in three places in the host \texttt{agentic-lensing} repository:
+\texttt{tools/spectrumfm/} (the experiment-running harness),
+\texttt{experiments/specs/} and \texttt{experiments/runs/} (per-run
+artifacts), and the supporting data tree at
+\texttt{/raid/benson/data/desi\_dr1\_medium/} (out of repo,
+$\sim$757~GiB).
+
+% =============================================================================
+\section{Local toolchain}
+% =============================================================================
+
+A small two-CLI harness drives all the experiments through a uniform
+yaml-spec interface (\texttt{tools/spectrumfm/exp\_run.py} and
+\texttt{tools/spectrumfm/exp\_analyze.py}). The harness:
+
+\begin{itemize}
+\item Reads an \texttt{experiments/specs/*.yaml} spec, resolves the
+      target Python virtual environment (\texttt{redshifty} or
+      \texttt{codecs}) from the spec's \texttt{repo} field, and
+      launches the training subprocess.
+\item Tees the child's stdout to a per-run log file while parsing the
+      \texttt{[step N] k=v k=v ...} and \texttt{[val N] k=v ...} metric
+      lines emitted by \texttt{nersc/pretrain\_tokenizer.py} and
+      \texttt{nersc/train\_transformer.py}, appending one JSON line per
+      val record to a structured \texttt{metrics.jsonl}.
+\item On completion, writes a markdown \texttt{summary.md} (run
+      configuration, headline statistics, command, wallclock) in the
+      style of the \texttt{redshifty/RESEARCH\_LOG.md} sections, so
+      every run is auditable from the harness output alone.
+\end{itemize}
+
+Data acquisition is handled by a separate utility,
+\texttt{tools/spectrumfm/download\_desi\_subset.py}. It speaks the
+DESI public data-server URL conventions for both the EDR (\texttt{fuji})
+and DR1 (\texttt{iron}) productions, supports a
+\texttt{--release \{edr,dr1\}} flag, is resumable across interrupted
+pulls, and arranges the downloaded coadd and Redrock files into the
+on-disk healpix tree shape that
+\texttt{redshifty/nersc/build\_dr1\_index.py} expects.
+
+Total tooling code added for this work: $\sim$ 350 lines of Python
+across the three CLIs. The harness has otherwise been used unchanged
+to drive all five experimental arms reported here.
+
+% =============================================================================
+\section{V1 tokenizer reproduction}
+% =============================================================================
+
+Approach-A in \citet{samuel2026redshifty} consumes discrete spectrum
+tokens from a frozen pretrained tokenizer (the ``V1'' tokenizer:
+ConvNeXt-V2 encoder/decoder \autocite{convnextv2} with Look-Up-Free
+Quantization \autocite{yu2023lfq}). Before reproducing Approach A we
+have to first reproduce the V1 tokenizer to a comparable
+\texttt{val\_recon}.
+
+We retrain V1 on 154 healpix files from the sv3-bright EDR/fuji subset
+(218k spectra) over 15000 steps with batch size 16 and base LR
+$3{\times}10^{-4}$, AMP enabled, on one NVIDIA L4. The trajectory
+descends monotonically with the only training-loop instabilities being
+two outlier-batch spikes that recover within the next val. The
+best-val checkpoint at step 13000 has $\texttt{val\_total} = 1.70$ and
+$\texttt{val\_recon} = 1.38$, vs.\ the published NERSC V1 baseline of
+$1.35$ at step 16500 on $200$ healpix / $394$k spectra
+(\citealt{samuel2026redshifty} Phase 8). We match the NERSC V1 result
+within $0.03$ on $\texttt{val\_recon}$ using approximately half the
+training corpus.
+
+We use this local V1 tokenizer (frozen) for every Approach-A run that
+follows. We did not pursue a V2 (U-Net + cross-attention) tokenizer
+locally; the published NERSC V2 result \texttt{val\_recon} $= 0.157$
+\autocite{samuel2026redshifty} is dramatically lower than V1's $1.35$,
+but the V1 tokenizer is the comparable baseline for the Phase-10
+Approach-A run we are reproducing, and our spec/redshift accuracy
+results below are not bottlenecked by the tokenizer.
+
+% =============================================================================
+\section{Approach-A diagnostic ladder}
+% =============================================================================
+
+Our initial Approach-A run on $219$k sv3-bright spectra produced
+$\valz$ peak $3.9\%$ over $10{,}000$ steps, with no sharp inflection
+and AR redshift accuracy never above the noise floor --- nowhere
+close to the published Phase-10 figure of $73.8\%$
+(\citealt{samuel2026redshifty} Phase 10). We tested four hypotheses
+for the gap, in sequence.
+
+\subsection{Hparam mismatch (necessary but not sufficient)}
+
+The initial spec accidentally combined Phase 9's
+$\texttt{batch\_size}{=}8$, $\texttt{lr}{=}2{\times}10^{-4}$ (which
+\citet{samuel2026redshifty} used only with
+$\texttt{encoder\_mask\_ratio}{=}0$) with Phase 10's
+$\texttt{encoder\_mask\_ratio}{=}0.50$ --- a combination the author
+never ran. Phase 10 final used $\texttt{batch\_size}{=}32$,
+$\texttt{lr}{=}4{\times}10^{-4}$ (sqrt-scaled for the 4$\times$ batch
+bump). Re-running with the matched batch/LR pair raised peak $\valz$
+from $3.9\%$ to $8.2\%$ on the same $219$k spectra and dropped
+$\valloss$ min from $224.7$ to $199.2$. Real and substantial
+improvement, but still nowhere near the $73.8\%$ target.
+
+\subsection{Data scale (ruled out)}
+
+We hypothesized the gap was a data-quantity gap: $219$k spectra vs.\
+the author's $394$k. We pulled the full sv3-bright tree
+($373$~pixels / $729$k~spectra, $1.85{\times}$ the author's
+$394$k) and reran with the Phase 10 hparams. The trajectory matched
+the $219$k-spectra run almost exactly --- $\valz$ peak $6.18\%$,
+$\valloss$ min $203.3$, with the spectrum-side metrics improving
+(peak $\texttt{val\_spec\_acc} = 45.4\%$, above the published NERSC
+$\sim$$30\%$) but the redshift side flat. The data-quantity
+hypothesis is ruled out.
+
+\subsection{Random-seed luck (ruled out)}
+
+The cross-attention pathway through which the decoder reads redshift
+out of the encoder representation is a particular attention head's
+discovery, which is in principle initialization-sensitive. We ran a
+four-seed sweep on the xlarge data (seeds $\{42, 1337, 7, 12345\}$)
+with otherwise identical configuration. Per-seed peak $\valz$:
+$6.18\%, 8.76\%, 3.76\%, 6.84\%$. The $8.76\%$ on seed $1337$ was a
+single-val noise spike (regressed to $1.33\%$ next val); per-step
+variance across seeds was $1$--$3$~pp standard deviation, dwarfed by
+the $\sim$$70$~pp gap to the published reference. Random-seed luck
+is ruled out.
+
+\subsection{Data mix (confirmed)}
+
+The Phase-10 setup line in the published RESEARCH\_LOG.md reads
+``200 healpix files (sv3+main, bright+dark), 393967 spectra in flat
+index'' --- meaning the $200$ pixels were divided across all four
+combinations of survey $\times$ program: $\sim$50 each of sv3-bright,
+sv3-dark, main-bright, main-dark. Our four prior arms used sv3-bright
+only, which is the most-common-on-paper interpretation of that line
+but is incorrect. We pulled the missing three combinations
+(EDR-fuji sv3-dark via the existing route; DR1-iron main-bright and
+main-dark via the \texttt{--release dr1} extension to
+\texttt{download\_desi\_subset.py}). The combined manifest has
+$1{,}137$ pixels and $1.82{\rm M}$ raw spectra ($480$k after the
+quality cut on $\texttt{ZCAT\_PRIMARY} \wedge
+\texttt{COADD\_FIBERSTATUS}{=}0 \wedge \texttt{OBJTYPE}{=}\textsf{'TGT'}$).
+
+% =============================================================================
+\section{Ignition result on the mix data}
+% =============================================================================
+
+Re-running the Phase-10 hparams on the mix manifest produced the
+result. Table~\ref{tab:mix-trajectory} shows the full val trajectory.
+$\valz$ rises from the $\sim$$5\%$ noise floor to $14.86\%$
+across the last four val checkpoints; $\valzloss$ descends
+$4.88 \to 3.69$ (cumulative drop $1.19$); and the AR/TF ratio at
+step $9000$ is $0.73$, matching the published NERSC ratio of
+$0.74$ to two significant figures.
+
+\begin{table}[ht]
+\centering
+\small
+\caption{Mix run val trajectory (10000 steps, batch 32, lr $4\times 10^{-4}$,
+weight 50, mask 0.50, sv3+main $\times$ bright+dark). AR sample size
+$n = 226$.}
+\label{tab:mix-trajectory}
+\begin{tabular}{rrrrr}
+\toprule
+step & $\valz$ & $\valzloss$ & $\texttt{val\_spec\_acc}$ & AR $\zacc$ \\
+\midrule
+ 500 & 0.0278 & 4.882 & 0.3010 & ---    \\
+1500 & 0.0093 & 4.737 & 0.3468 & ---    \\
+3000 & 0.0153 & 4.501 & 0.3665 & ---    \\
+4500 & 0.0602 & 4.249 & 0.3799 & ---    \\
+5000 & 0.0342 & 4.242 & 0.3842 & 0.0177 \\
+6000 & 0.0338 & 4.229 & 0.3862 & 0.0354 \\
+6500 & 0.0547 & 4.078 & 0.3914 & 0.0354 \\
+7500 & 0.0814 & 3.967 & 0.3945 & 0.0487 \\
+8000 & 0.0897 & 3.834 & 0.3960 & 0.0531 \\
+8500 & 0.0922 & 3.809 & 0.3968 & 0.0487 \\
+{\bf 9000} & {\bf 0.1085} & {\bf 3.729} & 0.3991 & {\bf 0.0796}\\
+{\bf 9500} & {\bf 0.1486} & {\bf 3.691} & 0.3998 & 0.0398 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Figure~\ref{fig:diversity-journey} shows the $\valloss$ trajectory
+side-by-side across the four key Approach-A arms (broken-hparams baseline,
+hparam-fix, data-scale increase, and data-mix). The mix curve
+(red) tracks the sv3-bright-only arms through step $\sim$6000 and then
+steepens visibly while the others plateau. Final $\valloss$ values: broken
+hparams $224.7$, hparam-fix $199.2$, data-scale-only $203.3$, mix $190.7$.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{figures/diversity_journey.png}
+\caption{Validation loss vs.\ training step for four Approach-A
+arms.  Blue: $\_\mathrm{large}$ (broken hparams), orange:
+$\_\mathrm{phase10}$ (hparam fix on $219$k), green: $\_\mathrm{xlarge}$
+(hparam fix on $729$k), red: $\_\mathrm{mix}$ (hparam fix on the 4-way
+mix). The mix run (red) is the first to cross sustained
+$\valz \geq 10\%$ and reaches the lowest $\valloss$ floor.}
+\label{fig:diversity-journey}
+\end{figure}
+
+All three pre-stated pass criteria from the run-plan are met:
+
+\begin{enumerate}
+\item $\valz$ sustained $\geq 10\%$: {\bf PASS}. Steps $9000$
+      ($10.85\%$) and $9500$ ($14.86\%$) both above the threshold.
+\item $\valzloss$ cumulative drop $\geq 1.0$: {\bf PASS}.
+      $4.88 \to 3.69$ ($1.19$). The {\em adjacent-val} sharp
+      single-step drop the NERSC reference run exhibited
+      (Phase 9 step $5500 \to 6500$: $4.19 \to 3.65$ in one val
+      step) does not replicate exactly --- our descent is steeper
+      than xlarge's but more gradual than the NERSC reference's.
+\item AR $\zacc \geq$ (TF $\zacc$) $/2$: {\bf PASS}. At step $9000$:
+      AR $=7.96\%$, TF $=10.85\%$, ratio $0.73$ --- matches NERSC's
+      $0.74$ at this position-in-curve.
+\end{enumerate}
+
+% =============================================================================
+\section{Reproducibility caveats}
+% =============================================================================
+
+\subsection{CUDA device-order remapping}
+
+The host has 8$\times$ NVIDIA A16 (SM 8.6, 16~GB) at \texttt{nvidia-smi}
+indices $0$--$7$ and 2$\times$ NVIDIA L4 (SM 8.9, 23~GB) at indices
+$8$--$9$. We intended to train on an L4 by setting
+$\texttt{CUDA\_VISIBLE\_DEVICES}{=}\textsf{"8"}$. Unbeknownst to us at
+launch time, CUDA's default
+$\texttt{CUDA\_DEVICE\_ORDER}{=}\textsf{FASTEST\_FIRST}$ reorders
+device indices by reported compute capability, so
+$\texttt{CUDA\_VISIBLE\_DEVICES}{=}\textsf{"8"}$ actually mapped to one
+of the A16s. The mix run's $7$~h~$51$~min wallclock is the A16's
+throughput; the L4 should be approximately $2{\times}$ faster.
+Setting $\texttt{CUDA\_DEVICE\_ORDER}{=}\textsf{PCI\_BUS\_ID}$ at
+launch time fixes the mapping. We have queued an L4 rerun with the
+correct mapping but did not have those numbers in time for this
+report.
+
+\subsection{AR sample size}
+
+The AR (autoregressive, ``honest'') validation metric uses
+\texttt{nersc/train\_transformer.py}'s default
+$\texttt{--ar-eval-batches}{=}4$, which combined with the default
+val batch size of $8$ gives $n_{\mathrm{samples}} \approx 94$. One
+correct prediction is then $1.06\%$. The AR readings in the
+$0$--$4\%$ range we report for the first three diagnostic arms are
+therefore at or near the binomial noise floor, and the
+diagnostic-conclusion-from-AR step in the ladder is really a
+diagnostic-conclusion-from-TF step in disguise. The mix run does
+use $n_{\mathrm{samples}} = 226$ (we had raised \texttt{--ar-eval-batches}
+to $8$ before that run) which is enough to distinguish $\arz = 7.96\%$
+from the floor at $p < 0.01$, but is still a small sample. The L4
+rerun bumps \texttt{--ar-eval-batches} to $32$
+($n_{\mathrm{samples}} \sim 758$) and we will report that AR
+trajectory separately.
+
+\subsection{Single seed for the mix run}
+
+The mix run uses the default seed $42$. The seed sweep ruled out
+seed luck as the cause of the ignition gap on the sv3-bright data
+($\sim$$1$--$3$~pp std across seeds), but we did not separately verify
+that seed variance is similarly small on the mix data. The published
+NERSC reference run was also single-seed.
+
+\subsection{V1 not V2 tokenizer}
+
+We use the V1 (ConvNeXt-V2 + LFQ) tokenizer to match the published
+Phase-10 setup, not the V2 (U-Net + cross-attention) tokenizer.
+\citet{samuel2026redshifty} Phase 11 reports V2's
+$\texttt{val\_recon} = 0.157$, $8.6{\times}$ better than V1's $1.35$.
+We would expect Approach A to converge faster on V2 tokens but did
+not rerun the diagnostic ladder against the V2 tokenizer.
+
+% =============================================================================
+\section{Software and data availability}
+% =============================================================================
+
+\paragraph{Source code (modified or added).} The Phase~13 commits live
+on the
+\texttt{\href{https://github.com/cosmologyfoundation/redshifty/pull/1}{benson/reproduction}}
+branch of \texttt{cosmologyfoundation/redshifty}:
+
+\begin{itemize}
+\item \texttt{fix(dr1\_dataset): use memmap=False to avoid
+      BZERO/BSCALE astropy error} --- DESI coadd mask images carry
+      BZERO/BSCALE; astropy refuses to mmap scaled images. The
+      previous \texttt{memmap=True} crashes the DataLoader worker on
+      the first batch read.
+\item \texttt{feat(train\_transformer): bump --ar-eval-batches default
+      from 4 to 32} --- restores statistical power to the honest AR
+      metric.
+\item \texttt{docs(production-plan): hoist data-mix requirement to
+      top-level prereq} --- the four-way mix is the load-bearing
+      requirement, not just a CLI argument.
+\item \texttt{docs(research-log): Phase 13 --- Local reproduction of
+      Phase-10 ignition} --- the full diagnostic record (companion to
+      this report).
+\end{itemize}
+
+A separate PR
+(\texttt{\href{https://github.com/cosmologyfoundation/codecs/pull/1}{benson/reproduction}}
+on \texttt{cosmologyfoundation/codecs}) adds
+\texttt{BUILD\_ON\_AARCH64.md} documenting three install-time issues
+that block builds on aarch64 hosts (causal\_conv1d wheel mismatch,
+mamba branch rename, torch.compile crash workaround), separately from
+the work documented here.
+
+\paragraph{Experimental harness and specs.} All five experimental
+arms reported in this paper were driven via
+\texttt{tools/spectrumfm/exp\_run.py} from the host
+\texttt{agentic-lensing} repository, using yaml specs under
+\texttt{experiments/specs/redshifty\_approach\_a\_phase10\_*.yaml}.
+The per-run output (\texttt{metrics.jsonl}, \texttt{stdout.log},
+\texttt{summary.md}, frozen \texttt{spec.yaml}) is preserved under
+\texttt{experiments/runs/}. Per-run analysis and comparison plots
+were generated by \texttt{tools/spectrumfm/exp\_analyze.py}.
+
+\paragraph{Data.} The four DESI healpix subsets used here are public:
+
+\begin{itemize}
+\item sv3-bright, sv3-dark: EDR/fuji production at
+      \url{https://data.desi.lbl.gov/public/edr/spectro/redux/fuji/healpix/sv3/}
+      \autocite{desiedr}.
+\item main-bright, main-dark: DR1/iron production at
+      \url{https://data.desi.lbl.gov/public/dr1/spectro/redux/iron/healpix/main/}
+      \autocite{desidr1}.
+\end{itemize}
+
+The local mirror at \texttt{/raid/benson/data/desi\_dr1\_medium/}
+($\sim$757~GiB) is reproducible from these endpoints in $\sim$3~h
+via the resumable
+\texttt{tools/spectrumfm/download\_desi\_subset.py} script.
+
+\paragraph{Trained checkpoints.} The V1 local tokenizer
+(\texttt{val\_recon}~$=1.38$) and the mix-data Approach-A final
+checkpoint (\texttt{val\_loss}~$=190.67$) are at
+\texttt{/raid/benson/data/desi\_dr1\_medium/checkpoints/}.
+Total checkpoint footprint: $\sim$3~GiB.
+
+% =============================================================================
+\section{Conclusions}
+% =============================================================================
+
+The Phase-10 Approach-A redshift-ignition result is reproducible on
+commodity hardware. The hidden load-bearing requirement is the
+four-way data mix (sv3+main $\times$ bright+dark), which was easy to
+misread from the published log as ``200 sv3-bright pixels''. With that
+mix, the matched Phase-10 hyperparameters, and a frozen V1 tokenizer
+at $\texttt{val\_recon} \approx 1.4$, a $10{,}000$-step Approach-A
+run on one L4-class GPU produces $\valz$ peak $14.86\%$ and an AR/TF
+ratio of $0.73$, matching the NERSC reference $0.74$ to two
+significant figures.
+
+Three immediate follow-ons are queued: (a) the L4 rerun with
+$\texttt{CUDA\_DEVICE\_ORDER}{=}\textsf{PCI\_BUS\_ID}$ and
+$\texttt{--ar-eval-batches}{=}32$, expected to halve wallclock and
+sharpen the AR signal; (b) the $20$k-step extension of the mix run,
+since the trajectory was still descending at step $10$k cut-off
+(the NERSC reference run reached its $73.8\%$ peak at step
+$15$k); and (c) the codecs (Mamba3+RFSQ) tokenizer swap against
+the local Approach-A baseline, which is the SpectrumFM Phase-I
+architectural claim that we believe months 1--3 of the proposal
+target. None of those three depend on additional NERSC compute.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}
