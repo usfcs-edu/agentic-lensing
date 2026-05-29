@@ -480,24 +480,119 @@ relative to the random-galaxy background.}
 \end{itemize}
 
 % =============================================================================
+\section{DR7-trained ablation}
+\label{sec:dr7-ablation}
+% =============================================================================
+
+The Phase 3a checkpoint was trained on DECaLS DR9 cutouts (the most
+current release at the time), but Phase 3b deploys on DR7 (paper-exact).
+To close that internal inconsistency and isolate the contribution of
+test-set overlap with our training positives, we retrained the network
+on \emph{DR7} cutouts at the same NeuraLens and DR1-zcat positions and
+re-ran the full sweep. Concretely:
+
+\begin{itemize}
+\item \texttt{03b\_download\_dr7\_train\_cutouts.py} downloads 101$\times$101
+      DR7 cutouts at the same training positions used in Phase 3a.
+      Because the \citet{huang2020decals} NeuraLens-derived positives
+      include systems at $|\delta| > 32^\circ$ (outside DECaLS-DR7's
+      official footprint), the DR7 training set has \emph{591 positives}
+      (vs.\ 929 in Phase 3a) plus 4{,}961 random negatives. Total
+      $5{,}552$ DR7 cutouts.
+\item \texttt{05b\_train\_resnet\_dr7.py} trains the same
+      \textcite{lanusse2018cmu} ResNet-46 architecture with identical
+      hyperparameters as Phase 3a for 120 epochs on a single L4. The
+      best checkpoint at epoch 117 has $\mathrm{val\,AUC} = 0.9890$ and
+      $\mathrm{test\,AUC} = 0.9943$ — still well above the paper's
+      $0.98$ but lower than the DR9-trained $0.9991$ (consistent with
+      $\sim$36\% fewer positives).
+\item We re-ran the Phase 3b brick-driven sweep with
+      \texttt{checkpoint\_best\_dr7.pt} on the same 6.24\,M parent
+      sample. End-to-end wall-clock $\sim$10\,h on the two L4s.
+\end{itemize}
+
+Table~\ref{tab:dr7-vs-dr9} compares the recoveries of the published
+342 \textcite{huang2020decals} candidates. The DR7-trained model is
+substantially more conservative ($25{,}792$ candidates at $p \geq 0.9$
+vs.\ DR9-trained $74{,}011$ — closer to the paper's stated
+$\sim$50{,}000) and consistently \emph{loses} a few percentage points
+of recovery across all grades.
+
+\begin{table}[ht]
+\centering
+\caption{Recovery of the \citet{huang2020decals} catalog: DR9-trained
+(Phase 3a, default) vs.\ DR7-trained (paper-exact). The DR7-trained
+column is the honest reproduction; the DR9-trained advantage is most
+plausibly a memorization effect on training-set positives that overlap
+with the published catalog.}
+\label{tab:dr7-vs-dr9}
+\begin{tabular}{lrrrr}
+\toprule
+Grade & threshold & DR9-trained & DR7-trained & $\Delta$ \\
+\midrule
+A   & $p \geq 0.5$ & 95.0\% & 93.3\% & $-1.7\%$ \\
+A   & $p \geq 0.9$ & \textbf{90.0\%} & \textbf{83.3\%} & $-6.7\%$ \\
+B   & $p \geq 0.5$ & 82.1\% & 78.3\% & $-3.8\%$ \\
+B   & $p \geq 0.9$ & 68.9\% & 64.2\% & $-4.7\%$ \\
+C   & $p \geq 0.5$ & 65.3\% & 48.3\% & $-17.0\%$ \\
+C   & $p \geq 0.9$ & 43.8\% & 27.8\% & $-16.0\%$ \\
+ALL & $p \geq 0.5$ & 75.7\% & 65.5\% & $-10.2\%$ \\
+ALL & $p \geq 0.9$ & \textbf{59.6\%} & \textbf{48.8\%} & $-10.8\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{figures/recovery_compare.png}
+\caption{Recovery of the published 342 candidates broken out by grade
+and threshold, for both training runs. The DR7-trained model loses
+$\sim$5--16 percentage points across all grades. Grade C suffers the
+most ($-16\%$ at every threshold), consistent with the DR7-trained
+model being more conservative \emph{and} the C-grade candidates being
+the closest to the decision boundary.}
+\label{fig:dr7-vs-dr9}
+\end{figure}
+
+The interpretation we favour: the DR9-trained model's higher recovery
+is partly explained by \emph{test-set leakage} via the L18 NeuraLens
+catalog (\S\ref{sec:caveats}). When that overlap is mitigated — by
+restricting training to DR7-coverage positives, which are a strict
+subset of NeuraLens and exclude many recovered Huang+2020 systems —
+recall drops by $\sim$10\,pp.  This is the predicted direction and
+magnitude of the leakage caveat, and it implies the paper's
+$0.98$ test \AUC{} probably reflects a similarly out-of-sample
+result (their training and test sets were also a 70/20/10 split
+of their hand-curated positives).
+
+We treat the DR7-trained, paper-exact column as the honest baseline
+for further analysis: \textbf{$83.3\%$ Grade-A recovery at
+$p \geq 0.9$, $48.8\%$ overall}, on a sweep that finishes in
+$\sim$10\,h on two L4 GPUs and produces a top-$p \geq 0.9$ candidate
+pool ($25{,}792$) within $\sim$50\% of the paper's $\sim$50{,}000.
+
+% =============================================================================
 \section{Conclusions}
 % =============================================================================
 
 We implemented and trained a PyTorch port of the
 \textcite{lanusse2018cmu} \ResNet-46 under the
-\textcite{huang2020decals} hyperparameter recipe, reaching a test
-\AUC{} of $0.9991$ (Phase 3a, \S\ref{sec:caveats}), then deployed the
-trained checkpoint on the full DECaLS DR7 footprint (Phase 3b,
-\S\ref{sec:phase3b}). The deployment recovers \textbf{$90.0\%$ of
-Grade A and $59.6\%$ overall} of the 342 \textcite{huang2020decals}
+\textcite{huang2020decals} hyperparameter recipe, reaching test \AUC{}
+of $0.9991$ (DR9-trained, Phase 3a) and $0.9943$ (DR7-trained,
+\S\ref{sec:dr7-ablation}), then deployed both checkpoints on the full
+DECaLS DR7 footprint (Phase 3b, \S\ref{sec:phase3b}). The
+paper-exact DR7-trained deployment recovers \textbf{$83.3\%$ of
+Grade A and $48.8\%$ overall} of the 342 \textcite{huang2020decals}
 published candidates at the paper's reported $p \geq 0.9$ threshold,
 in 10\,h on two L4 GPUs end-to-end. The architecture, the loss, the
 optimiser settings, the data augmentation, the cutout size, the
 deployment cuts, and the inference threshold are all faithful to the
-published descriptions. The remaining gap (cf.\ Grade C recovery at
-$43.8\%$) is consistent with our smaller and more uniformly-distributed
-training set; closing it would require the paper's by-eye-curated hard
-negatives, which were not publicly released.
+published descriptions. The DR9-trained run shows a $\sim$10\,pp
+recall advantage; we attribute most of it to test-set leakage via
+the NeuraLens catalog (\S\ref{sec:caveats}). The remaining gap
+(cf.\ Grade C recovery at $27.8\%$ DR7-trained) is consistent with
+our smaller training set and the absence of the paper's by-eye-curated
+hard negatives, which were not publicly released.
 
 % =============================================================================
 \appendix

@@ -7,8 +7,17 @@ data/cutouts_fits_dr9/
 data/cutouts_jpeg_dr9/
 data/parent_dr7.parquet
 data/checkpoint_best.pt
+data/checkpoint_best_dr7.pt
+data/cutouts_fits_dr7_train/
+data/cutouts_jpeg_dr7_train/
 data/inference_scores.parquet
 data/inference_scores_shard*.parquet
+data/inference_scores_dr9trained.parquet
+data/inference_scores_dr7trained.parquet
+data/inference_scores_dr9trained_shard*.parquet
+data/inference_scores_dr7trained_shard*.parquet
 data/brick_manifest_shard*.csv
+data/brick_manifest_dr9trained_shard*.csv
+data/brick_manifest_dr7trained_shard*.csv
 *.log
 __pycache__/
