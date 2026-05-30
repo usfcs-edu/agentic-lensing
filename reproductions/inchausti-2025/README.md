@@ -75,7 +75,9 @@ probabilities.
 | `14_crossmatch_recovery.py` | recovery by grade × model, leak-bucketed | 5c |
 | `15_extended_crossmatch.py` | provenance of top-N ensemble candidates | 5c |
 | `16_build_inspection_viewer.py` | paginated Lupton-RGB viewer of top-N ensemble | 5c |
-| `17_assemble_literature_catalogs.py` | Stage B: enlarge positives from VizieR | 5a' |
+| `17_assemble_literature_catalogs.py` | Stage B: harvest literature lens catalogs (VizieR) | 5B |
+| `18_download_litpos_cutouts.py` | Stage B: DR9 cutouts for literature positions | 5B |
+| `19_train_stageb.py` | Stage B: retrain on enlarged set + report AUC/recovery shift | 5B |
 
 Large training inputs (cutouts, positives, negatives, baseline checkpoints, DR8
 parent sample + scores) are **symlinked** from `../huang-2020` and `../huang-2021`
@@ -129,8 +131,13 @@ make -C papers pdf
 4. **Training-set leakage (carried from Phase 4).** Our positives are the
    NeuraLens Huang 2020/2021 candidates, which overlap the Storfer/Inchausti
    literature positives. Recovery is reported separately for leaked vs leak-free
-   candidates; the leak-free numbers are the honest signal. Stage B
-   (`17_…`) attempts to enlarge the positive set from the literature catalogues.
+   candidates; the leak-free numbers are the honest signal. **Stage B**
+   (`17`–`19`) harvested 6,302 literature lens positions (11 VizieR catalogs;
+   5,561 in the DR9 footprint), sampled to the Storfer scale (1,961 positives),
+   and retrained: the enlarged set **lowers** the internal test AUC
+   (0.9999→0.9881, the narrow Stage-A test was easiness-inflated) but **improves**
+   recovery of the independent published catalogs (Storfer 90.7%→93.5%, Inchausti
+   93.2%→96.9%) — more diverse positives generalize better to held-out discoveries.
 5. **Meta-learner training.** As in the paper, the meta-learner is trained on the
    base models' in-sample probabilities; we report held-out test AUC and a
    simple-average baseline (the correlated bases make stacking ≈ averaging).

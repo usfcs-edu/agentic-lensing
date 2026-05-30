@@ -67,8 +67,8 @@ def score_paths(paths, model, arch, mean, std, device, batch=256):
     """
     paths = [Path(p) for p in paths]
     probs = np.full(len(paths), np.nan, dtype=np.float32)
-    mean_t = torch.from_numpy(mean)
-    std_t = torch.from_numpy(std)
+    mean_t = torch.from_numpy(np.asarray(mean, dtype=np.float32).reshape(3, 1, 1))
+    std_t = torch.from_numpy(np.asarray(std, dtype=np.float32).reshape(3, 1, 1))
     buf_idx, buf_x = [], []
 
     def flush():

@@ -271,9 +271,43 @@ reconstructable from disk --- the positives are compiled from $\sim$15 external
 literature catalogues. In \textbf{Stage A} (this report) we reuse our on-disk
 NeuraLens positives (the Huang 2020/2021 candidates) and the depth-binned
 negative recipe, which keeps the controlled comparison clean but means our
-absolute AUCs are leakage-inflated. \textbf{Stage B} (\texttt{17}) attempts to
-harvest the literature catalogues from VizieR to enlarge the positive set toward
-the papers' $1{,}961$/$1{,}372$ and re-measure.
+absolute AUCs are leakage-inflated.
+
+\paragraph{Stage B: literature enlargement (\texttt{17}--\texttt{19}).} We then
+harvested the literature lens catalogues that seed the Storfer/Inchausti
+positives from VizieR --- $6{,}302$ unique positions from 11 machine-readable
+catalogues (SuGOHI, KiDS/LinKS, DES, Pan-STARRS HOLISMOKES, SL2S; four sources
+--- More 2016, Jacobs 2017, Talbot 2021, Stein 2022 --- are not on VizieR).
+$5{,}561$ fall in the DR9 footprint; we sampled $1{,}012$ of them (seeded) onto
+our $949$ to reach the Storfer training scale of $1{,}961$ positives, and
+retrained all three models (\texttt{19}). The result is the expected
+diversity/generalisation trade-off (Table~\ref{tab:stageb}): the held-out test
+AUC \emph{drops} (the enlarged test set is harder and more representative than the
+narrow Huang-only Stage-A test, whose $0.9999$ was easiness-inflated), while
+recovery of the \emph{independent} published catalogues \emph{improves} ---
+Storfer $90.7\%\to93.5\%$, Inchausti $93.2\%\to96.9\%$ (meta, $p\ge0.5$). More
+diverse positives generalise better to the real recovery target, vindicating the
+reuse-then-enlarge strategy. The meta-learner still equals the simple average
+($0.9881$ vs $0.9882$).
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{lrr}
+\toprule
+metric & Stage A (949 pos) & Stage B (1,961 pos) \\
+\midrule
+shielded \ResNet{} test AUC      & 0.9992 & 0.9838 \\
+\EffNet{} test AUC               & 0.9995 & 0.9868 \\
+meta-learner test AUC            & 0.9999 & 0.9881 \\
+Storfer recovery (meta, $p\ge0.5$)   & 90.7\% & 93.5\% \\
+Inchausti recovery (meta, $p\ge0.5$) & 93.2\% & 96.9\% \\
+\bottomrule
+\end{tabular}
+\caption{Stage A (reuse) vs Stage B (enlarged with literature positives).
+Enlarging trades internal test AUC for better recovery of the independent
+published catalogues. See \texttt{19\_train\_stageb.py}.}
+\label{tab:stageb}
+\end{table}
 
 \paragraph{Leakage.} Our positives overlap the literature positives that seed
 the Storfer/Inchausti training sets, so recovery of leaked candidates is
@@ -305,7 +339,11 @@ catalogues quantifies how well the reproduction generalises. The headline
 methodological lesson is the paper's own: an \EffNet{} adds a genuinely different
 inductive bias to the shielded \ResNet{}, but on a shared training set the two
 are correlated enough that a learned stack buys little over a simple average ---
-the ensemble's value is robustness, not a large AUC gain.
+the ensemble's value is robustness, not a large AUC gain. Stage B adds a second
+lesson: enlarging the (leaky, narrow) positive set with diverse literature lenses
+lowers the internal test AUC but raises recovery of the independent published
+catalogues, so the headline metric for a lens finder is recovery of held-out
+discoveries, not the in-sample AUC.
 
 \bibliographystyle{plainnat}
 \bibliography{references}

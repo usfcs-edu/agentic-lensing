@@ -65,7 +65,10 @@ class LensDataset(Dataset):
 
     def __getitem__(self, i: int):
         row = self.df.iloc[i]
-        path = self.fits_dir / f"{row['row_id']}.fits"
+        # honor a per-row fits_dir column if present (Stage-B mixes cutout dirs)
+        base = Path(row["fits_dir"]) if "fits_dir" in row.index and isinstance(
+            row["fits_dir"], str) else self.fits_dir
+        path = base / f"{row['row_id']}.fits"
         arr = load_fits_cube(path)
         x = torch.from_numpy(arr)
         x = (x - self.mean) / self.std

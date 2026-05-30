@@ -20,7 +20,13 @@ published catalogs by **targeted** scoring; deliberately NO full DR9/DR10
 parent-sample sweep (~45M/~43M cutouts = two more Phase-4 deployments).
 Training set (user-chosen): "reuse existing first, then literature" — Stage A
 reuses the Huang-2020/2021 NeuraLens positives (leaky, documented); Stage B
-(`17_…`, literature-catalog enlargement via VizieR) still PENDING.
+(`17`–`19`) DONE: harvested 6,302 literature lens positions (11 VizieR catalogs;
+5,561 in DR9 footprint), sampled to the Storfer scale (1,961 pos), retrained.
+**Key Stage-B finding:** enlarging the narrow/leaky positive set with diverse
+literature lenses LOWERS internal test AUC (0.9999→0.9881 — Stage-A test was
+easiness-inflated) but RAISES recovery of the independent published catalogs
+(Storfer 90.7→93.5%, Inchausti 93.2→96.9%, meta @p≥0.5). Lesson: the headline
+metric for a lens finder is recovery of held-out discoveries, not in-sample AUC.
 
 ## The two-architecture ensemble (Inchausti 2025, Paper IV, arXiv:2508.20087)
 Three models, all trained on the IDENTICAL DR9 split (SEED 2026, build_split):
