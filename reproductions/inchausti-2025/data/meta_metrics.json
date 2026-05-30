@@ -1,0 +1,25 @@
+{
+  "feature_order": [
+    "shielded194k",
+    "efficientnet"
+  ],
+  "ckpt_resnet": "checkpoint_best_shielded194k.pt",
+  "ckpt_effnet": "checkpoint_best_efficientnet.pt",
+  "n": {
+    "train": 4086,
+    "val": 1168,
+    "test": 583
+  },
+  "val": {
+    "p_resnet": 0.9992335150997524,
+    "p_effnet": 0.9989241836935813,
+    "p_meta": 0.9996441320105995,
+    "p_avg": 0.9996277073341655
+  },
+  "test": {
+    "p_resnet": 0.9991880623217029,
+    "p_effnet": 0.9994952819837613,
+    "p_meta": 0.999890278692122,
+    "p_avg": 0.9998683344305463
+  }
+}

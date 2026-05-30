@@ -1,0 +1,10 @@
+{
+  "arch": "efficientnet",
+  "tag": "efficientnet",
+  "variant": "tf_efficientnetv2_s",
+  "dr": "dr9",
+  "n_params": 20543145,
+  "best_val_auc": 0.9989241836935813,
+  "test_auc": 0.9994952819837613,
+  "best_epoch": 52
+}

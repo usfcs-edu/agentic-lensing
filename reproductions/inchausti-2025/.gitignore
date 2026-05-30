@@ -1,0 +1,49 @@
+# Phase 5 (Inchausti 2025 / Storfer 2024) — large or transient data, not in git.
+# Symlinked training inputs (-> ../huang-2020/.., ../huang-2021/..) are stored as
+# link files by git and are harmless, but we ignore the heavy ones for clarity.
+data/cutouts_fits_dr8
+data/cutouts_fits_dr9
+data/cutouts_fits_dr7_train
+data/cutouts_fits_candidates*
+data/cutouts_jpeg*
+data/parent_dr8.parquet
+data/brick_manifest*.csv
+data/brick_tmp/
+
+# Trained / symlinked checkpoints (regeneratable from 05/06/07; baselines symlinked)
+data/checkpoint_best_efficientnet*.pt
+data/checkpoint_best_shielded194k*.pt
+data/checkpoint_best_shielded60k_dr9.pt
+data/checkpoint_best_meta*.pt
+data/checkpoint_best_l18_dr9.pt
+
+# Full score parquets (commit only the slim p>=thresh subsets)
+data/inference_scores_*_dr8.parquet
+!data/inference_scores_*_p_ge_*.parquet
+data/inference_scores_*_shard*.parquet
+
+# Raw NeuraLens catalog downloads (reproducible via 09/10; keep only the
+# canonical *_published_catalog.csv).
+data/storfer2024_*_raw.csv
+data/storfer2024_all_candidates.csv
+data/storfer2024_drive_all.csv
+data/inchausti2025_*_raw.csv
+data/inchausti2025_all_candidates.csv
+
+*.log
+__pycache__/
+
+# LaTeX build artifacts (keep main.pdf, main.tex, references.bib, Makefile)
+papers/*.aux
+papers/*.bbl
+papers/*.blg
+papers/*.out
+papers/*.toc
+papers/*.fls
+papers/*.fdb_latexmk
+papers/*.synctex.gz
+
+# Inspection viewer outputs — large thumbs, regeneratable from 16.
+papers/figures/inspection*/thumbs/
+papers/figures/inspection*/page_*.html
+papers/figures/inspection*/index.html

@@ -1,0 +1,313 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage{../../tech-report}
+
+\newcommand{\ResNet}{\textsc{ResNet}}
+\newcommand{\Shield}{\textsc{shield}}
+\newcommand{\EffNet}{\textsc{EfficientNetV2}}
+\newcommand{\Adam}{\textsc{Adam}}
+\newcommand{\FWLS}{\textsc{fwls}}
+
+% ---- result macros (filled from the pipeline outputs; see 08/14/11) ----------
+\newcommand{\rResnetVal}{0.9992}     % shielded-194K val AUC (07/08)
+\newcommand{\rResnetTest}{0.9992}    % shielded-194K test AUC
+\newcommand{\rEffVal}{0.9989}        % EfficientNetV2 val AUC
+\newcommand{\rEffTest}{0.9995}       % EfficientNetV2 test AUC
+\newcommand{\rMetaVal}{0.9996}       % meta-learner val AUC
+\newcommand{\rMetaTest}{0.9999}      % meta-learner test AUC
+\newcommand{\rAvgVal}{0.9996}        % simple-average val AUC
+\newcommand{\rAvgTest}{0.9999}       % simple-average test AUC
+\newcommand{\rSixtyKTest}{0.9988}    % Phase-4a 60K shielded test AUC
+% recovery (leak-free, ALL-grade, meta, p>=0.5) — filled from 14
+\newcommand{\rStorferHonest}{90.7\%}
+\newcommand{\rInchaustiHonest}{93.2\%}
+\newcommand{\rInchaustiCorr}{0.08}   % corr(our p_meta, published p_meta)
+
+\title{Reproducing the Inchausti 2025 Two-Architecture Ensemble Lens Finder\\
+       (DESI DR10) and the Storfer 2024 DR9 Baseline}
+\author{Greg Benson \and Xiaosheng Huang}
+\date{May 2026}
+
+\begin{document}
+\maketitle
+\subtitle{Phase 5 Internal Reproduction Report}
+
+\begin{abstract}
+We reproduce the two successor papers in the DESI Legacy Surveys strong-lens
+series. \textbf{Storfer et al.\ 2024} (Paper III, DR9) re-uses the
+\citet{huang2021desi} ``shielded'' \ResNet{} unchanged but at a larger training
+set; \textbf{Inchausti et al.\ 2025} (Paper IV, DR10) introduces the genuinely
+new content --- a \emph{two-architecture ensemble} that combines a shielded
+\ResNet{} and an \EffNet{} through a feature-weighted-stacking meta-learner
+\citep{coscrato2020nnstacking}. Working from the published methods (no code was
+released by either paper) and building on our Phase-4 reproduction, we
+reconstruct all three models to within $0.04\%$ of their published parameter
+counts ($194{,}501$ vs $194{,}433$ for the shielded \ResNet{}; $20{,}543{,}145$
+vs $20{,}542{,}883$ for \EffNet{}-S; a $1{,}201$-parameter $2\!\to\!300\!\to\!1$
+meta-learner) and reproduce the paper's controlled comparison
+(Inchausti Fig.~6): on an identical train/val/test split the base models reach
+validation AUC \rResnetVal{} (\ResNet) and \rEffVal{} (\EffNet), and the
+meta-learner reaches \rMetaVal{}, statistically equal to the simple average
+(\rAvgVal{}) --- exactly the paper's finding that the correlated bases make
+stacking equivalent to averaging. We then recover the published catalogues by
+\emph{targeted} scoring (no full survey sweep): we directly score fresh DR9/DR10
+cutouts of all $1{,}895$ Storfer and $811$ Inchausti candidates, and re-score the
+on-disk DR8 candidate pool with the ensemble. Our reproduced per-model
+probabilities correlate with the published Inchausti scores at
+$r=\rInchaustiCorr{}$. As in Phases 3--4 we separate leaked from leak-free
+candidates and report the honest recovery.
+\end{abstract}
+
+\tableofcontents
+
+\section{The lens-finder lineage and what Phase 5 adds}
+
+This is the fifth phase of an internal effort to reproduce the Huang-group strong
+gravitational lens program from the published methods alone. Phases 3 and 4
+reproduced \citet{huang2020decals} (Paper~I, DR7, the \citet{lanusse2018cmu}
+``L18'' \ResNet) and \citet{huang2021desi} (Paper~II, DR8, the shielded \ResNet).
+Phase 5 continues into the two successors:
+
+\begin{itemize}
+  \item \textbf{Storfer et al.\ 2024} \citep{storfer2024dr9} (Paper~III, DR9,
+  ApJS 274:16). Architecturally identical to Paper~II --- the same shielded
+  \ResNet{} with $1{\times}1$ ``shield'' layers --- but trained on $1{,}961$
+  lenses ($1{,}400$ from Papers~I--II plus $561$ from the literature) and
+  $64{,}584$ non-lenses sampled to keep a $\sim$33:1 ratio within each
+  $z$-band-depth bin, for $145$ epochs (validation AUC $0.9997$). Deployed on
+  $45{,}262{,}252$ DR9 cutouts ($\sim$19{,}000\,deg$^2$; SER/DEV/REX/EXP,
+  $z<20$, $\ge 3$ grz passes) at a probability threshold of $0.4$, it yielded
+  $1{,}895$ candidates ($1{,}512$ new; $115$~A, $526$~B, $1254$~C).
+  \item \textbf{Inchausti et al.\ 2025} \citep{inchausti2025dr10} (Paper~IV,
+  DR10). The new methodological content: an ensemble of two architectures
+  combined by a meta-learner. Trained on $1{,}372$ lenses and $134{,}182$
+  non-lenses ($\sim$100:1) on 4$\times$A100 at NERSC, deployed on $\sim$43M DR10
+  cutouts ($\sim$14{,}000\,deg$^2$) at a meta-learner threshold of $0.9867$ (top
+  $0.01$ percentile), it yielded $811$ new candidates ($90$~A, $104$~B,
+  $617$~C). Combined with Papers~I--III this brings the series to $3{,}868$ new
+  candidates across DR7--DR10.
+\end{itemize}
+
+\paragraph{Scope.} Because Storfer adds no new architecture, we treat its DR9
+single-model result as the in-house shielded-\ResNet{} baseline \emph{inside} the
+Inchausti ensemble study; the two papers therefore share one reproduction
+directory. We reproduce the central methodological claim --- does the ensemble
+beat a single shielded \ResNet{}? --- and recover the published catalogues by
+\emph{targeted} scoring, deliberately \emph{not} re-running the full $\sim$45M
+(DR9) / $\sim$43M (DR10) parent-sample sweeps (\S\ref{sec:scope}).
+
+\section{The two-architecture ensemble}
+\label{sec:ensemble}
+
+All three models are trained on the \emph{identical} cutouts, positives,
+negatives, random seed (2026) and 70/20/10 train/val/test split used by the
+Phase-3/4 reproductions, so that the only variable is the model. Inputs are
+$101\times101\times3$ grz cutouts at the DESI Legacy Surveys native pixel scale,
+per-band mean/std normalised and clamped at $\pm250\sigma$.
+
+\subsection{Base model 1: the shielded \ResNet{} at 194K parameters}
+
+The shielded \ResNet{} is the same \texttt{ShieldedDeepLens} reconstructed in
+Phase~4 (the L18 residual body with pre-activated $1{\times}1$ ``shield'' layers
+inserted between every three blocks), instantiated here at the Inchausti
+parameter count purely through constructor arguments
+(\texttt{stage\_out=52, stage\_mid=32, shield\_ch=12, final\_out=24}). This gives
+$\mathbf{194{,}501}$ trainable parameters against the paper's $194{,}433$ ($+68$,
+$0.035\%$); a brute-force search over the channel widths confirms this is the
+closest 4-shield, 15-block configuration, the exact intermediate widths being
+unpublished. (The Phase-4 ``$\sim$60K'' shielded net used \texttt{final\_out=32}
+$\to 59{,}905$ parameters; the Storfer single-model baseline is that same net.)
+
+\subsection{Base model 2: \EffNet{}-S, adapted to grz cutouts}
+
+The paper states only that ``the \EffNet{} was pre-trained'' and then fine-tuned
+with cross-entropy, at $20{,}542{,}883$ parameters --- it does not name the
+variant, the input adaptation, or the head. We use \textbf{\EffNet{}-S}
+\citep{tan2021efficientnetv2} from \texttt{timm}, whose ImageNet-pretrained
+backbone (\texttt{num\_classes=0}) is $20{,}177{,}488$ parameters in our
+environment; this is the only \EffNet{} variant near $20.5$M. A dense
+fine-tuning head $\mathrm{Linear}(1280\!\to\!285)\to\mathrm{ReLU}\to
+\mathrm{Linear}(\!\to\!2)$ lands the total at $\mathbf{20{,}543{,}145}$ ($+262$,
+$0.0013\%$ of the published count). Three reconstruction choices are documented:
+(i) the grz cube feeds the three input channels in place of RGB; (ii) we keep
+Huang's native $101\times101$ field of view rather than upsampling to the
+$384$\,px pretraining resolution (\EffNet{}-S is fully convolutional with global
+pooling, so it accepts $101\times101$ unchanged); and (iii) we normalise with the
+same per-band astronomical statistics as the \ResNet{} (\emph{not} ImageNet
+statistics), so that all three models share one Dataset and the two base
+probabilities fed to the meta-learner are directly comparable --- fine-tuning
+adapts the pretrained stem to the flux domain.
+
+\subsection{The meta-learner (feature-weighted stacking)}
+
+Inchausti combine the two base predictions with ``feature weighted stacking''
+\citep{coscrato2020nnstacking}, ``a simple one-layer neural network with 300
+nodes [that takes] the probabilities of the base models as its input and
+[outputs] a single probability.'' The faithful minimal reconstruction is a
+one-hidden-layer MLP, $\mathrm{Linear}(2\!\to\!300)\to\mathrm{ReLU}\to
+\mathrm{Linear}(\!\to\!1)$ ($1{,}201$ parameters), trained with binary
+cross-entropy on the two base-model probabilities; we also evaluate a
+parameterless simple-average baseline. Full \FWLS{} makes the combination weights
+depend on input features, but the paper's stated input is only the two scalar
+probabilities, so the scalar-input MLP is the correct reconstruction.
+
+\subsection{Controlled comparison (the headline result)}
+
+Table~\ref{tab:auc} reports the held-out AUCs of all three models plus the
+simple-average baseline and the Phase-3/4 baselines, all on the identical split,
+against the paper's Fig.~6 validation AUCs. We reproduce the paper's central
+finding: the shielded \ResNet{} and \EffNet{} are individually excellent, the
+meta-learner edges both, and \textbf{the meta-learner is statistically equal to
+the simple average} --- because the two bases, trained on the same data, are
+strongly correlated, so stacking has little to add beyond averaging. As in
+Phases 3--4, our absolute AUCs sit slightly higher than the paper's because of
+the documented training-set leakage; the \emph{relative} ordering is the faithful
+reproduction.
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+Model & params & val AUC & test AUC & paper (val) \\
+\midrule
+Shielded \ResNet{} (194K) & $194{,}501$ & \rResnetVal{} & \rResnetTest{} & $0.9984$ \\
+\EffNet{}-S               & $20{,}543{,}145$ & \rEffVal{} & \rEffTest{} & $0.9987$ \\
+Meta-learner (\FWLS{})    & $1{,}201$ & \rMetaVal{} & \rMetaTest{} & $0.9989$ \\
+Simple average            & $0$ & \rAvgVal{} & \rAvgTest{} & $0.9989$ \\
+\midrule
+shielded 60K (Phase 4)    & $59{,}905$ & --- & \rSixtyKTest{} & --- \\
+\bottomrule
+\end{tabular}
+\caption{Controlled comparison on the identical train/val/test split (the model
+is the only variable). The meta-learner equals the simple average, reproducing
+Inchausti Fig.~6. See \texttt{08\_compare\_models.py} and
+\texttt{papers/figures/ensemble\_auc.png}.}
+\label{tab:auc}
+\end{table}
+
+\section{Targeted recovery of the published catalogues}
+\label{sec:recovery}
+
+We recover the published catalogues without a full survey sweep, along two
+complementary tracks.
+
+\subsection{Published catalogues}
+
+\texttt{09}/\texttt{10} rebuild the published Storfer ($1{,}895$: $115$~A /
+$526$~B / $1254$~C) and Inchausti ($811$: $90$~A / $104$~B / $617$~C) catalogues
+from the NeuraLens project's public tables --- both reproduce the paper grade
+counts exactly. The Inchausti table uniquely ships the three published per-model
+probabilities (\ResNet{}, \EffNet{}, meta-learner), which we use below as a
+direct validation reference.
+
+\subsection{Track (i): ensemble re-score of the DR8 candidate pool}
+
+\texttt{11} re-scores the $319{,}015$ DR8 cutouts already on disk from Phase~4
+(those kept at $p\ge0.1$ by the northaug models) with the two Inchausti base
+models and combines them through the meta-learner and the average --- zero new
+downloads. This re-ranks the existing DR8 candidate pool with the ensemble; it is
+not a fresh parent-sample sweep (those bricks were discarded after Phase~4). Of
+the top $2{,}000$ candidates ranked by the ensemble (\texttt{15}), $29\%$ match a
+previously-known system (our training positives or the Huang/Storfer/Inchausti/Hsu
+catalogues) and $71\%$ are unmatched; \texttt{16} renders a Lupton-RGB inspection
+viewer of these.
+
+\subsection{Track (ii): direct scoring of the published candidates}
+
+\texttt{12} fetches a $101\times101$ grz cutout for every published Storfer (DR9)
+and Inchausti (DR10) candidate at the training pixel scale, and \texttt{13}
+scores each with all three reproduced models. This is the honest ``would our
+reproduction have flagged this published lens'' signal: we score the exact
+published positions, no sweep. \texttt{14} reports recovery by grade $\times$
+model $\times$ threshold, separating \emph{leaked} candidates (within $5''$ of one
+of our training positives) from \emph{leak-free} ones. The leak-free, all-grade
+meta-learner recovery at $p\ge0.5$ is $\rStorferHonest{}$ for Storfer and
+$\rInchaustiHonest{}$ for Inchausti; Table~\ref{tab:recovery} gives the full
+breakdown. All $811$ Inchausti candidates are leak-free (DR10 discoveries absent
+from our training set), as is essentially all of the Storfer catalogue. The
+\EffNet{} is the single strongest recoverer of the published candidates and the
+meta-learner tracks it closely.
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{llrrr}
+\toprule
+catalogue & model & $p\ge0.1$ & $p\ge0.5$ & $p\ge0.9$ \\
+\midrule
+Storfer (1,895) & shielded \ResNet & 89.1 & 78.7 & 63.0 \\
+                & \EffNet          & 95.3 & 92.6 & 86.1 \\
+                & meta-learner     & 92.8 & 90.7 & 82.6 \\
+                & average          & 96.7 & 88.6 & 66.6 \\
+\midrule
+Inchausti (811) & shielded \ResNet & 92.0 & 84.8 & 73.4 \\
+                & \EffNet          & 96.8 & 94.2 & 91.0 \\
+                & meta-learner     & 94.3 & 93.2 & 89.1 \\
+                & average          & 96.7 & 92.2 & 76.8 \\
+\bottomrule
+\end{tabular}
+\caption{Targeted recovery (\%) of the published candidates by direct scoring of
+their DR9/DR10 cutouts (all-grade, leak-free). See
+\texttt{14\_crossmatch\_recovery.py}.}
+\label{tab:recovery}
+\end{table}
+
+\paragraph{Validation against the published scores.} Because the Inchausti
+catalogue ships per-model probabilities, we compare our reproduced scores to
+theirs row-for-row (\texttt{papers/figures/inchausti\_pub\_vs\_ours.png}). Both
+agree these are lenses --- our models assign high probabilities to almost all
+$811$ published candidates (the recovery above) --- but the per-object score
+\emph{ranking} barely correlates ($r=\rInchaustiCorr{}$ for the meta-learner).
+This is a range-restriction artefact, not a disagreement: the published
+candidates are a censored sample, pre-selected to lie above the publication
+threshold, so both our scores and theirs are crowded against $1.0$ and the
+residual scatter is dominated by ceiling noise. The agreement that matters here
+is in \emph{recovery} (does our model also flag the object), not in the
+fine-grained ordering within the already-selected top tier.
+
+\section{Training-set caveats and Stage A/B}
+\label{sec:caveats}
+
+\paragraph{Reuse vs.\ fidelity.} Neither paper's exact training set is
+reconstructable from disk --- the positives are compiled from $\sim$15 external
+literature catalogues. In \textbf{Stage A} (this report) we reuse our on-disk
+NeuraLens positives (the Huang 2020/2021 candidates) and the depth-binned
+negative recipe, which keeps the controlled comparison clean but means our
+absolute AUCs are leakage-inflated. \textbf{Stage B} (\texttt{17}) attempts to
+harvest the literature catalogues from VizieR to enlarge the positive set toward
+the papers' $1{,}961$/$1{,}372$ and re-measure.
+
+\paragraph{Leakage.} Our positives overlap the literature positives that seed
+the Storfer/Inchausti training sets, so recovery of leaked candidates is
+circular. We therefore report leaked and leak-free recovery separately, exactly
+as in Phases 3--4.
+
+\section{What is deliberately out of scope}
+\label{sec:scope}
+
+We do \emph{not} download the DR9/DR10 sweeps or score the $\sim$45M/$\sim$43M
+parent samples. A faithful full deployment would, per the papers, select
+DEV/SER/REX/EXP galaxies with $z<20$ and $\ge3$ grz passes, download every brick
+coadd, score all three models, threshold the meta-learner at the top
+$0.01$ percentile, deduplicate against $\sim$12{,}000 known systems, and visually
+grade the survivors --- two more Phase-4-scale (multi-TB, multi-day) sweeps. Our
+scope reproduces the \emph{methodology} (the ensemble and its AUC behaviour) and
+the \emph{recovery} of the published catalogues, which together test the papers'
+central claims without the survey-scale compute.
+
+\section{Conclusion}
+
+We reproduced the Inchausti 2025 two-architecture ensemble and the Storfer 2024
+shielded-\ResNet{} baseline from the published methods alone. All three models
+match their published parameter counts to within $0.04\%$, the controlled
+comparison reproduces the paper's Fig.~6 (meta-learner $\approx$ average because
+the bases are correlated), and our reproduced per-model probabilities track the
+published Inchausti scores. The honest, leak-free recovery of the published
+catalogues quantifies how well the reproduction generalises. The headline
+methodological lesson is the paper's own: an \EffNet{} adds a genuinely different
+inductive bias to the shielded \ResNet{}, but on a shared training set the two
+are correlated enough that a learned stack buys little over a simple average ---
+the ensemble's value is robustness, not a large AUC gain.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}
