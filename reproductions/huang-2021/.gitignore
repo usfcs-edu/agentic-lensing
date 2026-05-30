@@ -16,10 +16,15 @@ data/brick_tmp/
 data/parent_dr8.parquet
 data/cutouts_fits_dr8/
 data/cutouts_jpeg_dr8/
+data/cutouts_fits_north/
+data/brick_manifest_shard*.csv
+data/brick_manifest_dr8.csv
 
-# Trained shielded checkpoints (regeneratable from 05/05b)
+# Trained checkpoints (regeneratable from 05/05b/05c)
 data/checkpoint_best_shielded_dr9.pt
 data/checkpoint_best_shielded_dr7.pt
+data/checkpoint_best_l18_northaug.pt
+data/checkpoint_best_shielded_northaug.pt
 
 # Full inference score parquets (commit only the slim p>=thresh subsets)
 data/inference_scores_*.parquet
@@ -31,6 +36,6 @@ data/brick_manifest_*_shard*.csv
 __pycache__/
 
 # Inspection viewer outputs — large thumbs, regeneratable from 16.
-papers/figures/inspection/thumbs/
-papers/figures/inspection/page_*.html
-papers/figures/inspection/index.html
+papers/figures/inspection*/thumbs/
+papers/figures/inspection*/page_*.html
+papers/figures/inspection*/index.html

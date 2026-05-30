@@ -52,8 +52,9 @@ TYPE_SETS = {
     "rex": {"REX"},
     "all": {"DEV", "COMP", "REX"},
 }
-# DR8 RELEASE codes per footprint (for the sanity cross-check).
-RELEASE_RANGE = {"south": (8000, 8004), "north": (9010, 9010)}
+# DR8 RELEASE codes per footprint (verified from the built parent sample):
+# south (DECam/DECaLS) = 8000, north (BASS+MzLS) = 8001.
+RELEASE_RANGE = {"south": (8000, 8000), "north": (8001, 8001)}
 
 
 def filter_sweep(path: Path, footprint: str, type_ok_set: set[str]) -> pd.DataFrame:

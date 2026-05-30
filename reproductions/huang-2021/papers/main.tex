@@ -43,13 +43,21 @@ $0.9955$ vs $0.9943$ on DR7) --- a faithful reproduction of the paper's central
 claim that shielding removes $\sim$98\% of parameters \emph{without} degrading
 performance. We rebuild the published $1{,}312$-candidate catalog from the
 NeuraLens release, recovering the paper's grade breakdown exactly
-($216$~A~$+$~$199$~B~$+$~$897$~C). We then describe the DR8 two-model deployment
-pipeline (footprint-aware brick inference over both the south DECaLS and north
-BASS/MzLS coadds) and the leakage-aware recovery framework that isolates the
-$363$ shielded-model discoveries our networks never saw in training from the
-$\sim$949 training-set positives. \S\ref{sec:caveats} discusses the
-methodological substitutions, which (as in Phase 3) bias our absolute \AUC{}s
-upward relative to the paper's $0.992/0.997$.
+($216$~A~$+$~$199$~B~$+$~$897$~C). We then deploy both models on the full DR8
+footprint --- $17.3$~M DEV/COMP galaxies over both the south DECaLS and north
+BASS/MzLS coadds, scored in $\sim$16~h on two L4 GPUs via footprint-aware
+per-brick inference. A domain-shift trap surfaced and was fixed: the
+southern-trained models, having seen northern lens positives but \emph{no}
+northern negatives, over-fired badly on BASS/MzLS imaging ($91\%$ of north
+non-lenses scored $\ge0.1$ for L18 vs $4.8\%$ in the south); re-training with
+northern negatives collapsed this to $0.8\%$, and the $60$K-parameter shielded
+network proved markedly more robust to the shift than the $3.5$~M L18. Against
+the $1{,}312$ published candidates, the leakage-aware analysis cleanly separates
+the circular result ($86\%$ recovery at $p\ge0.9$ of the $949$ training
+positives) from the honest one ($50\%$ recovery of the $363$ never-trained
+shielded discoveries). \S\ref{sec:caveats} discusses the methodological
+substitutions, which (as in Phase 3) bias our absolute \AUC{}s upward relative
+to the paper's $0.992/0.997$.
 \end{abstract}
 
 \tableofcontents
@@ -260,8 +268,10 @@ $\ge3$ passes in each of $grz$, $z$-band magnitude $<20.0$, typed DEV or COMP
 regions --- \texttt{dr8/south/sweep/8.0/} ($437$ files, DECaLS/DECam) and
 \texttt{dr8/north/sweep/8.0/} ($286$ files, BASS+MzLS) --- in
 \texttt{10\_select\_parent\_sample\_dr8.py}, tagging each surviving row with a
-\texttt{footprint} column derived from its sweep region. The paper reports
-$\sim$15.4~M DEV/COMP cutouts over $\sim$14{,}000~deg$^2$.
+\texttt{footprint} column (south~$=$~\texttt{RELEASE}~8000, north~$=$~8001).
+This yields \textbf{17{,}290{,}814} DEV/COMP galaxies ($12.27$~M south $+$ $5.02$~M
+north), $12\%$ above the paper's $\sim$15.4~M --- the same mild over-inclusivity
+as our DR7 parent sample ($+9\%$), from slightly looser type/flux handling.
 
 \paragraph{Footprint-aware brick inference.} We reuse the Phase~3b engineering
 pivot --- per-brick coadd FITS downloads with local WCS slicing, $\sim$200$\times$
@@ -280,9 +290,32 @@ at the brick level, but parent-sample galaxies (which require $\mathrm{NOBS}_z\g
 live only in $z$-covered, hence $grz$-complete, bricks --- so the partial bricks
 never enter the deployment.}
 
-\emph{Status: the DR8 sweep download and two-model inference are in progress at
-the time of writing; the recovery results below will be populated on
-completion.}
+The full sweep scored all $17{,}290{,}814$ galaxies across $298{,}843$
+(footprint,~brick) units with zero brick failures, on the two L4s in
+$\sim$16~h (four shards, two per GPU).
+
+\paragraph{A domain-shift trap: north needs north negatives.} Our first
+deployment used the Phase~4a checkpoints, trained on southern (DECaLS/DES)
+positives and \emph{southern} DR1 negatives. They had seen $\sim$160 northern
+(MzLS) lens \emph{positives} but \emph{zero} northern \emph{negatives}, leaving
+the decision boundary in BASS/MzLS imaging space undefined. The consequence was
+stark and footprint-localised: on the northern DR8 footprint the L18 model
+\emph{over-fired} --- $91\%$ of non-lens galaxies scored $\ge0.1$ (median
+$0.45$) versus $4.8\%$ in the south --- while the shielded model was far more
+robust ($10\%$ vs $0.8\%$ after the fix; see below), a direct dividend of its
+low-dimensional latent space. We fixed this faithfully (the route Huang trained
+across the full footprint): we added $154$ northern positives (re-fetched at
+DR8) and $2{,}883$ random northern negatives (\texttt{18\_build\_north\_train\_cutouts.py})
+and retrained both networks (\texttt{05c\_train\_northaug.py}). The northern
+over-firing collapsed --- L18 $\ge0.1$ from $91\%\to0.8\%$, shielded
+$10\%\to1.4\%$ --- with the south unchanged and in-domain test \AUC{} preserved
+($0.9985$ L18, $0.9996$ shielded). The deployment below uses these
+north-augmented checkpoints; the merged score distributions are well-behaved
+($2.9\%$/$3.8\%$ of all $17.3$~M galaxies score $\ge0.1$ for L18/shielded).
+This is itself a reproduction finding: a southern-trained lens finder does
+\emph{not} transfer to BASS/MzLS imaging without northern negatives, and the
+$60$K-parameter shielded network degrades far more gracefully than the $3.5$~M
+L18 under that domain shift.
 
 % =============================================================================
 \section{Recovery and leakage analysis (Phase 4c)}
@@ -290,18 +323,65 @@ completion.}
 % =============================================================================
 
 \texttt{14\_crossmatch\_recovery\_dr8.py} cross-matches both models' DR8 scores
-against the $1{,}312$ published candidates (5\arcsec\ radius) at thresholds
-$\{0.1,0.5,0.9\}$, broken out by grade and by model. Crucially, it tags each
-published candidate as \emph{leaked} (within 5\arcsec\ of a training positive ---
-the $\sim$949 L18-model rows) or \emph{leak-free} (the $363$ shielded-model
-discoveries). Because our networks never saw the shielded-model candidates in
-training, their recovery is the honest measure of whether the architecture
-generalises to genuinely new lenses --- the Phase~4c headline, to be reported
-once the deployment completes. \texttt{15\_extended\_crossmatch.py} then
-classifies the top-$N$ candidates by provenance (training leak / previously
-published in Huang+2020, Huang+2021, or Hsu+2025 / unmatched), and
+against the $1{,}312$ published candidates (5\arcsec\ radius), tagging each as
+\emph{leaked} (within 5\arcsec\ of a training positive --- the $949$ L18-model
+rows) or \emph{leak-free} (the $363$ shielded-model discoveries our networks
+never saw). $1{,}100$ of the $1{,}312$ fall inside the parent sample (the rest
+fail the $z<20$/NOBS/type cuts or lie just outside coverage, as the $7$-missing
+did for DR7). Table~\ref{tab:recovery} gives the two-model-combined recovery.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{l r r r r}
+\toprule
+Bucket & $n$ & $p\ge0.1$ & $p\ge0.5$ & $p\ge0.9$ \\
+\midrule
+all ($1{,}312$)        & 1312 & 0.832 & 0.818 & 0.761 \\
+\;\;leaked ($949$, training positives) & 949 & 0.927 & 0.920 & \textbf{0.860} \\
+\;\;\textbf{leak-free ($363$ shielded discoveries)} & 363 & 0.584 & 0.551 & \textbf{0.504} \\
+\bottomrule
+\end{tabular}
+\caption{Recovery of the published Huang+2021 candidates by our two-model
+ensemble (combined max score). The leaked vs.\ leak-free split is the crux:
+$86.0\%$ of the $949$ training positives are recovered at $p\ge0.9$ (circular),
+but only $50.4\%$ of the $363$ never-trained shielded discoveries --- the latter
+is the honest generalisation measure. By grade, leak-free Grade-A recovery is
+$57.9\%$ at $p\ge0.9$ ($68.4\%$ at $p\ge0.1$). The shielded model edges L18 on
+the leak-free set ($47.7\%$ vs $44.9\%$ all-grade at $p\ge0.9$), consistent with
+its better out-of-distribution behaviour.}
+\label{tab:recovery}
+\end{table}
+
+The $\sim$36~pp leaked$-$honest gap at $p\ge0.9$ ($86.0\%$ vs $50.4\%$) is a
+direct measurement of the test-set leakage that the absolute \AUC{}s
+(\S\ref{sec:caveats}) only hint at: recovery of lenses the model trained on is
+not evidence of generalisation. The honest $\sim$50\% leak-free recovery, with
+no curated hard negatives and a from-scratch training set, is a reasonable
+floor.
+
+\texttt{15\_extended\_crossmatch.py} classifies the top $2{,}000$ shielded
+candidates by provenance ($10\arcsec$): $9.1\%$ are NeuraLens-L18
+(training leak), $10.3\%$ Huang+2021, $3.1\%$ Huang+2020, $1.2\%$
+NeuraLens-shielded, $0.9\%$ Hsu+2025; $13.9\%$ match some known catalog and
+$86.2\%$ are unmatched --- closely tracking the $89\%$ unmatched fraction of the
+DR7 Phase~3b top-$2{,}000$. As there (and as for the original Huang searches),
+the unmatched majority is dominated by false positives, not a discovery list;
 \texttt{16\_build\_inspection\_viewer.py} renders Lupton-stretched $grz$
-thumbnails of the top scorers per model for visual grading.
+thumbnails of the top scorers per model ($\star$ for published) for the visual-grading
+pass that would distinguish the two.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.49\linewidth]{figures/recovery_dr8_by_grade.png}
+\hfill
+\includegraphics[width=0.49\linewidth]{figures/recovery_dr8_two_model.png}
+\caption{Left: leak-free recovery (the $363$ shielded discoveries) by grade at
+$p\ge0.1$, L18 vs shielded vs combined. Right: per-candidate L18 vs shielded
+scores for the leak-free set --- the two models agree on the clear cases but
+populate complementary off-diagonal regions, the basis for the paper's
+two-model ensemble.}
+\label{fig:recovery}
+\end{figure}
 
 % =============================================================================
 \section{Reproducibility caveats}
@@ -354,11 +434,16 @@ Phase~4a reproduces the central methodological contribution of
 parameters ($59{,}905$ vs $3{,}508{,}833$) that matches the L18 backbone's
 held-out \AUC{} to within $\pm0.002$ on identical data. We reconstruct the
 published $1{,}312$-candidate catalog exactly, including its grade and
-per-model breakdown and its $185$ northern MzLS candidates. The DR8 two-model
-deployment (\S\ref{sec:deploy}) --- the first Huang-group search this
-reproduction extends into the northern BASS/MzLS footprint --- and the
-leakage-aware recovery of the $363$ shielded-only discoveries (\S\ref{sec:recovery})
-are in progress and will complete the Phase~4 reproduction. The natural Phase~5
+per-model breakdown and its $185$ northern MzLS candidates. Phase~4b/4c then
+deploys both models on the full $17.3$~M-galaxy DR8 footprint --- the first
+Huang-group search this reproduction extends into the northern BASS/MzLS sky.
+Two results stand out: (i) a southern-trained finder needs northern negatives
+to avoid badly over-firing on BASS/MzLS imaging ($91\%\to0.8\%$ after the fix),
+and the shielded network degrades far more gracefully under that domain shift
+than the L18 --- a second, independent vindication of the shielding idea beyond
+the parameter count; and (ii) the leakage-aware recovery cleanly separates the
+circular $86\%$ recovery of training positives from the honest $\sim$50\%
+recovery of the $363$ never-trained shielded discoveries. The natural Phase~5
 is the DR9/DR10 successors (Storfer~2024, Inchausti~2025), which add a second
 backbone (EfficientNetV2) and a meta-learner on top of the shielded \ResNet{}
 reproduced here.

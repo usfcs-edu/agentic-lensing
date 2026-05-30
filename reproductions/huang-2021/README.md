@@ -46,20 +46,44 @@ table + the param-vs-AUC figure (`papers/figures/arch_comparison.png`).
 
 ## Phase 4b — DR8 deployment (both models, north + south)
 
-DR8 sweeps live in two regions on the NERSC portal:
-`dr8/south/sweep/8.0/` (437 files, DECaLS/DECam) and `dr8/north/sweep/8.0/`
-(286 files, BASS+MzLS). Each parent-sample row is tagged with a `footprint`
-column so brick images are pulled from the matching `dr8/{south,north}/coadd/`.
-Both the L18 and shielded checkpoints score every brick in a single download
-pass (`11b_brick_inference_dr8.py`).
+DR8 sweeps live in two regions on the NERSC portal: `dr8/south/sweep/8.0/`
+(437 files, DECaLS/DECam) and `dr8/north/sweep/8.0/` (286 files, BASS+MzLS).
+The parent sample is **17,290,814 DEV/COMP galaxies** (12.27M south + 5.02M
+north), tagged with a `footprint` column (south=RELEASE 8000, north=8001) so
+brick images route to the matching `dr8/{south,north}/coadd/`. Both checkpoints
+score every brick in one download pass (`11b_brick_inference_dr8.py`); the full
+sweep ran in **~16 h** across the two L4s (4 shards), 0 brick failures.
+
+**North-calibration fix (the key deployment finding).** The Phase-4a
+south-trained models had ~160 north *positives* but **zero north *negatives***,
+so the L18 model over-fired on BASS/MzLS imaging (91% of north non-lenses scored
+≥0.1 vs 4.8% in south; the shielded model was far more robust at 10%). We added
+154 north positives + 2,883 north negatives (`18_…`) and retrained both
+(`05c_train_northaug.py`) → north L18 ≥0.1 collapsed to **0.8%**, south
+unchanged, in-domain AUC preserved (0.9985 L18 / 0.9996 shielded). The
+deployment uses the `*_northaug.pt` checkpoints. A southern-trained finder does
+**not** transfer to BASS/MzLS without northern negatives — and the 60K-param
+shielded net degrades far more gracefully than the 3.5M L18, a second
+vindication of shielding.
 
 ## Phase 4c — recovery + leakage
 
 `13` rebuilds the published 1,312-candidate catalog from the NeuraLens release
-table (reproduces Table 3 **exactly**: 216 A / 199 B / 897 C; 185 MzLS-north).
-`14` cross-matches both models against it, separating the **leaked** ~949
-training positives from the **leak-free** 363 shielded-model discoveries — the
-honest test of whether the architecture generalises.
+**exactly** (216 A / 199 B / 897 C; 185 MzLS-north). `14` cross-matches both
+models against it, separating **leaked** (949 training positives) from
+**leak-free** (363 shielded-model discoveries). Two-model-combined recovery:
+
+| Bucket | p≥0.1 | p≥0.5 | p≥0.9 |
+| :--- | ---: | ---: | ---: |
+| all 1,312 | 83.2% | 81.8% | 76.1% |
+| leaked 949 (training positives) | 92.7% | 92.0% | **86.0%** |
+| **leak-free 363 (honest)** | 58.4% | 55.1% | **50.4%** |
+
+The 36 pp leaked−honest gap at p≥0.9 measures the test-set leakage directly.
+Leak-free Grade-A recovery is 57.9% at p≥0.9; the shielded model edges L18 on
+the leak-free set (47.7% vs 44.9% all-grade). `15` finds 86.2% of the top-2,000
+shielded candidates unmatched to any known catalog (cf. DR7's 89%), and `16`
+builds a 2,000-tile Lupton-RGB viewer for visual grading.
 
 ## Pipeline
 
