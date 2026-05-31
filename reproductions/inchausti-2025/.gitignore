@@ -6,6 +6,8 @@ data/cutouts_fits_dr9
 data/cutouts_fits_dr7_train
 data/cutouts_fits_candidates*
 data/cutouts_fits_litpos_dr9
+data/cutouts_fits_neg_dr9
+data/brick_tmp_neg/
 data/cutouts_jpeg*
 data/parent_dr8.parquet
 data/brick_manifest*.csv

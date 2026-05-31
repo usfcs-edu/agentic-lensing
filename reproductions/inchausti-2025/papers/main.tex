@@ -309,6 +309,44 @@ published catalogues. See \texttt{19\_train\_stageb.py}.}
 \label{tab:stageb}
 \end{table}
 
+\paragraph{Stage C: negative scale-up and the operating point (\texttt{20}--\texttt{22}).}
+Stages A/B used only $\sim$5{,}000 negatives ($\sim$2.5:1), far below the papers'
+$\sim$33:1 (Storfer) / $\sim$100:1 (Inchausti). We brick-sliced \textbf{45{,}000}
+random DR9 parent-sample galaxies as negatives (downloading 300 brick coadds and
+cutting cutouts locally --- minutes, versus $\sim$8\,h via the cutout endpoint)
+and retrained at $\sim$1:25. The effect is decisive and is \emph{not} visible in
+the AUC (meta test AUC $0.9881\!\to\!0.9876$): it is entirely in the
+false-positive rate and the operating threshold. Scored on $4{,}991$ held-out
+random galaxies, the Stage-B models flag a huge fraction as lenses at $p\ge0.5$
+(shielded $37\%$, \EffNet{} $48\%$, meta $51\%$) --- so Stage~B's nominal
+$\sim$93--97\% recovery was at a meaningless threshold. Stage~C recalibrates the
+probabilities toward the low positive base rate (FPR at $p\ge0.5$ collapses to
+$0.000$). The honest comparison is recovery at a \emph{matched} FPR
+(Table~\ref{tab:fpr}): at a usable $1\%$ FPR operating point the meta-learner's
+recovery of the published catalogues rises from $11.8\%/19.1\%$ (Stage~B) to
+$\mathbf{83.6\%/88.5\%}$ (Stage~C) for Storfer/Inchausti --- a $4$--$7\times$
+gain. \textbf{The negative:positive ratio, not the architecture or the AUC, sets
+whether the finder is usable at a real operating point.}
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{llrrr}
+\toprule
+operating point & model & threshold & Storfer rec. & Inchausti rec. \\
+\midrule
+Stage B, 1\% FPR   & meta & 1.000 & 11.8\% & 19.1\% \\
+Stage C, 1\% FPR   & \EffNet & 0.020 & 82.7\% & 89.0\% \\
+Stage C, 1\% FPR   & meta & 0.405 & 83.6\% & 88.5\% \\
+Stage C, 0.1\% FPR & meta & 0.413 & 62.3\% & 68.8\% \\
+\bottomrule
+\end{tabular}
+\caption{Recovery (\%) of the published candidates at a matched false-positive
+rate, measured on $4{,}991$ held-out random DR9 galaxies. The $\sim$1:25 negative
+ratio (Stage C) makes the finder usable at a low-FPR operating point; the small
+Stage-B negative set cannot. See \texttt{22\_fpr\_operating\_point.py}.}
+\label{tab:fpr}
+\end{table}
+
 \paragraph{Leakage.} Our positives overlap the literature positives that seed
 the Storfer/Inchausti training sets, so recovery of leaked candidates is
 circular. We therefore report leaked and leak-free recovery separately, exactly
@@ -343,7 +381,13 @@ the ensemble's value is robustness, not a large AUC gain. Stage B adds a second
 lesson: enlarging the (leaky, narrow) positive set with diverse literature lenses
 lowers the internal test AUC but raises recovery of the independent published
 catalogues, so the headline metric for a lens finder is recovery of held-out
-discoveries, not the in-sample AUC.
+discoveries, not the in-sample AUC. Stage~C sharpens this: scaling the negatives
+from $\sim$2.5:1 to $\sim$1:25 leaves the AUC unchanged ($0.9876$) yet takes the
+meta-learner's recovery at a usable $1\%$ false-positive rate from $\sim$12--19\%
+to $\sim$84--89\% --- the negative:positive ratio, not the architecture, decides
+whether the finder is usable at a real operating point. This is the single most
+important practical lesson of the reproduction, and the one our narrow Stage-A/B
+negative set (like any small-negative training set) could not have revealed.
 
 \bibliographystyle{plainnat}
 \bibliography{references}

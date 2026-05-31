@@ -28,6 +28,22 @@ easiness-inflated) but RAISES recovery of the independent published catalogs
 (Storfer 90.7→93.5%, Inchausti 93.2→96.9%, meta @p≥0.5). Lesson: the headline
 metric for a lens finder is recovery of held-out discoveries, not in-sample AUC.
 
+**Stage C (`20`–`22`) — negative scale-up, the biggest finding.** Stages A/B used
+~5K negatives (~2.5:1); papers use ~33:1/~100:1. Brick-sliced 45K random DR9
+galaxies as negatives (`20`: 300 brick coadds, ~4 min vs ~8h via endpoint —
+KEY EFFICIENCY: for scattered random positions, download bricks + slice locally,
+NOT the cutout endpoint), retrained at ~1:25 (`21`). The negative ratio does NOT
+change AUC (meta 0.9881→0.9876) — it sets the OPERATING POINT. On 4,991 held-out
+random galaxies the Stage-B models flag 37–51% as lenses at p≥0.5 (so Stage-B's
+"93–97% recovery" was at a meaningless threshold; the 2.5:1 set made the model
+call ~half of everything a lens). Stage C recalibrates scores to the low base
+rate (p≥0.5 FPR→0). Honest metric = recovery at MATCHED FPR (`22`): at 1% FPR,
+meta recovery of the published catalogs jumps 11.8/19.1% (B) → 83.6/88.5% (C)
+for Storfer/Inchausti (4–7×). **The negative:positive ratio, not architecture or
+AUC, decides whether a lens finder is usable at a real operating point.** With
+1:25 negatives the model probabilities recalibrate — must use a LOW/percentile
+threshold (papers: Storfer 0.4, Inchausti meta top-0.01-pctile), never 0.5.
+
 ## The two-architecture ensemble (Inchausti 2025, Paper IV, arXiv:2508.20087)
 Three models, all trained on the IDENTICAL DR9 split (SEED 2026, build_split):
 - **Shielded ResNet @194K**: the Phase-4 `ShieldedDeepLens` at a new config

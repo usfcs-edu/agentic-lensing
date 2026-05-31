@@ -78,6 +78,9 @@ probabilities.
 | `17_assemble_literature_catalogs.py` | Stage B: harvest literature lens catalogs (VizieR) | 5B |
 | `18_download_litpos_cutouts.py` | Stage B: DR9 cutouts for literature positions | 5B |
 | `19_train_stageb.py` | Stage B: retrain on enlarged set + report AUC/recovery shift | 5B |
+| `20_build_negatives_brick_dr9.py` | Stage C: brick-slice 45K DR9 random-galaxy negatives | 5C |
+| `21_train_stagec.py` | Stage C: retrain at ~1:25 + FPR before/after | 5C |
+| `22_fpr_operating_point.py` | Stage C: recovery at matched false-positive rate | 5C |
 
 Large training inputs (cutouts, positives, negatives, baseline checkpoints, DR8
 parent sample + scores) are **symlinked** from `../huang-2020` and `../huang-2021`
@@ -138,6 +141,16 @@ make -C papers pdf
    (0.9999→0.9881, the narrow Stage-A test was easiness-inflated) but **improves**
    recovery of the independent published catalogs (Storfer 90.7%→93.5%, Inchausti
    93.2%→96.9%) — more diverse positives generalize better to held-out discoveries.
+   **Stage C** (`20`–`22`) addresses the biggest remaining gap: the
+   negative:positive ratio. We brick-sliced **45,000** random DR9 galaxies as
+   negatives (300 brick coadds, ~4 min, vs ~8 h via the cutout endpoint) and
+   retrained at ~1:25 (toward Storfer's ~1:33). The AUC barely moves (meta
+   0.9876), but on 4,991 held-out random galaxies the Stage-B models flag
+   37–51% as lenses at p≥0.5 — so Stage-B's "93–97% recovery" was at a
+   meaningless threshold. At a matched **1% false-positive rate**, meta recovery
+   of the published catalogs goes from 11.8%/19.1% (Stage B) to **83.6%/88.5%**
+   (Stage C, Storfer/Inchausti). The negative ratio — not the architecture or
+   AUC — sets whether the finder is usable at a real operating point.
 5. **Meta-learner training.** As in the paper, the meta-learner is trained on the
    base models' in-sample probabilities; we report held-out test AUC and a
    simple-average baseline (the correlated bases make stacking ≈ averaging).
