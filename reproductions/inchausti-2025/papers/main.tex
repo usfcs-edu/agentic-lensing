@@ -338,6 +338,10 @@ Stage B, 1\% FPR   & meta & 1.000 & 11.8\% & 19.1\% \\
 Stage C, 1\% FPR   & \EffNet & 0.020 & 82.7\% & 89.0\% \\
 Stage C, 1\% FPR   & meta & 0.405 & 83.6\% & 88.5\% \\
 Stage C, 0.1\% FPR & meta & 0.413 & 62.3\% & 68.8\% \\
+\midrule
+Stage D, 1\% FPR   & \EffNet & 0.002 & 91.2\% & 95.9\% \\
+Stage D, 1\% FPR   & meta & 0.016 & \textbf{90.8\%} & \textbf{96.8\%} \\
+Stage D, 0.1\% FPR & meta & 0.017 & 75.5\% & 84.5\% \\
 \bottomrule
 \end{tabular}
 \caption{Recovery (\%) of the published candidates at a matched false-positive
@@ -346,6 +350,29 @@ ratio (Stage C) makes the finder usable at a low-FPR operating point; the small
 Stage-B negative set cannot. See \texttt{22\_fpr\_operating\_point.py}.}
 \label{tab:fpr}
 \end{table}
+
+\paragraph{Stage D: the closest-achievable same-data run (\texttt{23}--\texttt{24}).}
+Finally we built the most paper-faithful training set obtainable without the
+authors' unpublished object-level curation. We retrieved the three of four
+``missing'' literature catalogues that are reachable outside VizieR --- Stein
+et al.\ 2022 (DR9-native, GitHub: $1{,}192$ graded + $1{,}615$ known lenses),
+Talbot et al.\ 2021 SILO (SDSS DR16 VAC: $1{,}551$ \emph{spectroscopic} lenses),
+More et al.\ 2016 SpaceWarps ($59$, arXiv); only Jacobs et al.\ 2017's
+($\sim$18{,}861, $99\%$ false positives, never deposited) is irrecoverable. From
+the union of these plus all of Papers I--III and the ten VizieR catalogues we
+assembled a \emph{confidence-tiered} positive set --- spectroscopically confirmed
+(SILO), then known lenses (Stein), then grade-A/B candidates --- and took the top
+$1{,}961$ (Storfer's training scale; $848$ spectroscopic $+$ $1{,}113$
+known/grade-A). Paired with $65{,}010$ random-galaxy negatives at Storfer's exact
+$\sim$33:1, this is the closest run to the paper data: faithful in source
+provenance ($\sim$13/15 literature catalogues $+$ all Papers I--III), positive
+\emph{quality}, count, and negative ratio --- differing only by the unpublished
+hand-curation and A100-scale epoch budget. It gives the best result of the
+series: meta-learner recovery at a $1\%$ FPR of $\mathbf{90.8\%}$ (Storfer) /
+$\mathbf{96.8\%}$ (Inchausti), with the highest AUC ($0.9919$) too
+(Table~\ref{tab:fpr}). Curating the positives to confirmed/known lenses and
+matching the exact negative ratio improves on Stage~C's random-literature
+positives at $\sim$1:25 ($83.6\%/88.5\%$).
 
 \paragraph{Leakage.} Our positives overlap the literature positives that seed
 the Storfer/Inchausti training sets, so recovery of leaked candidates is
@@ -388,6 +415,14 @@ to $\sim$84--89\% --- the negative:positive ratio, not the architecture, decides
 whether the finder is usable at a real operating point. This is the single most
 important practical lesson of the reproduction, and the one our narrow Stage-A/B
 negative set (like any small-negative training set) could not have revealed.
+Stage~D closes the loop: with a confidence-curated positive set (spectroscopic
+$+$ known lenses, including three literature catalogues retrieved beyond VizieR)
+at Storfer's exact $\sim$33:1 negative ratio --- the most paper-faithful dataset
+reachable without the authors' unpublished hand-curation --- the ensemble reaches
+$90.8\%/96.8\%$ recovery of the published Storfer/Inchausti catalogues at a $1\%$
+false-positive rate, the best of the series. The residual gap to a true same-data
+run is now only the papers' object-level visual curation and an A100-scale epoch
+budget, neither of which is recoverable from the published material.
 
 \bibliographystyle{plainnat}
 \bibliography{references}

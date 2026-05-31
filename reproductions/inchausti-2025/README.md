@@ -81,6 +81,8 @@ probabilities.
 | `20_build_negatives_brick_dr9.py` | Stage C: brick-slice 45K DR9 random-galaxy negatives | 5C |
 | `21_train_stagec.py` | Stage C: retrain at ~1:25 + FPR before/after | 5C |
 | `22_fpr_operating_point.py` | Stage C: recovery at matched false-positive rate | 5C |
+| `23_build_curated_positives.py` | Stage D: grade-curated positives (Stein+SILO+More+on-disk), Storfer scale | 5D |
+| `24_train_staged.py` | Stage D: retrain on curated pos + 33:1 neg; A/B/C/D recovery@matched-FPR | 5D |
 
 Large training inputs (cutouts, positives, negatives, baseline checkpoints, DR8
 parent sample + scores) are **symlinked** from `../huang-2020` and `../huang-2021`
@@ -151,6 +153,14 @@ make -C papers pdf
    of the published catalogs goes from 11.8%/19.1% (Stage B) to **83.6%/88.5%**
    (Stage C, Storfer/Inchausti). The negative ratio — not the architecture or
    AUC — sets whether the finder is usable at a real operating point.
+   **Stage D** (`23`–`24`) is the closest-achievable same-data run: we retrieved
+   3 of the 4 "missing" literature catalogs (Stein 2022 GitHub, Talbot 2021 SILO
+   SDSS VAC, More 2016 arXiv; only Jacobs 2017 is irrecoverable), built a
+   confidence-curated positive set (848 spectroscopic + 1,113 known/grade-A =
+   1,961, Storfer scale) and paired it with 65K negatives at Storfer's exact
+   ~33:1. Best of the series: meta recovery @1% FPR = **90.8% (Storfer) / 96.8%
+   (Inchausti)**, AUC 0.9919. The only remaining gap to a true same-data run is
+   the papers' unpublished object-level curation + A100-scale epochs.
 5. **Meta-learner training.** As in the paper, the meta-learner is trained on the
    base models' in-sample probabilities; we report held-out test AUC and a
    simple-average baseline (the correlated bases make stacking ≈ averaging).

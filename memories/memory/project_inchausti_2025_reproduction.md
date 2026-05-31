@@ -44,6 +44,20 @@ AUC, decides whether a lens finder is usable at a real operating point.** With
 1:25 negatives the model probabilities recalibrate — must use a LOW/percentile
 threshold (papers: Storfer 0.4, Inchausti meta top-0.01-pctile), never 0.5.
 
+**Stage D (`23`–`24`) — closest-achievable same-data run.** Retrieved 3 of the 4
+"missing" literature catalogs from non-VizieR sources: Stein 2022 (DR9-native,
+GitHub raw new_lenses.tsv 1192 graded + training_lenses.tsv 1615 known),
+Talbot 2021 SILO (SDSS DR16 eBOSS VAC FITS, 1551 SPECTROSCOPIC lenses),
+More 2016 SpaceWarps (arXiv e-print longtable, 59). Jacobs 2017 (~18,861, 99%
+false positives) is irrecoverable (never deposited). Built a confidence-tiered
+curated positive set (SILO spec > Stein known > grade-A/B), top 1,961 = Storfer
+scale (848 spec + 1,113 known/grade-A), + 65,010 negatives at Storfer's exact
+~33:1. BEST result of the series: meta recovery @1% FPR = 90.8% Storfer / 96.8%
+Inchausti, AUC 0.9919. **KEY: availability is NOT the gap — we over-cover the
+positive pool (~10K unique, ~13/15 lit catalogs + all Papers I-III); the only
+true remaining gap is the papers' unpublished object-level visual curation +
+A100-scale epochs.** Recovery arc @1% FPR (meta): B 12/19% → C 84/89% → D 91/97%.
+
 ## The two-architecture ensemble (Inchausti 2025, Paper IV, arXiv:2508.20087)
 Three models, all trained on the IDENTICAL DR9 split (SEED 2026, build_split):
 - **Shielded ResNet @194K**: the Phase-4 `ShieldedDeepLens` at a new config
