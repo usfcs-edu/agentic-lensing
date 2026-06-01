@@ -68,6 +68,13 @@ $PY 17_extended_crossmatch.py
 $PY verify_against_reference.py   # writes data/REPRODUCTION_MPS_COMPARE.md
 ```
 
+### Orchestrators (resumable; re-run to resume)
+
+- `run_full_inference.sh` — full sweep for BOTH checkpoints (~40 h) + analysis + verify.
+- `run_dr7_sweep.sh` — full sweep for the **DR7 checkpoint only** (~24 h on this M4
+  Max @ ~1.4 bricks/s), fills the DR9-trained column from the transferred phoenix
+  scores, then analysis + verify. This is the configuration actually run here.
+
 ## Apple Silicon notes
 
 - `device.py::pick_device()` selects `mps` > `cuda` > `cpu`. The 2-GPU / 2-shard
