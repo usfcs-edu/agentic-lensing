@@ -1,0 +1,80 @@
+name: redshifty_approach_a_mix_l4x2_codecs
+repo: redshifty
+description: |
+  Codecs (Mamba3 + Residual-FSQ) tokenizer arm of the V1-vs-tokenizer ablation:
+  Approach-A on the 4-way mix using the trained codecs Codec as the spectrum
+  tokenizer, via tools/spectrumfm/codecs_adapter.CodecsTokenizerShim (layer0 mode,
+  625 codes; resamples redshifty's 7781 DESI grid -> codecs' 7958/7968 grid).
+  Uses V1's 256-level RedshiftTokenizer (not the v2 1024-level), so redshift_acc
+  is DIRECTLY comparable to the V1 control (55% TF / 57% AR) with no binning
+  caveat. Same transformer config as _v1: DDP on both L4s, eff batch 64, 15k
+  steps, bf16, --ar-eval-batches 8.
+
+  Codecs passed the codebook-health gate (tools/spectrumfm/codecs_perplexity_gate.py):
+  layer0 uses 233/625 codes at 6.27 bits (healthier than V1's 5.0) — informative
+  discrete codes, unlike the collapsed V2+skips tokenizer.
+
+  LAUNCH NOTE: the codecs Codec needs the Mamba kernels, so this MUST run in the
+  codecs venv (~/.venvs/codecs), NOT the redshifty venv. exp_run.py maps redshifty
+  -> redshifty venv and therefore cannot launch this; run train_transformer.py
+  directly with ~/.venvs/codecs/bin/python (see tools/spectrumfm or the command
+  below). This spec records the configuration for reproducibility.
+tags: [xlarge-scale, transformer, approach-a, track1, l4-ddp, codecs, phase15]
+
+launch:
+  command:
+    - python   # NOTE: resolve against ~/.venvs/codecs, not redshifty (Mamba kernels)
+    - -m
+    - torch.distributed.run
+    - --standalone
+    - --nproc_per_node=2
+    - nersc/train_transformer.py
+    - --manifest
+    - /raid/benson/data/desi_dr1_medium/manifest_mix.jsonl
+    - --tokenizer-ckpt
+    - /raid/benson/data/desi_dr1_medium/codecs_output_large/model.pt
+    - --tokenizer-kind
+    - codecs
+    - --codecs-config
+    - /raid/benson/data/desi_dr1_medium/codecs_large.yaml
+    - --codecs-cache
+    - /raid/benson/data/desi_dr1_medium/codecs_cache
+    - --approach
+    - a
+    - --steps
+    - "15000"
+    - --batch-size
+    - "32"
+    - --lr
+    - "4e-4"
+    - --warmup
+    - "500"
+    - --healpix-holdout-frac
+    - "0.05"
+    - --val-every
+    - "500"
+    - --save-every
+    - "2500"
+    - --log-every
+    - "100"
+    - --num-workers
+    - "4"
+    - --amp
+    - --redshift-loss-weight
+    - "50.0"
+    - --encoder-mask-ratio
+    - "0.50"
+    - --ar-eval-batches
+    - "8"
+    - --run-name
+    - approach_a_mix_l4x2_codecs
+    - --scratch-out
+    - /raid/benson/data/desi_dr1_medium/checkpoints
+    - --wandb-mode
+    - disabled
+    - --no-push-wandb-artifact
+
+env:
+  CUDA_DEVICE_ORDER: PCI_BUS_ID
+  CUDA_VISIBLE_DEVICES: "8,9"
+  SCRATCH: /raid/benson/data/desi_dr1_medium

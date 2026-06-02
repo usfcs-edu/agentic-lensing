@@ -1,0 +1,11 @@
+# Launched directly with the codecs venv (Mamba kernels), NOT exp_run (which maps
+# redshifty->redshifty venv). 2xL4 DDP.
+CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=8,9 SCRATCH=/raid/benson/data/desi_dr1_medium \
+~/.venvs/codecs/bin/python -m torch.distributed.run --standalone --nproc_per_node=2 \
+  nersc/train_transformer.py --manifest .../manifest_mix.jsonl \
+  --tokenizer-ckpt .../codecs_output_large/model.pt --tokenizer-kind codecs \
+  --codecs-config .../codecs_large.yaml --codecs-cache .../codecs_cache \
+  --approach a --steps 15000 --batch-size 32 --lr 4e-4 --warmup 500 \
+  --healpix-holdout-frac 0.05 --val-every 500 --save-every 2500 --log-every 100 \
+  --num-workers 4 --amp --redshift-loss-weight 50.0 --encoder-mask-ratio 0.50 \
+  --ar-eval-batches 8 --run-name approach_a_mix_l4x2_codecs

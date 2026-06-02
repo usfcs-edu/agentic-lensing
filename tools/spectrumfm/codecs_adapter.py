@@ -33,6 +33,7 @@ from pathlib import Path
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 CODECS_REPO = Path("/raid/benson/git/agentic-lensing/lensing-repos/codecs")
 if str(CODECS_REPO) not in sys.path:
@@ -103,6 +104,9 @@ class CodecsTokenizerShim(nn.Module):
         self.layer_sizes = [int(l.fsq.codebook_size) for l in codec.rfsq.layers]
         self.codebook_size = (self.layer_sizes[0] if code_mode == "layer0"
                               else int(math.prod(self.layer_sizes)))
+        self._rs = None       # (lo, hi, w) linear-resampler tensors
+        self._pad = 0         # zero-pad to multiple of 32 (encoder downsample)
+        self._dst_len = None  # padded codecs grid length
 
     @staticmethod
     def codecs_normalize(flux, ivar):
@@ -115,9 +119,35 @@ class CodecsTokenizerShim(nn.Module):
         istd_norm = torch.sqrt(ivar.clamp(min=0.0)) * median
         return torch.stack([flux_norm, istd_norm], dim=1)
 
+    def set_resampler(self, src_wave, dst_wave):
+        """Precompute linear interpolation from src grid (redshifty/DESI) to dst
+        grid (codecs), padding dst up to a multiple of 32 (the encoder's total
+        downsample factor) — matching how codecs' DesiDataset pads its input."""
+        src = torch.as_tensor(src_wave, dtype=torch.float64).flatten()
+        dst = torch.as_tensor(dst_wave, dtype=torch.float64).flatten()
+        hi = torch.searchsorted(src, dst).clamp(1, src.numel() - 1)
+        lo = hi - 1
+        w = ((dst - src[lo]) / (src[hi] - src[lo])).clamp(0.0, 1.0)
+        self._rs = (lo.long(), hi.long(), w.float())
+        self._src_len = int(src.numel())
+        self._pad = (32 - dst.numel() % 32) % 32
+        self._dst_len = int(dst.numel()) + self._pad
+
+    def _resample(self, x):
+        """(B, C, L_src) -> (B, C, L_dst) padded to a multiple of 32."""
+        lo, hi, w = (t.to(x.device) for t in self._rs)
+        xl = x.index_select(-1, lo)
+        xr = x.index_select(-1, hi)
+        out = xl + (xr - xl) * w
+        if self._pad:
+            out = F.pad(out, (0, self._pad))
+        return out
+
     def _to_codecs_input(self, x, normalized):
         if normalized:
             return x
+        if self._rs is not None:
+            x = self._resample(x)        # redshifty/DESI grid -> codecs grid
         # redshifty x = stack([flux, istd]); recover ivar = istd^2.
         flux, istd = x[:, 0], x[:, 1]
         return self.codecs_normalize(flux, istd ** 2)
@@ -152,3 +182,17 @@ class CodecsTokenizerShim(nn.Module):
         with torch.amp.autocast("cuda", dtype=self.amp_dtype):
             _, codes, _ = self.codec.encode(xin)
         return self.codec.perplexity(codes)
+
+
+def build_codecs_shim_for_redshifty(codec_ckpt, codecs_config, codecs_cache,
+                                    src_wave, device="cuda", code_mode="layer0"):
+    """Build a CodecsTokenizerShim ready to drop into redshifty's train_transformer
+    as `spec_tok` (--tokenizer-kind codecs): loads the codec from its run config,
+    reads the codecs wavelength grid from its cache, and wires the redshifty->codecs
+    resampler. Must run in a venv with the Mamba kernels (e.g. ~/.venvs/codecs)."""
+    from data.desi import DesiDataset
+    codec = load_codec_from_config(codec_ckpt, codecs_config, device=device)
+    dst_wave = DesiDataset(Path(codecs_cache)).wave
+    shim = CodecsTokenizerShim(codec, code_mode=code_mode).to(device)
+    shim.set_resampler(src_wave, dst_wave)
+    return shim
