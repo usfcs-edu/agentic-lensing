@@ -1,0 +1,9 @@
+{
+  "arch": "shielded",
+  "northaug": true,
+  "n_params": 59905,
+  "best_val_auc": 0.9987454060725074,
+  "test_auc": 0.9985417773961868,
+  "best_epoch": 89,
+  "n_test": 882
+}
