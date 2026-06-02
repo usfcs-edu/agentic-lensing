@@ -1,0 +1,14 @@
+---
+name: project-spectrumfm-v2-tokenizer-collapse
+description: Local V2 spectrum tokenizer's discrete codes collapse to 1 code (U-Net skips bypass the quantizer); unusable for the Approach-A transformer despite val_recon 0.35
+metadata:
+  type: project
+---
+Phase-14 (2026-05-31, 2×L4 rerun): the V2 spectrum tokenizer (ConvNeXt-V2 + LFQ + U-Net skips + cross-attention + entropy reg) trained locally on the 4-way mix to val_recon 0.35 (vs V1's 1.38) — but its DISCRETE codes collapsed to a SINGLE code: entropy 0 bits, 1 distinct code over 272 positions, top-1 fraction 1.0 (measured by `tools/spectrumfm/diagnose_tokenizer_entropy.py`; V1 by contrast uses 163 codes / 5.0 bits). Reconstruction is carried entirely by the U-Net skip connections, which route information around the quantizer.
+
+`tokenize_and_build` (src/training/sequences.py:80-87) feeds the transformer ONLY the discrete codes — V2's skips are returned as a 3rd element and discarded. So the encoder sees a constant input: spec_acc→1.0 trivially, and redshift NEVER ignites (z_loss pinned at ln(1024)=6.93, z_acc ~0% for all 15k steps), vs V1's 55% TF / 57% AR.
+
+**Why:** reconstruction quality is NOT a valid proxy for tokenizer quality when the architecture has skip connections bypassing the discrete bottleneck — for a downstream discrete-token transformer, the *codes* must carry the information.
+**How to apply:** to make V2 usable, retrain `pretrain_tokenizer_v2.py` with `--no-skip` (force info through the codes, like V1) and/or a much larger `--entropy-weight` (default 0.1 did not prevent collapse). Check codebook health with the diagnostic before spending a transformer run.
+
+**RESOLUTION (2026-06-01):** retrained V2 with `--no-skip --no-cross-attention` → codebook healthy (113 codes, 5.24 bits, even richer than V1's 5.0), recon ~1.4 (back in V1's range — the 0.35 was the skip mirage). The V2-noskip transformer arm DID ignite (TF ~50% / AR ~48% at 1024-level z). But on the binning-FAIR metric (`tools/spectrumfm/eval_redshift_dz.py`: encoder-masked honest readout, decode to continuous z, |dz|/(1+z) vs true z) V1 and V2-noskip are TIED: DESI good-z (<0.0033) 0.192 both; <0.05 0.601 (V1) vs 0.564 (V2). **Net: the V2 tokenizer offers NO downstream redshift benefit over V1; its recon advantage was a skip artifact.** Also note the honest masked-encoder redshift is much harder (~19% DESI good-z) than the headline TF redshift_acc (~55%, inflated because the encoder sees the true z ~50% of the time at mask_ratio 0.5 — use AR or masked metrics). See [[project-spectrumfm-medium-runs]].

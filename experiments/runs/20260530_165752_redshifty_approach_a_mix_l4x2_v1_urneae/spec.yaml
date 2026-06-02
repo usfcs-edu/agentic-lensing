@@ -1,0 +1,68 @@
+name: redshifty_approach_a_mix_l4x2_v1
+repo: redshifty
+description: |
+  Clean L4 reproduction of the Approach-A ignition on the 4-way data mix,
+  correctly mapped to BOTH L4 GPUs (indices 8,9 under PCI_BUS_ID). The prior
+  _mix run accidentally trained on a single A16 due to CUDA's FASTEST_FIRST
+  device reordering, so its 7h51m wallclock and hardware are wrong. DDP across
+  2 L4s via torchrun, effective batch 64 (32/GPU x 2), extended to 15k steps
+  (the mix-run trajectory was still descending at 10k; 15k comfortably passes
+  the NERSC reference's ~15k peak region). --ar-eval-batches bumped to 32
+  (n~758 vs 226) for a
+  sharper AR z_acc signal. Frozen V1 tokenizer (val_recon=1.38). This is the
+  V1 CONTROL arm of the V1-vs-V2 tokenizer ablation.
+tags: [xlarge-scale, transformer, approach-a, track3, l4-ddp, v1-control, phase14]
+
+launch:
+  command:
+    - python
+    - -m
+    - torch.distributed.run
+    - --standalone
+    - --nproc_per_node=2
+    - nersc/train_transformer.py
+    - --manifest
+    - /raid/benson/data/desi_dr1_medium/manifest_mix.jsonl
+    - --tokenizer-ckpt
+    - /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v1_large/best.pt
+    - --tokenizer-kind
+    - v1
+    - --approach
+    - a
+    - --steps
+    - "15000"
+    - --batch-size
+    - "32"
+    - --lr
+    - "4e-4"
+    - --warmup
+    - "500"
+    - --healpix-holdout-frac
+    - "0.05"
+    - --val-every
+    - "500"
+    - --save-every
+    - "2500"
+    - --log-every
+    - "100"
+    - --num-workers
+    - "4"
+    - --amp
+    - --redshift-loss-weight
+    - "50.0"
+    - --encoder-mask-ratio
+    - "0.50"
+    - --ar-eval-batches
+    - "32"
+    - --run-name
+    - approach_a_mix_l4x2_v1
+    - --scratch-out
+    - /raid/benson/data/desi_dr1_medium/checkpoints
+    - --wandb-mode
+    - disabled
+    - --no-push-wandb-artifact
+
+env:
+  CUDA_DEVICE_ORDER: PCI_BUS_ID
+  CUDA_VISIBLE_DEVICES: "8,9"
+  SCRATCH: /raid/benson/data/desi_dr1_medium

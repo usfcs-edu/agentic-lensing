@@ -1,0 +1,130 @@
+
+*****************************************
+Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+*****************************************
+[setup] rank=0/2 device=cuda:0 approach=a steps=15000 mask_ratio=0.5 redshift_weight=50.0
+[data] loading manifest /raid/benson/data/desi_dr1_medium/manifest_mix.jsonl
+[setup] rank=1/2 device=cuda:1 approach=a steps=15000 mask_ratio=0.5 redshift_weight=50.0
+[data] loading manifest /raid/benson/data/desi_dr1_medium/manifest_mix.jsonl
+[data] 1137 healpix records
+[data] healpix split: 1080 train, 57 val (frac=0.05)
+[tok] loading spectrum tokenizer /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v1_large/best.pt (kind=v1)
+[data] 1137 healpix records
+[data] healpix split: 1080 train, 57 val (frac=0.05)
+[tok] loading spectrum tokenizer /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v1_large/best.pt (kind=v1)
+[tok] fitting redshift tokenizer on up to 200 redrock files
+[tok] fitting redshift tokenizer on up to 200 redrock files
+[tok]   gathered 266658 z values, min=-0.0019 max=5.3572[tok]   gathered 266658 z values, min=-0.0019 max=5.3572
+
+[data] train_ds=1723542 val_ds=88855
+[data] train_ds=1723542 val_ds=88855
+[model] params=103,671,040 (~103.7M)
+[model] params=103,671,040 (~103.7M)
+[step      0] loss=408.6034 z_loss=7.903 spec_loss=7.728 z_acc=0.000 spec_acc=0.000 masked_acc=0.000 rz_masked_acc=0.000 mask_r2=0.000 mask_auc=nan all_r2=0.000 all_auc=nan 0.1 step/s
+[step    100] loss=228.9382 z_loss=4.433 spec_loss=3.267 z_acc=0.100 spec_acc=0.542 masked_acc=0.541 rz_masked_acc=0.083 mask_r2=0.573 mask_auc=nan all_r2=0.572 all_auc=nan 0.5 step/s
+[step    200] loss=239.7914 z_loss=4.658 spec_loss=2.321 z_acc=0.100 spec_acc=0.497 masked_acc=0.496 rz_masked_acc=0.000 mask_r2=0.698 mask_auc=nan all_r2=0.696 all_auc=nan 0.6 step/s
+[step    300] loss=194.5182 z_loss=3.775 spec_loss=2.048 z_acc=0.067 spec_acc=0.513 masked_acc=0.509 rz_masked_acc=0.000 mask_r2=0.735 mask_auc=nan all_r2=0.732 all_auc=nan 0.6 step/s
+[step    400] loss=211.8825 z_loss=4.112 spec_loss=2.278 z_acc=0.048 spec_acc=0.440 masked_acc=0.441 rz_masked_acc=0.125 mask_r2=0.705 mask_auc=nan all_r2=0.701 all_auc=nan 0.6 step/s
+[step    500] loss=219.6836 z_loss=4.273 spec_loss=2.003 z_acc=0.053 spec_acc=0.521 masked_acc=0.524 rz_masked_acc=0.000 mask_r2=0.739 mask_auc=nan all_r2=0.737 all_auc=nan 0.6 step/s
+[val      500] loss=245.2362 overall_acc=0.3173 redshift_acc=0.0166 spectrum_acc=0.3184 loss_redshift=4.7553 loss_spectrum=2.8966 loss_total=2.9034 masked_spec_acc=0.3221 redshift_acc_masked=0.0195 mean_mask_auc=nan masked_spec_r2=nan all_mean_auc=nan all_spec_r2=nan
+  *** new best val_loss=245.2362 -> /raid/benson/data/desi_dr1_medium/checkpoints/checkpoints/approach_a_mix_l4x2_v1/best.pt
+[rank1]:[E530 10:22:57.478615046 ProcessGroupNCCL.cpp:757] [Rank 1] Watchdog caught collective operation timeout: WorkNCCL(SeqNum=8509, OpType=BROADCAST, NumelIn=3211680, NumelOut=3211680, Timeout(ms)=600000) ran for 600080 milliseconds before timing out.
+[rank1]:[E530 10:22:57.480295560 ProcessGroupNCCL.cpp:2395] [PG ID 0 PG GUID 0(default_pg) Rank 1]  failure detected by watchdog at work sequence id: 8509 PG status: last enqueued work: 8509, last completed work: 8508
+[rank1]:[E530 10:22:57.481785913 ProcessGroupNCCL.cpp:801] Stack trace of the failed collective: 
+#0 _distributed_broadcast_coalesced from /home/benson/.venvs/redshifty/lib/python3.13/site-packages/torch/nn/parallel/distributed.py:2305
+#1 _default_broadcast_coalesced from /home/benson/.venvs/redshifty/lib/python3.13/site-packages/torch/nn/parallel/distributed.py:2393
+#2 _sync_module_buffers from /home/benson/.venvs/redshifty/lib/python3.13/site-packages/torch/nn/parallel/distributed.py:2371
+#3 _sync_buffers from /home/benson/.venvs/redshifty/lib/python3.13/site-packages/torch/nn/parallel/distributed.py:2367
+#4 _pre_forward from /home/benson/.venvs/redshifty/lib/python3.13/site-packages/torch/nn/parallel/distributed.py:1724
+#5 forward from /home/benson/.venvs/redshifty/lib/python3.13/site-packages/torch/nn/parallel/distributed.py:1828
+#6 _call_impl from /home/benson/.venvs/redshifty/lib/python3.13/site-packages/torch/nn/modules/module.py:1789
+#7 _wrapped_call_impl from /home/benson/.venvs/redshifty/lib/python3.13/site-packages/torch/nn/modules/module.py:1778
+#8 main from /raid/benson/lensing-repos/redshifty/nersc/train_transformer.py:391
+#9 <module> from /raid/benson/lensing-repos/redshifty/nersc/train_transformer.py:594
+
+[rank1]:[E530 10:22:57.481913153 ProcessGroupNCCL.cpp:2732] [PG ID 0 PG GUID 0(default_pg) Rank 1] First PG on this rank to signal dumping.
+[rank1]:[E530 10:22:58.297328208 ProcessGroupNCCL.cpp:1987] [PG ID 0 PG GUID 0(default_pg) Rank 1] Received a dump signal due to a collective timeout from this local rank and we will try our best to dump the debug info. Last enqueued NCCL work: 8509, last completed NCCL work: 8508.This is most likely caused by incorrect usages of collectives, e.g., wrong sizes used across ranks, the order of collectives is not same for all ranks or the scheduled collective, for some reason, didn't run. Additionally, this can be caused by GIL deadlock or other reasons such as network errors or bugs in the communications library (e.g. NCCL), etc. 
+[rank0]:[E530 10:22:58.297420088 ProcessGroupNCCL.cpp:1922] [PG ID 0 PG GUID 0(default_pg) Rank 0] Observed flight recorder dump signal from another rank via TCPStore.
+[rank1]:[E530 10:22:58.297689087 ProcessGroupNCCL.cpp:1700] [PG ID 0 PG GUID 0(default_pg) Rank 1] ProcessGroupNCCL preparing to dump debug info. Include stack trace: 1, only active collectives: 0
+[rank0]:[E530 10:22:58.297705207 ProcessGroupNCCL.cpp:1987] [PG ID 0 PG GUID 0(default_pg) Rank 0] Received a dump signal due to a collective timeout from  rank 1 and we will try our best to dump the debug info. Last enqueued NCCL work: 8508, last completed NCCL work: 8508.This is most likely caused by incorrect usages of collectives, e.g., wrong sizes used across ranks, the order of collectives is not same for all ranks or the scheduled collective, for some reason, didn't run. Additionally, this can be caused by GIL deadlock or other reasons such as network errors or bugs in the communications library (e.g. NCCL), etc. 
+[rank0]:[E530 10:22:58.297957526 ProcessGroupNCCL.cpp:1700] [PG ID 0 PG GUID 0(default_pg) Rank 0] ProcessGroupNCCL preparing to dump debug info. Include stack trace: 1, only active collectives: 0
+[rank1]:[E530 10:23:58.001463827 ProcessGroupNCCL.cpp:818] [Rank 1] Some NCCL operations have failed or timed out. Due to the asynchronous nature of CUDA kernels, subsequent GPU operations might run on corrupted/incomplete data.
+[rank1]:[E530 10:23:58.001478747 ProcessGroupNCCL.cpp:832] [Rank 1] To avoid data inconsistency, we are taking the entire process down.
+[rank1]:[E530 10:23:58.002519142 ProcessGroupNCCL.cpp:2197] [PG ID 0 PG GUID 0(default_pg) Rank 1] Process group watchdog thread terminated with exception: [Rank 1] Watchdog caught collective operation timeout: WorkNCCL(SeqNum=8509, OpType=BROADCAST, NumelIn=3211680, NumelOut=3211680, Timeout(ms)=600000) ran for 600080 milliseconds before timing out.
+Exception raised from checkTimeout at /pytorch/torch/csrc/distributed/c10d/ProcessGroupNCCL.cpp:760 (most recent call first):
+frame #0: c10::Error::Error(c10::SourceLocation, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) + 0xc8 (0xffff62b23988 in /home/benson/.venvs/redshifty/lib/python3.13/site-packages/torch/lib/libc10.so)
+frame #1: c10d::ProcessGroupNCCL::WorkNCCL::checkTimeout(std::optional<std::chrono::duration<long, std::ratio<1l, 1000l> > >) + 0x224 (0xfffee7b39884 in /home/benson/.venvs/redshifty/lib/python3.13/site-packages/torch/lib/libtorch_cuda.so)
+frame #2: c10d::ProcessGroupNCCL::Watchdog::runLoop() + 0xe2c (0xfffee7b4cb8c in /home/benson/.venvs/redshifty/lib/python3.13/site-packages/torch/lib/libtorch_cuda.so)
+frame #3: c10d::ProcessGroupNCCL::Watchdog::run() + 0x108 (0xfffee7b4deb8 in /home/benson/.venvs/redshifty/lib/python3.13/site-packages/torch/lib/libtorch_cuda.so)
+frame #4: <unknown function> + 0xd28fc (0xffff978d28fc in /lib64/libstdc++.so.6)
+frame #5: <unknown function> + 0x80e00 (0xffff98394e00 in /lib64/libc.so.6)
+frame #6: <unknown function> + 0xeb49c (0xffff983ff49c in /lib64/libc.so.6)
+
+terminate called after throwing an instance of 'c10::DistBackendError'
+  what():  [PG ID 0 PG GUID 0(default_pg) Rank 1] Process group watchdog thread terminated with exception: [Rank 1] Watchdog caught collective operation timeout: WorkNCCL(SeqNum=8509, OpType=BROADCAST, NumelIn=3211680, NumelOut=3211680, Timeout(ms)=600000) ran for 600080 milliseconds before timing out.
+Exception raised from checkTimeout at /pytorch/torch/csrc/distributed/c10d/ProcessGroupNCCL.cpp:760 (most recent call first):
+frame #0: c10::Error::Error(c10::SourceLocation, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) + 0xc8 (0xffff62b23988 in /home/benson/.venvs/redshifty/lib/python3.13/site-packages/torch/lib/libc10.so)
+frame #1: c10d::ProcessGroupNCCL::WorkNCCL::checkTimeout(std::optional<std::chrono::duration<long, std::ratio<1l, 1000l> > >) + 0x224 (0xfffee7b39884 in /home/benson/.venvs/redshifty/lib/python3.13/site-packages/torch/lib/libtorch_cuda.so)
+frame #2: c10d::ProcessGroupNCCL::Watchdog::runLoop() + 0xe2c (0xfffee7b4cb8c in /home/benson/.venvs/redshifty/lib/python3.13/site-packages/torch/lib/libtorch_cuda.so)
+frame #3: c10d::ProcessGroupNCCL::Watchdog::run() + 0x108 (0xfffee7b4deb8 in /home/benson/.venvs/redshifty/lib/python3.13/site-packages/torch/lib/libtorch_cuda.so)
+frame #4: <unknown function> + 0xd28fc (0xffff978d28fc in /lib64/libstdc++.so.6)
+frame #5: <unknown function> + 0x80e00 (0xffff98394e00 in /lib64/libc.so.6)
+frame #6: <unknown function> + 0xeb49c (0xffff983ff49c in /lib64/libc.so.6)
+
+Exception raised from run at /pytorch/torch/csrc/distributed/c10d/ProcessGroupNCCL.cpp:2203 (most recent call first):
+frame #0: c10::Error::Error(c10::SourceLocation, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) + 0xc8 (0xffff62b23988 in /home/benson/.venvs/redshifty/lib/python3.13/site-packages/torch/lib/libc10.so)
+frame #1: c10d::ProcessGroupNCCL::Watchdog::run() + 0x5ec (0xfffee7b4e39c in /home/benson/.venvs/redshifty/lib/python3.13/site-packages/torch/lib/libtorch_cuda.so)
+frame #2: <unknown function> + 0xd28fc (0xffff978d28fc in /lib64/libstdc++.so.6)
+frame #3: <unknown function> + 0x80e00 (0xffff98394e00 in /lib64/libc.so.6)
+frame #4: <unknown function> + 0xeb49c (0xffff983ff49c in /lib64/libc.so.6)
+
+W0530 10:24:01.270000 669080 /raid/benson/.venvs/redshifty/lib/python3.13/site-packages/torch/distributed/elastic/multiprocessing/api.py:1014] Sending process 669158 closing signal SIGTERM
+E0530 10:24:01.272000 669080 /raid/benson/.venvs/redshifty/lib/python3.13/site-packages/torch/distributed/elastic/multiprocessing/api.py:988] failed (exitcode: -6) local_rank: 1 (pid: 669159) of binary: /home/benson/.venvs/redshifty/bin/python
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/benson/.venvs/redshifty/lib/python3.13/site-packages/torch/distributed/run.py", line 1020, in <module>
+    main()
+    ~~~~^^
+  File "/home/benson/.venvs/redshifty/lib/python3.13/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 367, in wrapper
+    return f(*args, **kwargs)
+  File "/home/benson/.venvs/redshifty/lib/python3.13/site-packages/torch/distributed/run.py", line 1016, in main
+    run(args)
+    ~~~^^^^^^
+  File "/home/benson/.venvs/redshifty/lib/python3.13/site-packages/torch/distributed/run.py", line 1007, in run
+    elastic_launch(
+    ~~~~~~~~~~~~~~~
+        config=config,
+        ~~~~~~~~~~~~~~
+        entrypoint=cmd,
+        ~~~~~~~~~~~~~~~
+    )(*cmd_args)
+    ~^^^^^^^^^^^
+  File "/home/benson/.venvs/redshifty/lib/python3.13/site-packages/torch/distributed/launcher/api.py", line 191, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+  File "/home/benson/.venvs/redshifty/lib/python3.13/site-packages/torch/distributed/launcher/api.py", line 371, in launch_agent
+    raise ChildFailedError(
+    ...<2 lines>...
+    )
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+========================================================
+nersc/train_transformer.py FAILED
+--------------------------------------------------------
+Failures:
+[1]:
+  time      : 2026-05-30_10:24:01
+  host      : phoenix.cs.usfca.edu
+  rank      : 0 (local_rank: 0)
+  exitcode  : -15 (pid: 669158)  (SIGTERM)
+  error_file: <N/A>
+  traceback : Signal 15 (SIGTERM) received by PID 669158
+--------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2026-05-30_10:24:01
+  host      : phoenix.cs.usfca.edu
+  rank      : 1 (local_rank: 1)
+  exitcode  : -6 (pid: 669159)  (SIGABRT)
+  error_file: <N/A>
+  traceback : Signal 6 (SIGABRT) received by PID 669159
+========================================================

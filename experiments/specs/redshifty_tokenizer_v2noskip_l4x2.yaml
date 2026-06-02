@@ -1,0 +1,63 @@
+name: redshifty_tokenizer_v2noskip_l4x2
+repo: redshifty
+description: |
+  Skip-free V2 spectrum tokenizer. The full V2 (--use-skip --use-cross-attention,
+  see redshifty_tokenizer_v2_l4x2) reconstructs to val_recon 0.35 but its DISCRETE
+  codebook COLLAPSES to a single code (0 bits entropy) — the U-Net skips carry all
+  the reconstruction info around the quantizer, so the discrete codes the
+  transformer consumes are constant and redshift never ignites (0% vs V1's 55%).
+  This variant sets --no-skip --no-cross-attention so all information must flow
+  through the discrete codes (as in V1), keeping the V2 improvements that don't
+  bypass the bottleneck: tophat smoothing + codebook entropy regularization.
+  bf16 AMP, DDP on both L4s, 20k steps. Output: checkpoints/tokenizer_v2noskip_l4x2/best.pt.
+  VERIFY codebook health with tools/spectrumfm/diagnose_tokenizer_entropy.py before
+  spending a transformer run on it.
+tags: [xlarge-scale, tokenizer, track3, v2, no-skip, l4-ddp, phase14]
+
+launch:
+  command:
+    - python
+    - -m
+    - torch.distributed.run
+    - --standalone
+    - --nproc_per_node=2
+    - nersc/pretrain_tokenizer_v2.py
+    - --manifest
+    - /raid/benson/data/desi_dr1_medium/manifest_mix.jsonl
+    - --steps
+    - "20000"
+    - --batch-size
+    - "32"
+    - --lr
+    - "1e-4"
+    - --warmup
+    - "1000"
+    - --val-frac
+    - "0.05"
+    - --val-every
+    - "500"
+    - --save-every
+    - "2500"
+    - --log-every
+    - "100"
+    - --num-workers
+    - "8"
+    - --amp
+    - --entropy-weight
+    - "0.1"
+    - --commitment-weight
+    - "0.05"
+    - --no-skip
+    - --no-cross-attention
+    - --run-name
+    - tokenizer_v2noskip_l4x2
+    - --scratch-out
+    - /raid/benson/data/desi_dr1_medium/checkpoints
+    - --wandb-mode
+    - disabled
+    - --no-push-wandb-artifact
+
+env:
+  CUDA_DEVICE_ORDER: PCI_BUS_ID
+  CUDA_VISIBLE_DEVICES: "8,9"
+  SCRATCH: /raid/benson/data/desi_dr1_medium

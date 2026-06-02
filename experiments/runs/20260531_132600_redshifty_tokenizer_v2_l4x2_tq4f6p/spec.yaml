@@ -1,0 +1,59 @@
+name: redshifty_tokenizer_v2_l4x2
+repo: redshifty
+description: |
+  V2 spectrum tokenizer (ConvNeXt-V2 + LFQ + U-Net skips + cross-attention +
+  tophat smoothing + codebook entropy loss) pretrained locally on the 4-way
+  data mix. No local V2 checkpoint existed before this run; the NERSC V2
+  reached val_recon=0.157 (8.6x better than V1's 1.35/1.38). Runs DDP across
+  BOTH L4 GPUs (nvidia-smi indices 8,9 under PCI_BUS_ID) via torchrun.
+  Canonical NERSC recipe (pretrain_tokenizer_v2_s1.slurm): 20k steps, lr 1e-4,
+  warmup 1000, entropy 0.1, commitment 0.05; tophat/skip/cross-attention are
+  argparse defaults (on). Effective batch 64 (32/GPU x 2). Output:
+  checkpoints/tokenizer_v2_l4x2/best.pt -> consumed by the _v2 transformer arm.
+tags: [xlarge-scale, tokenizer, track3, v2, l4-ddp, phase14]
+
+launch:
+  command:
+    - python
+    - -m
+    - torch.distributed.run
+    - --standalone
+    - --nproc_per_node=2
+    - nersc/pretrain_tokenizer_v2.py
+    - --manifest
+    - /raid/benson/data/desi_dr1_medium/manifest_mix.jsonl
+    - --steps
+    - "20000"
+    - --batch-size
+    - "32"
+    - --lr
+    - "1e-4"
+    - --warmup
+    - "1000"
+    - --val-frac
+    - "0.05"
+    - --val-every
+    - "500"
+    - --save-every
+    - "2500"
+    - --log-every
+    - "100"
+    - --num-workers
+    - "8"
+    - --amp
+    - --entropy-weight
+    - "0.1"
+    - --commitment-weight
+    - "0.05"
+    - --run-name
+    - tokenizer_v2_l4x2
+    - --scratch-out
+    - /raid/benson/data/desi_dr1_medium/checkpoints
+    - --wandb-mode
+    - disabled
+    - --no-push-wandb-artifact
+
+env:
+  CUDA_DEVICE_ORDER: PCI_BUS_ID    # L4s are nvidia-smi indices 8,9 only under this
+  CUDA_VISIBLE_DEVICES: "8,9"      # both L4s for 2-way DDP
+  SCRATCH: /raid/benson/data/desi_dr1_medium

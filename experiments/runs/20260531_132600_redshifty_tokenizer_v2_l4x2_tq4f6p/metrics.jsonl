@@ -1,0 +1,239 @@
+{"kind": "step", "step": 0, "train_loss": 652.96, "train_recon": 652.8507, "train_quant": 0.1092, "train_commit": 0.0481, "train_ent": 0.0612, "train_lr": 1e-07}
+{"kind": "step", "step": 100, "train_loss": 7.4063, "train_recon": 7.2831, "train_quant": 0.1232, "train_commit": 0.0479, "train_ent": 0.0752, "train_lr": 1.01e-05}
+{"kind": "step", "step": 200, "train_loss": 2.7544, "train_recon": 2.6372, "train_quant": 0.1172, "train_commit": 0.0463, "train_ent": 0.0709, "train_lr": 2.01e-05}
+{"kind": "step", "step": 300, "train_loss": 2.5578, "train_recon": 2.4345, "train_quant": 0.1233, "train_commit": 0.0417, "train_ent": 0.0815, "train_lr": 3.01e-05}
+{"kind": "step", "step": 400, "train_loss": 2.0315, "train_recon": 1.9106, "train_quant": 0.1209, "train_commit": 0.0347, "train_ent": 0.0862, "train_lr": 4.01e-05}
+{"kind": "step", "step": 500, "train_loss": 1.8871, "train_recon": 1.7769, "train_quant": 0.1103, "train_commit": 0.023, "train_ent": 0.0873, "train_lr": 5.01e-05}
+{"kind": "val", "step": 500, "val_total": 2.9901, "val_recon": 2.8801, "val_quant": 0.1099, "val_commit": 0.0237, "val_entropy": 0.0863}
+{"kind": "step", "step": 600, "train_loss": 1.7366, "train_recon": 1.6318, "train_quant": 0.1049, "train_commit": 0.0142, "train_ent": 0.0906, "train_lr": 6.01e-05}
+{"kind": "step", "step": 700, "train_loss": 4.2235, "train_recon": 4.121, "train_quant": 0.1025, "train_commit": 0.0125, "train_ent": 0.09, "train_lr": 7.01e-05}
+{"kind": "step", "step": 800, "train_loss": 4.943, "train_recon": 4.8403, "train_quant": 0.1028, "train_commit": 0.0028, "train_ent": 0.1, "train_lr": 8.01e-05}
+{"kind": "step", "step": 900, "train_loss": 1.1401, "train_recon": 1.039, "train_quant": 0.1011, "train_commit": 0.0013, "train_ent": 0.0998, "train_lr": 9.01e-05}
+{"kind": "step", "step": 1000, "train_loss": 2.3858, "train_recon": 2.2847, "train_quant": 0.1011, "train_commit": 0.0011, "train_ent": 0.1, "train_lr": 0.0001}
+{"kind": "val", "step": 1000, "val_total": 3.8257, "val_recon": 3.7244, "val_quant": 0.1013, "val_commit": 0.0013, "val_entropy": 0.1}
+{"kind": "step", "step": 1100, "train_loss": 0.686, "train_recon": 0.5855, "train_quant": 0.1005, "train_commit": 0.0006, "train_ent": 0.0999, "train_lr": 0.0001}
+{"kind": "step", "step": 1200, "train_loss": 1.5655, "train_recon": 1.4642, "train_quant": 0.1014, "train_commit": 0.0014, "train_ent": 0.1, "train_lr": 0.0001}
+{"kind": "step", "step": 1300, "train_loss": 0.6301, "train_recon": 0.5296, "train_quant": 0.1005, "train_commit": 0.0005, "train_ent": 0.1, "train_lr": 9.99e-05}
+{"kind": "step", "step": 1400, "train_loss": 0.7858, "train_recon": 0.6856, "train_quant": 0.1002, "train_commit": 0.0002, "train_ent": 0.1, "train_lr": 9.99e-05}
+{"kind": "step", "step": 1500, "train_loss": 0.7549, "train_recon": 0.6546, "train_quant": 0.1003, "train_commit": 0.0003, "train_ent": 0.1, "train_lr": 9.98e-05}
+{"kind": "val", "step": 1500, "val_total": 1.8234, "val_recon": 1.7231, "val_quant": 0.1003, "val_commit": 0.0003, "val_entropy": 0.1}
+{"kind": "step", "step": 1600, "train_loss": 1.8076, "train_recon": 1.7075, "train_quant": 0.1001, "train_commit": 0.0001, "train_ent": 0.1, "train_lr": 9.98e-05}
+{"kind": "step", "step": 1700, "train_loss": 0.6796, "train_recon": 0.5794, "train_quant": 0.1002, "train_commit": 0.0002, "train_ent": 0.1, "train_lr": 9.97e-05}
+{"kind": "step", "step": 1800, "train_loss": 0.5442, "train_recon": 0.4441, "train_quant": 0.1001, "train_commit": 0.0001, "train_ent": 0.1, "train_lr": 9.96e-05}
+{"kind": "step", "step": 1900, "train_loss": 0.3633, "train_recon": 0.2632, "train_quant": 0.1001, "train_commit": 0.0001, "train_ent": 0.1, "train_lr": 9.95e-05}
+{"kind": "step", "step": 2000, "train_loss": 0.6212, "train_recon": 0.5211, "train_quant": 0.1001, "train_commit": 0.0001, "train_ent": 0.1, "train_lr": 9.94e-05}
+{"kind": "val", "step": 2000, "val_total": 1.4174, "val_recon": 1.3173, "val_quant": 0.1001, "val_commit": 0.0001, "val_entropy": 0.1}
+{"kind": "step", "step": 2100, "train_loss": 0.4263, "train_recon": 0.3262, "train_quant": 0.1001, "train_commit": 0.0001, "train_ent": 0.1, "train_lr": 9.93e-05}
+{"kind": "step", "step": 2200, "train_loss": 3.3142, "train_recon": 3.2141, "train_quant": 0.1001, "train_commit": 0.0001, "train_ent": 0.1, "train_lr": 9.91e-05}
+{"kind": "step", "step": 2300, "train_loss": 0.7109, "train_recon": 0.6108, "train_quant": 0.1001, "train_commit": 0.0001, "train_ent": 0.1, "train_lr": 9.9e-05}
+{"kind": "step", "step": 2400, "train_loss": 0.3858, "train_recon": 0.2857, "train_quant": 0.1001, "train_commit": 0.0001, "train_ent": 0.1, "train_lr": 9.88e-05}
+{"kind": "step", "step": 2500, "train_loss": 0.3973, "train_recon": 0.2972, "train_quant": 0.1001, "train_commit": 0.0001, "train_ent": 0.1, "train_lr": 9.86e-05}
+{"kind": "val", "step": 2500, "val_total": 1.1996, "val_recon": 1.0996, "val_quant": 0.1001, "val_commit": 0.0001, "val_entropy": 0.1}
+{"kind": "step", "step": 2600, "train_loss": 0.7279, "train_recon": 0.6278, "train_quant": 0.1001, "train_commit": 0.0001, "train_ent": 0.1, "train_lr": 9.84e-05}
+{"kind": "step", "step": 2700, "train_loss": 1.0507, "train_recon": 0.9505, "train_quant": 0.1003, "train_commit": 0.0003, "train_ent": 0.1, "train_lr": 9.82e-05}
+{"kind": "step", "step": 2800, "train_loss": 0.6749, "train_recon": 0.5747, "train_quant": 0.1002, "train_commit": 0.0002, "train_ent": 0.1, "train_lr": 9.8e-05}
+{"kind": "step", "step": 2900, "train_loss": 0.563, "train_recon": 0.4629, "train_quant": 0.1001, "train_commit": 0.0001, "train_ent": 0.1, "train_lr": 9.78e-05}
+{"kind": "step", "step": 3000, "train_loss": 0.5064, "train_recon": 0.4064, "train_quant": 0.1001, "train_commit": 0.0001, "train_ent": 0.1, "train_lr": 9.76e-05}
+{"kind": "val", "step": 3000, "val_total": 1.1256, "val_recon": 1.0256, "val_quant": 0.1001, "val_commit": 0.0001, "val_entropy": 0.1}
+{"kind": "step", "step": 3100, "train_loss": 0.3195, "train_recon": 0.2195, "train_quant": 0.1001, "train_commit": 0.0001, "train_ent": 0.1, "train_lr": 9.73e-05}
+{"kind": "step", "step": 3200, "train_loss": 0.8944, "train_recon": 0.794, "train_quant": 0.1004, "train_commit": 0.0004, "train_ent": 0.1, "train_lr": 9.71e-05}
+{"kind": "step", "step": 3300, "train_loss": 0.8018, "train_recon": 0.7017, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 9.68e-05}
+{"kind": "step", "step": 3400, "train_loss": 0.7644, "train_recon": 0.6643, "train_quant": 0.1001, "train_commit": 0.0001, "train_ent": 0.1, "train_lr": 9.65e-05}
+{"kind": "step", "step": 3500, "train_loss": 0.6874, "train_recon": 0.5872, "train_quant": 0.1001, "train_commit": 0.0001, "train_ent": 0.1, "train_lr": 9.62e-05}
+{"kind": "val", "step": 3500, "val_total": 0.931, "val_recon": 0.8309, "val_quant": 0.1001, "val_commit": 0.0001, "val_entropy": 0.1}
+{"kind": "step", "step": 3600, "train_loss": 0.2439, "train_recon": 0.1439, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 9.59e-05}
+{"kind": "step", "step": 3700, "train_loss": 0.2518, "train_recon": 0.1518, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 9.56e-05}
+{"kind": "step", "step": 3800, "train_loss": 0.2347, "train_recon": 0.1346, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 9.53e-05}
+{"kind": "step", "step": 3900, "train_loss": 0.2896, "train_recon": 0.1895, "train_quant": 0.1002, "train_commit": 0.0002, "train_ent": 0.1, "train_lr": 9.49e-05}
+{"kind": "step", "step": 4000, "train_loss": 0.5276, "train_recon": 0.4275, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 9.46e-05}
+{"kind": "val", "step": 4000, "val_total": 0.9551, "val_recon": 0.8551, "val_quant": 0.1, "val_commit": 0.0, "val_entropy": 0.1}
+{"kind": "step", "step": 4100, "train_loss": 0.3204, "train_recon": 0.2203, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 9.42e-05}
+{"kind": "step", "step": 4200, "train_loss": 0.4321, "train_recon": 0.3321, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 9.38e-05}
+{"kind": "step", "step": 4300, "train_loss": 0.6294, "train_recon": 0.5293, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 9.35e-05}
+{"kind": "step", "step": 4400, "train_loss": 0.4549, "train_recon": 0.3548, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 9.31e-05}
+{"kind": "step", "step": 4500, "train_loss": 0.6074, "train_recon": 0.5074, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 9.27e-05}
+{"kind": "val", "step": 4500, "val_total": 0.8476, "val_recon": 0.7476, "val_quant": 0.1, "val_commit": 0.0, "val_entropy": 0.1}
+{"kind": "step", "step": 4600, "train_loss": 0.2683, "train_recon": 0.1683, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 9.23e-05}
+{"kind": "step", "step": 4700, "train_loss": 0.6296, "train_recon": 0.5295, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 9.18e-05}
+{"kind": "step", "step": 4800, "train_loss": 0.4057, "train_recon": 0.3057, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 9.14e-05}
+{"kind": "step", "step": 4900, "train_loss": 0.5894, "train_recon": 0.4893, "train_quant": 0.1001, "train_commit": 0.0001, "train_ent": 0.1, "train_lr": 9.1e-05}
+{"kind": "step", "step": 5000, "train_loss": 0.4836, "train_recon": 0.3836, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 9.05e-05}
+{"kind": "val", "step": 5000, "val_total": 1.0304, "val_recon": 0.9304, "val_quant": 0.1, "val_commit": 0.0, "val_entropy": 0.1}
+{"kind": "step", "step": 5100, "train_loss": 0.3247, "train_recon": 0.2247, "train_quant": 0.1001, "train_commit": 0.0001, "train_ent": 0.1, "train_lr": 9e-05}
+{"kind": "step", "step": 5200, "train_loss": 0.3738, "train_recon": 0.2737, "train_quant": 0.1001, "train_commit": 0.0001, "train_ent": 0.1, "train_lr": 8.96e-05}
+{"kind": "step", "step": 5300, "train_loss": 1.5094, "train_recon": 1.4094, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 8.91e-05}
+{"kind": "step", "step": 5400, "train_loss": 0.6553, "train_recon": 0.5552, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 8.86e-05}
+{"kind": "step", "step": 5500, "train_loss": 0.3743, "train_recon": 0.2743, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 8.81e-05}
+{"kind": "val", "step": 5500, "val_total": 0.9157, "val_recon": 0.8157, "val_quant": 0.1, "val_commit": 0.0, "val_entropy": 0.1}
+{"kind": "step", "step": 5600, "train_loss": 0.3129, "train_recon": 0.2128, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 8.76e-05}
+{"kind": "step", "step": 5700, "train_loss": 0.2785, "train_recon": 0.1785, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 8.71e-05}
+{"kind": "step", "step": 5800, "train_loss": 0.3563, "train_recon": 0.2562, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 8.66e-05}
+{"kind": "step", "step": 5900, "train_loss": 0.4628, "train_recon": 0.3628, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 8.6e-05}
+{"kind": "step", "step": 6000, "train_loss": 0.2701, "train_recon": 0.1701, "train_quant": 0.1001, "train_commit": 0.0001, "train_ent": 0.1, "train_lr": 8.55e-05}
+{"kind": "val", "step": 6000, "val_total": 0.8645, "val_recon": 0.7644, "val_quant": 0.1001, "val_commit": 0.0001, "val_entropy": 0.1}
+{"kind": "step", "step": 6100, "train_loss": 0.3606, "train_recon": 0.2605, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 8.49e-05}
+{"kind": "step", "step": 6200, "train_loss": 0.5225, "train_recon": 0.4225, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 8.44e-05}
+{"kind": "step", "step": 6300, "train_loss": 1.0957, "train_recon": 0.9957, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 8.38e-05}
+{"kind": "step", "step": 6400, "train_loss": 0.3672, "train_recon": 0.2672, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 8.32e-05}
+{"kind": "step", "step": 6500, "train_loss": 0.571, "train_recon": 0.471, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 8.26e-05}
+{"kind": "val", "step": 6500, "val_total": 0.973, "val_recon": 0.873, "val_quant": 0.1, "val_commit": 0.0, "val_entropy": 0.1}
+{"kind": "step", "step": 6600, "train_loss": 0.6733, "train_recon": 0.5733, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 8.2e-05}
+{"kind": "step", "step": 6700, "train_loss": 0.2603, "train_recon": 0.1603, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 8.15e-05}
+{"kind": "step", "step": 6800, "train_loss": 0.2658, "train_recon": 0.1658, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 8.08e-05}
+{"kind": "step", "step": 6900, "train_loss": 0.402, "train_recon": 0.302, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 8.02e-05}
+{"kind": "step", "step": 7000, "train_loss": 0.3191, "train_recon": 0.219, "train_quant": 0.1001, "train_commit": 0.0001, "train_ent": 0.1, "train_lr": 7.96e-05}
+{"kind": "val", "step": 7000, "val_total": 0.8261, "val_recon": 0.726, "val_quant": 0.1001, "val_commit": 0.0001, "val_entropy": 0.1}
+{"kind": "step", "step": 7100, "train_loss": 0.3403, "train_recon": 0.2403, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 7.9e-05}
+{"kind": "step", "step": 7200, "train_loss": 0.4743, "train_recon": 0.3742, "train_quant": 0.1001, "train_commit": 0.0001, "train_ent": 0.1, "train_lr": 7.84e-05}
+{"kind": "step", "step": 7300, "train_loss": 0.289, "train_recon": 0.189, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 7.77e-05}
+{"kind": "step", "step": 7400, "train_loss": 0.179, "train_recon": 0.079, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 7.71e-05}
+{"kind": "step", "step": 7500, "train_loss": 0.2718, "train_recon": 0.1718, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 7.64e-05}
+{"kind": "val", "step": 7500, "val_total": 0.7449, "val_recon": 0.6448, "val_quant": 0.1, "val_commit": 0.0, "val_entropy": 0.1}
+{"kind": "step", "step": 7600, "train_loss": 0.1967, "train_recon": 0.0967, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 7.58e-05}
+{"kind": "step", "step": 7700, "train_loss": 0.6728, "train_recon": 0.5727, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 7.51e-05}
+{"kind": "step", "step": 7800, "train_loss": 0.2296, "train_recon": 0.1296, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 7.44e-05}
+{"kind": "step", "step": 7900, "train_loss": 0.2564, "train_recon": 0.1564, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 7.38e-05}
+{"kind": "step", "step": 8000, "train_loss": 0.2416, "train_recon": 0.1416, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 7.31e-05}
+{"kind": "val", "step": 8000, "val_total": 0.7785, "val_recon": 0.6784, "val_quant": 0.1, "val_commit": 0.0, "val_entropy": 0.1}
+{"kind": "step", "step": 8100, "train_loss": 0.1756, "train_recon": 0.0756, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 7.24e-05}
+{"kind": "step", "step": 8200, "train_loss": 0.2667, "train_recon": 0.1667, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 7.17e-05}
+{"kind": "step", "step": 8300, "train_loss": 2.0772, "train_recon": 1.9772, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 7.1e-05}
+{"kind": "step", "step": 8400, "train_loss": 0.2352, "train_recon": 0.1352, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 7.03e-05}
+{"kind": "step", "step": 8500, "train_loss": 0.2526, "train_recon": 0.1526, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 6.96e-05}
+{"kind": "val", "step": 8500, "val_total": 0.7563, "val_recon": 0.6563, "val_quant": 0.1, "val_commit": 0.0, "val_entropy": 0.1}
+{"kind": "step", "step": 8600, "train_loss": 0.2485, "train_recon": 0.1485, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 6.89e-05}
+{"kind": "step", "step": 8700, "train_loss": 0.2844, "train_recon": 0.1844, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 6.82e-05}
+{"kind": "step", "step": 8800, "train_loss": 0.2359, "train_recon": 0.1359, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 6.75e-05}
+{"kind": "step", "step": 8900, "train_loss": 0.2222, "train_recon": 0.1221, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 6.68e-05}
+{"kind": "step", "step": 9000, "train_loss": 0.5348, "train_recon": 0.4348, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 6.6e-05}
+{"kind": "val", "step": 9000, "val_total": 0.7547, "val_recon": 0.6546, "val_quant": 0.1, "val_commit": 0.0, "val_entropy": 0.1}
+{"kind": "step", "step": 9100, "train_loss": 0.2186, "train_recon": 0.1186, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 6.53e-05}
+{"kind": "step", "step": 9200, "train_loss": 0.249, "train_recon": 0.1489, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 6.46e-05}
+{"kind": "step", "step": 9300, "train_loss": 0.1909, "train_recon": 0.0908, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 6.39e-05}
+{"kind": "step", "step": 9400, "train_loss": 14.6317, "train_recon": 14.5317, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 6.31e-05}
+{"kind": "step", "step": 9500, "train_loss": 0.1922, "train_recon": 0.0922, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 6.24e-05}
+{"kind": "val", "step": 9500, "val_total": 0.692, "val_recon": 0.592, "val_quant": 0.1, "val_commit": 0.0, "val_entropy": 0.1}
+{"kind": "step", "step": 9600, "train_loss": 0.181, "train_recon": 0.081, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 6.17e-05}
+{"kind": "step", "step": 9700, "train_loss": 0.188, "train_recon": 0.088, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 6.09e-05}
+{"kind": "step", "step": 9800, "train_loss": 0.2751, "train_recon": 0.175, "train_quant": 0.1002, "train_commit": 0.0002, "train_ent": 0.1, "train_lr": 6.02e-05}
+{"kind": "step", "step": 9900, "train_loss": 0.3423, "train_recon": 0.2423, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 5.95e-05}
+{"kind": "step", "step": 10000, "train_loss": 0.177, "train_recon": 0.0769, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 5.87e-05}
+{"kind": "val", "step": 10000, "val_total": 0.6678, "val_recon": 0.5678, "val_quant": 0.1, "val_commit": 0.0, "val_entropy": 0.1}
+{"kind": "step", "step": 10100, "train_loss": 0.3089, "train_recon": 0.2089, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 5.8e-05}
+{"kind": "step", "step": 10200, "train_loss": 0.3266, "train_recon": 0.2266, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 5.72e-05}
+{"kind": "step", "step": 10300, "train_loss": 0.2172, "train_recon": 0.1172, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 5.65e-05}
+{"kind": "step", "step": 10400, "train_loss": 0.21, "train_recon": 0.11, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 5.57e-05}
+{"kind": "step", "step": 10500, "train_loss": 0.2325, "train_recon": 0.1324, "train_quant": 0.1001, "train_commit": 0.0001, "train_ent": 0.1, "train_lr": 5.5e-05}
+{"kind": "val", "step": 10500, "val_total": 0.6813, "val_recon": 0.5813, "val_quant": 0.1001, "val_commit": 0.0001, "val_entropy": 0.1}
+{"kind": "step", "step": 10600, "train_loss": 0.3288, "train_recon": 0.2288, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 5.43e-05}
+{"kind": "step", "step": 10700, "train_loss": 0.375, "train_recon": 0.275, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 5.35e-05}
+{"kind": "step", "step": 10800, "train_loss": 0.1963, "train_recon": 0.0963, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 5.28e-05}
+{"kind": "step", "step": 10900, "train_loss": 0.3579, "train_recon": 0.2579, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 5.2e-05}
+{"kind": "step", "step": 11000, "train_loss": 7.9188, "train_recon": 7.8188, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 5.13e-05}
+{"kind": "val", "step": 11000, "val_total": 0.6836, "val_recon": 0.5836, "val_quant": 0.1, "val_commit": 0.0, "val_entropy": 0.1}
+{"kind": "step", "step": 11100, "train_loss": 0.1885, "train_recon": 0.0885, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 5.05e-05}
+{"kind": "step", "step": 11200, "train_loss": 0.2306, "train_recon": 0.1306, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 4.98e-05}
+{"kind": "step", "step": 11300, "train_loss": 0.1685, "train_recon": 0.0684, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 4.91e-05}
+{"kind": "step", "step": 11400, "train_loss": 0.1605, "train_recon": 0.0605, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 4.83e-05}
+{"kind": "step", "step": 11500, "train_loss": 0.2183, "train_recon": 0.1183, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 4.76e-05}
+{"kind": "val", "step": 11500, "val_total": 0.6275, "val_recon": 0.5274, "val_quant": 0.1, "val_commit": 0.0, "val_entropy": 0.1}
+{"kind": "step", "step": 11600, "train_loss": 0.348, "train_recon": 0.248, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 4.69e-05}
+{"kind": "step", "step": 11700, "train_loss": 0.1769, "train_recon": 0.0769, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 4.61e-05}
+{"kind": "step", "step": 11800, "train_loss": 0.2074, "train_recon": 0.1074, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 4.54e-05}
+{"kind": "step", "step": 11900, "train_loss": 0.3576, "train_recon": 0.2576, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 4.47e-05}
+{"kind": "step", "step": 12000, "train_loss": 0.2713, "train_recon": 0.1713, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 4.4e-05}
+{"kind": "val", "step": 12000, "val_total": 0.6211, "val_recon": 0.5211, "val_quant": 0.1, "val_commit": 0.0, "val_entropy": 0.1}
+{"kind": "step", "step": 12100, "train_loss": 0.422, "train_recon": 0.322, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 4.32e-05}
+{"kind": "step", "step": 12200, "train_loss": 0.2024, "train_recon": 0.1023, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 4.25e-05}
+{"kind": "step", "step": 12300, "train_loss": 0.1641, "train_recon": 0.0641, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 4.18e-05}
+{"kind": "step", "step": 12400, "train_loss": 0.1952, "train_recon": 0.0952, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 4.11e-05}
+{"kind": "step", "step": 12500, "train_loss": 0.2097, "train_recon": 0.1096, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 4.04e-05}
+{"kind": "val", "step": 12500, "val_total": 0.6215, "val_recon": 0.5215, "val_quant": 0.1, "val_commit": 0.0, "val_entropy": 0.1}
+{"kind": "step", "step": 12600, "train_loss": 0.2635, "train_recon": 0.1635, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 3.97e-05}
+{"kind": "step", "step": 12700, "train_loss": 0.4688, "train_recon": 0.3687, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 3.9e-05}
+{"kind": "step", "step": 12800, "train_loss": 0.3553, "train_recon": 0.2553, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 3.83e-05}
+{"kind": "step", "step": 12900, "train_loss": 0.1811, "train_recon": 0.0811, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 3.76e-05}
+{"kind": "step", "step": 13000, "train_loss": 0.1764, "train_recon": 0.0763, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 3.69e-05}
+{"kind": "val", "step": 13000, "val_total": 0.6116, "val_recon": 0.5115, "val_quant": 0.1, "val_commit": 0.0, "val_entropy": 0.1}
+{"kind": "step", "step": 13100, "train_loss": 0.1522, "train_recon": 0.0521, "train_quant": 0.1001, "train_commit": 0.0001, "train_ent": 0.1, "train_lr": 3.62e-05}
+{"kind": "step", "step": 13200, "train_loss": 0.1555, "train_recon": 0.0555, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 3.56e-05}
+{"kind": "step", "step": 13300, "train_loss": 0.3178, "train_recon": 0.2178, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 3.49e-05}
+{"kind": "step", "step": 13400, "train_loss": 0.1559, "train_recon": 0.0558, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 3.42e-05}
+{"kind": "step", "step": 13500, "train_loss": 0.3711, "train_recon": 0.271, "train_quant": 0.1001, "train_commit": 0.0001, "train_ent": 0.1, "train_lr": 3.36e-05}
+{"kind": "val", "step": 13500, "val_total": 0.6057, "val_recon": 0.5055, "val_quant": 0.1001, "val_commit": 0.0001, "val_entropy": 0.1}
+{"kind": "step", "step": 13600, "train_loss": 0.2136, "train_recon": 0.1136, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 3.29e-05}
+{"kind": "step", "step": 13700, "train_loss": 0.1407, "train_recon": 0.0407, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 3.23e-05}
+{"kind": "step", "step": 13800, "train_loss": 0.2548, "train_recon": 0.1547, "train_quant": 0.1001, "train_commit": 0.0001, "train_ent": 0.1, "train_lr": 3.16e-05}
+{"kind": "step", "step": 13900, "train_loss": 0.386, "train_recon": 0.286, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 3.1e-05}
+{"kind": "step", "step": 14000, "train_loss": 0.1489, "train_recon": 0.0488, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 3.04e-05}
+{"kind": "val", "step": 14000, "val_total": 0.5602, "val_recon": 0.4602, "val_quant": 0.1, "val_commit": 0.0, "val_entropy": 0.1}
+{"kind": "step", "step": 14100, "train_loss": 0.1588, "train_recon": 0.0588, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 2.98e-05}
+{"kind": "step", "step": 14200, "train_loss": 0.3155, "train_recon": 0.2155, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 2.92e-05}
+{"kind": "step", "step": 14300, "train_loss": 0.1459, "train_recon": 0.0449, "train_quant": 0.1009, "train_commit": 0.0009, "train_ent": 0.1, "train_lr": 2.85e-05}
+{"kind": "step", "step": 14400, "train_loss": 6.2651, "train_recon": 6.1651, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 2.8e-05}
+{"kind": "step", "step": 14500, "train_loss": 0.1665, "train_recon": 0.0665, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 2.74e-05}
+{"kind": "val", "step": 14500, "val_total": 0.5431, "val_recon": 0.4431, "val_quant": 0.1, "val_commit": 0.0, "val_entropy": 0.1}
+{"kind": "step", "step": 14600, "train_loss": 0.1444, "train_recon": 0.0444, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 2.68e-05}
+{"kind": "step", "step": 14700, "train_loss": 0.1453, "train_recon": 0.0453, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 2.62e-05}
+{"kind": "step", "step": 14800, "train_loss": 0.1655, "train_recon": 0.0655, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 2.56e-05}
+{"kind": "step", "step": 14900, "train_loss": 0.147, "train_recon": 0.047, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 2.51e-05}
+{"kind": "step", "step": 15000, "train_loss": 0.229, "train_recon": 0.129, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 2.45e-05}
+{"kind": "val", "step": 15000, "val_total": 0.5389, "val_recon": 0.4389, "val_quant": 0.1, "val_commit": 0.0, "val_entropy": 0.1}
+{"kind": "step", "step": 15100, "train_loss": 0.1407, "train_recon": 0.0406, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 2.4e-05}
+{"kind": "step", "step": 15200, "train_loss": 0.153, "train_recon": 0.053, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 2.34e-05}
+{"kind": "step", "step": 15300, "train_loss": 0.2167, "train_recon": 0.1167, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 2.29e-05}
+{"kind": "step", "step": 15400, "train_loss": 0.1726, "train_recon": 0.0726, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 2.24e-05}
+{"kind": "step", "step": 15500, "train_loss": 779.028, "train_recon": 778.928, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 2.19e-05}
+{"kind": "val", "step": 15500, "val_total": 0.5277, "val_recon": 0.4277, "val_quant": 0.1, "val_commit": 0.0, "val_entropy": 0.1}
+{"kind": "step", "step": 15600, "train_loss": 0.1541, "train_recon": 0.0541, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 2.14e-05}
+{"kind": "step", "step": 15700, "train_loss": 0.1614, "train_recon": 0.0614, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 2.09e-05}
+{"kind": "step", "step": 15800, "train_loss": 0.1607, "train_recon": 0.0607, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 2.04e-05}
+{"kind": "step", "step": 15900, "train_loss": 0.1578, "train_recon": 0.0578, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 2e-05}
+{"kind": "step", "step": 16000, "train_loss": 0.1536, "train_recon": 0.0536, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.95e-05}
+{"kind": "val", "step": 16000, "val_total": 0.5132, "val_recon": 0.4132, "val_quant": 0.1, "val_commit": 0.0, "val_entropy": 0.1}
+{"kind": "step", "step": 16100, "train_loss": 0.1595, "train_recon": 0.0595, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.9e-05}
+{"kind": "step", "step": 16200, "train_loss": 0.149, "train_recon": 0.049, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.86e-05}
+{"kind": "step", "step": 16300, "train_loss": 0.1456, "train_recon": 0.0456, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.82e-05}
+{"kind": "step", "step": 16400, "train_loss": 0.151, "train_recon": 0.0509, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.77e-05}
+{"kind": "step", "step": 16500, "train_loss": 0.1595, "train_recon": 0.0595, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.73e-05}
+{"kind": "val", "step": 16500, "val_total": 0.5158, "val_recon": 0.4158, "val_quant": 0.1, "val_commit": 0.0, "val_entropy": 0.1}
+{"kind": "step", "step": 16600, "train_loss": 0.1494, "train_recon": 0.0494, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.69e-05}
+{"kind": "step", "step": 16700, "train_loss": 0.176, "train_recon": 0.076, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.65e-05}
+{"kind": "step", "step": 16800, "train_loss": 0.1652, "train_recon": 0.0652, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.62e-05}
+{"kind": "step", "step": 16900, "train_loss": 0.2119, "train_recon": 0.1118, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.58e-05}
+{"kind": "step", "step": 17000, "train_loss": 0.3275, "train_recon": 0.2275, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.54e-05}
+{"kind": "val", "step": 17000, "val_total": 0.4823, "val_recon": 0.3822, "val_quant": 0.1, "val_commit": 0.0, "val_entropy": 0.1}
+{"kind": "step", "step": 17100, "train_loss": 0.1501, "train_recon": 0.0501, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.51e-05}
+{"kind": "step", "step": 17200, "train_loss": 0.1451, "train_recon": 0.0451, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.47e-05}
+{"kind": "step", "step": 17300, "train_loss": 0.1652, "train_recon": 0.0652, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.44e-05}
+{"kind": "step", "step": 17400, "train_loss": 0.1601, "train_recon": 0.0601, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.41e-05}
+{"kind": "step", "step": 17500, "train_loss": 0.145, "train_recon": 0.045, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.38e-05}
+{"kind": "val", "step": 17500, "val_total": 0.4743, "val_recon": 0.3743, "val_quant": 0.1, "val_commit": 0.0, "val_entropy": 0.1}
+{"kind": "step", "step": 17600, "train_loss": 0.1233, "train_recon": 0.0233, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.35e-05}
+{"kind": "step", "step": 17700, "train_loss": 0.1597, "train_recon": 0.0597, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.32e-05}
+{"kind": "step", "step": 17800, "train_loss": 0.1443, "train_recon": 0.0443, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.29e-05}
+{"kind": "step", "step": 17900, "train_loss": 0.1833, "train_recon": 0.0833, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.27e-05}
+{"kind": "step", "step": 18000, "train_loss": 0.1496, "train_recon": 0.0496, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.24e-05}
+{"kind": "val", "step": 18000, "val_total": 0.4669, "val_recon": 0.3669, "val_quant": 0.1, "val_commit": 0.0, "val_entropy": 0.1}
+{"kind": "step", "step": 18100, "train_loss": 0.139, "train_recon": 0.039, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.22e-05}
+{"kind": "step", "step": 18200, "train_loss": 0.1428, "train_recon": 0.0428, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.2e-05}
+{"kind": "step", "step": 18300, "train_loss": 0.1549, "train_recon": 0.0548, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.18e-05}
+{"kind": "step", "step": 18400, "train_loss": 0.1642, "train_recon": 0.0642, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.16e-05}
+{"kind": "step", "step": 18500, "train_loss": 0.1634, "train_recon": 0.0634, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.14e-05}
+{"kind": "val", "step": 18500, "val_total": 0.4673, "val_recon": 0.3673, "val_quant": 0.1, "val_commit": 0.0, "val_entropy": 0.1}
+{"kind": "step", "step": 18600, "train_loss": 0.159, "train_recon": 0.059, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.12e-05}
+{"kind": "step", "step": 18700, "train_loss": 0.1527, "train_recon": 0.0526, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.1e-05}
+{"kind": "step", "step": 18800, "train_loss": 0.1377, "train_recon": 0.0377, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.09e-05}
+{"kind": "step", "step": 18900, "train_loss": 0.162, "train_recon": 0.0619, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.07e-05}
+{"kind": "step", "step": 19000, "train_loss": 0.2364, "train_recon": 0.1364, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.06e-05}
+{"kind": "val", "step": 19000, "val_total": 0.4596, "val_recon": 0.3596, "val_quant": 0.1, "val_commit": 0.0, "val_entropy": 0.1}
+{"kind": "step", "step": 19100, "train_loss": 0.1722, "train_recon": 0.0721, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.05e-05}
+{"kind": "step", "step": 19200, "train_loss": 0.1617, "train_recon": 0.0617, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.04e-05}
+{"kind": "step", "step": 19300, "train_loss": 0.2019, "train_recon": 0.1019, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.03e-05}
+{"kind": "step", "step": 19400, "train_loss": 0.1447, "train_recon": 0.0446, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.02e-05}
+{"kind": "step", "step": 19500, "train_loss": 0.2114, "train_recon": 0.1114, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.02e-05}
+{"kind": "val", "step": 19500, "val_total": 0.4504, "val_recon": 0.3504, "val_quant": 0.1, "val_commit": 0.0, "val_entropy": 0.1}
+{"kind": "step", "step": 19600, "train_loss": 0.211, "train_recon": 0.1109, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.01e-05}
+{"kind": "step", "step": 19700, "train_loss": 0.1537, "train_recon": 0.0536, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1.01e-05}
+{"kind": "step", "step": 19800, "train_loss": 0.1442, "train_recon": 0.0442, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1e-05}
+{"kind": "step", "step": 19900, "train_loss": 0.1721, "train_recon": 0.072, "train_quant": 0.1, "train_commit": 0.0, "train_ent": 0.1, "train_lr": 1e-05}

@@ -1,0 +1,72 @@
+name: redshifty_approach_a_mix_l4x2_v2noskip
+repo: redshifty
+description: |
+  V2-no-skip transformer arm: Approach-A on the 4-way mix using the skip-free V2
+  tokenizer (checkpoints/tokenizer_v2noskip_l4x2/best.pt, from
+  redshifty_tokenizer_v2noskip_l4x2). Identical transformer config to the _v1
+  control and the (failed) _v2 arm — DDP on both L4s, eff batch 64, 15k steps,
+  bf16, --ar-eval-batches 8 — so the only deliberate change vs V1 is the
+  tokenizer architecture (ConvNeXt+LFQ+tophat+entropy, no skips/cross-attn).
+  Tests whether a healthy-codebook V2 variant beats V1's 55% TF z_acc. The full
+  skip+cross-attn _v2 arm got 0% because its codebook collapsed.
+
+  train_transformer.py auto-detects the (no-skip, no-cross-attn) architecture
+  from the checkpoint keys, so --tokenizer-kind v2 loads this variant correctly.
+  NOTE: --tokenizer-kind v2 also uses RedshiftTokenizerV2 (1024 levels) vs V1's
+  256, so redshift_acc is not directly comparable to V1 by exact-bin match —
+  use the Δz-tolerance metric in analysis.
+tags: [xlarge-scale, transformer, approach-a, track3, l4-ddp, v2-noskip, phase14]
+
+launch:
+  command:
+    - python
+    - -m
+    - torch.distributed.run
+    - --standalone
+    - --nproc_per_node=2
+    - nersc/train_transformer.py
+    - --manifest
+    - /raid/benson/data/desi_dr1_medium/manifest_mix.jsonl
+    - --tokenizer-ckpt
+    - /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v2noskip_l4x2/best.pt
+    - --tokenizer-kind
+    - v2
+    - --approach
+    - a
+    - --steps
+    - "15000"
+    - --batch-size
+    - "32"
+    - --lr
+    - "4e-4"
+    - --warmup
+    - "500"
+    - --healpix-holdout-frac
+    - "0.05"
+    - --val-every
+    - "500"
+    - --save-every
+    - "2500"
+    - --log-every
+    - "100"
+    - --num-workers
+    - "4"
+    - --amp
+    - --redshift-loss-weight
+    - "50.0"
+    - --encoder-mask-ratio
+    - "0.50"
+    - --ar-eval-batches
+    - "8"
+    - --run-name
+    - approach_a_mix_l4x2_v2noskip
+    - --scratch-out
+    - /raid/benson/data/desi_dr1_medium/checkpoints
+    - --wandb-mode
+    - disabled
+    - --no-push-wandb-artifact
+
+env:
+  CUDA_DEVICE_ORDER: PCI_BUS_ID
+  CUDA_VISIBLE_DEVICES: "8,9"
+  SCRATCH: /raid/benson/data/desi_dr1_medium

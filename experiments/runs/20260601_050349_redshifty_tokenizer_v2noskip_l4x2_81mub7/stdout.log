@@ -1,0 +1,288 @@
+
+*****************************************
+Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+*****************************************
+[setup] rank=0/2 device=cuda:0 amp=True steps=20000
+[setup] scratch_out=/raid/benson/data/desi_dr1_medium/checkpoints
+[setup] entropy_weight=0.1 commitment_weight=0.05
+[setup] tophat=True skip=False ca=False
+[data] loading manifest /raid/benson/data/desi_dr1_medium/manifest_mix.jsonl
+[data] 1137 healpix records
+[setup] rank=1/2 device=cuda:1 amp=True steps=20000
+[setup] scratch_out=/raid/benson/data/desi_dr1_medium/checkpoints
+[setup] entropy_weight=0.1 commitment_weight=0.05
+[setup] tophat=True skip=False ca=False
+[data] loading manifest /raid/benson/data/desi_dr1_medium/manifest_mix.jsonl
+[data] 1137 healpix records
+[data] 1812397 spectra in flat index
+[data] 1812397 spectra in flat index
+[data] train=1721778 val=90619
+[data] train=1721778 val=90619
+[model] params=32,088,218 (~32.1M) V2
+[model] params=32,088,218 (~32.1M) V2
+[step      0] loss=780.7595 (recon=780.6455, quant=0.1140 commit=0.0481, ent=0.0659) lr=1.00e-07 0.1 step/s
+[step    100] loss=11.0804 (recon=10.9677, quant=0.1127 commit=0.0275, ent=0.0852) lr=1.01e-05 1.0 step/s
+[step    200] loss=3.5702 (recon=3.4826, quant=0.0876 commit=0.0264, ent=0.0612) lr=2.01e-05 1.1 step/s
+[step    300] loss=3.5486 (recon=3.4517, quant=0.0969 commit=0.0275, ent=0.0694) lr=3.01e-05 1.0 step/s
+[step    400] loss=2.6987 (recon=2.6112, quant=0.0875 commit=0.0257, ent=0.0618) lr=4.01e-05 1.0 step/s
+[step    500] loss=4.1270 (recon=4.0401, quant=0.0869 commit=0.0233, ent=0.0636) lr=5.01e-05 1.0 step/s
+[val      500] total=5.1104 recon=5.0267 quant=0.0837 commit=0.0220 entropy=0.0617
+  *** new best val_loss=5.1104 -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v2noskip_l4x2/best.pt
+[step    600] loss=4.1359 (recon=4.0547, quant=0.0812 commit=0.0180, ent=0.0632) lr=6.01e-05 0.9 step/s
+[step    700] loss=5.1351 (recon=5.0568, quant=0.0783 commit=0.0168, ent=0.0615) lr=7.01e-05 0.9 step/s
+[step    800] loss=9.7543 (recon=9.6809, quant=0.0734 commit=0.0139, ent=0.0595) lr=8.01e-05 0.9 step/s
+[step    900] loss=3.3764 (recon=3.3035, quant=0.0729 commit=0.0160, ent=0.0569) lr=9.01e-05 0.9 step/s
+[step   1000] loss=3.5183 (recon=3.4463, quant=0.0721 commit=0.0142, ent=0.0579) lr=1.00e-04 0.9 step/s
+[val     1000] total=4.3090 recon=4.2353 quant=0.0737 commit=0.0147 entropy=0.0590
+  *** new best val_loss=4.3090 -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v2noskip_l4x2/best.pt
+[step   1100] loss=1.6285 (recon=1.5532, quant=0.0752 commit=0.0160, ent=0.0593) lr=1.00e-04 0.9 step/s
+[step   1200] loss=4.3169 (recon=4.2420, quant=0.0749 commit=0.0165, ent=0.0584) lr=1.00e-04 0.9 step/s
+[step   1300] loss=1.7330 (recon=1.6555, quant=0.0775 commit=0.0184, ent=0.0591) lr=9.99e-05 0.9 step/s
+[step   1400] loss=3.3423 (recon=3.2610, quant=0.0812 commit=0.0227, ent=0.0585) lr=9.99e-05 0.9 step/s
+[step   1500] loss=1.7013 (recon=1.6186, quant=0.0827 commit=0.0253, ent=0.0574) lr=9.98e-05 0.9 step/s
+[val     1500] total=3.7510 recon=3.6688 quant=0.0822 commit=0.0261 entropy=0.0561
+  *** new best val_loss=3.7510 -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v2noskip_l4x2/best.pt
+[step   1600] loss=4.0780 (recon=3.9945, quant=0.0835 commit=0.0308, ent=0.0527) lr=9.98e-05 0.9 step/s
+[step   1700] loss=2.3273 (recon=2.2414, quant=0.0859 commit=0.0341, ent=0.0518) lr=9.97e-05 0.9 step/s
+[step   1800] loss=1.7583 (recon=1.6683, quant=0.0900 commit=0.0348, ent=0.0551) lr=9.96e-05 0.9 step/s
+[step   1900] loss=0.8821 (recon=0.7810, quant=0.1011 commit=0.0424, ent=0.0587) lr=9.95e-05 0.9 step/s
+[step   2000] loss=1.4873 (recon=1.3870, quant=0.1003 commit=0.0464, ent=0.0539) lr=9.94e-05 0.9 step/s
+[val     2000] total=3.2994 recon=3.1983 quant=0.1011 commit=0.0471 entropy=0.0540
+  *** new best val_loss=3.2994 -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v2noskip_l4x2/best.pt
+[step   2100] loss=1.4509 (recon=1.3426, quant=0.1084 commit=0.0542, ent=0.0542) lr=9.93e-05 0.9 step/s
+[step   2200] loss=6.1946 (recon=6.0822, quant=0.1124 commit=0.0614, ent=0.0510) lr=9.91e-05 0.9 step/s
+[step   2300] loss=3.1916 (recon=3.0696, quant=0.1220 commit=0.0681, ent=0.0539) lr=9.90e-05 0.9 step/s
+[step   2400] loss=1.0656 (recon=0.9429, quant=0.1227 commit=0.0713, ent=0.0514) lr=9.88e-05 0.9 step/s
+[step   2500] loss=1.5386 (recon=1.4119, quant=0.1268 commit=0.0731, ent=0.0537) lr=9.86e-05 0.9 step/s
+[val     2500] total=2.9886 recon=2.8584 quant=0.1302 commit=0.0780 entropy=0.0522
+  *** new best val_loss=2.9886 -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v2noskip_l4x2/best.pt
+  ckpt -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v2noskip_l4x2/step_00002500.pt
+[step   2600] loss=2.3026 (recon=2.1613, quant=0.1413 commit=0.0921, ent=0.0492) lr=9.84e-05 0.9 step/s
+[step   2700] loss=3.0092 (recon=2.8642, quant=0.1451 commit=0.0943, ent=0.0508) lr=9.82e-05 0.9 step/s
+[step   2800] loss=6.1838 (recon=6.0288, quant=0.1550 commit=0.1039, ent=0.0511) lr=9.80e-05 0.9 step/s
+[step   2900] loss=1.8348 (recon=1.6839, quant=0.1510 commit=0.1008, ent=0.0501) lr=9.78e-05 0.9 step/s
+[step   3000] loss=1.8140 (recon=1.6522, quant=0.1618 commit=0.1102, ent=0.0516) lr=9.76e-05 0.9 step/s
+[val     3000] total=2.7533 recon=2.5874 quant=0.1659 commit=0.1134 entropy=0.0526
+  *** new best val_loss=2.7533 -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v2noskip_l4x2/best.pt
+[step   3100] loss=1.5425 (recon=1.3874, quant=0.1550 commit=0.0996, ent=0.0555) lr=9.73e-05 0.9 step/s
+[step   3200] loss=1.2226 (recon=1.0335, quant=0.1891 commit=0.1397, ent=0.0494) lr=9.71e-05 0.9 step/s
+[step   3300] loss=4.4924 (recon=4.3038, quant=0.1886 commit=0.1385, ent=0.0501) lr=9.68e-05 0.9 step/s
+[step   3400] loss=3.8533 (recon=3.6604, quant=0.1930 commit=0.1429, ent=0.0500) lr=9.65e-05 0.9 step/s
+[step   3500] loss=2.6575 (recon=2.4503, quant=0.2072 commit=0.1591, ent=0.0481) lr=9.62e-05 0.9 step/s
+[val     3500] total=2.5840 recon=2.3830 quant=0.2011 commit=0.1511 entropy=0.0500
+  *** new best val_loss=2.5840 -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v2noskip_l4x2/best.pt
+[step   3600] loss=1.0526 (recon=0.8319, quant=0.2208 commit=0.1693, ent=0.0514) lr=9.59e-05 0.9 step/s
+[step   3700] loss=0.9049 (recon=0.6923, quant=0.2126 commit=0.1624, ent=0.0502) lr=9.56e-05 0.9 step/s
+[step   3800] loss=1.1019 (recon=0.8844, quant=0.2175 commit=0.1668, ent=0.0507) lr=9.53e-05 0.9 step/s
+[step   3900] loss=0.9430 (recon=0.7305, quant=0.2126 commit=0.1619, ent=0.0506) lr=9.49e-05 0.9 step/s
+[step   4000] loss=2.6024 (recon=2.3782, quant=0.2242 commit=0.1767, ent=0.0475) lr=9.46e-05 0.9 step/s
+[val     4000] total=3.2992 recon=3.0703 quant=0.2289 commit=0.1802 entropy=0.0487
+[step   4100] loss=1.4736 (recon=1.2455, quant=0.2282 commit=0.1796, ent=0.0486) lr=9.42e-05 0.9 step/s
+[step   4200] loss=2.4468 (recon=2.2139, quant=0.2329 commit=0.1842, ent=0.0486) lr=9.38e-05 0.9 step/s
+[step   4300] loss=4.3939 (recon=4.1254, quant=0.2685 commit=0.2207, ent=0.0479) lr=9.35e-05 0.9 step/s
+[step   4400] loss=1.9204 (recon=1.6758, quant=0.2446 commit=0.1974, ent=0.0472) lr=9.31e-05 0.9 step/s
+[step   4500] loss=1.8311 (recon=1.6016, quant=0.2295 commit=0.1806, ent=0.0489) lr=9.27e-05 0.9 step/s
+[val     4500] total=2.5603 recon=2.3153 quant=0.2450 commit=0.1969 entropy=0.0480
+  *** new best val_loss=2.5603 -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v2noskip_l4x2/best.pt
+[step   4600] loss=1.0383 (recon=0.8062, quant=0.2322 commit=0.1809, ent=0.0512) lr=9.23e-05 0.9 step/s
+[step   4700] loss=3.2661 (recon=2.9729, quant=0.2932 commit=0.2453, ent=0.0479) lr=9.18e-05 0.9 step/s
+[step   4800] loss=1.9413 (recon=1.6475, quant=0.2937 commit=0.2476, ent=0.0461) lr=9.14e-05 0.9 step/s
+[step   4900] loss=2.4099 (recon=2.1204, quant=0.2895 commit=0.2405, ent=0.0489) lr=9.10e-05 0.9 step/s
+[step   5000] loss=1.5672 (recon=1.3394, quant=0.2278 commit=0.1793, ent=0.0485) lr=9.05e-05 0.9 step/s
+[val     5000] total=2.2359 recon=1.9795 quant=0.2564 commit=0.2082 entropy=0.0483
+  *** new best val_loss=2.2359 -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v2noskip_l4x2/best.pt
+  ckpt -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v2noskip_l4x2/step_00005000.pt
+[step   5100] loss=1.0554 (recon=0.8160, quant=0.2394 commit=0.1901, ent=0.0493) lr=9.00e-05 0.9 step/s
+[step   5200] loss=0.8995 (recon=0.6637, quant=0.2358 commit=0.1845, ent=0.0513) lr=8.96e-05 0.9 step/s
+[step   5300] loss=2.5800 (recon=2.3443, quant=0.2357 commit=0.1873, ent=0.0483) lr=8.91e-05 0.9 step/s
+[step   5400] loss=1.6777 (recon=1.4470, quant=0.2307 commit=0.1827, ent=0.0480) lr=8.86e-05 0.9 step/s
+[step   5500] loss=2.0159 (recon=1.6879, quant=0.3280 commit=0.2826, ent=0.0453) lr=8.81e-05 0.9 step/s
+[val     5500] total=2.9051 recon=2.6081 quant=0.2970 commit=0.2512 entropy=0.0458
+[step   5600] loss=2.7076 (recon=2.3409, quant=0.3666 commit=0.3211, ent=0.0456) lr=8.76e-05 0.9 step/s
+[step   5700] loss=1.4126 (recon=1.1084, quant=0.3043 commit=0.2566, ent=0.0477) lr=8.71e-05 0.9 step/s
+[step   5800] loss=1.3990 (recon=1.1188, quant=0.2802 commit=0.2328, ent=0.0474) lr=8.66e-05 0.9 step/s
+[step   5900] loss=1.9974 (recon=1.7056, quant=0.2918 commit=0.2465, ent=0.0453) lr=8.60e-05 0.9 step/s
+[step   6000] loss=0.8631 (recon=0.6354, quant=0.2278 commit=0.1761, ent=0.0517) lr=8.55e-05 0.9 step/s
+[val     6000] total=2.1846 recon=1.9160 quant=0.2686 commit=0.2214 entropy=0.0472
+  *** new best val_loss=2.1846 -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v2noskip_l4x2/best.pt
+[step   6100] loss=2.3044 (recon=2.0354, quant=0.2690 commit=0.2223, ent=0.0467) lr=8.49e-05 0.9 step/s
+[step   6200] loss=2.0615 (recon=1.7617, quant=0.2998 commit=0.2528, ent=0.0470) lr=8.44e-05 0.9 step/s
+[step   6300] loss=3.9286 (recon=3.5926, quant=0.3360 commit=0.2901, ent=0.0459) lr=8.38e-05 0.9 step/s
+[step   6400] loss=1.4207 (recon=1.2121, quant=0.2086 commit=0.1596, ent=0.0490) lr=8.32e-05 0.9 step/s
+[step   6500] loss=2.0497 (recon=1.6757, quant=0.3741 commit=0.3296, ent=0.0445) lr=8.26e-05 0.9 step/s
+[val     6500] total=2.8883 recon=2.5736 quant=0.3147 commit=0.2686 entropy=0.0462
+[step   6600] loss=2.0581 (recon=1.7833, quant=0.2748 commit=0.2284, ent=0.0464) lr=8.20e-05 0.9 step/s
+[step   6700] loss=1.1920 (recon=0.9244, quant=0.2675 commit=0.2206, ent=0.0469) lr=8.15e-05 0.9 step/s
+[step   6800] loss=0.9240 (recon=0.6998, quant=0.2242 commit=0.1747, ent=0.0496) lr=8.08e-05 0.9 step/s
+[step   6900] loss=2.1429 (recon=1.7604, quant=0.3824 commit=0.3372, ent=0.0453) lr=8.02e-05 0.9 step/s
+[step   7000] loss=1.5423 (recon=1.2280, quant=0.3143 commit=0.2679, ent=0.0464) lr=7.96e-05 0.9 step/s
+[val     7000] total=2.4856 recon=2.1618 quant=0.3238 commit=0.2773 entropy=0.0465
+[step   7100] loss=1.2928 (recon=1.0210, quant=0.2718 commit=0.2250, ent=0.0468) lr=7.90e-05 0.9 step/s
+[step   7200] loss=1.2171 (recon=0.9008, quant=0.3163 commit=0.2694, ent=0.0468) lr=7.84e-05 0.9 step/s
+[step   7300] loss=1.3881 (recon=1.0764, quant=0.3117 commit=0.2658, ent=0.0459) lr=7.77e-05 0.9 step/s
+[step   7400] loss=0.6905 (recon=0.4788, quant=0.2118 commit=0.1623, ent=0.0494) lr=7.71e-05 0.9 step/s
+[step   7500] loss=1.9911 (recon=1.6078, quant=0.3833 commit=0.3389, ent=0.0445) lr=7.64e-05 0.9 step/s
+[val     7500] total=3.5466 recon=3.2335 quant=0.3132 commit=0.2666 entropy=0.0465
+  ckpt -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v2noskip_l4x2/step_00007500.pt
+[step   7600] loss=0.9510 (recon=0.6913, quant=0.2597 commit=0.2104, ent=0.0493) lr=7.58e-05 0.9 step/s
+[step   7700] loss=2.2587 (recon=1.8830, quant=0.3757 commit=0.3303, ent=0.0454) lr=7.51e-05 0.9 step/s
+[step   7800] loss=1.0791 (recon=0.7546, quant=0.3245 commit=0.2779, ent=0.0466) lr=7.44e-05 0.9 step/s
+[step   7900] loss=1.2888 (recon=0.9526, quant=0.3362 commit=0.2903, ent=0.0459) lr=7.38e-05 0.9 step/s
+[step   8000] loss=1.1805 (recon=0.9346, quant=0.2458 commit=0.1996, ent=0.0463) lr=7.31e-05 0.9 step/s
+[val     8000] total=2.2574 recon=1.9804 quant=0.2770 commit=0.2302 entropy=0.0468
+[step   8100] loss=0.6917 (recon=0.4816, quant=0.2101 commit=0.1598, ent=0.0504) lr=7.24e-05 0.9 step/s
+[step   8200] loss=1.9697 (recon=1.5936, quant=0.3760 commit=0.3318, ent=0.0442) lr=7.17e-05 0.9 step/s
+[step   8300] loss=3.6089 (recon=3.3144, quant=0.2945 commit=0.2492, ent=0.0453) lr=7.10e-05 0.9 step/s
+[step   8400] loss=1.0117 (recon=0.7121, quant=0.2996 commit=0.2535, ent=0.0461) lr=7.03e-05 0.9 step/s
+[step   8500] loss=1.5754 (recon=1.1225, quant=0.4529 commit=0.4077, ent=0.0453) lr=6.96e-05 0.9 step/s
+[val     8500] total=2.1213 recon=1.8121 quant=0.3092 commit=0.2631 entropy=0.0461
+  *** new best val_loss=2.1213 -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v2noskip_l4x2/best.pt
+[step   8600] loss=1.3948 (recon=1.1200, quant=0.2748 commit=0.2291, ent=0.0457) lr=6.89e-05 0.9 step/s
+[step   8700] loss=1.7374 (recon=1.3878, quant=0.3496 commit=0.3044, ent=0.0453) lr=6.82e-05 0.9 step/s
+[step   8800] loss=1.2627 (recon=0.9253, quant=0.3373 commit=0.2916, ent=0.0457) lr=6.75e-05 0.9 step/s
+[step   8900] loss=1.1565 (recon=0.8804, quant=0.2761 commit=0.2300, ent=0.0461) lr=6.68e-05 0.9 step/s
+[step   9000] loss=2.5857 (recon=2.1730, quant=0.4127 commit=0.3669, ent=0.0458) lr=6.60e-05 0.9 step/s
+[val     9000] total=2.3308 recon=1.9995 quant=0.3313 commit=0.2846 entropy=0.0467
+[step   9100] loss=0.9058 (recon=0.6617, quant=0.2441 commit=0.1959, ent=0.0482) lr=6.53e-05 0.9 step/s
+[step   9200] loss=1.4569 (recon=1.0890, quant=0.3680 commit=0.3225, ent=0.0455) lr=6.46e-05 0.9 step/s
+[step   9300] loss=0.8843 (recon=0.6163, quant=0.2681 commit=0.2218, ent=0.0463) lr=6.39e-05 0.9 step/s
+[step   9400] loss=17.6020 (recon=17.2857, quant=0.3163 commit=0.2691, ent=0.0472) lr=6.31e-05 0.9 step/s
+[step   9500] loss=0.9137 (recon=0.6307, quant=0.2830 commit=0.2359, ent=0.0471) lr=6.24e-05 0.9 step/s
+[val     9500] total=2.0188 recon=1.6239 quant=0.3949 commit=0.3486 entropy=0.0463
+  *** new best val_loss=2.0188 -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v2noskip_l4x2/best.pt
+[step   9600] loss=0.7936 (recon=0.5328, quant=0.2608 commit=0.2107, ent=0.0501) lr=6.17e-05 0.9 step/s
+[step   9700] loss=0.9172 (recon=0.5881, quant=0.3292 commit=0.2828, ent=0.0464) lr=6.09e-05 0.9 step/s
+[step   9800] loss=1.2222 (recon=0.9130, quant=0.3092 commit=0.2637, ent=0.0455) lr=6.02e-05 0.9 step/s
+[step   9900] loss=1.3115 (recon=1.0936, quant=0.2179 commit=0.1712, ent=0.0467) lr=5.95e-05 0.9 step/s
+[step  10000] loss=0.9508 (recon=0.6130, quant=0.3378 commit=0.2914, ent=0.0464) lr=5.87e-05 0.9 step/s
+[val    10000] total=2.1914 recon=1.8238 quant=0.3675 commit=0.3210 entropy=0.0465
+  ckpt -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v2noskip_l4x2/step_00010000.pt
+[step  10100] loss=2.2192 (recon=1.7188, quant=0.5003 commit=0.4545, ent=0.0458) lr=5.80e-05 0.9 step/s
+[step  10200] loss=1.7770 (recon=1.2692, quant=0.5079 commit=0.4631, ent=0.0448) lr=5.72e-05 0.9 step/s
+[step  10300] loss=1.2904 (recon=0.9681, quant=0.3223 commit=0.2768, ent=0.0455) lr=5.65e-05 0.9 step/s
+[step  10400] loss=0.8356 (recon=0.6140, quant=0.2216 commit=0.1739, ent=0.0477) lr=5.57e-05 0.9 step/s
+[step  10500] loss=1.3261 (recon=0.9369, quant=0.3892 commit=0.3446, ent=0.0446) lr=5.50e-05 0.9 step/s
+[val    10500] total=1.9780 recon=1.6255 quant=0.3526 commit=0.3069 entropy=0.0457
+  *** new best val_loss=1.9780 -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v2noskip_l4x2/best.pt
+[step  10600] loss=2.0204 (recon=1.6674, quant=0.3530 commit=0.3079, ent=0.0451) lr=5.43e-05 0.9 step/s
+[step  10700] loss=2.5050 (recon=2.1025, quant=0.4025 commit=0.3566, ent=0.0460) lr=5.35e-05 0.9 step/s
+[step  10800] loss=0.9617 (recon=0.7204, quant=0.2413 commit=0.1947, ent=0.0466) lr=5.28e-05 0.9 step/s
+[step  10900] loss=2.0552 (recon=1.4252, quant=0.6300 commit=0.5858, ent=0.0442) lr=5.20e-05 0.9 step/s
+[step  11000] loss=11.0414 (recon=10.5967, quant=0.4448 commit=0.3998, ent=0.0450) lr=5.13e-05 0.9 step/s
+[val    11000] total=2.0940 recon=1.7407 quant=0.3533 commit=0.3075 entropy=0.0458
+[step  11100] loss=1.0596 (recon=0.7727, quant=0.2869 commit=0.2418, ent=0.0452) lr=5.05e-05 0.9 step/s
+[step  11200] loss=1.2850 (recon=0.9369, quant=0.3481 commit=0.3028, ent=0.0453) lr=4.98e-05 0.9 step/s
+[step  11300] loss=0.7854 (recon=0.5383, quant=0.2472 commit=0.2015, ent=0.0456) lr=4.91e-05 0.9 step/s
+[step  11400] loss=0.9006 (recon=0.6176, quant=0.2830 commit=0.2365, ent=0.0465) lr=4.83e-05 0.9 step/s
+[step  11500] loss=1.4251 (recon=1.0072, quant=0.4179 commit=0.3727, ent=0.0452) lr=4.76e-05 0.9 step/s
+[val    11500] total=1.9965 recon=1.5811 quant=0.4153 commit=0.3695 entropy=0.0459
+[step  11600] loss=2.8290 (recon=2.2870, quant=0.5421 commit=0.4978, ent=0.0443) lr=4.69e-05 0.9 step/s
+[step  11700] loss=0.9043 (recon=0.6688, quant=0.2355 commit=0.1898, ent=0.0457) lr=4.61e-05 0.9 step/s
+[step  11800] loss=1.1315 (recon=0.7836, quant=0.3478 commit=0.3025, ent=0.0453) lr=4.54e-05 0.9 step/s
+[step  11900] loss=2.8010 (recon=2.0764, quant=0.7246 commit=0.6804, ent=0.0442) lr=4.47e-05 0.9 step/s
+[step  12000] loss=1.7871 (recon=1.2942, quant=0.4928 commit=0.4490, ent=0.0438) lr=4.40e-05 0.9 step/s
+[val    12000] total=2.0329 recon=1.6359 quant=0.3969 commit=0.3517 entropy=0.0452
+[step  12100] loss=2.2661 (recon=1.7279, quant=0.5382 commit=0.4946, ent=0.0436) lr=4.32e-05 0.9 step/s
+[step  12200] loss=1.2774 (recon=0.9537, quant=0.3237 commit=0.2789, ent=0.0448) lr=4.25e-05 0.9 step/s
+[step  12300] loss=0.9876 (recon=0.6278, quant=0.3598 commit=0.3139, ent=0.0459) lr=4.18e-05 0.9 step/s
+[step  12400] loss=1.1267 (recon=0.8498, quant=0.2769 commit=0.2319, ent=0.0451) lr=4.11e-05 0.9 step/s
+[step  12500] loss=1.3735 (recon=0.8986, quant=0.4749 commit=0.4307, ent=0.0442) lr=4.04e-05 0.9 step/s
+[val    12500] total=1.8969 recon=1.5401 quant=0.3567 commit=0.3113 entropy=0.0454
+  *** new best val_loss=1.8969 -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v2noskip_l4x2/best.pt
+  ckpt -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v2noskip_l4x2/step_00012500.pt
+[step  12600] loss=2.0625 (recon=1.4815, quant=0.5810 commit=0.5376, ent=0.0434) lr=3.97e-05 0.9 step/s
+[step  12700] loss=2.2962 (recon=1.8652, quant=0.4310 commit=0.3870, ent=0.0440) lr=3.90e-05 0.9 step/s
+[step  12800] loss=3.5792 (recon=3.0860, quant=0.4932 commit=0.4480, ent=0.0452) lr=3.83e-05 0.9 step/s
+[step  12900] loss=1.1196 (recon=0.7581, quant=0.3615 commit=0.3170, ent=0.0445) lr=3.76e-05 0.9 step/s
+[step  13000] loss=0.9161 (recon=0.6161, quant=0.3000 commit=0.2541, ent=0.0458) lr=3.69e-05 0.9 step/s
+[val    13000] total=1.9027 recon=1.5369 quant=0.3659 commit=0.3208 entropy=0.0450
+[step  13100] loss=1.0544 (recon=0.6330, quant=0.4215 commit=0.3776, ent=0.0439) lr=3.62e-05 0.9 step/s
+[step  13200] loss=0.7526 (recon=0.5283, quant=0.2243 commit=0.1792, ent=0.0451) lr=3.56e-05 0.9 step/s
+[step  13300] loss=1.8657 (recon=1.4670, quant=0.3987 commit=0.3547, ent=0.0440) lr=3.49e-05 0.9 step/s
+[step  13400] loss=0.8159 (recon=0.5191, quant=0.2969 commit=0.2500, ent=0.0468) lr=3.42e-05 0.9 step/s
+[step  13500] loss=1.7498 (recon=1.1804, quant=0.5694 commit=0.5265, ent=0.0429) lr=3.36e-05 0.9 step/s
+[val    13500] total=1.8702 recon=1.4890 quant=0.3811 commit=0.3360 entropy=0.0451
+  *** new best val_loss=1.8702 -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v2noskip_l4x2/best.pt
+[step  13600] loss=1.5536 (recon=0.9484, quant=0.6052 commit=0.5598, ent=0.0454) lr=3.29e-05 0.9 step/s
+[step  13700] loss=0.6334 (recon=0.4601, quant=0.1733 commit=0.1257, ent=0.0476) lr=3.23e-05 0.9 step/s
+[step  13800] loss=1.3255 (recon=0.9004, quant=0.4251 commit=0.3805, ent=0.0447) lr=3.16e-05 0.9 step/s
+[step  13900] loss=1.6821 (recon=1.1997, quant=0.4824 commit=0.4383, ent=0.0441) lr=3.10e-05 0.9 step/s
+[step  14000] loss=1.1443 (recon=0.7834, quant=0.3608 commit=0.3148, ent=0.0460) lr=3.04e-05 0.9 step/s
+[val    14000] total=2.2068 recon=1.7175 quant=0.4893 commit=0.4443 entropy=0.0449
+[step  14100] loss=1.1468 (recon=0.7127, quant=0.4341 commit=0.3880, ent=0.0461) lr=2.98e-05 0.9 step/s
+[step  14200] loss=1.9052 (recon=1.4711, quant=0.4341 commit=0.3895, ent=0.0446) lr=2.92e-05 0.9 step/s
+[step  14300] loss=0.6109 (recon=0.4161, quant=0.1948 commit=0.1477, ent=0.0471) lr=2.85e-05 0.9 step/s
+[step  14400] loss=11.0881 (recon=10.4796, quant=0.6085 commit=0.5645, ent=0.0440) lr=2.80e-05 0.9 step/s
+[step  14500] loss=1.0652 (recon=0.6764, quant=0.3888 commit=0.3449, ent=0.0439) lr=2.74e-05 0.9 step/s
+[val    14500] total=1.8906 recon=1.5176 quant=0.3731 commit=0.3277 entropy=0.0454
+[step  14600] loss=0.7113 (recon=0.4770, quant=0.2343 commit=0.1889, ent=0.0454) lr=2.68e-05 0.9 step/s
+[step  14700] loss=0.6500 (recon=0.4020, quant=0.2480 commit=0.2022, ent=0.0458) lr=2.62e-05 0.9 step/s
+[step  14800] loss=0.9838 (recon=0.5895, quant=0.3943 commit=0.3495, ent=0.0448) lr=2.56e-05 0.9 step/s
+[step  14900] loss=0.9317 (recon=0.6617, quant=0.2700 commit=0.2255, ent=0.0445) lr=2.51e-05 0.9 step/s
+[step  15000] loss=1.9735 (recon=1.2456, quant=0.7279 commit=0.6846, ent=0.0433) lr=2.45e-05 0.9 step/s
+[val    15000] total=2.0668 recon=1.5064 quant=0.5604 commit=0.5155 entropy=0.0449
+  ckpt -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v2noskip_l4x2/step_00015000.pt
+[step  15100] loss=0.7927 (recon=0.4141, quant=0.3786 commit=0.3324, ent=0.0462) lr=2.40e-05 0.9 step/s
+[step  15200] loss=0.9003 (recon=0.5189, quant=0.3814 commit=0.3372, ent=0.0442) lr=2.34e-05 0.9 step/s
+[step  15300] loss=1.9395 (recon=1.3089, quant=0.6306 commit=0.5878, ent=0.0429) lr=2.29e-05 0.9 step/s
+[step  15400] loss=1.0607 (recon=0.7061, quant=0.3546 commit=0.3089, ent=0.0457) lr=2.24e-05 0.9 step/s
+[step  15500] loss=819.5482 (recon=818.9072, quant=0.6411 commit=0.5980, ent=0.0431) lr=2.19e-05 0.9 step/s
+[val    15500] total=1.8818 recon=1.4714 quant=0.4105 commit=0.3655 entropy=0.0450
+[step  15600] loss=0.8595 (recon=0.5120, quant=0.3475 commit=0.3021, ent=0.0454) lr=2.14e-05 0.9 step/s
+[step  15700] loss=1.0292 (recon=0.5720, quant=0.4572 commit=0.4116, ent=0.0456) lr=2.09e-05 0.9 step/s
+[step  15800] loss=0.9226 (recon=0.5956, quant=0.3270 commit=0.2808, ent=0.0462) lr=2.04e-05 0.9 step/s
+[step  15900] loss=0.8478 (recon=0.5493, quant=0.2985 commit=0.2540, ent=0.0445) lr=2.00e-05 0.9 step/s
+[step  16000] loss=0.8915 (recon=0.5798, quant=0.3116 commit=0.2672, ent=0.0444) lr=1.95e-05 0.9 step/s
+[val    16000] total=1.9927 recon=1.5639 quant=0.4287 commit=0.3839 entropy=0.0448
+[step  16100] loss=1.0009 (recon=0.6615, quant=0.3394 commit=0.2952, ent=0.0442) lr=1.90e-05 0.9 step/s
+[step  16200] loss=0.9718 (recon=0.5886, quant=0.3832 commit=0.3394, ent=0.0438) lr=1.86e-05 0.9 step/s
+[step  16300] loss=0.8252 (recon=0.5456, quant=0.2796 commit=0.2346, ent=0.0450) lr=1.82e-05 0.9 step/s
+[step  16400] loss=0.7905 (recon=0.5561, quant=0.2344 commit=0.1887, ent=0.0457) lr=1.77e-05 0.9 step/s
+[step  16500] loss=0.9650 (recon=0.6556, quant=0.3094 commit=0.2644, ent=0.0449) lr=1.73e-05 0.9 step/s
+[val    16500] total=1.8830 recon=1.4768 quant=0.4062 commit=0.3614 entropy=0.0448
+[step  16600] loss=0.9750 (recon=0.6010, quant=0.3740 commit=0.3291, ent=0.0450) lr=1.69e-05 0.9 step/s
+[step  16700] loss=1.2796 (recon=0.8319, quant=0.4477 commit=0.4029, ent=0.0448) lr=1.65e-05 0.9 step/s
+[step  16800] loss=1.1317 (recon=0.7702, quant=0.3615 commit=0.3171, ent=0.0444) lr=1.62e-05 0.9 step/s
+[step  16900] loss=2.0672 (recon=1.4612, quant=0.6060 commit=0.5621, ent=0.0439) lr=1.58e-05 0.9 step/s
+[step  17000] loss=1.3077 (recon=1.1086, quant=0.1991 commit=0.1537, ent=0.0453) lr=1.54e-05 0.9 step/s
+[val    17000] total=1.8716 recon=1.4284 quant=0.4432 commit=0.3983 entropy=0.0449
+[step  17100] loss=1.0339 (recon=0.6791, quant=0.3549 commit=0.3110, ent=0.0439) lr=1.51e-05 0.9 step/s
+[step  17200] loss=0.8956 (recon=0.5160, quant=0.3797 commit=0.3345, ent=0.0451) lr=1.47e-05 0.9 step/s
+[step  17300] loss=1.3958 (recon=0.8694, quant=0.5264 commit=0.4826, ent=0.0438) lr=1.44e-05 0.9 step/s
+[step  17400] loss=0.9082 (recon=0.6231, quant=0.2851 commit=0.2399, ent=0.0452) lr=1.41e-05 0.9 step/s
+[step  17500] loss=0.9578 (recon=0.6200, quant=0.3377 commit=0.2934, ent=0.0444) lr=1.38e-05 0.9 step/s
+[val    17500] total=1.8671 recon=1.4410 quant=0.4261 commit=0.3812 entropy=0.0448
+  *** new best val_loss=1.8671 -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v2noskip_l4x2/best.pt
+  ckpt -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v2noskip_l4x2/step_00017500.pt
+[step  17600] loss=0.5493 (recon=0.3310, quant=0.2183 commit=0.1722, ent=0.0460) lr=1.35e-05 0.9 step/s
+[step  17700] loss=1.2777 (recon=0.7703, quant=0.5074 commit=0.4628, ent=0.0446) lr=1.32e-05 0.9 step/s
+[step  17800] loss=0.8407 (recon=0.5127, quant=0.3280 commit=0.2818, ent=0.0462) lr=1.29e-05 0.9 step/s
+[step  17900] loss=1.7641 (recon=1.0716, quant=0.6926 commit=0.6490, ent=0.0436) lr=1.27e-05 0.9 step/s
+[step  18000] loss=1.0440 (recon=0.6250, quant=0.4190 commit=0.3748, ent=0.0442) lr=1.24e-05 0.9 step/s
+[val    18000] total=1.8860 recon=1.4103 quant=0.4757 commit=0.4312 entropy=0.0445
+[step  18100] loss=0.6967 (recon=0.4395, quant=0.2572 commit=0.2129, ent=0.0444) lr=1.22e-05 0.9 step/s
+[step  18200] loss=0.7799 (recon=0.5589, quant=0.2211 commit=0.1751, ent=0.0459) lr=1.20e-05 0.9 step/s
+[step  18300] loss=1.0215 (recon=0.6540, quant=0.3675 commit=0.3236, ent=0.0439) lr=1.18e-05 0.9 step/s
+[step  18400] loss=1.5627 (recon=1.0323, quant=0.5305 commit=0.4861, ent=0.0444) lr=1.16e-05 0.9 step/s
+[step  18500] loss=1.3446 (recon=0.8596, quant=0.4849 commit=0.4406, ent=0.0443) lr=1.14e-05 0.9 step/s
+[val    18500] total=1.8564 recon=1.4261 quant=0.4303 commit=0.3855 entropy=0.0448
+  *** new best val_loss=1.8564 -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v2noskip_l4x2/best.pt
+[step  18600] loss=1.3685 (recon=0.7598, quant=0.6087 commit=0.5644, ent=0.0443) lr=1.12e-05 0.9 step/s
+[step  18700] loss=1.2545 (recon=0.8661, quant=0.3884 commit=0.3439, ent=0.0445) lr=1.10e-05 0.9 step/s
+[step  18800] loss=0.7824 (recon=0.5528, quant=0.2296 commit=0.1852, ent=0.0444) lr=1.09e-05 0.9 step/s
+[step  18900] loss=0.9991 (recon=0.6300, quant=0.3690 commit=0.3252, ent=0.0438) lr=1.07e-05 0.9 step/s
+[step  19000] loss=1.8187 (recon=1.1159, quant=0.7028 commit=0.6597, ent=0.0431) lr=1.06e-05 0.9 step/s
+[val    19000] total=1.9302 recon=1.4409 quant=0.4894 commit=0.4443 entropy=0.0450
+[step  19100] loss=1.6478 (recon=1.1417, quant=0.5061 commit=0.4615, ent=0.0446) lr=1.05e-05 0.9 step/s
+[step  19200] loss=1.2642 (recon=0.7787, quant=0.4855 commit=0.4420, ent=0.0435) lr=1.04e-05 0.9 step/s
+[step  19300] loss=1.1067 (recon=0.8432, quant=0.2635 commit=0.2184, ent=0.0451) lr=1.03e-05 0.9 step/s
+[step  19400] loss=1.0652 (recon=0.6477, quant=0.4175 commit=0.3727, ent=0.0448) lr=1.02e-05 0.9 step/s
+[step  19500] loss=1.3166 (recon=1.0000, quant=0.3165 commit=0.2730, ent=0.0435) lr=1.02e-05 0.9 step/s
+[val    19500] total=1.7918 recon=1.3936 quant=0.3982 commit=0.3534 entropy=0.0448
+  *** new best val_loss=1.7918 -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v2noskip_l4x2/best.pt
+[step  19600] loss=2.2546 (recon=1.4823, quant=0.7723 commit=0.7294, ent=0.0429) lr=1.01e-05 0.9 step/s
+[step  19700] loss=1.3554 (recon=0.8670, quant=0.4884 commit=0.4443, ent=0.0441) lr=1.01e-05 0.9 step/s
+[step  19800] loss=0.9761 (recon=0.5515, quant=0.4246 commit=0.3797, ent=0.0449) lr=1.00e-05 0.9 step/s
+[step  19900] loss=1.6724 (recon=0.9501, quant=0.7222 commit=0.6790, ent=0.0432) lr=1.00e-05 0.9 step/s
+[done] final -> /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v2noskip_l4x2/final.pt
+[done] best val_loss=1.7918

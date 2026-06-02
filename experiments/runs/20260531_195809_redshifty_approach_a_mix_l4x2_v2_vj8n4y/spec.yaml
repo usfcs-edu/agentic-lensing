@@ -1,0 +1,71 @@
+name: redshifty_approach_a_mix_l4x2_v2
+repo: redshifty
+description: |
+  V2-tokenizer arm of the V1-vs-V2 ablation: Approach-A on the 4-way data mix
+  using the locally-trained V2 tokenizer (checkpoints/tokenizer_v2_l4x2/best.pt
+  from the redshifty_tokenizer_v2_l4x2 spec). Identical transformer config to
+  the _v1 control (DDP on both L4s, effective batch 64, 15k steps,
+  --ar-eval-batches 8) so the only deliberate change is the tokenizer.
+  (--ar-eval-batches 8 not 32: under DDP, a >10min rank-0-only AR eval makes
+  the other rank's buffer broadcast hit NCCL's watchdog timeout and abort.)
+  Tests the central SpectrumFM claim that a sharper tokenizer (val_recon 0.157
+  vs 1.38) yields faster/higher downstream redshift ignition.
+
+  NOTE: --tokenizer-kind v2 also switches the redshift tokenizer from
+  RedshiftTokenizer(n_levels=256) to RedshiftTokenizerV2(n_levels=1024), so this
+  is a "tokenizer-kind" ablation, not a pure spectrum-tokenizer swap.
+tags: [xlarge-scale, transformer, approach-a, track3, l4-ddp, v2-revisit, phase14]
+
+launch:
+  command:
+    - python
+    - -m
+    - torch.distributed.run
+    - --standalone
+    - --nproc_per_node=2
+    - nersc/train_transformer.py
+    - --manifest
+    - /raid/benson/data/desi_dr1_medium/manifest_mix.jsonl
+    - --tokenizer-ckpt
+    - /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v2_l4x2/best.pt
+    - --tokenizer-kind
+    - v2
+    - --approach
+    - a
+    - --steps
+    - "15000"
+    - --batch-size
+    - "32"
+    - --lr
+    - "4e-4"
+    - --warmup
+    - "500"
+    - --healpix-holdout-frac
+    - "0.05"
+    - --val-every
+    - "500"
+    - --save-every
+    - "2500"
+    - --log-every
+    - "100"
+    - --num-workers
+    - "4"
+    - --amp
+    - --redshift-loss-weight
+    - "50.0"
+    - --encoder-mask-ratio
+    - "0.50"
+    - --ar-eval-batches
+    - "8"
+    - --run-name
+    - approach_a_mix_l4x2_v2
+    - --scratch-out
+    - /raid/benson/data/desi_dr1_medium/checkpoints
+    - --wandb-mode
+    - disabled
+    - --no-push-wandb-artifact
+
+env:
+  CUDA_DEVICE_ORDER: PCI_BUS_ID
+  CUDA_VISIBLE_DEVICES: "8,9"
+  SCRATCH: /raid/benson/data/desi_dr1_medium
