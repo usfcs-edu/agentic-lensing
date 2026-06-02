@@ -11,6 +11,31 @@ The original 21 scripts in `../` are untouched. This directory copies them and
 applies only the minimal edits needed for MPS + the nested path layout (see
 `device.py` and the diff against `../`).
 
+## Result (2026-06-02)
+
+Full from-scratch run on the M4 Max reproduces phoenix; `verify_against_reference.py`
+passes **13/13** gated port-correctness checks (`data/REPRODUCTION_MPS_COMPARE.md`):
+
+| metric | MPS (M4 Max) | phoenix (CUDA) |
+| :--- | ---: | ---: |
+| DR9 ResNet test AUC | 0.9988 | 0.9991 |
+| DR7 ResNet test AUC | 0.9945 | 0.9943 |
+| MPS-vs-CUDA inference, max\|Δ\| (same ckpt) | 4.1e-4 | — |
+| parent sample | 6,242,507 | 6,242,507 |
+| DR9-trained recovery @p≥0.9 (A/B/C/ALL) | 90.0/68.9/43.8/59.6 | 90.0/68.9/43.8/59.6 |
+| DR7-trained recovery @p≥0.9 (A/B/C/ALL) | 83.3/67.0/31.8/51.8 | 83.3/64.2/27.8/48.8 |
+
+Each ResNet trains in ~12 min on MPS (≈ the L4's 25 min); the full 6.24M-galaxy DR7
+sweep ran at ~1.4 bricks/s (~24 h). The DR9-trained column is reproduced exactly
+(it is recomputed from the phoenix scores, validating the analysis code on Mac). The
+DR7-trained column comes from an **independent from-scratch MPS retrain** whose model
+landed at a marginally higher val AUC, so it is slightly more sensitive (≈+3 pp recall,
+38,483 vs 25,792 candidates at p≥0.9). The two DR7 runs are strongly rank-correlated
+(Spearman 0.85); the tail disagreement is the expected variance of retraining on
+uniformly-random negatives (caveat 3), not a backend difference. Grade-A recall (the
+most robust signal) matches phoenix exactly. **Conclusion: the Mac Studio is a sound
+from-scratch train+infer workhorse for these reproductions.**
+
 ## Layout
 
 - Base survey **inputs** are symlinked from the canonical `../data/` and
