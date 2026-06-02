@@ -18,7 +18,7 @@
 \title{Reproducing the redshifty Approach-A Redshift-Ignition Result\\
        on Commodity GPUs}
 \author{Greg Benson \and Jonathan Samuel \and Xiaosheng Huang}
-\date{May 2026 \\ \texttt{commit:~35afc58}}
+\date{June 2026 \\ \texttt{commit:~6ef37db}}
 
 \begin{document}
 
@@ -414,6 +414,83 @@ checkpoint (\texttt{val\_loss}~$=190.67$) are at
 Total checkpoint footprint: $\sim$3~GiB.
 
 % =============================================================================
+\section{Phase 14: multi-GPU rerun and V2 tokenizer revisit}
+\label{sec:phase14}
+% =============================================================================
+
+We subsequently reran Approach-A on \emph{both} L4 GPUs (DDP via
+\texttt{torchrun}, \texttt{CUDA\_DEVICE\_ORDER}{=}\textsf{PCI\_BUS\_ID},
+effective batch $64 = 2{\times}32$, $15{,}000$ steps, bf16) and revisited
+the V2 tokenizer. Three implementation fixes were needed for stable
+multi-GPU training: (i) the rank-0-only AR evaluation at
+\texttt{--ar-eval-batches}${=}32$ runs past NCCL's default $10$-minute
+collective timeout while the other rank blocks on a buffer broadcast,
+aborting the job---fixed by reducing to $8$ batches and raising the
+process-group timeout to $30$~minutes; (ii) fp16 AMP overflows and
+NaN-diverges late in training (step ${\sim}12.7$k), fixed by switching to
+bf16; (iii) the tokenizer loader now auto-detects the V2 decoder
+architecture from checkpoint keys.
+
+\paragraph{V1 on 2$\times$L4.} With bf16 and the doubled effective batch,
+the V1 control reaches $\valz$ (TF) ${\approx}55\%$ and AR ${\approx}57\%$
+(Table~\ref{tab:phase14})---$3.7\times$ the single-A16 mix run's
+$14.86\%$, with the honest AR metric matching the NERSC reference
+($55\%$). bf16 also converges ${\sim}4\times$ faster per step than fp16,
+consistent with the fp16 GradScaler silently skipping overflowing steps.
+
+\paragraph{V2 tokenizer: reconstruction is not tokenizer quality.}
+The V2 tokenizer (ConvNeXt-V2 + LFQ + U-Net skips + cross-attention +
+entropy regularization) trains locally to \texttt{val\_recon}${=}0.35$,
+far below V1's $1.38$. Yet the V2 Approach-A arm learns \emph{zero}
+redshift ($\valz{=}0\%$; the redshift cross-entropy pinned at
+$\ln 1024 = 6.93$, the uniform baseline). The cause
+(\texttt{tools/spectrumfm/diagnose\_tokenizer\_entropy.py}): the V2
+\emph{discrete} codebook collapses to a single code ($0$~bits entropy,
+versus V1's $5.0$~bits over $163$ codes). The U-Net skip connections
+carry reconstruction information \emph{around} the quantizer, so the
+discrete codes---all the transformer consumes---are constant. Removing
+the skips (\texttt{--no-skip --no-cross-attention}) restores a healthy
+codebook ($5.24$~bits, $113$ codes) and redshift ignition, but on a
+binning-fair metric (encoder-masked $|\Delta z|/(1{+}z)$ against the true
+redshift, since V2 uses $1024$ redshift levels to V1's $256$) the
+skip-free V2 merely \emph{ties} V1: the DESI good-redshift fraction
+($|\Delta z|/(1{+}z) < 0.0033$) is $0.192$ for both
+(Fig.~\ref{fig:v1v2}). The V2 tokenizer thus offers no downstream
+redshift benefit over V1; its reconstruction advantage was an artifact
+of skips bypassing the discrete bottleneck. The honest masked-encoder
+redshift accuracy (${\sim}19\%$ DESI good-$z$) is also far below the
+teacher-forced $\valz$ (${\sim}55\%$), which is inflated because the
+encoder sees the true redshift token at the $50\%$ mask rate.
+
+\begin{table}[t]
+\centering
+\caption{Phase-14 Approach-A arms on 2$\times$L4. Redshift bins differ
+(V1 $256$, V2 $1024$) so exact-bin $\valz$ is not directly comparable
+across rows; the final column is the binning-fair encoder-masked
+$|\Delta z|/(1{+}z) < 0.0033$ fraction.}
+\label{tab:phase14}
+\begin{tabular}{lcccc}
+\toprule
+arm & $\valz$ peak (TF) & AR peak & codebook entropy & fair good-$z$ \\
+\midrule
+V1 (ConvNeXt$+$LFQ) & $0.55$ & $0.57$ & $5.00$ bits & $0.192$ \\
+V2 $+$ skips        & $0.00$ & $0.00$ & $0.00$ bits & --- \\
+V2 no-skip          & $0.50$ & $0.48$ & $5.24$ bits & $0.192$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/v1_v2_l4x2_comparison.png}
+\caption{Left: TF redshift-accuracy trajectories (V2$+$skips flat at zero
+from codebook collapse; raw exact-bin, not comparable across
+redshift-bin counts). Right: binning-fair honest $|\Delta z|/(1{+}z)$
+fractions---V1 and skip-free V2 are tied.}
+\label{fig:v1v2}
+\end{figure}
+
+% =============================================================================
 \section{Conclusions}
 % =============================================================================
 
@@ -427,16 +504,19 @@ run on one L4-class GPU produces $\valz$ peak $14.86\%$ and an AR/TF
 ratio of $0.73$, matching the NERSC reference $0.74$ to two
 significant figures.
 
-Three immediate follow-ons are queued: (a) the L4 rerun with
-$\texttt{CUDA\_DEVICE\_ORDER}{=}\textsf{PCI\_BUS\_ID}$ and
-$\texttt{--ar-eval-batches}{=}32$, expected to halve wallclock and
-sharpen the AR signal; (b) the $20$k-step extension of the mix run,
-since the trajectory was still descending at step $10$k cut-off
-(the NERSC reference run reached its $73.8\%$ peak at step
-$15$k); and (c) the codecs (Mamba3+RFSQ) tokenizer swap against
-the local Approach-A baseline, which is the SpectrumFM Phase-I
-architectural claim that we believe months 1--3 of the proposal
-target. None of those three depend on additional NERSC compute.
+Two of the three follow-ons originally queued here are now complete
+(Section~\ref{sec:phase14}): the correctly-mapped, extended
+$2{\times}$L4 rerun drives the result to $55\%$ TF / $57\%$ AR, and the
+V2 tokenizer revisit shows that V2's superior reconstruction does
+\emph{not} translate to better redshift prediction---once its
+skip-connection codebook collapse is removed, V2 only ties V1. The
+remaining follow-on, the codecs (Mamba3+RFSQ) tokenizer swap against
+the local Approach-A baseline---the SpectrumFM Phase-I architectural
+claim we believe months 1--3 of the proposal target---is unchanged, and
+the Phase-14 result sharpens its success criterion: codebook health
+(discrete-code entropy), not reconstruction loss, is the metric that
+predicts a tokenizer's downstream usefulness. None of this depends on
+additional NERSC compute.
 
 \bibliographystyle{plainnat}
 \bibliography{references}

@@ -19,8 +19,9 @@ from pptx.util import Inches, Pt
 from pptx.dml.color import RGBColor
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-OUTPUT = REPO_ROOT / "reproductions" / "redshifty" / "papers" / "spectrumfm_status_2026-05-29.pptx"
+OUTPUT = REPO_ROOT / "reproductions" / "redshifty" / "papers" / "spectrumfm_status_2026-06-01.pptx"
 DIVERSITY_FIG = REPO_ROOT / "experiments" / "runs" / "_comparisons" / "diversity_journey.png"
+COMPARISON_FIG = REPO_ROOT / "experiments" / "runs" / "_comparisons" / "v1_v2_l4x2_comparison.png"
 
 
 # 16:9 widescreen
@@ -313,19 +314,37 @@ def slide_9_pass(prs):
                  top=Inches(5.5), size=16, color=ACCENT)
 
 
+def slide_phase14(prs):
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    add_title(slide, "Phase 14 — 2×L4 rerun + V2 tokenizer revisit")
+    add_table(slide, Inches(0.5), Inches(2.1), [
+        ["arm", "TF z_acc", "AR z_acc", "codebook entropy", "fair good-z (<0.0033)"],
+        ["V1 (256-lvl z)", "0.55", "0.57", "5.00 bits (163 codes)", "0.192"],
+        ["V2 + skips (1024-lvl z)", "0.00", "0.00", "0.00 bits (1 code)", "—"],
+        ["V2 no-skip (1024-lvl z)", "0.50", "0.48", "5.24 bits (113 codes)", "0.192"],
+    ], col_widths_in=[2.9, 1.3, 1.3, 2.9, 2.0], size=12)
+    slide.shapes.add_picture(str(COMPARISON_FIG), Inches(2.4), Inches(2.9), width=Inches(8.5))
+    add_subtitle(slide,
+                 "V1 reaches 3.7× the A16 mix run. V2's U-Net skips bypass the quantizer → "
+                 "codebook collapses (1 code) → 0% redshift; skip-free V2 ties V1. "
+                 "Reconstruction quality ≠ tokenizer quality.",
+                 top=Inches(6.5), size=13, color=ACCENT)
+
+
 def slide_10_next(prs):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     add_title(slide, "What's next")
     add_body(slide, Inches(1.2), Inches(5.0), [
-        "Queued: L4 rerun with CUDA_DEVICE_ORDER=PCI_BUS_ID (mix run trained on an A16 by accident)",
-        (1, "Expected ~2× speedup over A16; bumped --ar-eval-batches 8 → 32"),
-        "Queued: 20k-step extension (trajectory was still descending at the 10k step cap)",
-        (1, "NERSC reference reached its 73.8% peak at step ~15,000"),
-        "Codecs (Mamba3+RFSQ) tokenizer swap — head-to-head against the local V1 baseline",
-        (1, "This is the architectural claim that the Phase-I proposal targets for Months 1–3"),
-        "Open PRs: cosmologyfoundation/redshifty#1, cosmologyfoundation/codecs#1",
-    ], size=16)
-    add_footer(slide, "None of the three queued items depend on NERSC compute.")
+        "DONE: 2×L4 rerun (correct PCI_BUS_ID mapping, bf16, eff batch 64) → V1 55% TF / 57% AR",
+        (1, "3.7× the A16 mix run; honest AR matches the NERSC reference (55%)"),
+        "DONE: V2 tokenizer revisited — skip-bypass codebook collapse diagnosed and fixed",
+        (1, "Skip-free V2 ties V1: codebook entropy, not reconstruction loss, predicts usefulness"),
+        "Next: codecs (Mamba3+RFSQ) tokenizer swap — head-to-head vs the local V1 baseline",
+        (1, "The Phase-I architectural claim the proposal targets for Months 1–3"),
+        "Next: scale steps/data toward the NERSC 73.8% peak (local config plateaus ~55%)",
+        "Open PRs: cosmologyfoundation/redshifty#1 (+ multi-GPU fixes), codecs#1",
+    ], size=15)
+    add_footer(slide, "None of the next items depend on NERSC compute.")
 
 
 def slide_11_thanks(prs):
@@ -356,6 +375,7 @@ def main():
     slide_7_diagnostic(prs)
     slide_8_ignition(prs)
     slide_9_pass(prs)
+    slide_phase14(prs)
     slide_10_next(prs)
     slide_11_thanks(prs)
 
