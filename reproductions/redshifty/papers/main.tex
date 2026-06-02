@@ -414,7 +414,7 @@ checkpoint (\texttt{val\_loss}~$=190.67$) are at
 Total checkpoint footprint: $\sim$3~GiB.
 
 % =============================================================================
-\section{Phase 14: multi-GPU rerun and V2 tokenizer revisit}
+\section{Phase 14--15: multi-GPU rerun and tokenizer comparison (V2, codecs)}
 \label{sec:phase14}
 % =============================================================================
 
@@ -462,31 +462,50 @@ redshift accuracy (${\sim}19\%$ DESI good-$z$) is also far below the
 teacher-forced $\valz$ (${\sim}55\%$), which is inflated because the
 encoder sees the true redshift token at the $50\%$ mask rate.
 
+\paragraph{codecs (Mamba3 + RFSQ): a different architecture, same ceiling.}
+We also wired the \texttt{cosmologyfoundation/codecs} tokenizer (bidirectional
+Mamba3 encoder + residual FSQ) into Approach-A through a resampling adapter
+(redshifty's $7781$-pixel DESI grid $\to$ codecs' $7958$-pixel grid; layer-0
+RFSQ index, $625$ codes), with the $256$-level redshift tokenizer so its $\valz$
+is directly V1-comparable. We first verified codebook health (layer-0 uses
+$233/625$ codes at $6.27$ bits), then trained the same 15k-step 2$\times$L4
+configuration. codecs ignites ${\sim}2.7\times$ slower than V1 early but catches
+up by ${\sim}$step $6$k and plateaus at $0.53$ TF / $0.52$ AR---a TIE with V1
+(Table~\ref{tab:phase14}, Fig.~\ref{fig:v1v2}). Its spectrum-token accuracy
+plateaus at ${\sim}0.26$ (the layer-0 codes resist autoregressive prediction)
+yet redshift still ignites, so the redshift signal survives in the discrete
+codes. The two residual RFSQ layers were dropped to fit the $1024$-code slot
+(layer-0 only); a multi-token expansion would be needed to test them.
+
 \begin{table}[t]
 \centering
-\caption{Phase-14 Approach-A arms on 2$\times$L4. Redshift bins differ
-(V1 $256$, V2 $1024$) so exact-bin $\valz$ is not directly comparable
-across rows; the final column is the binning-fair encoder-masked
-$|\Delta z|/(1{+}z) < 0.0033$ fraction.}
+\caption{Approach-A tokenizer arms on 2$\times$L4. V1 and codecs use $256$-level
+redshift (exact-bin $\valz$ directly comparable); the V2 arms use $1024$-level,
+for which the binning-fair encoder-masked $|\Delta z|/(1{+}z) < 0.0033$ fraction
+(final column) is the comparable metric. Codebook = top-layer discrete-code
+entropy.}
 \label{tab:phase14}
-\begin{tabular}{lcccc}
+\begin{tabular}{llcccc}
 \toprule
-arm & $\valz$ peak (TF) & AR peak & codebook entropy & fair good-$z$ \\
+arm & tokenizer & $\valz$ (TF) & AR & codebook & fair good-$z$ \\
 \midrule
-V1 (ConvNeXt$+$LFQ) & $0.55$ & $0.57$ & $5.00$ bits & $0.192$ \\
-V2 $+$ skips        & $0.00$ & $0.00$ & $0.00$ bits & --- \\
-V2 no-skip          & $0.50$ & $0.48$ & $5.24$ bits & $0.192$ \\
+V1          & ConvNeXt$+$LFQ    & $0.55$ & $0.57$ & $5.00$ bits & $0.192$ \\
+V2 $+$ skips & $+$U-Net skips    & $0.00$ & $0.00$ & $0.00$ bits & --- \\
+V2 no-skip  & $+$tophat/entropy  & $0.50$ & $0.48$ & $5.24$ bits & $0.192$ \\
+codecs      & Mamba3$+$RFSQ      & $0.53$ & $0.52$ & $6.27$ bits & --- \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\linewidth]{figures/v1_v2_l4x2_comparison.png}
-\caption{Left: TF redshift-accuracy trajectories (V2$+$skips flat at zero
-from codebook collapse; raw exact-bin, not comparable across
-redshift-bin counts). Right: binning-fair honest $|\Delta z|/(1{+}z)$
-fractions---V1 and skip-free V2 are tied.}
+\includegraphics[width=\linewidth]{figures/v1_v2_codecs_l4x2_comparison.png}
+\caption{Left: TF redshift-accuracy trajectories for the four arms. V1 and
+codecs ($256$-level $z$) are directly comparable and both reach
+${\sim}0.53$--$0.55$; V2 no-skip ($1024$-level) tracks alongside; V2$+$skips is
+flat at zero (codebook collapse). codecs starts slow and catches up by
+${\sim}$step $6$k. Right: binning-fair honest $|\Delta z|/(1{+}z)$ fractions
+(V1 vs V2 no-skip, tied).}
 \label{fig:v1v2}
 \end{figure}
 
@@ -509,14 +528,16 @@ Two of the three follow-ons originally queued here are now complete
 $2{\times}$L4 rerun drives the result to $55\%$ TF / $57\%$ AR, and the
 V2 tokenizer revisit shows that V2's superior reconstruction does
 \emph{not} translate to better redshift prediction---once its
-skip-connection codebook collapse is removed, V2 only ties V1. The
-remaining follow-on, the codecs (Mamba3+RFSQ) tokenizer swap against
-the local Approach-A baseline---the SpectrumFM Phase-I architectural
-claim we believe months 1--3 of the proposal target---is unchanged, and
-the Phase-14 result sharpens its success criterion: codebook health
-(discrete-code entropy), not reconstruction loss, is the metric that
-predicts a tokenizer's downstream usefulness. None of this depends on
-additional NERSC compute.
+skip-connection codebook collapse is removed, V2 only ties V1. The third
+tokenizer---\texttt{cosmologyfoundation/codecs} (Mamba3+RFSQ), the SpectrumFM
+Phase-I architectural claim we believe months 1--3 of the proposal target---also
+now ties V1 ($0.53$ TF / $0.52$ AR). Three structurally different healthy
+tokenizers thus converge to ${\sim}0.50$--$0.55$: the tokenizer architecture is
+not the Approach-A bottleneck at this scale, and codebook health (discrete-code
+entropy), not reconstruction loss, is the metric that gates a tokenizer's
+downstream usefulness. The lever for closing the gap to the NERSC $73.8\%$ peak
+lies elsewhere---data scale, model size, and training steps. None of this
+depends on additional NERSC compute.
 
 \bibliographystyle{plainnat}
 \bibliography{references}
