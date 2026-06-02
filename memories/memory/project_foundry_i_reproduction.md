@@ -1,6 +1,6 @@
 ---
 name: project-foundry-i-reproduction
-description: "Foundry I (Huang 2025a) GIGA-Lens reproduction status on DESI-165.4754-06.0423 — v5 recovers θ_E to 0.5%"
+description: "Foundry I (Huang 2025a) GIGA-Lens reproduction status on DESI-165.4754-06.0423 — v5 recovers θ_E to 0.5-3%; HMC now works (lstsq+float64+regularized-marginalization recipe), mixing degeneracy-limited; gamma=1.37 is a model-setup difference, not a sampler issue"
 metadata:
   type: project
 ---
@@ -35,8 +35,77 @@ Phase 1 reproduction of Huang 2025a Foundry I demo system **DESI-165.4754−06.0
 6. **Open issues for v8+**:
    - γ_EPL slope: paper hits prior LOWER bound (γ=1.37 with prior min 1.0), our v6 hits UPPER region (γ=1.73 with prior max 2.7). Paper-mode chain hits γ=2.26. The γ direction is genuinely different between local minima.
    - To force paper's mode, future runs should (a) initialize from `map_v7_paper_mode.npz` or (b) add constraints from lens-light position angle / external imaging.
-   - HMC didn't run — JIT compile of `pmap(scan(mcmc_sample_chain(PreconditionedHMC+adaptation)))` didn't complete in reasonable time on JAX 0.6.2 with the v2 29-param model. SVI-as-posterior is the working fallback.
+   - HMC now RUNS (resolved 2026-06; see "HMC posterior" section below). The old "JIT never completes" belief was wrong — see the compile diagnosis there.
 
 6. **Compute footprint**: each MAP fit (20 chains × 200-400 steps) takes 20-55 s on 2× L4 GPUs (UUID-pinned to avoid the A16+L4 mixed-type shard_map crash). JIT compile dominates first run; ~15-18 it/s post-JIT.
 
-Related: [[reference-gigalens-env]], [[project-huang-lensing]], [[reference-paper-corpus]].
+## HMC posterior — full investigation (2026-06, the SVI-only fallback is now RESOLVED)
+
+Goal: replace the v10 SVI surrogate with genuine HMC, on the 8×A16 GPUs (L4s reserved).
+Outcome: **HMC now works mechanically** (compiles ~35 s, stable, smooth, near-PD mode,
+samples the correct posterior); residual is mixing *efficiency*, limited by intrinsic
+strong-lens parameter degeneracies. The chain of findings (each a separate fix):
+
+1. **"HMC won't compile" was misdiagnosed** (not a JIT time budget). Every kernel —
+   incl. gigalens's `GradientBasedTrajectoryLengthAdaptation` (GBTLA) — compiles in
+   31–38 s **single-device** (`26_compile_diagnostic.py`). The original hang = gigalens
+   `HMC()` (`gigalens/jax/inference.py:280-307`) wrapping GBTLA in `jax.pmap` over **all
+   10 devices** × the `lstsq_simulate` 31-channel grouped conv × cuDNN autotuner
+   thrashing (one conv algo took 11m50s). **Always set
+   `XLA_FLAGS=--xla_gpu_autotune_level=0`** and use single/few devices.
+2. **The v7 "paper-mode MAP" (`data/map_v7_paper_mode.npz`) is a SADDLE**, not a max —
+   15 large negative Hessian eigenvalues, log-posterior improvable by **+62,000**
+   (−99126→−36750). Every prior result (v8/v10 SVI, v11* NUTS) was anchored to a badly
+   non-converged point. Refining off it (`28_refine_map.py`) removed the saddle.
+3. **Recipe that makes HMC mix** (each step necessary): **(a) lstsq-marginalize** the 33
+   linear light amplitudes — they create ~56 near-flat Hessian directions capping ESS~4
+   (`_hmc_lib_lstsq.py`, 41 nonlinear params); **(b) float64** (`jax_enable_x64`) — the
+   reduced objective is stiff (cond≥1e9), float32 floors ‖grad‖ at ~1.2e4; **(c) EXACT
+   regularized Gaussian marginalization** of the 28 shapelet amps
+   (`_hmc_lib_marg.py build_model_marg`, 46 params = 41 nonlinear + 5 sampled-positive
+   Sérsic Ie): `A = XᵀWX + Λ` (Λ_ii=(i+1)/25 from the shapelet `Normal(0,5/√(i+1))`
+   priors), `a*=cho_solve(A,b)`, `logL = −½ΣWR² + ½b·a* − ½log|A|`. This is what gigalens
+   `lstsq_simulate` OMITS (see bug 3) — it makes the objective SMOOTH: ‖grad‖ broke the
+   pinv floor 9e4→400 (228×), Hessian became 44/46 positive; **(d) mass matrix**: the
+   residual posterior is ultra-ill-conditioned (cond~1e14: companion-galaxy lens-light
+   Sérsic CENTERS `LL2/LL3.center` at H_ii~1e12, Sérsic INDICES `n_sersic` at ~1e-2; the
+   physical mass params θ_E/γ/e1/e2/shear sit in the well-behaved 1e8–1e9 tier).
+4. **Mass-matrix options** (`34_fit_marg.py --massmatrix`): floored full Hessian
+   (`hess_marg_pd`) over-constrains soft dirs (γ frozen, std 1e-4); **un-floored diagonal
+   (`diagraw`)** is float64-safe (per-param scalars, NO matrix ops) and unlocks realistic
+   scales — γ_std 1e-4→**0.037** (≈ paper 0.023), γ drifts 1.866→1.746 toward the paper;
+   **diagonally-scaled-correlation full Hessian (`hesscorr`)**, `chol(H)=diag(√D)·chol(D^−½ H D^−½)`,
+   lifts correlated mass params (θ_E ESS 8→20) but the correlation matrix still has
+   cond~1e8 (genuine lensing degeneracies: mass-sheet, slope–ellipticity).
+5. **Multi-chain R-hat** (parallelized across all 8 A16s — the *right* convergence test, a
+   single chain can't give it): 4 diagraw + 4 hesscorr × 500 → chains do **NOT converge**,
+   **R-hat = 1.4–33** (need <1.01). Converged inference needs ~1e4–1e5 samples/chain
+   (A100-feasible; ~17–24 h on A16 even 8-way parallel — the paper used A100s; **L4s do
+   NOT help — same float64 precision, ~2× speed at most; A100s are the real lever**). A
+   long 8-chain diagraw run (burn2000/keep8000, `data/long_diagraw_s0..7.npz`) was
+   launched 2026-06 to test whether the converged γ posterior is broad enough to reconcile
+   with the paper's 1.37; pool/diagnose with `35_pool_chains.py --glob 'data/long_diagraw_s*.npz'`.
+6. **Paper's γ=1.372 mode is a DISTINCT, FAR-WORSE fit in our setup** — paper-seed refine
+   stays at γ=1.374/θ_E=2.640 (so the mode is real/localizable) but its log-p = −78350 vs
+   our basin −45841, **Δ=−32,500**. Confirms (with hard numbers) the v7/v10 multimodal
+   finding: the γ gap is an **unpublished model-setup difference** (PSF/masking/source
+   complexity/priors), NOT a sampler issue.
+
+**Three real upstream gigalens bugs found** (reproducer `36_upstream_gigalens_repro.py`,
+write-up `UPSTREAM_GIGALENS_ISSUE.md`): (1) GBTLA-under-`pmap` compile blowup
+(`inference.py:280-307`); (2) **`inference.py:258-260` builds the HMC momentum as
+`MultivariateNormalFullCovariance(jnp.linalg.inv(q_z.covariance()))` → NaN** whenever the
+SVI covariance is rank-deficient (use the precision parameterization + regularize); (3)
+`lstsq_simulate` pinv-profiles the linear amplitudes UNREGULARIZED and DROPS the
+`−½log|XᵀWX|` Gaussian-evidence term → non-smooth/indefinite profiled objective on a
+near-rank-deficient design matrix. This is open task #14 ("File upstream gigalens HMC JIT
+issue") — reproducer ready; **filing on GitHub needs the user (outward-facing).**
+
+**Key new scripts (foundry-i/):** `_hmc_lib.py`, `_hmc_lib_lstsq.py`, `_hmc_lib_marg.py`
+(the model libs), `26_compile_diagnostic.py`, `28_refine_map.py`, `30_refine_lstsq.py`,
+`32_saddlefree_newton.py`, `33_trust_refine.py`, `34_fit_marg.py` (main runner: `--mode
+refine|hmc`, `--massmatrix hess_marg_pd|diag|diagraw|hesscorr`, `--seed`, `--x64`),
+`35_pool_chains.py`. All HMC work ran on the **A16s** (float64 ~0.39 s/grad; fixed-leapfrog
+HMC only — **NEVER NUTS in float64**, tree-depth-8 ran 8h45m once and was killed).
+
+Related: [[reference-gigalens-env]], [[project-huang-lensing]], [[reference-paper-corpus]], [[reference-host-hardware]].

@@ -1,0 +1,22 @@
+# Foundry I — large/transient data, not in git (regeneratable from the scripts).
+# Already-tracked inputs (cutout_F140W.fits, empirical_psf.npy, map_v7_paper_mode.npz,
+# nearby_galaxy_loc.npz, the v8/v10 SVI posteriors) stay tracked; this only ignores the
+# heavy/intermediate HMC artifacts.
+data/
+*.log
+*.runlog
+.jax_cache/
+.l32_done_sentinel.txt
+_run_hess_wrapper.py
+__pycache__/
+
+# LaTeX build artifacts (keep main.tex, main.pdf, Makefile, references.bib)
+papers/*.aux
+papers/*.bbl
+papers/*.blg
+papers/*.log
+papers/*.out
+papers/*.toc
+papers/*.fls
+papers/*.fdb_latexmk
+papers/*.synctex.gz
