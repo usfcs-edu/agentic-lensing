@@ -33,3 +33,6 @@ __pycache__/
 # Claude Code
 .claude
 
+
+# stray Wave-2 dependency install log (regenerable)
+reproductions/.wave2_deps_install.log
