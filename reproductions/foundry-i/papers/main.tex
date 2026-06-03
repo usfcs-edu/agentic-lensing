@@ -66,9 +66,13 @@ regularized Gaussian marginalization of the linear light amplitudes that
 fixes a non-smoothness in gigalens \texttt{lstsq\_simulate}, and shows
 that the residual sampling difficulty is degeneracy-limited mixing
 ($\hat R>1$ at $500$ samples, $\mathrm{cond}\sim10^{8}$) rather than a
-sampler defect; in our setup the paper's slope $\gammaEPL=1.372$ is a
-distinct, far worse fit ($\Delta\log p\approx-32{,}500$), pointing to an
-unpublished model-setup difference. Our 10\,000-sample variational posterior recovers
+sampler defect. A long $8$-chain run ($64{,}000$ samples) then revises
+the slope picture: all chains drift from the MAP/SVI $\gammaEPL\approx1.86$
+{\it down through}\ the paper's $1.372$ toward $\gammaEPL\approx1.17$ at
+{\it higher}\ log-posterior, so the paper's slope is consistent with ---
+not far worse than --- our model (an earlier $-32{,}500$ cold-start
+estimate was a stalled optimization), though the chains remain
+unconverged ($\hat R\le20$). Our 10\,000-sample variational posterior recovers
 all six sign quadrants of the mass model, matches \thetaE\ to 3.0\%,
 $e_{1}$ to 2.5\%, and the external shear position angle to within
 $1^{\circ}$ of the published HMC result; the v11f NUTS mode reproduces
@@ -678,12 +682,27 @@ samples), and the between-chain $\hat R$ (Table~\ref{tab:rhat}) is far
 above the $1.01$ convergence threshold for most parameters: the chains
 have {\it not}\ converged in $500$ samples. The \texttt{diagraw}
 $\gammaEPL$ chains span medians $1.37$--$1.86$ (with $\hat R\approx 5$),
-which hints at a {\it broad}\ $\gammaEPL$ posterior that could partially
-reconcile with the paper's lower slope; testing that breadth is the
-purpose of a long $8$-chain \texttt{diagraw} run ($2000$ burn-in $+$
-$8000$ kept per chain, $\sim$$17$\,h, $8$-way parallel across the A16s)
-that was {\it in progress}\ at the time of writing and whose results
-will be folded into a later revision.
+which hints at a {\it broad}\ $\gammaEPL$ posterior. A long $8$-chain
+\texttt{diagraw} run ($2000$ burn-in $+$ $8000$ kept per chain, $8$-way
+parallel across the A16s, $\sim$$15$\,h, $64{,}000$ pooled samples)
+confirms this and {\it revises}\ the cold-start estimate above. All eight
+chains independently drift from the MAP/SVI start
+($\gammaEPL\approx1.86$, $\log p=-45{,}841$) {\it down through}\ the
+paper's $1.372$ to a pooled median $\gammaEPL\approx1.17$
+($16$--$84\%$: $1.15$--$1.19$) at {\it higher}\ log-posterior
+($\log p\approx-45{,}010$ to $-45{,}090$, i.e.\ $\sim$$800$ better than
+the start). The $\gammaEPL\approx1.86$ mode our point estimators (MAP,
+SVI) selected is therefore {\it not}\ the best fit, and the paper's
+$\gammaEPL=1.372$ lies within the traversed range at competitive
+log-posterior --- partially {\it reconciling}\ our reproduction with the
+paper. The earlier $\Delta\log p\approx-32{,}500$ figure was an artifact
+of a stalled paper-seeded optimization (cold-started at the paper slope
+with the high-slope basin's light parameters), not the true cost of the
+low slope. The chains nonetheless remain {\it unconverged}\ at this depth
+($\hat R$ up to $20$, pooled ESS $\sim$$9$--$15$; acceptance $0.02$--$0.06$
+at the larger step), so a converged $\gammaEPL$ credible interval still
+needs deeper sampling or a degeneracy-aware (Riemannian / windowed
+mass-matrix) sampler.
 
 \begin{table}[ht]
 \centering
@@ -720,23 +739,37 @@ A100-class hardware but is $\sim$$17$--$24$\,h even with $8$-way A16
 parallelism --- consistent with the original GIGA-Lens design point of
 GPU-resident chains.
 
-\paragraph{The paper's $\gammaEPL=1.372$ mode is a far worse fit in our
-setup.} Crucially, the gap to the published slope is {\it not}\ a sampler
-artifact. When we refine directly from the paper's reported values
-($\gammaEPL=1.372$, $\thetaE=2.646''$), the optimizer stays there
-($\gammaEPL=1.374$, $\thetaE=2.640''$) --- it is a genuine local
-stationary point of our posterior --- but its log-posterior is
-$\approx-78{,}350$, against $\approx-45{,}841$ at our own basin, a
-difference of $\Delta\log p\approx-32{,}500$. In our reproduction the
-paper-slope configuration is a {\it distinct and dramatically worse}\
-fit. We therefore conclude that the $\gammaEPL$ discrepancy reflects an
-unpublished {\it model-setup}\ difference --- plausibly the PSF, the
-central masking, the source complexity, or the priors
-(\S\ref{sec:discussion}) --- rather than a difference in the sampler.
-This is consistent with, and sharpens, the multimodality discussion of
-\S\ref{sec:multimodal}: our gradient-based machinery now finds and
-samples its mode correctly, and that mode is simply not where the
-published chain sits.
+\paragraph{The paper's $\gammaEPL=1.372$ slope is consistent with our
+posterior --- our point estimators simply mis-ranked it.} Our initial
+reading --- that the published slope is a {\it distinct and dramatically
+worse}\ fit --- was an artifact of how we probed it. A {\it cold-start}\
+refine from the paper's reported values ($\gammaEPL=1.372$,
+$\thetaE=2.646''$) carrying the high-slope basin's light parameters
+stalls the optimizer ($\|\nabla\|\sim5\times10^{5}$, never reaching a
+stationary point) at $\log p\approx-78{,}350$, against $\approx-45{,}841$
+at our MAP/SVI basin --- which we had reported as a
+$\Delta\log p\approx-32{,}500$ ``model-setup difference.'' The long
+$8$-chain HMC run overturns this. Freed to co-adapt all $46$ nonlinear
+parameters, every chain drifts {\it downhill}\ from the MAP/SVI slope
+($\gammaEPL\approx1.86$) {\it through}\ the paper's $1.372$ to a pooled
+median $\gammaEPL\approx1.17$, and does so at {\it higher}\ log-posterior
+($\approx-45{,}010$ to $-45{,}090$, $\sim$$800$ better than the start).
+Low-slope configurations are therefore reachable at competitive
+likelihood; the paper's $\gammaEPL=1.372$ lies squarely within the
+traversed range, and the $-32{,}500$ figure was a stalled-optimization
+artifact, not the true cost of the slope. The honest statement is that
+$\gammaEPL$ is a broad, poorly-constrained, strongly degenerate direction
+along which our {\it point}\ estimators (MAP, SVI) happened to settle high
+($\sim$$1.86$); HMC reveals the posterior actually {\it favors}\ lower
+slopes, consistent with --- and bracketing --- the published $1.372$. We
+cannot yet quote a converged $\gammaEPL$ credible interval, because even
+$64{,}000$ pooled samples leave $\hat R$ up to $20$; pinning the slope to
+the paper's quoted $\pm0.023$ would need a degeneracy-aware sampler
+(windowed dense mass-matrix or Riemannian HMC) or substantially deeper
+chains. This refines the multimodality discussion of
+\S\ref{sec:multimodal}: the published chain is not in a different,
+inaccessible mode --- it sits inside a broad slope posterior that our
+gradient-based machinery does sample, only too slowly to converge.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Results}

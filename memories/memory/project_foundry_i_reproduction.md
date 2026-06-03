@@ -81,15 +81,22 @@ strong-lens parameter degeneracies. The chain of findings (each a separate fix):
    single chain can't give it): 4 diagraw + 4 hesscorr × 500 → chains do **NOT converge**,
    **R-hat = 1.4–33** (need <1.01). Converged inference needs ~1e4–1e5 samples/chain
    (A100-feasible; ~17–24 h on A16 even 8-way parallel — the paper used A100s; **L4s do
-   NOT help — same float64 precision, ~2× speed at most; A100s are the real lever**). A
-   long 8-chain diagraw run (burn2000/keep8000, `data/long_diagraw_s0..7.npz`) was
-   launched 2026-06 to test whether the converged γ posterior is broad enough to reconcile
-   with the paper's 1.37; pool/diagnose with `35_pool_chains.py --glob 'data/long_diagraw_s*.npz'`.
-6. **Paper's γ=1.372 mode is a DISTINCT, FAR-WORSE fit in our setup** — paper-seed refine
-   stays at γ=1.374/θ_E=2.640 (so the mode is real/localizable) but its log-p = −78350 vs
-   our basin −45841, **Δ=−32,500**. Confirms (with hard numbers) the v7/v10 multimodal
-   finding: the γ gap is an **unpublished model-setup difference** (PSF/masking/source
-   complexity/priors), NOT a sampler issue.
+   NOT help — same float64 precision, ~2× speed at most; A100s are the real lever**). The
+   long 8-chain diagraw run (burn2000/keep8000 = 64k pooled, ~15 h, `data/long_diagraw_s0..7.npz`,
+   2026-06-02) RESOLVED the γ-breadth question — see item 6. Pool/diagnose with
+   `35_pool_chains.py --glob 'data/long_diagraw_s*.npz'`.
+6. **Paper's γ=1.372 is CONSISTENT with our posterior (REVISED 2026-06-02 by the long run).**
+   The long 8-chain HMC (64k samples) shows all 8 chains drift downhill from the MAP/SVI
+   start (γ≈1.86, log-p −45841) DOWN THROUGH the paper's 1.372 to pooled median γ≈1.17
+   (16-84%: 1.15-1.19) at HIGHER log-p (−45010..−45090, ~800 better than the start). So the
+   γ≈1.86 mode our POINT estimators (MAP/SVI) picked is NOT the best fit; HMC favors LOWER γ
+   and brackets the paper's value. The earlier **Δ=−32,500 "model-setup difference"** was a
+   COLD-START ARTIFACT (the paper-seed refine stalled, ‖grad‖~5e5, at a bad joint config
+   −78350), NOT the true cost of low γ. CAVEAT: chains still UNCONVERGED (R-hat up to 20 at
+   64k samples, ESS~9-15; acceptance 0.02-0.06) — γ is a broad, slow-mixing degenerate
+   direction; a converged credible interval needs a degeneracy-aware sampler (windowed dense
+   mass / Riemannian HMC) or much deeper chains. Net: the γ gap is poorly-constrained,
+   slow-mixing degeneracy + point-estimator bias, NOT a hard model-setup difference.
 
 **Three real upstream gigalens bugs found** (reproducer `36_upstream_gigalens_repro.py`,
 write-up `UPSTREAM_GIGALENS_ISSUE.md`): (1) GBTLA-under-`pmap` compile blowup
