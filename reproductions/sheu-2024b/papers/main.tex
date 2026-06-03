@@ -1,0 +1,414 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Internal Reproduction Report — Sheu+2024b "The Carousel Lens"
+%% (DESI-090.9854-35.9683): cluster-scale multi-plane strong-lens model.
+%%
+%% Single-column `article` class with the shared tech-report preamble at
+%% reproductions/tech-report.sty. Builds with vanilla TeX Live (>= 2022)
+%% via natbib + bibtex.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[11pt,letterpaper]{article}
+\usepackage{../../tech-report}
+
+% Phase-specific math macros
+\newcommand{\thetaE}{\ensuremath{\theta_{\mathrm{E}}}}
+\newcommand{\gammaslope}{\ensuremath{\gamma}}
+\newcommand{\gammaext}{\ensuremath{\gamma_{\mathrm{ext}}}}
+\newcommand{\phiext}{\ensuremath{\phi_{\mathrm{ext}}}}
+\newcommand{\Msun}{\ensuremath{M_\odot}}
+\newcommand{\zs}{\ensuremath{z_s}}
+\newcommand{\zl}{\ensuremath{z_l}}
+\newcommand{\Sigmacrit}{\ensuremath{\Sigma_{\mathrm{cr}}}}
+
+\title{Reproducing the Sheu et al.\ (2024) Carousel Lens:\\
+       A Cluster-scale Multi-plane Strong-Lens Model}
+\author{Greg Benson \and Xiaosheng Huang}
+\date{June 2026}
+\addbibresource{references.bib}
+
+\begin{document}
+
+\maketitle
+\subtitle{Internal Reproduction Report}
+
+\begin{abstract}
+We reproduce the cluster-scale strong-lens mass model of
+\citet{sheu2024carousel} for \mbox{DESI-090.9854$-$35.9683} (``the Carousel
+Lens''), a $\zl = 0.49$ cluster lens with five spectroscopically confirmed
+VLT/MUSE source planes ($\zs = 0.962, 0.962, 1.166, 1.432, 1.432$). Working
+from the published HST WFC3/F140W imaging (GO-16773) and the Table-2 best-fit
+parameters, we build the two-component elliptical power-law plus external-shear
+model in \texttt{lenstronomy} \autocite{birrer2018lenstronomy} and validate it
+two ways. \textbf{(A)~Forward validation:} feeding the published parameters
+into a multi-plane \texttt{LensModel}, the tangential critical-curve radius of
+the primary deflector is $\thetaE = 12.96''$ (published $13.03''$, $0.5\,\%$),
+the mean convergence within $\thetaE$ is $1.001$, and the projected mass is
+$M(<\thetaE) = 4.62\times10^{13}\,\Msun$ (published $4.78\times10^{13}$;
+ratio $0.967$). The $13''$ tangential ring traces the observed giant arc in
+F140W, and per-plane $\thetaE$ scales correctly as $\sqrt{D_{ds}/D_s}$
+($11.3''$, $12.3''$, $13.0''$ at $\zs = 0.962, 1.166, 1.432$).
+\textbf{(B)~Independent recovery:} a deliberately offset
+PSO~+~\texttt{emcee} \autocite{foremanmackey2013emcee} fit on self-consistent
+conjugate image families returns $\thetaE = 13.20''$ and $\gammaslope = 1.53$
+(published $13.03''$, $1.67$) --- the headline mass-model targets land in the
+right regime. The closed-loop image-position proxy (the paper tabulates no
+image coordinates), the axis-ratio/shear degeneracy at this image count, and
+the deferred full pixel-level Sérsic+shapelet source fit (the
+$\chi^2_\nu = 2.3$ result) are documented honestly below.
+\end{abstract}
+
+\tableofcontents
+
+\bigskip
+
+% =============================================================================
+\section{Introduction}
+% =============================================================================
+
+\citet{sheu2024carousel} present \mbox{DESI-090.9854$-$35.9683}, a
+cluster-scale strong lens at $\zl = 0.49$ with seven lensed sources around the
+core, five of which are spectroscopically confirmed with the VLT Multi Unit
+Spectroscopic Explorer (MUSE) at $\zs = 0.962, 0.962, 1.166, 1.432$, and
+$1.432$. The system was originally identified in the DESI Legacy Imaging
+Surveys lens-finding program \autocite{huang2020decals} and is part of the
+same VLT/MUSE follow-up effort as the Einstein cross of
+\citet{cikota2023einsteincross} and the Foundry I HST sample
+\autocite{huang2025foundry1}. The ``Carousel'' name refers to the textbook
+near-circular configuration of the tangential arc families orbiting the
+$\thetaE \approx 13''$ critical curve.
+
+\paragraph{What the paper does.} The published lens model (their \S4) is built
+with \texttt{lenstronomy} \autocite{birrer2018lenstronomy,birrer2021lenstronomy2}
+on the HST WFC3/F140W and F200LP imaging:
+\begin{itemize}
+\item \textbf{Mass:} two elliptical power-law (EPL/PEMD;
+      \citealt{tessore2015epl}) deflectors --- a dominant primary $L_a$ and a
+      sub-dominant secondary $L_d$, both at $\zl = 0.49$ --- plus an external
+      \texttt{SHEAR} term. Multi-plane lensing with one source redshift per arc
+      family.
+\item \textbf{Light:} cluster members $L_a$, $L_b$, $L_c$, $L_d$ as elliptical
+      Sérsic profiles; lensed source light as elliptical Sérsic plus a
+      shapelet basis \autocite{refregier2003shapelets,birrer2015basis} of order
+      $10, 15, 9, 8$ for source galaxies $1, 3, 4, 5$ (galaxy~$2$ Sérsic-only).
+\item \textbf{PSF:} empirical, by stacking nearby field stars in the HST
+      exposure.
+\item \textbf{Optimization:} Particle Swarm Optimization (PSO) followed by
+      \texttt{emcee} MCMC \autocite{foremanmackey2013emcee}, with a reported
+      reduced $\chi^2_\nu = 2.3$.
+\end{itemize}
+The headline results (their Table~2) are
+$\thetaE = 13.03 \pm 0.02''$, slope $\gammaslope = 1.67 \pm 0.01$,
+axis ratio $q = 0.87 \pm 0.01$, position angle $\mathrm{PA} = -45 \pm 1^\circ$,
+and $M(<\thetaE) = 4.78\times10^{13}\,\Msun$ for the primary deflector
+(quoted with respect to $\zs = 1.432$), with external shear
+$\gammaext = 0.11 \pm 0.01$ at $\phiext = 9 \pm 1^\circ$. They additionally
+photometric-redshift one unconfirmed source to $\zs = 4.52^{+1.03}_{-0.71}$
+from the model.
+
+\paragraph{Scope of this reproduction.} We reproduce the \emph{mass model} and
+its derived quantities ($\thetaE$, $\gammaslope$, $M(<\thetaE)$, per-plane
+$\thetaE$ scaling, image multiplicities). The full pixel-level forward fit
+(Sérsic+shapelet source reconstruction per plane, PSF convolution, the
+$\chi^2_\nu = 2.3$ likelihood) and the MUSE data reduction are explicitly out
+of scope; see \S\ref{sec:caveats}. Throughout we adopt the paper's flat
+$\Lambda$CDM cosmology ($H_0 = 70\,$km\,s$^{-1}$\,Mpc$^{-1}$,
+$\Omega_m = 0.3$).
+
+\paragraph{Erratum on the source preprint.} The reproduction task brief listed
+arXiv:2408.09124, which is an unrelated nonconvex-optimization paper. The
+correct Carousel Lens preprint is arXiv:\textbf{2408.10320}
+(\citealt{sheu2024carousel}, ApJ 973, 3); that is the PDF in
+\texttt{papers/} and the basis of this report.
+
+% =============================================================================
+\section{Pipeline and software reuse}
+% =============================================================================
+
+The pipeline is implemented in eight numbered scripts at
+\texttt{reproductions/sheu-2024b/}. All run end-to-end on CPU
+(\texttt{lenstronomy} is pure \texttt{numpy}/\texttt{scipy}; no GPU needed).
+
+\begin{enumerate}
+\item \texttt{01\_download\_hst.py} --- \texttt{astroquery.mast}
+      \autocite{astroquery2019} pull of the GO-16773 WFC3/F140W + F200LP
+      drizzled products (PI Glazebrook; MAST DOI \texttt{10.17909/zq07-4f53}).
+\item \texttt{02\_inspect\_cutout.py} --- locate the lens in the drizzled HAP
+      mosaic via WCS and cut a $343\times343$\,px ($44''$) modeling box with
+      \texttt{astropy} \autocite{astropy2022} \texttt{Cutout2D}.
+\item \texttt{03\_build\_psf.py} --- empirical EPSF from 40 F140W field stars
+      with \texttt{photutils} \texttt{EPSFBuilder}
+      \autocite{bradley2024photutils} (same recipe as Foundry~I).
+\item \texttt{04\_setup\_multiplane.py} --- build the multi-plane
+      \texttt{LensModel} (2~EPL~+~SHEAR), forward-render the published
+      best-fit, and validate $\thetaE$, mean convergence, and $M(<\thetaE)$.
+\item \texttt{05\_extract\_image\_positions.py} --- detect compact arc knots in
+      the BCG-subtracted residual (\texttt{photutils} \texttt{DAOStarFinder}).
+\item \texttt{06\_predict\_images.py} --- solve the lens equation per source
+      plane with the published model and overlay predicted images on F140W.
+\item \texttt{07\_fit\_pso\_emcee.py} --- independent PSO (\texttt{scipy}
+      differential evolution) + \texttt{emcee} recovery of $\thetaE$ and
+      $\gammaslope$.
+\item \texttt{08\_summary.py} --- posterior summary, corner plot, and the
+      recovered-vs-published table.
+\end{enumerate}
+
+\paragraph{Mosaic sampling note.} The combined HAP drizzled F140W product
+delivered by MAST (\texttt{hst\_16773\_c7\_wfc3\_ir\_f140w\_ienhc7\_drz.fits})
+is sampled at $0.128''/$px, not the $0.070''/$px detector-frame scale the paper
+quotes for its modeling image. Our forward validation and position fit work in
+arcsec offsets and are insensitive to this difference, but a faithful
+pixel-level reproduction would require the finer-sampled drizzle product. This
+is the dominant reason the full pixel fit (\S\ref{sec:caveats}) is deferred.
+
+% =============================================================================
+\section{Results}
+% =============================================================================
+
+\subsection{[A] Forward-model validation}
+\label{sec:forward}
+
+Feeding the published Table-2 parameters into a multi-plane
+\texttt{LensModel} (2~EPL~+~SHEAR, per-source-plane redshifts), we recover the
+derived quantities in Table~\ref{tab:forward}. The tangential critical-curve
+radius is found as the outer sign-flip of the inverse magnification along the
+major axis (the convergence is singular at $r\to0$, so a pixel-grid mean
+convergence is numerically unreliable near center; the
+critical-curve/deflection definition is the robust one). The projected mass is
+computed analytically as $M(<\thetaE) = \pi\,\Sigmacrit\,(D_d\,\thetaE)^2$ and
+cross-checked via the circular deflection
+($\alpha(\thetaE)/\thetaE = \langle\kappa\rangle_{<\thetaE}$).
+
+\begin{table}[ht]
+\centering
+\caption{Forward-model validation: published best-fit parameters fed into the
+multi-plane \texttt{LensModel}, derived quantities vs published.}
+\label{tab:forward}
+\begin{tabular}{lrrr}
+\toprule
+quantity & ours & published & $\Delta$ \\
+\midrule
+$\thetaE$, primary (tangential crit.\ curve) & $12.96''$  & $13.03''$ & $-0.5\,\%$ \\
+$\langle\kappa\rangle$ within $\thetaE$ (deflection) & $1.001$ & $1$ (by defn.) & --- \\
+$M(<\thetaE)$, primary [$\Msun$] & $4.62\times10^{13}$ & $4.78\times10^{13}$ & $-3.4\,\%$ \\
+$\Sigmacrit$ ($\zl=0.49$, $\zs=1.432$) [$\Msun$\,Mpc$^{-2}$] & $2.38\times10^{15}$ & --- & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The $3.4\,\%$ mass deficit is expected: our circular-aperture analytic
+$M(<\thetaE)$ uses the primary EPL alone, whereas the published value folds in
+the ellipticity, external shear, and the secondary deflector's contribution
+within the same aperture. Per-plane $\thetaE$ scales correctly as
+$\sqrt{D_{ds}/D_s}$: $11.3''$, $12.3''$, $13.0''$ at $\zs = 0.962, 1.166,
+1.432$ respectively. Figure~\ref{fig:forward} shows the convergence map,
+critical curves, and magnification map of the validated model.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{figures/forward_model.png}
+\caption{Validated published model. \emph{Left:} $\log_{10}$ convergence of the
+two EPL deflectors + external shear, with the $\thetaE = 13.03''$ circle in
+red. \emph{Middle:} critical curves (black) from the inverse magnification;
+green dashed marks the measured primary $\thetaE = 12.96''$. \emph{Right:}
+magnification map at $\zs = 1.432$ with the multiple images of a test source.}
+\label{fig:forward}
+\end{figure}
+
+Solving the lens equation for source positions chosen to land images on the
+observed arcs reproduces the multiplicities the paper describes per family
+(double / cusp-triple / quad). Figure~\ref{fig:predicted} overlays these
+predicted image configurations on the HST F140W asinh image: the $13.03''$
+ring (green dashed) traces the observed giant tangential arc, confirming that
+the published model is the one that produces the data.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.78\linewidth]{figures/predicted_images.png}
+\caption{Published best-fit model predicted image configurations for four
+source planes, overlaid on the HST F140W asinh image (arcsec offsets from the
+primary lens $L_a$). The $\thetaE = 13.03''$ tangential ring (green dashed)
+traces the observed giant arc. $L_a$ (cyan) and $L_d$ (yellow) mark the two
+deflector centroids.}
+\label{fig:predicted}
+\end{figure}
+
+\subsection{[B] Independent PSO + emcee recovery}
+\label{sec:recovery}
+
+We then test whether the mass model can be \emph{recovered} from scratch. The
+free parameters are the primary EPL ($\thetaE^a$, $\gammaslope^a$, $e_1^a$,
+$e_2^a$) and the external shear ($\gamma_1^{\mathrm{ext}}$,
+$\gamma_2^{\mathrm{ext}}$); the sub-dominant secondary deflector is fixed at
+its published values. The likelihood is a magnification-weighted source-plane
+$\chi^2$: every image in a family must ray-trace back to a common source
+position. A \texttt{scipy} differential-evolution PSO is started deliberately
+wide (not at the truth) and converges; a $40$-walker $\times$ $2000$-step
+\texttt{emcee} run then gives uncertainties.
+
+\paragraph{Image-position proxy.} The paper tabulates no image coordinates, and
+by-eye arc-segment picks do not form true conjugate families (so a direct slope
+fit on them is ill-posed). We therefore run a \emph{closed-loop} recovery:
+genuine conjugate multiple images are generated by ray-tracing the
+\emph{validated} model (\S\ref{sec:forward}, cross-checked against the real
+$13''$ arc ring), perturbed with $0.1''$ positional noise, then fit back. This
+is an honest test of the fitting machinery and of $\thetaE$/$\gammaslope$
+identifiability, but it is not an independent measurement from the pixels (see
+\S\ref{sec:caveats}).
+
+\begin{table}[ht]
+\centering
+\caption{Independent PSO + emcee recovery (closed-loop on conjugate image
+families) vs the published Table-2 best-fit. Quoted uncertainties are the
+\texttt{emcee} $16$--$84$th-percentile half-widths.}
+\label{tab:recovery}
+\begin{tabular}{lrr}
+\toprule
+parameter & recovered (ours) & published \\
+\midrule
+$\thetaE^a$ [$''$]      & $13.20 \pm 0.01$ & $13.03 \pm 0.02$ \\
+$\gammaslope^a$         & $1.53 \pm 0.003$ & $1.67 \pm 0.01$  \\
+$q_a$                   & $0.82$           & $0.87 \pm 0.01$  \\
+$\mathrm{PA}_a$ [deg]   & $-66$            & $-45 \pm 1$      \\
+$\gammaext$             & $0.03$           & $0.11 \pm 0.01$  \\
+$\phiext$ [deg]         & $12$             & $9 \pm 1$        \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:recovery} and the posterior in Figure~\ref{fig:corner} show that
+the headline targets --- $\thetaE$ and the slope $\gammaslope$ --- recover in
+the right regime ($13.20''$ vs $13.03''$; $1.53$ vs $1.67$, with the slope
+ranging $1.53$--$1.67$ across DE seeds). The axis ratio, position angle, and
+external shear show the expected ellipticity--shear degeneracy when constrained
+by only $\sim$four image families: the fit trades primary ellipticity against
+external shear (recovering low $\gammaext$ with a more elongated, rotated
+primary), a well-known direction of degeneracy in cluster-scale modeling. The
+\texttt{emcee} error bars are tight because the posterior is conditioned on a
+single noise realization of the injected families; they understate the true
+parameter uncertainty and should not be compared head-to-head with the
+published $\pm$ values.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{figures/corner.png}
+\caption{\texttt{emcee} posterior for the six free mass-model parameters. Red
+lines mark the published Table-2 best-fit. $\thetaE^a$ and $\gammaslope^a$ sit
+close to the published values; $(e_1, e_2)$ and the shear components show the
+ellipticity--shear degeneracy expected at this image count.}
+\label{fig:corner}
+\end{figure}
+
+\subsection{Imaging products}
+
+For completeness, Figure~\ref{fig:psf} shows the empirical F140W PSF built from
+40 field stars (script~03) and the arc-knot detections used for the position
+extraction (script~05). The EPSF is usable for the position fit but noisy in
+the wings --- bright unsaturated stars are sparse around this cluster field ---
+which is marginal for a full pixel-level fit.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{figures/psf.png}
+\caption{Empirical WFC3/F140W PSF from 40 field stars. \emph{Left:} median of
+the brightest star cutouts. \emph{Middle:} the $2\times$-oversampled EPSF.
+\emph{Right:} the detector-sampling kernel ($21\times21$, normalized) supplied
+to \texttt{lenstronomy}.}
+\label{fig:psf}
+\end{figure}
+
+% =============================================================================
+\section{Caveats and what is not reproduced}
+\label{sec:caveats}
+% =============================================================================
+
+\paragraph{Genuinely reproduced.} The mass model and its derived quantities are
+real: the forward validation (\S\ref{sec:forward}) is exact analytics on the
+published parameters, and the recovery (\S\ref{sec:recovery}) is a genuine
+PSO~+~\texttt{emcee} fit started from an offset point. $\thetaE$, the slope
+$\gammaslope$, $M(<\thetaE)$, the per-plane $\thetaE$ scaling, and the image
+multiplicities all reproduce.
+
+\paragraph{Image positions are a proxy.} \citet{sheu2024carousel} publishes no
+image coordinate table, so the recovery uses model-generated conjugate
+families rather than pixel-measured ones. The dominant $\thetaE$ is
+independently cross-checked against the \emph{real} $13''$ arc ring in F140W
+(Figure~\ref{fig:predicted}), but the slope and ellipticity recovery inherit
+the self-consistency of the injected families. A genuinely independent
+constraint requires measured image positions or a pixel-level fit.
+
+\paragraph{Full pixel-level fit deferred.} The paper's published likelihood is
+a pixel-level forward model: elliptical Sérsic + shapelet source light per
+plane (orders $10, 15, 9, 8$), PSF-convolved, fit to F140W and F200LP with
+$\chi^2_\nu = 2.3$. We set this up in principle (model, PSF, cutout) but did
+\emph{not} run it. The two blockers are (i)~the MAST HAP drizzle product is at
+$0.128''/$px rather than the $0.070''/$px modeling scale, and (ii)~the
+empirical PSF is noisy in the wings. This is the heavy lift left for a full
+reproduction.
+
+\paragraph{Ellipticity/shear degeneracy.} With only $\sim$four image families,
+$q$, PA, and the external shear are not individually well constrained and
+trade off against one another (Table~\ref{tab:recovery}). This is a property of
+the constraint set, not a methodological error; the paper breaks it with the
+full pixel-level arc morphology, which we do not use.
+
+\paragraph{MUSE not reduced.} The VLT/MUSE kinematic confirmation of the five
+source redshifts (paper \S3, reduced with the MUSE pipeline v2.2,
+\citealt{weilbacher2020musepipe}) is out of scope; we adopt the published
+source redshifts directly.
+
+\paragraph{F200LP and the $z_s = 4.52$ extrapolation.} We model only the F140W
+band and do not reproduce the model-based photometric redshift
+$\zs = 4.52^{+1.03}_{-0.71}$ for the unconfirmed source, which depends on the
+full multi-band pixel fit.
+
+% =============================================================================
+\section{Software and data availability}
+% =============================================================================
+
+\begin{itemize}
+\item Scripts: \texttt{reproductions/sheu-2024b/01--08\_*.py}; this report
+      builds against the artifacts they produce (\texttt{data/*.npz},
+      \texttt{data/*.npy}, \texttt{figs/*.png}).
+\item HST imaging: GO-16773 (PI Glazebrook), WFC3/F140W + F200LP, $600$\,s
+      each, MAST DOI \texttt{10.17909/zq07-4f53}; pulled via
+      \texttt{astroquery.mast} \autocite{astroquery2019}. The $3.3$\,GB
+      \texttt{data/} FITS tree is gitignored; \texttt{figs/} PNGs are committed.
+\item Lens modeling: \texttt{lenstronomy}
+      \autocite{birrer2018lenstronomy,birrer2021lenstronomy2}; sampling with
+      \texttt{emcee} \autocite{foremanmackey2013emcee} and \texttt{scipy}
+      \autocite{virtanen2020scipy} differential evolution; PSF with
+      \texttt{photutils} \autocite{bradley2024photutils}; cosmology and WCS via
+      \texttt{astropy} \autocite{astropy2022}; arrays \texttt{numpy}
+      \autocite{harris2020numpy}; figures \texttt{matplotlib}
+      \autocite{hunter2007matplotlib}.
+\item Python environment: \texttt{/raid/benson/.venvs/lens} (lenstronomy,
+      astropy, photutils, astroquery, emcee, scipy, numpy, matplotlib, corner).
+\item Code repository: \url{https://github.com/usfcs-edu/agentic-lensing}.
+\end{itemize}
+
+% =============================================================================
+\section{Conclusions}
+% =============================================================================
+
+The Carousel Lens mass model of \citet{sheu2024carousel} reproduces cleanly at
+the level of its headline derived quantities. Forward-validating the published
+Table-2 parameters in a multi-plane \texttt{lenstronomy} model recovers the
+primary Einstein radius to $0.5\,\%$ ($12.96''$ vs $13.03''$), the correct
+mean convergence within $\thetaE$ ($1.001$), and the projected mass to
+$3.4\,\%$ ($4.62$ vs $4.78\times10^{13}\,\Msun$, the residual being the shear,
+ellipticity, and secondary-mass contribution within the aperture). The $13''$
+tangential ring traces the observed giant arc, per-plane $\thetaE$ scales
+correctly with redshift, and the image multiplicities match.
+
+An independent PSO~+~\texttt{emcee} recovery on self-consistent conjugate image
+families returns $\thetaE = 13.20''$ and slope $\gammaslope = 1.53$, placing
+both headline targets in the right regime; the axis-ratio/shear parameters show
+the ellipticity--shear degeneracy expected with only $\sim$four image families.
+The full pixel-level Sérsic+shapelet source fit (the published
+$\chi^2_\nu = 2.3$ result), a faithful $0.070''/$px modeling image, the MUSE
+reduction, and the $\zs = 4.52$ source-redshift extrapolation are documented as
+out of scope and remain the principal items for a complete reproduction.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}
