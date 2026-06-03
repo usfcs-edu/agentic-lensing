@@ -118,7 +118,7 @@ If you want to read this in 30 minutes: read §1, §2, the executive paragraphs 
   - [A.5 Sheu, Huang et al. 2023 — lensed supernovae (arXiv:2301.03578)](#a5-sheu-huang-et-al-2023--lensed-supernovae-arxiv230103578)
   - [A.6 Cikota, Toro Bertolla, Huang et al. 2023 — DESI-253 Einstein cross (arXiv:2307.12470)](#a6-cikota-toro-bertolla-huang-et-al-2023--desi-253-einstein-cross-arxiv230712470)
   - [A.7 Sheu, Huang et al. 2024a — variable lensed quasars (arXiv:2408.02670)](#a7-sheu-huang-et-al-2024a--variable-lensed-quasars-arxiv240802670)
-  - [A.8 Sheu, Cikota, Huang et al. 2024b — Carousel cluster lens (arXiv:2408.10332)](#a8-sheu-cikota-huang-et-al-2024b--carousel-cluster-lens-arxiv240810332)
+  - [A.8 Sheu, Cikota, Huang et al. 2024b — Carousel cluster lens (arXiv:2408.10320)](#a8-sheu-cikota-huang-et-al-2024b--carousel-cluster-lens-arxiv240810320)
   - [A.9 Storfer, Huang et al. 2024 — DR9 lens search (arXiv:2309.18089)](#a9-storfer-huang-et-al-2024--dr9-lens-search-arxiv230918089)
   - [A.10 Inchausti, Storfer, Huang et al. 2025 — DR10 dual architectures (arXiv:2508.20089)](#a10-inchausti-storfer-huang-et-al-2025--dr10-dual-architectures-arxiv250820089)
   - [A.11 Hsu, Huang et al. 2025 — pairwise spectroscopic search (arXiv:2509.16033)](#a11-hsu-huang-et-al-2025--pairwise-spectroscopic-search-arxiv250916033)
@@ -446,7 +446,7 @@ The five-modality picture from §2 is built largely from this cluster of papers:
 Two showcase systems modeled in detail with GIGA-Lens:
 
 - **Cikota 2023 (DESI-253.2534+26.8843 Einstein cross)**, arXiv:2307.12470. *A quadruply imaged blue source around a massive elliptical at z_L = 0.630, source z_S = 2.597, originally found in Huang 2021.* Spectroscopic confirmation with VLT/MUSE; lens model with GIGA-Lens. Einstein radius θ_E = 2.52″.
-- **Sheu 2024b ("Carousel" cluster lens DESI-090.9854−35.9683)**, arXiv:2408.10332. *A cluster-scale lens at z_L = 0.49 with **seven** spectroscopically confirmed lensed sources, plus a model-predicted z ~ 4.5 high-z source.* Modeled with GIGA-Lens. Mass interior to the Einstein radius: 4.78 × 10¹³ M_⊙.
+- **Sheu 2024b ("Carousel" cluster lens DESI-090.9854−35.9683)**, arXiv:2408.10320. *A cluster-scale lens at z_L = 0.49 with **seven** spectroscopically confirmed lensed sources, plus a model-predicted z ~ 4.5 high-z source.* Modeled with GIGA-Lens. Mass interior to the Einstein radius: 4.78 × 10¹³ M_⊙.
 
 These are the prototypes for the kind of detailed science papers that the larger Foundry sample will support at scale. Each is also a demonstration that GIGA-Lens handles real (rather than simulated) data, with HST imaging and multi-source spectroscopy.
 
@@ -1126,7 +1126,7 @@ Within 24 months (~end of Phase I, possibly into Phase II of SpectrumFM):
 5. Sheu, W., Huang, X., et al. 2023. *Retrospective Search for Strongly Lensed Supernovae in the DESI Legacy Imaging Surveys.* arXiv:2301.03578.
 6. Cikota, A., Toro Bertolla, I., Huang, X., et al. 2023. *DESI-253.2534+26.8843: A New Einstein Cross Spectroscopically Confirmed with VLT/MUSE and Modeled with GIGA-Lens.* arXiv:2307.12470.
 7. Sheu, W., Huang, X., et al. 2024a. *A Targeted Search for Variable Gravitationally Lensed Quasars.* arXiv:2408.02670.
-8. Sheu, W., Cikota, A., Huang, X., et al. 2024b. *The Carousel Lens: A Well-Modeled Strong Lens with Multiple Sources Spectroscopically Confirmed by VLT/MUSE.* arXiv:2408.10332.
+8. Sheu, W., Cikota, A., Huang, X., et al. 2024b. *The Carousel Lens: A Well-Modeled Strong Lens with Multiple Sources Spectroscopically Confirmed by VLT/MUSE.* arXiv:2408.10320.
 9. Storfer, C., Huang, X., et al. 2024. *New Strong Gravitational Lenses from the DESI Legacy Imaging Surveys Data Release 9.* ApJS 274, 16. arXiv:2309.18089.
 10. Huang, X., et al. 2025a. *DESI Strong Lens Foundry I: HST Observations and Modeling with GIGA-Lens.* arXiv:2502.03455.
 11. Agarwal, S., Huang, X., et al. 2025. *DESI Strong Lens Foundry III: Keck Spectroscopy for Strong Lenses Discovered Using Residual Neural Networks.* arXiv:2501.08066.
@@ -1262,7 +1262,7 @@ The 16 papers in the corpus, in roughly chronological order. Each entry: science
 
 **Takeaway.** Time-domain finding complements the static morphological CNNs and the static autocorrelation method. The future LSST cadence makes time-domain methods particularly powerful.
 
-## A.8 Sheu, Cikota, Huang et al. 2024b — Carousel cluster lens (arXiv:2408.10332)
+## A.8 Sheu, Cikota, Huang et al. 2024b — Carousel cluster lens (arXiv:2408.10320)
 
 **Question.** Detailed modeling of a cluster-scale lens with multiple sources.
 
