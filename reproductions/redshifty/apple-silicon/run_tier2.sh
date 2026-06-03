@@ -11,7 +11,10 @@ AS="$(pwd)"
 REPO_ROOT="$(cd ../../.. && pwd)"
 RAID_LOCAL="$AS/_raid"
 LRD="$RAID_LOCAL/benson/data/desi_dr1_medium"
-SPEC="$REPO_ROOT/experiments/specs/redshifty_approach_a_phase10_mix_mps.yaml"
+# optional spec name (default the 10k ignition spec; e.g. redshifty_approach_a_phase10_mix_mps_20k)
+SPEC_NAME="${1:-redshifty_approach_a_phase10_mix_mps}"
+SPEC="$REPO_ROOT/experiments/specs/${SPEC_NAME}.yaml"
+[ -f "$SPEC" ] || { echo "[tier2] spec not found: $SPEC"; exit 2; }
 
 ./sync_from_phoenix.sh links >/dev/null 2>&1
 
@@ -27,7 +30,7 @@ else
   # rewrite the manifest's absolute /raid coadd/redrock paths to the Mac-local data root
   sed "s#/raid/benson/data/desi_dr1_medium#$LRD#g" "$LRD/manifest_mix.jsonl" > "$LRD/manifest_mix_local.jsonl"
   # derive a local spec from the committed one (only the absolute paths change)
-  SPEC_LOCAL="$AS/data/redshifty_approach_a_phase10_mix_mps_local.yaml"
+  SPEC_LOCAL="$AS/data/${SPEC_NAME}_local.yaml"
   mkdir -p "$AS/data"
   sed -e "s#/raid/benson/data/desi_dr1_medium/manifest_mix.jsonl#$LRD/manifest_mix_local.jsonl#g" \
       -e "s#/raid/benson/data/desi_dr1_medium#$LRD#g" "$SPEC" > "$SPEC_LOCAL"
