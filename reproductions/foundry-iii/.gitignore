@@ -1,0 +1,4 @@
+# Foundry III — transient artifacts (data/ already ignored at repo root).
+*.log
+__pycache__/
+data/raw_sample/
