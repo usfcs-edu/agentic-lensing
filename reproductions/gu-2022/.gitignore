@@ -1,0 +1,16 @@
+# Gu 2022 (GIGA-Lens) — bulk/transient data, regeneratable from the scripts.
+data/
+*.log
+.jax_cache/
+__pycache__/
+
+# LaTeX build artifacts (keep main.tex, main.pdf, Makefile, references.bib)
+papers/*.aux
+papers/*.bbl
+papers/*.blg
+papers/*.log
+papers/*.out
+papers/*.toc
+papers/*.fls
+papers/*.fdb_latexmk
+papers/*.synctex.gz
