@@ -1,0 +1,11 @@
+---
+name: project-spectrumfm-ws4a-equivariance
+description: WS4a redshift-equivariance physical prior — instills partial equivariance (slope 0.00→0.35) but does NOT improve absolute good-z precision; equivariance and precision are decoupled, scale is the lever
+metadata:
+  type: project
+---
+WS4a of the build-out (2026-06-02) DONE. Built a flag-gated, default-off redshift-EQUIVARIANCE physical prior: synthesise each spectrum as if at z+dz (resample flux on the DESI grid, `new_flux(lam)=old_flux(lam*(1+z)/(1+z+dz))`, redward for dz>0), require the aux head's continuous E[z] to move by dz (smooth_l1 on (E[z_shift]-E[z_orig])-dz). Files (all additive): `src/models/transformer.py::aux_z_expectation`, `nersc/physical_priors.py` (build_wave_grid/redshift_shift_batch/equivariance_loss), train hook `--physical-prior-weight`(default 0)/`--physical-prior-dz`(default 0.05). Built+verified via Workflow (no-regression airtight 8/8; equivariance direction proven). Tool `tools/spectrumfm/measure_equivariance.py` reports the response slope. Run spec `experiments/specs/redshifty_approach_a_mix_l4x2_v1_eqprior.yaml`.
+
+**Calibration diagnostic:** the trained V1 prototype is ~NON-equivariant — d(Ez)/d(dz) slope = 0.00 (dz=0.05). Chose weight=30, dz=0.1 (grad ~0.9; ~5% of grid zeroed). Treatment = V1 config + prior, 15k steps, 2×L4 DDP, ~7h, seed 42 (so the existing V1 best.pt is the exact control).
+
+**RESULT (null on precision, positive on mechanism):** the prior raised the small-shift equivariance slope 0.00→**0.35** (dz=0.05) — it mechanically worked — but per-class catastrophic rate vs V1 was UNCHANGED (BGS 95.7→95.7, ELG 97.8→98.1, LRG/QSO ±1-3pp within small-N noise; aggregate good-z 24.1→24.5%). Median |dz| unchanged (~0.04-0.18). **Equivariance (shift consistency) and absolute precision are DECOUPLED:** a consistency constraint can't fix accuracy that's off by 10-50× the 0.0033 threshold. Pushing weight higher would raise slope, not precision — not worth more GPU. Reinforces [[project-spectrumfm-ws1-per-class]] + the proposal premise that SCALE (data/model/tokenizer granularity) is the precision lever, not auxiliary loss terms. Honest negative result; valuable evidence physics-priors shape representations but precision needs scale. NOT committed. See [[project-spectrumfm-buildout]].

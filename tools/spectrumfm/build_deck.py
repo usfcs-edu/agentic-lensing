@@ -332,6 +332,70 @@ def slide_phase14(prs):
                  top=Inches(6.55), size=12, color=ACCENT)
 
 
+def slide_phase16_perclass(prs):
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    add_title(slide, "Phase 16 — per-class redshift parity vs Redrock (Metric 1)")
+    add_subtitle(slide, "Honest encoder-masked |Δz|/(1+z); ZWARN=0 held-out set; "
+                 "pass = catastrophic rate within 5pp of zero", top=Inches(1.05), size=15)
+    add_table(slide, Inches(0.5), Inches(3.1), [
+        ["class", "N", "catastrophic rate", "median |Δz|/(1+z)", "verdict"],
+        ["MWS (stars)", "289", "2.1%", "0.0002", "PASS"],
+        ["BGS", "346", "95.7%", "0.0361", "FAIL"],
+        ["LRG", "202", "97.5%", "0.0630", "FAIL"],
+        ["ELG", "366", "97.8%", "0.1106", "FAIL"],
+        ["QSO *", "74", "97.3%", "0.1782", "FAIL"],
+    ], col_widths_in=[2.6, 1.2, 3.2, 3.2, 1.8], size=14)
+    add_subtitle(slide,
+                 "Only stars reach good-z parity. Failure ordering MWS≪BGS<LRG<ELG<QSO "
+                 "tracks spectroscopic difficulty exactly → the metric is real. Coarse z is "
+                 "learned (60% within |Δz|/(1+z)<0.05); DESI precision is not. V1≈V2 no-skip.",
+                 top=Inches(5.6), size=13, color=ACCENT)
+    add_footer(slide, "tools/spectrumfm/eval_per_class.py (+ desi_targets.py); decode vs SPECTYPE 98.7% agree. * QSO Redrock-only comparator.")
+
+
+def slide_phase16_probe(prs):
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    add_title(slide, "Phase 16 — frozen-encoder six-class probe")
+    add_subtitle(slide, "Linear probe on frozen mean-pooled encoder features "
+                 "(redshift token masked); healpix-disjoint split", top=Inches(1.05), size=15)
+    add_table(slide, Inches(0.5), Inches(2.6), [
+        ["metric", "V1", "V2 no-skip", "no-skill baseline"],
+        ["macro-F1", "0.813", "0.847", "0.097"],
+        ["accuracy", "0.858", "0.886", "0.321"],
+        ["per-class F1 (V2)", "MWS .95 / BGS .92 / ELG .90", "LRG .87 / QSO .61", "—"],
+    ], col_widths_in=[2.6, 3.6, 3.0, 2.6], size=13)
+    add_subtitle(slide,
+                 "The encoder learns WHAT an object is (macro-F1 0.81–0.85, +0.72 over no-skill) "
+                 "even where it cannot pin HOW FAR (Metric 1). Classification capability and "
+                 "redshift precision are DISTINCT — the precision gap is not a representation problem.",
+                 top=Inches(5.0), size=14, color=ACCENT)
+    add_subtitle(slide, "Only confusions are physical: QSO↔ELG (emission-line), LRG↔BGS (red galaxies).",
+                 top=Inches(6.1), size=13, color=MUTED)
+    add_footer(slide, "tools/spectrumfm/probe_six_class.py; supports the proposal's “one encoder, six classes” claim.")
+
+
+def slide_phase16_eqprior(prs):
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    add_title(slide, "Phase 16 — physical-prior ablation: redshift equivariance")
+    add_subtitle(slide, "Self-supervised: shift a spectrum by δz → require predicted z to move by δz "
+                 "(flag-gated, default-off)", top=Inches(1.05), size=15)
+    add_table(slide, Inches(0.5), Inches(2.7), [
+        ["equivariance response  d E[z]/d(δz)  (ideal 1.0)", "V1 control", "eqprior"],
+        ["δz = +0.05", "0.00", "0.35"],
+        ["δz = +0.10", "0.10", "0.27"],
+        ["δz = +0.20", "0.15", "0.14"],
+    ], col_widths_in=[6.0, 2.6, 2.6], size=14)
+    add_subtitle(slide,
+                 "Prior WORKS mechanically (non-equivariant 0.00 → 0.35 at small shifts) but per-class "
+                 "catastrophic rate is UNCHANGED (aggregate good-z 24.1% → 24.5%).",
+                 top=Inches(5.0), size=14, color=ACCENT)
+    add_subtitle(slide,
+                 "Principled null: equivariance is shift-CONSISTENCY; galaxy |Δz| (~0.04–0.18) is off by "
+                 "10–50× the 0.0033 threshold. Consistency cannot fix absolute error → SCALE is the lever.",
+                 top=Inches(6.0), size=13, color=NAVY)
+    add_footer(slide, "nersc/physical_priors.py; 15k-step matched treatment vs V1 control, both L4s.")
+
+
 def slide_10_next(prs):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     add_title(slide, "What's next")
@@ -342,11 +406,15 @@ def slide_10_next(prs):
         (1, "Skip-free V2 ties V1: codebook entropy, not reconstruction loss, predicts usefulness"),
         "DONE: codecs (Mamba3+RFSQ) tokenizer swap — ties V1 (0.53 TF / 0.52 AR)",
         (1, "Tokenizer architecture is not the bottleneck; codebook health gates usability"),
-        "Next: scale steps/data toward the NERSC 73.8% peak (local config plateaus ~55%)",
-        (1, "Optional: codecs multi-token expansion to use all 3 RFSQ residual layers"),
+        "DONE: Phase-16 evaluation framework — per-class Metric-1 eval + frozen six-class probe",
+        (1, "Metric 1 not met at scale (only stars); encoder learns class strongly (macro-F1 0.81–0.85)"),
+        "DONE: physical-prior ablation (redshift equivariance) — works mechanically, no precision gain",
+        (1, "Equivariance & absolute precision are decoupled → scale, not aux losses, is the lever"),
+        "Next: local data×model-size scaling ladder (per-point metric = Metric-1 cat. rate + probe-F1)",
+        (1, "Then the full-DR1 / 250M–1B-param NERSC spec, with eval_per_class.py as the completion gate"),
         "Open PRs: cosmologyfoundation/redshifty#1 (+ multi-GPU fixes), codecs#1",
-    ], size=15)
-    add_footer(slide, "None of the next items depend on NERSC compute.")
+    ], size=14)
+    add_footer(slide, "Local prototyping done; precision now requires NERSC-scale compute (the proposal's Phase-I premise).")
 
 
 def slide_11_thanks(prs):
@@ -378,6 +446,9 @@ def main():
     slide_8_ignition(prs)
     slide_9_pass(prs)
     slide_phase14(prs)
+    slide_phase16_perclass(prs)
+    slide_phase16_probe(prs)
+    slide_phase16_eqprior(prs)
     slide_10_next(prs)
     slide_11_thanks(prs)
 

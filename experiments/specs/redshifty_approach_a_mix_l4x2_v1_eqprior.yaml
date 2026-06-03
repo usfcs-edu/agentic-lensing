@@ -1,0 +1,74 @@
+name: redshifty_approach_a_mix_l4x2_v1_eqprior
+repo: redshifty
+description: |
+  WS4a TREATMENT arm: identical to redshifty_approach_a_mix_l4x2_v1 (the V1
+  CONTROL, same V1 tokenizer / data mix / 15k steps / eff-batch 64 / seed 42)
+  but with the flag-gated redshift-EQUIVARIANCE physical prior ENABLED
+  (--physical-prior-weight 30.0 --physical-prior-dz 0.1). The prior is a
+  self-supervised consistency term: synthesise each spectrum as if redshifted
+  by dz and require the aux head's continuous E[z] to move by dz. Calibrated on
+  the trained V1 model, which was measured to be NON-equivariant
+  ((E[z_shift]-E[z_orig]) ~ 0 vs dz); dz=0.1 zeros only ~5% of the 7781-px grid;
+  weight 30 makes the smooth-L1 gradient (~weight*|resid|~0.9) comparable to the
+  aux-head signal while the 50x z_loss anchors absolute z. Evaluated against the
+  V1 control with tools/spectrumfm/eval_per_class.py (WS1 Metric-1) to test
+  whether the physics prior closes the galaxy good-z precision gap.
+tags: [xlarge-scale, transformer, approach-a, track3, l4-ddp, ws4a, physical-prior, eqprior]
+
+launch:
+  command:
+    - python
+    - -m
+    - torch.distributed.run
+    - --standalone
+    - --nproc_per_node=2
+    - nersc/train_transformer.py
+    - --manifest
+    - /raid/benson/data/desi_dr1_medium/manifest_mix.jsonl
+    - --tokenizer-ckpt
+    - /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v1_large/best.pt
+    - --tokenizer-kind
+    - v1
+    - --approach
+    - a
+    - --steps
+    - "15000"
+    - --batch-size
+    - "32"
+    - --lr
+    - "4e-4"
+    - --warmup
+    - "500"
+    - --healpix-holdout-frac
+    - "0.05"
+    - --val-every
+    - "500"
+    - --save-every
+    - "2500"
+    - --log-every
+    - "100"
+    - --num-workers
+    - "4"
+    - --amp
+    - --redshift-loss-weight
+    - "50.0"
+    - --encoder-mask-ratio
+    - "0.50"
+    - --ar-eval-batches
+    - "8"
+    - --physical-prior-weight
+    - "30.0"
+    - --physical-prior-dz
+    - "0.1"
+    - --run-name
+    - approach_a_mix_l4x2_v1_eqprior
+    - --scratch-out
+    - /raid/benson/data/desi_dr1_medium/checkpoints
+    - --wandb-mode
+    - disabled
+    - --no-push-wandb-artifact
+
+env:
+  CUDA_DEVICE_ORDER: PCI_BUS_ID
+  CUDA_VISIBLE_DEVICES: "8,9"
+  SCRATCH: /raid/benson/data/desi_dr1_medium

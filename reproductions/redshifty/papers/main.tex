@@ -510,6 +510,105 @@ ${\sim}$step $6$k. Right: binning-fair honest $|\Delta z|/(1{+}z)$ fractions
 \end{figure}
 
 % =============================================================================
+\section{Phase 16: per-class evaluation, a frozen-encoder probe, and a physical-prior ablation}
+\label{sec:phase16}
+% =============================================================================
+
+The reproduction above establishes \emph{that} Approach-A ignites; it does not
+ask \emph{whether the learned representation meets the proposal's go/no-go
+metrics}. Phase~16 builds that evaluation framework---entirely on the two L4s,
+on the existing frozen checkpoints---and reports the first three go/no-go-relevant
+numbers. All evaluation code is additive and default-off; the eval harnesses are
+adversarially cross-checked (per-class decode vs Redrock \texttt{SPECTYPE}
+agreement $98.7\%$; the probe's plumbing returns chance accuracy on random
+features).
+
+\paragraph{Per-class redshift parity (Metric~1).}
+We extend the data path to carry per-row Redrock truth (\texttt{SPECTYPE},
+\texttt{ZWARN}, \texttt{Z}) and the survey-appropriate DESI target bitmasks
+(sv3 rows must read \texttt{SV3\_DESI\_TARGET}; the bare \texttt{DESI\_TARGET}
+is ${\sim}0$ for sv3), decode each spectrum to a class
+(\texttt{tools/spectrumfm/desi\_targets.py}), and compute the
+honest encoder-masked catastrophic-outlier rate ($|\Delta z|/(1{+}z) \ge
+0.0033$) per class on the Redrock-confident (\texttt{ZWARN}${=}0$) held-out set
+(\texttt{tools/spectrumfm/eval\_per\_class.py}). The result
+(Table~\ref{tab:perclass}) is unambiguous: only the stellar class (MWS, at
+$z{\approx}0$) reaches good-$z$ parity; every galaxy/QSO class is catastrophic
+at the $0.0033$ threshold. Crucially, the failure ordering---MWS $\ll$ BGS $<$
+LRG $<$ ELG $<$ QSO, with the median $|\Delta z|/(1{+}z)$ climbing $0.0002 \to
+0.036 \to 0.063 \to 0.111 \to 0.178$---tracks spectroscopic difficulty exactly
+(sharp stellar features; low-$z$ bright galaxies; absorption-line LRGs;
+single-emission-line ELGs; broad-line QSOs over $z\,{\to}\,3.7$), which
+validates that the metric measures real physics rather than an artifact. V1 and
+the skip-free V2 are statistically identical here, consistent with the
+Phase-15 tokenizer conclusion. The model has learned \emph{coarse} redshift
+($60\%$ of spectra within $|\Delta z|/(1{+}z) < 0.05$) but not DESI precision
+for galaxies---\textbf{Metric~1 is not met at this prototype scale}.
+
+\begin{table}[t]
+\centering
+\caption{Per-class redshift parity vs Redrock (Metric~1), V1 checkpoint, on
+$1{,}316$ \texttt{ZWARN}${=}0$ held-out spectra (V2 no-skip is identical within
+noise). ``cat.\ rate'' $= $ fraction with $|\Delta z|/(1{+}z) \ge 0.0033$
+(encoder-masked honest readout). A class passes if its catastrophic rate is
+within $5$ pp of zero (Redrock-confident $z$ treated as truth). QSO is
+indicative (Redrock-only comparator). Verdict: \textbf{FAIL}---only the stellar
+class passes.}
+\label{tab:perclass}
+\begin{tabular}{lccc}
+\toprule
+class & $N$ & cat.\ rate & median $|\Delta z|/(1{+}z)$ \\
+\midrule
+MWS (stars) & $289$ & $2.1\%$  & $0.0002$ \\
+BGS         & $346$ & $95.7\%$ & $0.0361$ \\
+LRG         & $202$ & $97.5\%$ & $0.0630$ \\
+ELG         & $366$ & $97.8\%$ & $0.1106$ \\
+QSO         & $74$  & $97.3\%$ & $0.1782$ \\
+\midrule
+\multicolumn{2}{l}{aggregate good-$z$ (ZWARN${=}0$)} & \multicolumn{2}{c}{$24.1\%$} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Frozen-encoder six-class probe.}
+Is the precision failure a failure of \emph{representation}, or only of the
+fine-grained redshift read-out? We freeze the encoder, mean-pool its spectrum
+tokens (the redshift token masked, special tokens excluded), and fit a linear
+probe to the five classes on a healpix-disjoint split
+(\texttt{tools/spectrumfm/probe\_six\_class.py}). The frozen features are
+strongly class-separable: macro-F1 $0.813$ (V1) / $0.847$ (V2 no-skip) against a
+no-skill baseline of $0.097$ (accuracy $0.86$/$0.89$ vs $0.32$). Per-class F1
+(V2 no-skip) is MWS $0.95$, BGS $0.92$, ELG $0.90$, LRG $0.87$, QSO $0.61$;
+the only material confusions are QSO$\leftrightarrow$ELG (both emission-line) and
+LRG$\leftrightarrow$BGS (both red galaxies). \textbf{Classification capability
+and redshift precision are therefore distinct}: the encoder learns \emph{what}
+an object is very well, even where it cannot pin \emph{how far} to DESI
+tolerance---direct support for the proposal's ``one encoder, six classes''
+claim, and evidence the precision gap is not a representation-quality problem.
+
+\paragraph{A physical-prior ablation: redshift equivariance.}
+Can a physics prior close the precision gap locally? We add a flag-gated,
+self-supervised \emph{redshift-equivariance} term
+(\texttt{nersc/physical\_priors.py}, default-off; the default-off path is
+byte-identical to the baseline loss): synthesise each spectrum as if its object
+were at $z{+}\delta z$ (resample the flux on the DESI grid,
+$\textrm{new}(\lambda){=}\textrm{old}(\lambda(1{+}z)/(1{+}z{+}\delta z))$) and
+penalise any deviation of the aux head's continuous $\mathbb{E}[z]$ shift from
+$\delta z$. The trained V1 prototype is measurably \emph{non}-equivariant: its
+predicted redshift barely moves when the spectrum is shifted (response slope
+$\mathrm{d}\mathbb{E}[z]/\mathrm{d}(\delta z) {=} 0.00$ at $\delta z {=} 0.05$).
+A matched $15$k-step treatment (prior weight $30$, $\delta z\,{\le}\,0.1$,
+otherwise identical to the V1 control, same seed) \emph{works mechanically}---it
+raises the small-shift slope to $0.35$---but \textbf{does not improve absolute
+precision}: the per-class catastrophic rate is unchanged (aggregate good-$z$
+$24.1\% {\to} 24.5\%$; per-class moves within small-$N$ noise). This is a
+principled null, not a tuning miss: equivariance is a \emph{shift-consistency}
+constraint, while the galaxy median $|\Delta z|/(1{+}z)$ (${\sim}0.04$--$0.18$)
+is off by $10$--$50\times$ the $0.0033$ threshold---a consistency term cannot
+repair that absolute error. Pushing the weight raises the slope, not the
+precision. Equivariance and precision are decoupled.
+
+% =============================================================================
 \section{Conclusions}
 % =============================================================================
 
@@ -538,6 +637,21 @@ entropy), not reconstruction loss, is the metric that gates a tokenizer's
 downstream usefulness. The lever for closing the gap to the NERSC $73.8\%$ peak
 lies elsewhere---data scale, model size, and training steps. None of this
 depends on additional NERSC compute.
+
+Phase~16 turns the reproduction into an evaluation framework against the
+proposal's go/no-go metrics, and the three results triangulate a single
+conclusion. The frozen encoder learns \emph{what} an object is (six-class probe
+macro-F1 $0.81$--$0.85$ vs $0.10$ no-skill) and can be \emph{taught}
+shift-consistency (the equivariance prior lifts the response slope $0.00 \to
+0.35$); but \emph{absolute} redshift precision---per-class parity with Redrock
+at the $0.0033$ good-$z$ threshold---is met only for stars, and is moved by
+neither the tokenizer architecture (Phase~15) nor an auxiliary physics prior
+(Phase~16). The lever for precision is the same one the proposal stakes its
+Phase-I scaling argument on: corpus size, model capacity, and---plausibly---a
+finer redshift-token / spectrum-token granularity than the prototype's. The
+per-class evaluator built here is the instrument that will read out whether
+scale delivers, and it is ready to run as the completion gate on the full-scale
+NERSC runs.
 
 \bibliographystyle{plainnat}
 \bibliography{references}
