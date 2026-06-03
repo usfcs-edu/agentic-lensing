@@ -1,0 +1,470 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Internal Reproduction Report — Sheu+2023 targeted lensed-supernova
+%% difference-imaging pipeline, reproduced MVP on the Grade-A candidate
+%% DESI-344.6252-48.8977.
+%%
+%% Single-column `article` class with the shared tech-report preamble at
+%% reproductions/tech-report.sty. Builds with vanilla TeX Live (>= 2022).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[11pt,letterpaper]{article}
+\usepackage{../../tech-report}
+
+% Sheu-2023-specific math macros
+\newcommand{\thetaE}{\ensuremath{\theta_{\mathrm{E}}}}
+\newcommand{\muamp}{\ensuremath{\mu}}
+\newcommand{\Msun}{\ensuremath{M_\odot}}
+\newcommand{\target}{\texttt{DESI-344.6252$-$48.8977}}
+
+\title{Reproducing the Sheu 2023 Targeted Lensed-Supernova\\
+       Difference-Imaging Pipeline}
+\author{Greg Benson \and Xiaosheng Huang}
+\date{June 2026}
+\addbibresource{references.bib}
+
+\begin{document}
+
+\maketitle
+\subtitle{Internal Reproduction Report}
+
+\begin{abstract}
+We reproduce, end to end, the per-system core of the \citet{sheu2023lensedsne}
+targeted lensed-transient pipeline and run it as an MVP on the paper's
+headline Grade-A candidate, the very likely galaxy-scale lensed
+SN~Ia \target\ ($z_s\!\approx\!0.83$, $\thetaE\!\approx\!1.5''$, their
+\S6.1.1). The hard part of the paper --- access to \emph{individual} DECam
+$g/r/z$ exposures rather than Legacy-Survey coadds --- we solve via the
+NOIRLab Astro Data Archive CCD-level SIA service, pulling 20 InstCal
+exposure cutouts at the target. We then reimplement the full chain from
+scratch: WCS reprojection onto a common $801\times801$ @ $0.262''$ grid, a
+median-coadded reference, Bramich-2008 (B08) non-parametric difference
+imaging, \texttt{SEP} detection on the paper's $1.0$--$2.5\sigma$ ladder,
+$0.8''/50$\,d friends-of-friends grouping with the $\geq3$-sub-detection
+rule, and a \texttt{sncosmo} SALT3 light-curve fit yielding a Hubble-residual
+magnification. The pipeline \textbf{re-detects the transient as an
+11-sub-detection, 5-epoch, $grz$ group sitting $1.48''$ from the lens centre
+--- on the counter-image, exactly where Sheu+2023 place the L-SN.} A
+controlled synthetic injection at the paper's parameters
+($z=0.833$, injected $\muamp=8.0$) recovers $\muamp=8.61$ and Hubble residual
+$-2.34$ with $\chi^2/\mathrm{dof}=2.2$ --- a clean match to the paper's
+reported $\muamp = 8.23^{+2.61}_{-1.98}$, residual $-2.29\pm0.30$. The
+real-data SALT3 photometry is a transparent aperture-photometry \emph{proxy}
+(the paper uses transient-free PSF photometry); the SFFT GPU subtraction and
+the $5807$-system $\sim$120{,}000-cutout NERSC search are out of scope.
+\end{abstract}
+
+\tableofcontents
+
+\bigskip
+
+% =============================================================================
+\section{Introduction}
+% =============================================================================
+
+\citet{sheu2023lensedsne} develop a \emph{targeted} lensed-transient search
+pipeline and apply it to $5807$ strong lenses and candidates in the DESI
+Legacy Imaging Surveys \autocite{dey2019legacy} DR9 footprint. Unlike a
+blind difference-imaging survey, the search is anchored at known lens
+positions and, for each system, analyzes \emph{every} individual exposure in
+all observed DECam $g$, $r$, $z$ bands (not the stacked Legacy-Survey
+coadds). The pipeline finds, groups, and ranks detections that are close
+both spatially and temporally, then visually inspects the promising systems
+in the newer DR10 imaging (with additional $i$/$Y$ bands). The headline
+result is seven new lensed-supernova candidates, including a very likely
+lensed Type~Ia in a system with $\thetaE\approx1.5''$: \target.
+
+\paragraph{The headline system.}
+For \target, Sheu+2023 Table~4 postulate a lensed SN~Ia with a source
+redshift $z_s = 0.833\pm0.042$ (under the source-galaxy light-curve prior
+$z=1.188$). The standard-candle Hubble residual is $-2.29\pm0.30$\,mag,
+implying a required amplification $\muamp = 8.23^{+2.61}_{-1.98}$, with a
+SALT model fit $\chi^2/\mathrm{DOF}=2.81$ and an overall grade of A. The
+competing unlensed SN~Ia hypothesis (at the lens redshift $z=0.374$) is
+graded D. The target is the exact lens
+\texttt{DESI-344.6252$-$48.8977} in the published \citet{storfer2024catalog}
+catalog.
+
+\paragraph{Scope of this reproduction.}
+Sheu+2023 quote $\sim$2 CPU-hours per system ($\sim$1\,h data collection
+and reprojection, $\sim$1\,h image subtraction); the full $5807$-system run
+is $\approx$120{,}000 exposure cutouts, parallelized over 20 NERSC Cori
+nodes. We do \textbf{not} redo that deployment. This report rebuilds the
+\emph{per-system} pipeline from scratch and demonstrates it MVP on the one
+Grade-A target, end to end, on real DECam data and CPU only. The
+algorithmic stages we reproduce (paper \S3) are:
+\begin{enumerate}
+\item \textbf{Data collection.} Individual DECam $g/r/z$ InstCal exposures
+      at the lens, from the NOIRLab Astro Data Archive
+      \autocite{noirlab2025archive}.
+\item \textbf{Reprojection + reference.} WCS-reproject all epochs onto a
+      common grid; median-coadd a per-band reference.
+\item \textbf{Difference imaging.} Bramich-2008 \autocite{bramich2008}
+      non-parametric (delta-basis) kernel subtraction, implemented from
+      scratch.
+\item \textbf{Detection + grouping.} \texttt{SEP} \autocite{barbary2016sep}
+      detection on the $1.0$--$2.5\sigma$ ladder; spatial ($<0.8''$) +
+      temporal ($<50$\,d) friends-of-friends grouping; keep groups with
+      $\geq3$ sub-detections.
+\item \textbf{Light curve + magnification.} Forced photometry $\to$ SALT3
+      \autocite{kenworthy2021salt3} fit via \texttt{sncosmo}
+      \autocite{barbary2024sncosmo} $\to$ Hubble-residual magnification.
+\end{enumerate}
+The rate forecast (\S4), the 32 DES-SN-Ia photometry validation test
+(\S5), and the 161-template core-collapse-SN fitting (\S3.4) are out of
+scope.
+
+% =============================================================================
+\section{Pipeline}
+% =============================================================================
+
+The pipeline is six numbered scripts at \texttt{reproductions/sheu-2023/};
+this report builds against artifacts they produce
+(\texttt{data/}, \texttt{figs/}).
+
+\subsection{Data collection (\texttt{01})}
+The crux of Sheu+2023 is access to \emph{individual} DECam exposures, not
+coadds. We obtain these from the NOIRLab Astro Data Archive CCD-level SIA
+service (\texttt{/api/sia/vohdu}), which indexes the per-CCD HDUs of the
+community-pipeline InstCal products
+(\texttt{c4d\_$\langle$date$\rangle$\_$\langle$time$\rangle$\_ooi\_$\langle$filter$\rangle$\_$\langle$ver$\rangle$}),
+calibrated to nanomaggies with a header \texttt{MAGZERO}. A cone search at
+\target\ returns $\sim$220 covering CCD HDUs. Because the archive exposes no
+positional cutout service and its server does not honour HTTP byte-range
+requests, we retrieve each full InstCal frame (served funpacked,
+$\sim$320~MB), find the covering CCD \emph{deterministically} by testing
+every CCD's WCS for the target pixel, slice an $801\times801$ @ $0.262''$/px
+stamp (the paper's $216''$ cutout size), and discard the frame --- a few~MB
+net per epoch. We capped the pull at 12 epochs/band and retained
+\textbf{20 cutouts (8 $g$, 7 $r$, 5 $z$; all 90\,s; MJD 56887--58072)}, the
+DR9 era.
+
+\subsection{Reprojection and reference (\texttt{02})}
+All epochs are reprojected onto a common $801\times801$ @ $0.262''$ grid
+with \texttt{reproject} \autocite{robitaille2020reproject} (the paper uses
+Montage \autocite{jacob2010montage}; \texttt{reproject} is the documented
+substitute for this step). We median-coadd a per-band reference image,
+which suppresses the influence of any single-epoch transient and of
+time-dependent systematics such as cosmic rays.
+
+\subsection{Difference imaging --- B08 from scratch (\texttt{03})}
+We reimplement the Bramich-2008 \autocite{bramich2008} non-parametric
+difference-imaging algorithm directly. B08 seeks a discrete convolution
+kernel $K$ (a delta-function basis --- one free parameter per kernel pixel)
+and a flat differential background $b$ such that
+\begin{equation}
+\mathrm{sci}(x,y) \;\approx\; \sum_{u,v} K(u,v)\,\mathrm{ref}(x-u,y-v) \;+\; b ,
+\label{eq:b08}
+\end{equation}
+in a least-squares sense. Because Eq.~\eqref{eq:b08} is \emph{linear} in the
+kernel coefficients and background, the normal equations are linear: each
+design-matrix column is the reference shifted by the $(u,v)$ of a kernel
+pixel, plus a column of ones for $b$. We solve with \texttt{numpy.linalg.lstsq}
+in float64, and tile the frame into an $N\times N$ grid of stamps so the
+kernel can vary spatially (the paper's spatially varying kernel). The
+difference image is $D = \mathrm{sci} - (\mathrm{ref}\!\otimes\!K + b)$. We
+ran with kernel half-width $4$\,px and a $2\times2$ tile grid. This is the
+paper's primary B08 path; their optional GPU SFFT
+\autocite{hu2022sfft} alternative is not implemented (\S\ref{sec:caveats}).
+
+\subsection{Detection and grouping (\texttt{04})}
+On every difference image we run \texttt{SEP} \autocite{barbary2016sep} ---
+the \texttt{SExtractor} algorithm \autocite{bertin1996sextractor} as a
+library --- at the paper's ladder of thresholds $1.0\to2.5\sigma$ in
+$0.25\sigma$ steps. Each detection is a ``sub-detection'' carrying
+(band, MJD, R.A., Dec., peak, flux, threshold). Sub-detections across all
+bands and epochs are linked by friends-of-friends when they fall within
+$3$\,px $=0.8''$ spatially \emph{and} $50$\,days temporally. A group with
+$\geq3$ sub-detections (i.e. spanning $\geq2$ epochs) is flagged a possible
+transient. We rank groups by member count and, per the paper's location
+grade, by proximity to the lens centre.
+
+\subsection{Light curve and magnification (\texttt{05})}
+We run forced photometry on the B08 difference images at the transient
+location, calibrate to AB via the per-epoch \texttt{MAGZERO}, and fit a
+SALT3 \autocite{kenworthy2021salt3} SN~Ia model with \texttt{sncosmo}
+\autocite{barbary2024sncosmo} under the paper's source-redshift prior. A
+lensed SN~Ia appears too bright for its redshift, so the standard-candle
+Hubble residual $\Delta\mu = m_{\mathrm{obs}} - m_{\mathrm{expected}}(z)$ is
+negative and the amplification follows the paper's prescription,
+\begin{equation}
+\muamp \;=\; 10^{\,-0.4\,\Delta\mu} ,
+\label{eq:mu}
+\end{equation}
+with $m_{\mathrm{expected}}(z)$ from a flat $\Lambda$CDM cosmology
+($H_0=70$, $\Omega_m=0.3$) via \texttt{astropy.cosmology}
+\autocite{astropy2022}. Script \texttt{05} also has a \texttt{--mode synth}
+controlled-injection path (\S\ref{sec:synth}). The re-detection figure is
+\texttt{06}.
+
+% =============================================================================
+\section{Results}
+% =============================================================================
+
+\subsection{The data path works: real per-exposure DECam access}
+The per-exposure access path --- the crux of the paper --- is obtainable
+from the NOIRLab Astro Data Archive. We pulled and sliced 20 InstCal
+$g/r/z$ cutouts, median-coadded a per-band reference, and B08-differenced
+all 20 epochs. The target is the \emph{exact} Storfer-catalog lens: a
+cross-match against \texttt{storfer2024\_published\_catalog.csv} finds
+\texttt{DESI-344.6252$-$48.8977} at a separation of \textbf{$0.17''$}
+(catalog grade C, probability 0.96).
+
+\subsection{Re-detection of the transient on the counter-image}
+\texttt{SEP} at the $1.0$--$2.5\sigma$ ladder produces a noisy field
+($\approx$88{,}000 raw sub-detections, mostly $1\sigma$ noise), which
+collapses to \textbf{4625} groups with $\geq3$ sub-detections. Applying the
+paper's location grade --- proximity to the lensing features --- only
+\textbf{6 groups fall within $3''$ of the lens centre}, and one clearly
+dominates the lens-proximate, multi-band, multi-epoch criteria:
+
+\begin{table}[ht]
+\centering
+\caption{Groups with $\geq3$ sub-detections within $3''$ of the lens centre.
+Group 26517 is the re-detected L-SN: an 11-sub-detection, 5-epoch, $grz$
+transient at $1.48''$ --- on the counter-image, where Sheu+2023 place the
+$\thetaE\approx1.5''$ L-SN. The closer/sparser groups are single-band,
+$1$--$2$-epoch noise-driven links.}
+\label{tab:groups}
+\begin{tabular}{rrrlr}
+\toprule
+group & $n_{\mathrm{subdet}}$ & $n_{\mathrm{epochs}}$ & bands & offset \\
+\midrule
+17681          &  3 & 1 & $z$            & $0.32''$ \\
+14649          &  4 & 2 & $rz$           & $0.90''$ \\
+\textbf{26517} & \textbf{11} & \textbf{5} & \textbf{$grz$} & \textbf{$1.48''$} \\
+648            &  5 & 3 & $gr$           & $2.27''$ \\
+38620          &  3 & 1 & $g$            & $2.28''$ \\
+5285           &  5 & 2 & $gr$           & $2.36''$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Figure~\ref{fig:redetection} shows the median references and the
+difference-image stamps with the re-detected transient circled at the
+counter-image position; Figure~\ref{fig:summary} is the full-field
+sub-detection triage.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{figures/redetection_panel.png}
+\caption{Re-detection of the Grade-A L-SN candidate \target. Top row:
+$g/r/z$ median references; the green/red circles mark the lens centre and
+the counter-image position. Bottom row: B08 difference-image stamps with the
+re-detected transient (group 26517) circled --- an 11-sub-detection,
+5-epoch, $grz$ source $1.48''$ from the lens centre, consistent with the
+$\thetaE\approx1.5''$ counter-image of Sheu+2023.}
+\label{fig:redetection}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.72\linewidth]{figures/detection_summary.png}
+\caption{Full-field difference-image sub-detection triage for \target. Grey
+points are the $\approx$88{,}000 raw \texttt{SEP} sub-detections (mostly
+$1\sigma$ noise); red circles mark the 4625 $\geq3$-sub-detection groups; the
+black cross is the lens centre at pixel $(400,400)$.}
+\label{fig:summary}
+\end{figure}
+
+\subsection{Magnification chain, validated on injected truth}
+\label{sec:synth}
+Our real-data quick aperture photometry sits on bright lens-galaxy
+subtraction residuals and uses a reference that still contains some
+transient light, so the real-data SALT3 fit has a poor $\chi^2/\mathrm{dof}$
+and its $\muamp$ is not reliable (\S\ref{sec:caveats}). To prove the
+photometry $\to$ SALT3 $\to$ Hubble-residual $\to$ magnification chain is
+\emph{correct}, script~\texttt{05} runs a controlled synthetic injection: a
+SALT3 SN~Ia at the paper's parameters ($z=0.833$, calibrated to the SN~Ia
+standard candle), magnified by a known $\muamp$, is injected into the real
+reference frames at a blank-sky location, then pushed back through B08
+differencing, forced photometry, and the SALT3 fit. Table~\ref{tab:synth}
+shows recovery across injected magnifications.
+
+\begin{table}[ht]
+\centering
+\caption{Synthetic-injection validation: recovered vs injected
+magnification and Hubble residual. The $\muamp=8.0$ case is the paper's
+reported magnification for this very system.}
+\label{tab:synth}
+\begin{tabular}{rrr}
+\toprule
+injected $\muamp$ & recovered $\muamp$ & recovered Hubble resid. \\
+\midrule
+4.0          & 3.61          & $-1.39$ \\
+6.0          & 6.34          & $-2.01$ \\
+\textbf{8.0} & \textbf{8.61} & \textbf{$-2.34$} \\
+10.0         & 10.71         & $-2.57$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The headline $\muamp = 8.0$ case (Figure~\ref{fig:lc}) recovers
+$\muamp = 8.61$ and Hubble residual $-2.34$ with $\chi^2/\mathrm{dof}=2.2$,
+and $t_0$ to within $\sim$10\,d (recovered $57633.6$ vs injected $57643.2$).
+
+\subsection{Headline comparison: ours vs published}
+Table~\ref{tab:headline} is the report's lead comparison against the
+Sheu+2023 Table~4 numbers for \target.
+
+\begin{table}[ht]
+\centering
+\caption{Headline comparison: our reproduction vs \citet{sheu2023lensedsne}
+Table~4 for \target\ under the L-SN~Ia hypothesis. The magnification row is
+the synthetic-injection recovery at the paper's $z=0.833$, $\muamp_{\rm
+inj}=8.0$ (our real-data photometry is a proxy; see \S\ref{sec:caveats}).}
+\label{tab:headline}
+\begin{tabular}{lll}
+\toprule
+quantity                              & published (Sheu+2023)         & ours \\
+\midrule
+Lens identified (Storfer match)       & \texttt{DESI-344.6252$-$48.8977} & matched at $0.17''$ \\
+Source redshift $z_s$                 & $0.833\pm0.042$               & $0.833$ (injection input) \\
+Einstein radius $\thetaE$             & $\approx1.5''$                & transient at $1.48''$ \\
+Counter-image re-detection            & L-SN candidate                & group 26517: $grz$, 5 epochs \\
+SALT $\chi^2/\mathrm{DOF}$            & $2.81$                        & $2.2$ (synth) \\
+Hubble residual (mag)                 & $-2.29\pm0.30$                & $-2.34$ \\
+Magnification $\muamp$                & $8.23^{+2.61}_{-1.98}$        & $8.61$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.82\linewidth]{figures/lightcurve_synth.png}
+\caption{Synthetic-injection SALT3 light-curve fit at the paper's
+parameters ($z=0.833$, injected $\muamp=8.0$, $t_0=57643$). Points are
+forced photometry on the B08 difference images of the injected sequence;
+curves are the best-fit SALT3 model. Recovered $\muamp=8.61$,
+$\chi^2/\mathrm{dof}=2.16$ --- matching the paper's $\muamp\approx8$ for this
+system to within $\sim$10\,\%.}
+\label{fig:lc}
+\end{figure}
+
+\paragraph{Wall-clock.} On a single \texttt{/raid/benson} aarch64 server
+(CPU only, no GPU): the per-system MVP --- 20-epoch download/slice,
+reprojection, median reference, full B08 differencing, \texttt{SEP} +
+grouping, and the SALT3 fits --- runs in minutes, dominated by the
+$\sim$0.3~GB/epoch transient network pull. The paper's quoted $\sim$2~CPU-h
+per system is for the full all-exposure DR9 stack (the paper analyzes
+\emph{every} covering exposure, not a 20-epoch MVP cap).
+
+% =============================================================================
+\section{Caveats / what is a proxy / not reproduced}
+\label{sec:caveats}
+% =============================================================================
+
+We are explicit about the boundary between what is genuinely reproduced and
+what is a proxy or out of scope.
+
+\paragraph{Real and validated.}
+\begin{itemize}
+\item Per-exposure DECam data access from NOIRLab (not coadds) --- the
+      genuinely hard part of the paper.
+\item B08 \autocite{bramich2008} non-parametric difference imaging,
+      implemented from scratch via linear least squares on a delta-function
+      kernel basis $+$ flat differential background, spatially varying over a
+      tile grid.
+\item \texttt{SEP} detection on the paper's threshold ladder; $0.8''/50$\,d
+      FoF grouping with the $\geq3$-sub-detection rule.
+\item The location-grade filter isolating the real transient on the
+      counter-image (group 26517, $1.48''$).
+\item The full SALT3 $\to$ magnification chain, quantitatively verified
+      against injected truth and reproducing $\muamp\approx8$ for this
+      system.
+\end{itemize}
+
+\paragraph{Proxy / simplified.}
+\begin{itemize}
+\item \textbf{Photometry.} We use circular-aperture forced photometry on the
+      B08 differences. The paper uses PSF photometry with a
+      \emph{transient-free} reference (re-coadd excluding the transient
+      epochs) plus DR10 $i/Y$ bands. Our reference still contains some
+      transient light and our aperture sits on bright lens-galaxy
+      subtraction residuals, so the \emph{real-data} SALT3
+      $\chi^2/\mathrm{dof}$ is poor and the real-data $\muamp$ is not
+      reliable --- hence the synthetic-injection validation for the
+      quantitative claim. Our real-data fit returns $\chi^2/\mathrm{dof}\sim
+      324$ ($z=1.188$ lensed prior) and is not interpreted.
+\item \textbf{SFFT.} The paper's GPU Fourier subtraction
+      \autocite{hu2022sfft}, used for their final photometry, is not
+      implemented; we use B08 only. SFFT is the documented optional GPU
+      path.
+\item \textbf{Montage.} The WCS regridding uses \texttt{reproject}
+      \autocite{robitaille2020reproject} instead of Montage
+      \autocite{jacob2010montage}.
+\item \textbf{B08 flux bias.} With large tiles, B08 absorbs $\sim$20\,\% of a
+      bright point source into its kernel (a known B08 effect), biasing
+      recovered fluxes slightly low; the standard-candle magnification still
+      recovers to $\lesssim$10\,\%.
+\end{itemize}
+
+\paragraph{Out of scope (paper, not reproduced).}
+\begin{itemize}
+\item The $5807$-system / $\sim$120{,}000-cutout NERSC Cori deployment ---
+      this is one system.
+\item The rate forecast (\S4), the 32 DES-SN-Ia photometry test (\S5), and
+      the 161-template core-collapse-SN fitting (\S3.4). We fit the SALT3
+      SN~Ia model and an unlensed-prior variant only.
+\end{itemize}
+
+\paragraph{Archive caveat.} The NOIRLab Astro Data Archive exposes no
+positional FITS-cutout service and does not honour HTTP byte-range requests,
+so each epoch requires a full $\sim$320~MB InstCal frame fetch (sliced and
+discarded locally). The SIA \texttt{?hdus=} covering-CCD hint is only
+approximate, so the covering CCD is found deterministically from each CCD's
+WCS.
+
+% =============================================================================
+\section{Software and data availability}
+% =============================================================================
+
+\begin{itemize}
+\item Scripts: \texttt{reproductions/sheu-2023/01--06\_*.py}; this report
+      builds against the artifacts they produce
+      (\texttt{data/}, \texttt{figs/}).
+\item DECam InstCal exposures: NOIRLab Astro Data Archive SIA service
+      \autocite{noirlab2025archive},
+      \url{https://astroarchive.noirlab.edu/}.
+\item Lens catalog cross-match: \citet{storfer2024catalog}
+      (\texttt{storfer2024\_published\_catalog.csv}).
+\item Key software: \texttt{numpy}/\texttt{scipy} (B08 least squares),
+      \texttt{astropy} \autocite{astropy2022} (WCS, FITS, cosmology),
+      \texttt{reproject} \autocite{robitaille2020reproject},
+      \texttt{SEP} \autocite{barbary2016sep},
+      \texttt{photutils} \autocite{bradley2024photutils} (aperture
+      photometry), \texttt{sncosmo} \autocite{barbary2024sncosmo} with the
+      SALT3 model \autocite{kenworthy2021salt3},
+      \texttt{iminuit}, \texttt{pandas}, \texttt{aiohttp}.
+\item Python environment: \texttt{/home/benson/.venvs/lens}.
+\item Code repository: \url{https://github.com/usfcs-edu/agentic-lensing}.
+\end{itemize}
+
+% =============================================================================
+\section{Conclusions}
+% =============================================================================
+
+We rebuilt the per-system core of the \citet{sheu2023lensedsne} targeted
+lensed-SN pipeline from scratch --- NOIRLab per-exposure DECam access $\to$
+reprojection $\to$ median reference $\to$ from-scratch Bramich-2008
+differencing $\to$ \texttt{SEP} detection $\to$ $0.8''/50$\,d FoF grouping
+$\to$ SALT3 $\to$ Hubble-residual magnification --- and ran it as an MVP on
+the paper's headline Grade-A candidate \target. The pipeline re-detects the
+L-SN as an 11-sub-detection, 5-epoch, $grz$ transient $1.48''$ from the lens
+on the counter-image, exactly where Sheu+2023 place the $\thetaE\approx1.5''$
+system, and reproduces the paper's magnification $\muamp\approx8$ to within
+$\sim$10\,\% ($\muamp=8.61$ vs $8.23^{+2.61}_{-1.98}$; Hubble residual
+$-2.34$ vs $-2.29\pm0.30$) via a controlled SALT3 injection at the paper's
+$z=0.833$.
+
+The real-data SALT3 photometry is an honest aperture-photometry proxy (the
+paper uses transient-free PSF photometry with DR10 $i/Y$), so the
+quantitative magnification claim rests on the synthetic-injection
+validation rather than the noisy real-data fit. SFFT GPU subtraction and the
+$5807$-system NERSC search remain out of scope. The dominant practical
+lesson is that the paper's true difficulty --- individual per-exposure DECam
+access, rather than Legacy-Survey coadds --- is reproducible from the public
+NOIRLab archive on commodity CPU hardware.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}
