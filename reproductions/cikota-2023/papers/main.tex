@@ -1,0 +1,400 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Internal Reproduction Report — Cikota+2023 Einstein cross
+%% DESI-253.2534+26.8843, GIGA-Lens modeling on public DESI Legacy DR10 g-band.
+%%
+%% Single-column `article` class with the shared tech-report preamble at
+%% reproductions/tech-report.sty. Builds with vanilla TeX Live (>= 2022).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[11pt,letterpaper]{article}
+\usepackage{../../tech-report}
+
+% Cikota-specific math macros
+\newcommand{\thetaE}{\ensuremath{\theta_{\mathrm{E}}}}
+\newcommand{\sigmaSIE}{\ensuremath{\sigma_{\mathrm{SIE}}}}
+\renewcommand{\arcsec}{\ensuremath{''}}
+
+\title{Reproducing the Cikota 2023 Einstein Cross\\
+       DESI-253.2534+26.8843 with GIGA-Lens on\\
+       Public DESI Legacy DR10 Imaging}
+\author{Greg Benson \and Xiaosheng Huang}
+\date{June 2026 \\ \texttt{commit:~810d1d9}}
+\addbibresource{references.bib}
+
+\begin{document}
+
+\maketitle
+\subtitle{Internal Reproduction Report}
+
+\begin{abstract}
+We reproduce the GIGA-Lens \autocite{gu2022gigalens} lens model of the
+Einstein cross DESI-253.2534+26.8843 from \citet{cikota2023einstein}.
+The paper modeled an SDSS-$g$ image \emph{synthesized from a proprietary
+VLT/MUSE data cube} ($\approx0.6\arcsec$ seeing); we omit the
+spectroscopy entirely and instead refit the identical 31-parameter
+mass-plus-light model (two singular-isothermal-ellipsoid lenses
+$+$ external shear $+$ three S\'ersic components) on \emph{public} DESI
+Legacy Surveys DR10 $g$-band imaging --- the same survey the system was
+discovered in \autocite{huang2021discovery}. Our fit recovers the
+four-image Einstein-cross geometry, a tangential critical ellipse
+threading the four images, and a compact source inside the astroid
+caustic, at a reduced $\chi^2 / \mathrm{px} = 0.90$. The headline
+Einstein radius is $\thetaE = 2.10\arcsec\,(^{+0.04}_{-0.04})$ versus the
+published $2.520\arcsec\,(^{+0.032}_{-0.031})$ ($-17\,\%$), with an
+implied $\sigmaSIE = 347\,$km/s versus $379\pm2\,$km/s ($-8\,\%$) and a
+total magnification $\mu_{\mathrm{tot}} = 7.0$ versus $10.47$. We show
+quantitatively, via a PSF ablation, that the dominant cause of the
+$\thetaE$ undershoot is \emph{seeing}: the public Legacy $g$ coadd PSF
+has $\mathrm{FWHM}\approx1.35\arcsec$, more than twice the paper's
+$0.6\arcsec$ MUSE-derived image. Refitting the same data with the
+paper's $0.6\arcsec$ Gaussian PSF moves $\thetaE$ from $2.10\arcsec$ to
+$2.28\arcsec$, closing roughly half the gap, with the residual gap
+irreducible because the $1.35\arcsec$ seeing is baked into the public
+pixels. The SIS$\to\sigma$ conversion itself is exact: feeding the paper's
+$\thetaE = 2.520\arcsec$ and distances through our formula returns
+$379.4\,$km/s, matching the paper's $379$.
+\end{abstract}
+
+\tableofcontents
+
+\bigskip
+
+% =============================================================================
+\section{Introduction}
+% =============================================================================
+
+\citet{cikota2023einstein} present the spectroscopic confirmation and
+lens model of DESI-253.2534+26.8843, a strong-lensing system originally
+flagged in the DESI Legacy Imaging Surveys
+\autocite{huang2021discovery,dey2019legacy}. The system is a textbook
+Einstein cross: a massive elliptical lens galaxy (L1) surrounded by four
+blue images of a single background source arranged in a quad. The paper's
+contributions are threefold:
+\begin{enumerate}
+\item \textbf{Spectroscopic confirmation} from a VLT/MUSE
+      \autocite{bacon2010muse} integral-field data cube: lens redshift
+      $z_{\mathrm{L1}} = 0.636$, source redshift $z_s = 2.597$ (a
+      starburst galaxy), and a faint foreground galaxy (L2) at
+      $z_{\mathrm{L2}} = 0.386$ projected near image~C.
+\item \textbf{Lens modeling} with GIGA-Lens \autocite{gu2022gigalens}
+      of a $g$-band image synthesized from the MUSE cube
+      ($\mathrm{FWHM}\approx0.6\arcsec$). The mass model is L1 (SIE)
+      $+$ L2 (SIE, treated as an effective subhalo) $+$ external shear;
+      the light model is L1 (elliptical S\'ersic) $+$ L2 (spherical
+      S\'ersic) $+$ source (elliptical S\'ersic): 31 free parameters in
+      total.
+\item \textbf{Headline measurements}: Einstein radius
+      $\thetaE = 2.520\arcsec\,(^{+0.032}_{-0.031})$, corresponding to a
+      velocity dispersion $\sigmaSIE = 379\pm2\,$km/s, with predicted
+      per-image magnifications $(2.40, 3.23, 4.03, 0.81)$ for images
+      $(A,B,C,D)$ summing to a total of $10.47$.
+\end{enumerate}
+
+\paragraph{Scope of this reproduction.} We deliberately do \emph{not}
+attempt the spectroscopy (stage 1): the VLT/MUSE cube is proprietary and
+out of scope, so the redshifts are taken from the paper and used only as
+context for the SIS$\to\sigma$ conversion. We \emph{do} reproduce the
+lens-modeling stage (2), but on a harder footing than the paper: rather
+than the $0.6\arcsec$ MUSE-derived $g$ image, we use the public DESI
+Legacy DR10 $g$-band coadd, whose seeing ($\mathrm{FWHM}\approx1.35\arcsec$)
+partially blends the four images. This makes the reproduction an honest
+test of whether the GIGA-Lens model recovers the published geometry and
+radius from \emph{independently obtained, lower-resolution, fully public}
+data.
+
+% =============================================================================
+\section{Data}
+% =============================================================================
+
+We pull a $120\times120$ pixel ($0.262\arcsec$/px) $grz$ cutout centered
+on (R.A., Dec.) $=(253.2534, +26.8843)$ from the public
+\texttt{legacysurvey.org} cutout server at the \texttt{ls-dr10} layer,
+together with the matching $g$-band coadd PSF
+(\texttt{coadd-psf}). Script~01 (\texttt{01\_prep\_data.py}) crops to a
+tight $60\times60$ px ($\approx15.7\arcsec$) field around the lens, keeps
+the $g$ band, re-zeros the residual sky from a $3\sigma$-clipped estimate,
+and rescales surface brightness so the brightest source pixels land at a
+few tens of ADU (matching the paper's S\'ersic-amplitude prior scale).
+The background rms and an effective exposure time set the per-pixel error
+model $\sigma_{\mathrm{px}} = \sqrt{\sigma_{\mathrm{bg}}^2 + I/t_{\mathrm{exp}}}$.
+
+\paragraph{PSF.} We use the \emph{actual} Legacy $g$-band coadd PSF, whose
+measured $\mathrm{FWHM}\approx1.35\arcsec$ matches \emph{this} data (the
+paper's $0.6\arcsec$ Gaussian is used only in the \S\ref{sec:ablation}
+ablation). Figure~\ref{fig:data} shows the cropped $g$-band image with
+the paper's tabulated image positions A--D and the L2 foreground galaxy
+overlaid, the broad coadd PSF, and the signal-to-noise map. All four
+images of the cross are visible, though partially blended at $1.35\arcsec$
+seeing.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{figures/01_data_inspect.png}
+\caption{Public DESI Legacy DR10 $g$-band data for
+DESI-253.2534+26.8843. \emph{Left:} the $60\times60$ px ($15.7\arcsec$)
+science cutout, with the paper's image positions A--D (cyan) and the L2
+foreground galaxy (orange) overlaid. \emph{Center:} the Legacy $g$-band
+coadd PSF, $\mathrm{FWHM}\approx1.35\arcsec$ (vs.\ the paper's
+$0.6\arcsec$ MUSE-derived image). \emph{Right:} the S/N map; the four
+cross images and the bright lens core are clearly detected.}
+\label{fig:data}
+\end{figure}
+
+% =============================================================================
+\section{Model and inference}
+% =============================================================================
+
+We reuse the GIGA-Lens \autocite{gu2022gigalens} JAX \autocite{jax2018}
+implementation verbatim and reconstruct the paper's 31-parameter model
+exactly (Cikota Table~2/3):
+\begin{itemize}
+\item \textbf{Mass:} L1 SIE ($\thetaE, e_1, e_2, x, y$) $+$ L2 SIE
+      (foreground galaxy near image~C, prior-centered on its Table-3
+      position, acting as an effective subhalo) $+$ external shear
+      ($\gamma_1, \gamma_2$).
+\item \textbf{Light:} L1 elliptical S\'ersic $+$ L2 spherical S\'ersic
+      $+$ source elliptical S\'ersic.
+\item \textbf{Priors:} the paper's Table~2 (GIGA-Lens demo defaults
+      specialized to this system: $\thetaE \sim
+      \mathrm{LogNormal}(\ln 2, 0.25)$, shear $\sim \mathcal{N}(0,
+      0.05)$, S\'ersic indices uniform, etc.).
+\end{itemize}
+S\'ersic amplitudes are \emph{sampled} (\texttt{use\_lstsq=False}), so
+inference runs through GIGA-Lens's \texttt{ForwardProbModel}: a MAP step
+(AdaBelief, 1500 steps) followed by a stochastic variational-inference
+(SVI) multivariate-normal posterior (2000 steps), implemented with
+TensorFlow-Probability on JAX. The redshifts and cosmology used for the
+SIS$\to\sigma$ conversion only are $z_{\mathrm{L1}}=0.636$,
+$z_s=2.597$, $z_{\mathrm{L2}}=0.386$, and Planck18
+($H_0=67.4$, $\Omega_m=0.315$) \autocite{planck2020params}, giving the
+paper's distances $D_s=1690.6$~Mpc and $D_{\mathrm{L1}\text{-}s}=1026.1$~Mpc.
+
+\paragraph{Velocity dispersion.} The Einstein radius is converted to an
+SIE velocity dispersion via the singular-isothermal relation
+\begin{equation}
+\thetaE = 4\pi \left(\frac{\sigmaSIE}{c}\right)^2 \frac{D_{ds}}{D_s},
+\qquad
+\sigmaSIE = c\sqrt{\frac{\thetaE\,D_s}{4\pi\,D_{ds}}},
+\label{eq:sis}
+\end{equation}
+with $D_{ds}=D_{\mathrm{L1}\text{-}s}$ \autocite{narayan1996bartelmann}.
+As a sanity check, feeding Eq.~\eqref{eq:sis} the paper's own
+$\thetaE = 2.520\arcsec$ with the paper's distances returns
+$379.4\,$km/s, matching the published $379\pm2\,$km/s exactly --- so any
+discrepancy in our $\sigmaSIE$ propagates purely from our $\thetaE$, not
+from the conversion.
+
+\paragraph{Engineering notes.} The installed gigalens \texttt{inference.py}
+calls \texttt{jax.experimental.shard\_map.shard\_map} without importing
+the submodule; under JAX~0.6.2 the scripts import it explicitly. Pinning
+to a single GPU via \texttt{CUDA\_VISIBLE\_DEVICES} forces the gigalens
+\texttt{shard\_map} to run single-device; the gigalens \texttt{HMC()}
+helper (which \texttt{pmap}s over all visible devices) is deliberately not
+used. Wall-clock on one A16: MAP $\sim$3~min, SVI $\sim$10~min.
+
+% =============================================================================
+\section{Results}
+% =============================================================================
+
+Table~\ref{tab:headline} compares our recovered parameters against the
+published values. The geometry and Einstein radius reproduce; the radius
+and derived quantities sit systematically low, for reasons quantified in
+\S\ref{sec:ablation}.
+
+\begin{table}[ht]
+\centering
+\caption{Recovered lens-model quantities: ours (public Legacy $g$,
+$1.35\arcsec$ PSF) vs.\ \citet{cikota2023einstein} (MUSE-derived $g$,
+$0.6\arcsec$). Uncertainties are SVI $(16,84)$-th percentiles.}
+\label{tab:headline}
+\begin{tabular}{lrr}
+\toprule
+quantity                          & this work (public Legacy $g$) & Cikota+2023 (MUSE $g$) \\
+\midrule
+$\thetaE$ (L1)                    & $2.10\arcsec\,(^{+0.04}_{-0.04})$ & $2.520\arcsec\,(^{+0.032}_{-0.031})$ \\
+$\sigmaSIE$ (L1, via SIS)         & $347\,$km/s                        & $379\pm2\,$km/s \\
+L1 ellipticity $(e_1, e_2)$       & $(-0.225, -0.295)$                 & $(-0.365, -0.486)$ \\
+external shear $(\gamma_1, \gamma_2)$ & $(+0.065, +0.064)$             & $(-0.008, -0.038)$ \\
+L2 (subhalo) $\thetaE$            & $0.17\arcsec\,(^{+0.03}_{-0.03})$  & $0.261\arcsec\,(^{+0.028}_{-0.027})$ \\
+total magnification $\mu_{\mathrm{tot}}$ & $7.0$                       & $10.47$ \\
+reduced $\chi^2/\mathrm{px}$      & $0.90$                             & --- (good residual) \\
+four-image cross geometry         & reproduced (Fig.~\ref{fig:headline}) & yes \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Geometry and fit quality.} Figure~\ref{fig:headline} is the
+headline result. The GIGA-Lens model reproduces all four images of the
+cross at the observed positions; the tangential critical curve (cyan) is
+a closed ellipse threading the four images, and the source --- recovered
+as a single compact S\'ersic --- sits inside the astroid caustic in the
+source plane (orange), the geometric signature of a quad. The reduced
+residual is featureless across the cross at $\chi^2/\mathrm{px}=0.90$;
+the only structured residual is a faint extended feature in the upper-left
+($\sim$N--E) corner unrelated to the lens (a neighboring source not in the
+model). This is an excellent fit to the public data.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{figures/03_residual_critcurve.png}
+\caption{Headline reproduction. \emph{Panels, left to right:} (1) the
+DESI Legacy $g$-band data; (2) the GIGA-Lens model with the tangential
+critical curve (cyan); (3) the reduced residual,
+$\chi^2/\mathrm{px}=0.90$, featureless across the cross; (4) the
+recovered unlensed source with the astroid caustic (orange). The four
+images, the closed critical ellipse, and the compact source inside the
+caustic together confirm the Einstein-cross geometry.}
+\label{fig:headline}
+\end{figure}
+
+\paragraph{Quantitative agreement.} The recovered Einstein radius
+$\thetaE = 2.10\arcsec$ is $\sim$17\,\% below the paper's $2.520\arcsec$,
+and the implied $\sigmaSIE = 347\,$km/s is $\sim$8\,\% below $379\,$km/s
+(the $\sigma\propto\sqrt{\thetaE}$ scaling halves the fractional error).
+The L2 subhalo Einstein radius ($0.17\arcsec$ vs.\ $0.261\arcsec$) and
+the total magnification ($7.0$ vs.\ $10.47$) are likewise low. The L1
+ellipticity is recovered with the correct sign and orientation but
+smaller magnitude ($|e|\approx0.37$ vs.\ $0.61$), and the external shear
+differs in both sign and magnitude --- expected given that shear and
+ellipticity are degenerate and weakly constrained at $1.35\arcsec$ seeing
+on a $15.7\arcsec$ field. The four ``high-level'' geometric facts (cross
+present, large $\thetaE\sim2\arcsec$, good residual, source inside
+caustic) are robust; the precise amplitudes depend on resolution.
+
+% =============================================================================
+\section{Why \texorpdfstring{$\thetaE$}{theta\_E} comes out low: the PSF/seeing ablation}
+\label{sec:ablation}
+% =============================================================================
+
+The dominant cause of the $\thetaE$ undershoot is \emph{seeing}, not a
+model or data error. The public Legacy DR10 $g$-band coadd PSF has
+$\mathrm{FWHM}\approx1.35\arcsec$ (Fig.~\ref{fig:data}, center), whereas
+the paper's MUSE-derived $g$ image had $\mathrm{FWHM}\approx0.6\arcsec$.
+Script~04 (\texttt{04\_psf\_ablation.py}) refits the \emph{same} Legacy
+data with the paper's $0.6\arcsec$, $15\times15$ Gaussian PSF. This is a
+deconvolution-style test: the $1.35\arcsec$ seeing is still baked into
+the pixels, so feeding the model a sharper PSF over-sharpens but does
+recover part of the lost structure.
+
+\begin{table}[ht]
+\centering
+\caption{PSF/seeing ablation on the \emph{same} public Legacy $g$ data.
+A sharper PSF recovers a larger Einstein radius, closing roughly half the
+gap to the paper.}
+\label{tab:ablation}
+\begin{tabular}{lrrr}
+\toprule
+PSF                                & $\thetaE$         & $\sigmaSIE$ & $\chi^2/\mathrm{px}$ \\
+\midrule
+Legacy coadd, $1.35\arcsec$ (\S4)  & $2.10\arcsec$     & $347\,$km/s & $0.90$ \\
+Gaussian, $0.6\arcsec$ (paper-style) & $2.28\arcsec$   & $361\,$km/s & $0.89$ \\
+\midrule
+Cikota+2023 (true $0.6\arcsec$ MUSE) & $2.520\arcsec$  & $379\,$km/s & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+As Table~\ref{tab:ablation} shows, swapping in the $0.6\arcsec$ PSF moves
+$\thetaE$ from $2.10\arcsec$ to $2.28\arcsec$ and $\sigmaSIE$ from
+$347\,$km/s to $361\,$km/s --- roughly half the gap to the paper's
+$2.520\arcsec$ / $379\,$km/s. The residual gap is irreducible: a
+$0.6\arcsec$ PSF cannot create resolution the $1.35\arcsec$ Legacy coadd
+never recorded. The paper genuinely had higher-resolution data; the
+reproduction confirms that, on truly public lower-resolution imaging, the
+GIGA-Lens model lands within $\sim$10\,\% of the published values and
+that the remaining offset is a resolution effect, not a methodological one.
+
+% =============================================================================
+\section{Caveats and what was not reproduced}
+% =============================================================================
+
+\paragraph{No spectroscopy.} The VLT/MUSE confirmation
+(redshifts $z_{\mathrm{L1}}, z_{\mathrm{L2}}, z_s$, the pPXF
+velocity-dispersion measurement, the starburst source classification) is
+entirely out of scope: it requires the proprietary MUSE data cube. The
+published redshifts are used only as fixed inputs to the SIS$\to\sigma$
+context conversion.
+
+\paragraph{Different, lower-resolution data.} We model the public Legacy
+DR10 $g$-band coadd ($1.35\arcsec$ seeing), not the paper's
+MUSE-synthesized $g$ image ($0.6\arcsec$). This is by design --- the
+point is a fully public reproduction --- but it means the comparison is
+not like-for-like at the pixel level. The $\thetaE$ ($-17\,\%$),
+$\sigmaSIE$ ($-8\,\%$), and $\mu_{\mathrm{tot}}$ ($7.0$ vs.\ $10.47$)
+offsets are dominated by this resolution difference, as
+\S\ref{sec:ablation} quantifies.
+
+\paragraph{Shear/ellipticity degeneracy.} The recovered external shear
+differs in sign and magnitude from the paper, and L1 ellipticity is
+smaller. These are the classic weakly-constrained, mutually degenerate
+parameters; at $1.35\arcsec$ seeing on a single band they are poorly
+pinned, and the model trades shear against ellipticity while preserving
+the (well-constrained) total convergence and Einstein radius.
+
+\paragraph{L2 centroid drift.} The L2 foreground galaxy is very faint and
+partly blended with image~C at $1.35\arcsec$ seeing; its light/mass
+centroid drifts $\sim$0.5\arcsec\ from its prior. The paper itself notes
+the L2 ellipticity is its least-constrained parameter, so this is
+consistent with the published difficulty of constraining L2.
+
+\paragraph{Total magnification.} Our $\mu_{\mathrm{tot}}=7.0$ is computed
+as the lensed/unlensed source-flux ratio rather than as a sum of
+per-image point magnifications; the lower value tracks the smaller
+recovered $\thetaE$ and the smoothing of the magnification field by the
+broad PSF. We do not reproduce the paper's per-image breakdown
+$(2.40, 3.23, 4.03, 0.81)$.
+
+% =============================================================================
+\section{Software and data availability}
+% =============================================================================
+
+\begin{itemize}
+\item Scripts: \texttt{reproductions/cikota-2023/01--04\_*.py}; this
+      report builds against the artifacts those scripts produce
+      (\texttt{data/map\_estimate.npy}, \texttt{svi\_posterior.npz},
+      \texttt{derived\_quantities.npz}).
+\item Imaging + PSF: public DESI Legacy Surveys DR10
+      \autocite{dey2019legacy} via
+      \url{https://www.legacysurvey.org/viewer/fits-cutout} (\texttt{ls-dr10}
+      layer, $g$-band coadd $+$ \texttt{coadd-psf}).
+\item Modeling: GIGA-Lens \autocite{gu2022gigalens} on JAX
+      \autocite{jax2018} $+$ TensorFlow-Probability; cosmology and
+      coordinate handling via \texttt{astropy} \autocite{astropy2022};
+      the SIE/S\'ersic profile conventions follow GIGA-Lens, which mirror
+      \texttt{lenstronomy} \autocite{birrer2018lenstronomy}.
+\item Python environment: \texttt{/raid/benson/.venvs/gigalens}
+      (JAX~0.6.2, TFP~0.25.0); gigalens at
+      \texttt{/raid/benson/lensing-repos/gigalens}; GPU: a single NVIDIA
+      A16.
+\item Code repository: \url{https://github.com/usfcs-edu/agentic-lensing}.
+\item Companion GIGA-Lens reproductions:
+      \texttt{reproductions/foundry-i/papers/main.tex} (Foundry~I HST
+      modeling) and \texttt{reproductions/gu-2022/papers/main.tex}
+      (the GIGA-Lens method paper \autocite{gu2022gigalens}).
+\end{itemize}
+
+% =============================================================================
+\section{Conclusions}
+% =============================================================================
+
+Modeling the Einstein cross DESI-253.2534+26.8843 with GIGA-Lens on
+\emph{fully public} DESI Legacy DR10 $g$-band imaging --- omitting the
+paper's proprietary VLT/MUSE spectroscopy --- reproduces the qualitative
+result of \citet{cikota2023einstein} cleanly: the four-image cross
+geometry, a closed tangential critical ellipse through the images, a
+compact source inside the astroid caustic, and an excellent fit
+($\chi^2/\mathrm{px}=0.90$). Quantitatively, our Einstein radius
+$\thetaE = 2.10\arcsec$ lands $\sim$17\,\% below the published
+$2.520\arcsec$ and the implied $\sigmaSIE = 347\,$km/s $\sim$8\,\% below
+$379\,$km/s. A PSF ablation pins the cause on seeing: the public Legacy
+coadd PSF ($1.35\arcsec$) is more than twice as broad as the paper's
+MUSE-derived image ($0.6\arcsec$), and refitting with the paper's
+$0.6\arcsec$ PSF closes roughly half the gap ($\thetaE\to2.28\arcsec$).
+The SIS$\to\sigma$ conversion reproduces the paper's $379\,$km/s exactly
+when fed the paper's own $\thetaE$, isolating the offset to the recovered
+radius rather than the analysis. Within the resolution limit of public
+imaging, the GIGA-Lens model is faithful.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}

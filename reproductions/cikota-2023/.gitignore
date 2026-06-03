@@ -1,0 +1,16 @@
+# Cikota-2023 — heavy/transient artifacts, regeneratable from the numbered scripts.
+data/
+*.log
+.jax_cache/
+__pycache__/
+
+# LaTeX build artifacts (keep main.tex, main.pdf if a tech-report is added later)
+papers/*.aux
+papers/*.bbl
+papers/*.blg
+papers/*.log
+papers/*.out
+papers/*.toc
+papers/*.fls
+papers/*.fdb_latexmk
+papers/*.synctex.gz
