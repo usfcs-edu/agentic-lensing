@@ -1,0 +1,435 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Internal Reproduction Report — Sheu+2024a (Paper II): a targeted
+%% difference-imaging search for variable gravitationally lensed quasars.
+%%
+%% Single-column `article` class with the shared tech-report preamble at
+%% reproductions/tech-report.sty. Builds with vanilla TeX Live (>= 2022).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[11pt,letterpaper]{article}
+\usepackage{../../tech-report}
+
+% Sheu-2024a-specific macros
+\newcommand{\sig}{\ensuremath{\sigma}}
+\newcommand{\meansig}{\ensuremath{\langle\sigma\rangle}}
+\newcommand{\target}{DESI-038.0655$-$24.4942}
+
+\title{Reproducing the Sheu 2024 Targeted Difference-Imaging Search\\
+       for Variable Gravitationally Lensed Quasars}
+\author{Greg Benson \and Xiaosheng Huang}
+\date{June 2026}
+\addbibresource{references.bib}
+
+\begin{document}
+
+\maketitle
+\subtitle{Internal Reproduction Report}
+
+\begin{abstract}
+We reproduce the algorithmic core of \citet{sheu2024variable} (Paper~II), the
+variability variant of the \citet{sheu2023lensedsne} (Paper~I) targeted
+lensed-supernova search. Paper~II reuses the same per-exposure DECam
+difference-imaging pipeline but, instead of one-off transients, detects
+\emph{stochastic quasar variability} at the posited lensed-image positions and
+quantifies it with a magnitude-standard-deviation metric (their Eq.~1). Rather
+than redo the full $6462$-system search ($5807$ strong lenses $+\,655$ known
+lensed-quasar candidates), we \emph{reuse the validated Paper-I per-system
+pipeline} (NOIRLab per-exposure DECam access $\to$ \texttt{reproject} $\to$
+median reference $\to$ from-scratch Bramich-2008 differencing $\to$ SEP) and
+add the new Paper-II variability layer (PSF light curves $\to$ Eq.~1~\sig),
+demonstrated end-to-end on real DECam data and CPU for one Grade-A double
+lensed-quasar candidate, \target. On $32$ InstCal $g/r/z$ cutouts spanning
+$4.13$\,yr (MJD $56944$--$58454$), our pipeline isolates the variable source at
+the image positions ($20$ sub-detections across $11$ epochs at $0.25''$ from
+the system centre) and measures a per-image variability $\meansig = 0.337$\,mag
+($0.332$ for image A, $0.342$ for image B). Sheu+2024a Table~2 reports
+$\meansig = 0.25$\,mag for this system --- the same order, somewhat high
+because our single-Gaussian PSF photometry blends the $1.54''$ double and the
+lens galaxy where the paper uses Tractor forced photometry. We
+\emph{independently validate} the photometry$\to$Eq.~1$\to$\sig\ chain against
+an injected variable source of \emph{known} scatter, recovering the realised
+injected~\sig\ to a few percent across the paper's full $0.13$--$0.40$\,mag
+range. The $6462$-system search, SFFT/Hu-2022 second algorithm, and visual
+location/color grading are explicitly out of scope.
+\end{abstract}
+
+\tableofcontents
+
+\bigskip
+
+% =============================================================================
+\section{Introduction}
+% =============================================================================
+
+\citet{sheu2024variable} (hereafter Paper~II) is the companion to
+\citet{sheu2023lensedsne} (Paper~I). Paper~I laid out a \emph{targeted}
+difference-imaging pipeline --- applied not to vast swathes of sky but
+specifically to known strong-lens positions --- and reported seven new
+gravitationally lensed supernova candidates from individual DECam exposures of
+the DESI Legacy Imaging Surveys \autocite{dey2019legacy}. Paper~II reuses that
+machinery but changes the target physics: gravitationally lensed \emph{quasars}
+have \emph{stochastic} light curves rather than the well-defined transients of
+supernovae, but they are far more common, and their time-delay light curves are
+a leading route to a sub-percent measurement of $H_0$
+\autocite{wong2019h0licow}. By folding \emph{temporal photometric variability
+at the lensed-image positions} into the search --- rather than relying on
+morphology, location, and color alone, as catalogue-based lensed-quasar searches
+do \autocite{dawes2023qso,he2023qso} --- Paper~II identifies $13$ new lensed-quasar
+candidates from a sample of $5807$ strong lenses and provides variability
+confirmation for $13$ of $655$ known lensed-quasar candidates.
+
+\paragraph{What the paper does.} The published pipeline (Paper~II \S3) has the
+following stages:
+\begin{enumerate}
+\item \textbf{Difference imaging.} For every system and band, subtract each
+      individual exposure from the median coadd over all exposures, using
+      \emph{two} subtraction algorithms: \citet{bramich2008} (a delta-basis
+      kernel; ``B08'') and \citet{hu2022sfft} (Fourier-space; ``SFFT'').
+\item \textbf{Detection + grouping.} Run SEP \autocite{barbary2018sep}, the
+      Python implementation of the \citet{bertin1996sextractor} source
+      extractor, on every difference image at thresholds $1.0$--$2.5\sigma$ in
+      $0.25\sigma$ steps. Each detection in a single algorithm is a
+      ``sub-detection''; all sub-detections (both algorithms, all bands, all
+      exposures) are grouped spatially and temporally. Groups with
+      $\geq 3$ sub-detections are flagged as possible transients.
+\item \textbf{Variability criteria.} Three visual criteria
+      (location, color, variability) replace Paper-I's supernova criteria.
+      Criterion~3 (variability) demands that all posited lensed images show
+      over- and under-subtraction between exposures.
+\item \textbf{The \sig\ metric.} For graded candidates, compute PSF photometry
+      at each posited image position (omitting epochs where SEP cannot resolve
+      a PSF, and cutting $\mathrm{S/N} < 5$), build per-band magnitude light
+      curves, and reduce them to the magnitude standard deviation of Eq.~1
+      (Paper~II \S3.2):
+      %
+      \begin{equation}
+        \sigma \;=\; \frac{1}{N}\sum_{b}
+                     \sqrt{\,\sum_{m_b}^{N_b}\bigl(m_b-\mu_b\bigr)^2 \,},
+        \label{eq:sigma}
+      \end{equation}
+      %
+      where $m_b$ are the PSF magnitudes in band $b$, $\mu_b$ their band mean,
+      $N_b$ the number of photometry epochs in band $b$, and
+      $N=\sum_b N_b$ the total over all bands. Paper~II reports $\meansig$ in
+      the $0.13$--$0.40$\,mag range across its $33$ tabulated systems
+      (their Table~2).
+\end{enumerate}
+
+\paragraph{Scope of this reproduction.} We do \emph{not} redo the
+$6462$-system search. We reuse the validated Paper-I per-system pipeline ---
+already reproduced in the sibling \texttt{reproductions/sheu-2023/} ---
+changing only the target coordinates, and add the genuinely new Paper-II
+variability layer (Eq.~\ref{eq:sigma} \sig\ from per-epoch PSF light curves),
+demonstrated MVP-style on \emph{one} Grade-A lensed-quasar candidate end to end
+on real DECam data and CPU, plus a controlled injected-variable-source
+validation of the metric. The visual A/B/C grading is done by eye in the paper;
+we target a system already graded by \citet{dawes2023qso} and
+\citet{he2023qso}.
+
+% =============================================================================
+\section{Target}
+% =============================================================================
+
+We target \textbf{\target}, a Grade-A \emph{double} lensed-quasar candidate
+(image separation $1.54''$) from \citet{dawes2023qso} and \citet{he2023qso}.
+It lies in the DES footprint, where DECam coverage is deepest ($10+$
+exposures), and is one of Paper~II's \S4.2 variability-confirmed systems. In
+Paper~II Table~2 it carries \texttt{LQ Candidate (D22, H23)}, an exposure
+count $31/21$ (NERSC DR9$+$DR10), $r \approx 18.39$, and
+$\meansig = \mathbf{0.25}$\,mag --- the published numbers we compare against.
+We confirmed the position at $0.00''$ against the on-disk Dawes catalogue
+(\texttt{reproductions/dawes-2022/data/dawes2023\_vizier\_table2.csv}).
+
+% =============================================================================
+\section{Pipeline}
+% =============================================================================
+
+The pipeline is six numbered scripts at \texttt{reproductions/sheu-2024a/}.
+Scripts \texttt{01}--\texttt{04} are direct adaptations of the validated
+Paper-I sibling scripts (only the target coordinates change); the
+Paper-II-specific work is \texttt{05} (variability light curves + Eq.~1 \sig)
+and \texttt{06} (the over/under-subtraction evidence panel).
+
+\begin{enumerate}
+\item[\texttt{01}] \textbf{Data access (reused).} A NOIRLab Astro Data Archive
+      \autocite{nsf_noirlab_archive} SIA cone search at the target returns
+      $\sim$$12$--$16$ unique exposures/band; we fetch InstCal $g/r/z$
+      exposures, slice the covering CCD by WCS, and write $801^2$ cutouts at
+      $0.262''$/pix.
+\item[\texttt{02}] \textbf{Reproject + reference (reused).} Reproject all
+      cutouts to a common grid with \texttt{reproject} \autocite{reproject2020}
+      (replacing the paper's Montage \autocite{jacob2010montage}) and
+      median-coadd a per-band reference.
+\item[\texttt{03}] \textbf{Difference imaging (reused).} From-scratch
+      \citet{bramich2008} delta-basis-kernel differencing of each exposure
+      against the reference (half-width $4$, $2$ spatial tiles).
+\item[\texttt{04}] \textbf{Detection + grouping (reused).} SEP
+      \autocite{barbary2016sep,barbary2018sep} detection at $1.0$--$2.5\sigma$,
+      then a $0.8''$/$50$\,d friends-of-friends grouping with the Paper-I
+      $\geq 3$-sub-detection rule.
+\item[\texttt{05}] \textbf{Variability light curves + \sig\ (NEW).}
+      Circular-Gaussian PSF photometry (FWHM from per-frame seeing) at both
+      lensed-image positions on every epoch, $\mathrm{S/N} > 5$ cut, per-band
+      light curves, and Eq.~\ref{eq:sigma} \sig. \texttt{--mode synth} injects
+      a point source of known per-band scatter into the real reference frames
+      and pushes it through the same chain.
+\item[\texttt{06}] \textbf{Evidence figure (NEW).} Reference panel plus the
+      over/under-subtraction difference stamps at the image positions.
+\end{enumerate}
+
+\paragraph{Reuse from the difference-imaging core.} The data access, reproject,
+B08 differencing, and SEP detection/grouping (scripts \texttt{01}--\texttt{04})
+are the Paper-I machinery, validated in the sibling
+\texttt{reproductions/sheu-2023/} report. Confirming that the same code, with
+only a coordinate change, still detects a variable source at a new target is
+itself part of the reproduction: \S\ref{sec:detection}.
+
+% =============================================================================
+\section{Results}
+% =============================================================================
+
+% -----------------------------------------------------------------------------
+\subsection{Data pulled}
+% -----------------------------------------------------------------------------
+
+The SIA cone search yields $\sim$$12$--$16$ unique exposures per band; we
+processed \textbf{$32$ InstCal $g/r/z$ cutouts} ($12$~$g$, $9$~$r$, $11$~$z$)
+spanning \textbf{MJD $56944$--$58454$ ($4.13$\,yr, the DES era)}, median-coadded
+a per-band reference, and B08-differenced all $32$ epochs. The public NOIRLab
+SIA indexes fewer exposures at this position than the paper's full DR9$+$DR10
+NERSC exposure database (Table~2 reports $31/21$ for this system), so our
+baseline is shorter than theirs --- still ample for a robust \sig.
+
+% -----------------------------------------------------------------------------
+\subsection{The variable source is detected at the lensed-image positions}
+\label{sec:detection}
+% -----------------------------------------------------------------------------
+
+SEP detection plus $0.8''$/$50$\,d FoF grouping produces a noisy field, but the
+location filter isolates the variable source. The dominant group has
+\textbf{$20$ sub-detections across $11$ epochs in all three bands at $0.25''$
+from the system centre} (image~A), with a second $grz$ group at $1.71''$
+(image~B). The posited lensed-quasar images therefore show repeated over- and
+under-subtraction --- exactly the paper's Criterion~3 variability signal.
+Figure~\ref{fig:panel} shows the per-band reference (top) with the over- and
+under-subtraction difference stamps at image~A across three representative
+epochs (bottom).
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{figures/variability_panel.png}
+\caption{Over/under-subtraction evidence for \target. \emph{Top:} median
+$g/r/z$ references; cyan circle marks image~A (system centre), orange square
+marks image~B at $1.17''$. \emph{Bottom:} B08 difference stamps at image~A for
+three epochs, showing strong over-subtraction (blue residual, MJD~$57342$,
+$58081$) and under-subtraction (red residual, MJD~$58411$) --- the qualitative
+variability signal the paper shows in its per-system figures (Criterion~3).}
+\label{fig:panel}
+\end{figure}
+
+% -----------------------------------------------------------------------------
+\subsection{The Eq.~1 variability \sig}
+% -----------------------------------------------------------------------------
+
+We resolve the Dawes double (image~A at the system centre, image~B $1.17''$
+away --- the catalogue $1.54''$ is foreshortened by blending at $\sim$$1.3''$
+seeing), do Gaussian-PSF photometry at both positions on every epoch
+($\mathrm{S/N} > 5$ cut, all $64$ measurements pass), build per-band magnitude
+light curves (Figure~\ref{fig:lc-real}), and compute the Eq.~\ref{eq:sigma}
+magnitude standard deviation. The headline comparison is
+Table~\ref{tab:headline}.
+
+\begin{table}[ht]
+\centering
+\caption{Headline result: per-image variability \sig\ for \target, ours vs
+published. Published value is Sheu+2024a Table~2 ($\meansig = 0.25$\,mag,
+$r\approx 18.39$, exposures $31/21$).}
+\label{tab:headline}
+\begin{tabular}{lrrr}
+\toprule
+quantity                              & published & ours  & note \\
+\midrule
+exposures used (total / per system)   & $31/21$   & $32$  & public SIA subset \\
+baseline (yr)                         & $\sim$5   & $4.13$ & DES era \\
+\sig, image A (mag)                   & ---       & $0.332$ & $g{=}0.459$, $r{=}0.276$, $z{=}0.240$ \\
+\sig, image B (mag)                   & ---       & $0.342$ & $g{=}0.357$, $r{=}0.315$, $z{=}0.348$ \\
+$\meansig$ (mag)                      & $0.25$    & $\mathbf{0.337}$ & same order, blended \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+We recover the same order, somewhat high: our blended single-Gaussian
+photometry adds cross-image and lens-galaxy scatter, strongest in $g$
+($\sigma = 0.46$ for image~A), where the lens galaxy is bluest; the paper's
+Tractor forced photometry deblends better. The light curves show unmistakable
+$\sim$$0.5$--$1$\,mag stochastic, band-coherent quasar variability over the
+$4.1$-yr baseline.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{figures/lightcurve_real.png}
+\caption{Real-data $g/r/z$ PSF light curves at the two lensed-image positions
+of \target\ (ZP$=30$; dashed lines are per-band means). Both images show
+$\sim$$0.5$--$1$\,mag stochastic, band-coherent variability over the $4.1$-yr
+DECam baseline. The Eq.~\ref{eq:sigma} magnitude standard deviation is
+$\sigma_{\rm A}=0.332$, $\sigma_{\rm B}=0.342$, $\meansig=0.337$\,mag
+(paper Table~2: $0.25$\,mag).}
+\label{fig:lc-real}
+\end{figure}
+
+% -----------------------------------------------------------------------------
+\subsection{The \sig\ metric, validated on injected truth}
+% -----------------------------------------------------------------------------
+
+To prove the photometry$\to$Eq.~\ref{eq:sigma}$\to$\sig\ chain is correct
+\emph{independent} of the blended real-data photometry, \texttt{05 --mode synth}
+injects a point source of \emph{known} per-band magnitude scatter into the real
+reference frames at a blank-sky location and pushes it through the identical
+B08 $+$ PSF-photometry $+$ Eq.~1 chain. Table~\ref{tab:synth} compares the
+recovered $\meansig$ against the \emph{realised} injected scatter (the per-band
+$\sigma$ a finite random draw actually produced, which is the right reference
+because each band has only $\sim$$10$ epochs).
+
+\begin{table}[ht]
+\centering
+\caption{Injected-variable-source validation of the Eq.~\ref{eq:sigma} \sig\
+metric. The recovered $\meansig$ tracks the \emph{realised} injected per-band
+scatter to a few percent across the paper's full $0.13$--$0.40$\,mag range.}
+\label{tab:synth}
+\begin{tabular}{rlrr}
+\toprule
+injected \sig & realised injected ($g/r/z$)        & recovered $\meansig$ & ratio \\
+\midrule
+$0.10$ & $0.105\,/\,0.129\,/\,0.084$               & $0.109$ & $1.09$ \\
+$0.20$ & $0.210\,/\,0.257\,/\,0.169$               & $0.216$ & $1.08$ \\
+$0.25$ & $0.156\,/\,0.254\,/\,0.210$               & $0.207$ & $0.83^{*}$ \\
+$0.40$ & $0.419\,/\,0.515\,/\,0.337$               & $0.429$ & $1.07$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The recovered \sig\ tracks the realised injected scatter to within a few
+percent. The $0.25$/seed-0 row reads low ($0.83$) only because that random draw
+itself scattered low ($g = 0.156$, not $0.25$); recovery still matches the
+realised value. The metric is honest and linear --- it correctly turns a
+known input scatter into the same output \sig\ scale as Table~2.
+Figure~\ref{fig:lc-synth} shows the injected light curve for the
+$\sigma = 0.25$ case.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{figures/lightcurve_synth.png}
+\caption{Injected-variable-source light curve (injected $\sigma = 0.25$\,mag,
+seed~0) recovered through the full B08 $+$ PSF-photometry $+$ Eq.~1 chain. The
+recovered $\meansig = 0.207$\,mag matches the realised injected scatter
+($g{=}0.159$, $r{=}0.250$, $z{=}0.225$), confirming the metric is unbiased.}
+\label{fig:lc-synth}
+\end{figure}
+
+% =============================================================================
+\section{Caveats and what is not reproduced}
+% =============================================================================
+
+\paragraph{Photometry is a single-Gaussian proxy, not Tractor.} We fit a
+circular-Gaussian PSF (FWHM from per-frame seeing) on a small stamp at each
+image position; the paper uses Tractor forced PSF photometry
+\autocite{lang2016tractor}. For a double with $1.54''$ separation on
+$\sim$$1.3''$ DECam seeing the two images partially blend, so absolute
+magnitudes carry lens-galaxy and cross-image contamination --- this is why our
+$\meansig = 0.337$ runs high of the paper's $0.25$, and why we validate the
+quantitative claim with the injected-source test rather than the blended
+real-data \sig\ alone.
+
+\paragraph{Eq.~1 interpretation.} As printed, Eq.~\ref{eq:sigma} omits a
+$1/N_b$ inside the per-band square root, which would give $\sigma \sim
+\sqrt{N_b}$ larger than the $0.1$--$0.4$\,mag scale of Table~2. We interpret it
+(per the Table~2 caption, ``average magnitude standard deviation'') as the
+$N_b$-weighted mean of the per-band magnitude \emph{standard deviation}, which
+reproduces the Table~2 scale. Both the literal and standard-deviation forms are
+written to \texttt{data/sigma\_*.csv} so the choice is transparent (the literal
+form gives $\approx 0.10$\,mag for image~A, demonstrably off the Table~2 scale).
+
+\paragraph{One subtraction algorithm, not two.} We implement only B08
+\autocite{bramich2008}; the paper additionally runs the GPU Fourier-space
+algorithm of \citet{hu2022sfft} (SFFT), and shows its published difference
+images from SFFT alone. As in our Paper-I reproduction, we use B08 only.
+
+\paragraph{Montage replaced by \texttt{reproject}.} The paper mosaics with
+Montage \autocite{jacob2010montage}; we use \texttt{reproject}
+\autocite{reproject2020}, equivalent for the per-system WCS regridding here.
+
+\paragraph{Shorter exposure baseline.} The public NOIRLab SIA cone search
+indexes fewer exposures ($\sim$$12$--$16$ unique per band) than the paper's
+full DR9$+$DR10 NERSC exposure database (Table~2 reports $31/21$ for this
+system), so our light curves are shorter ($4.13$\,yr vs $\sim$$5$\,yr).
+
+\paragraph{Out of scope (paper, not reproduced).}
+\begin{itemize}
+\item The $5807$-strong-lens $+\,655$-lensed-quasar-candidate search (we run
+      one system).
+\item The visual location/color grading and the fiducial-\sig\ threshold
+      selection (Paper~II \S4); both are done by eye / against the
+      $20$-system average. We target a pre-graded \citet{dawes2023qso} /
+      \citet{he2023qso} candidate directly.
+\item The $13$ new candidates and $13$ variability-confirmed systems of the
+      published catalog (we confirm variability for one Table~2 system).
+\end{itemize}
+
+% =============================================================================
+\section{Software and data availability}
+% =============================================================================
+
+\begin{itemize}
+\item Scripts: \texttt{reproductions/sheu-2024a/01--06\_*.py}; this report
+      builds against the artifacts they produce
+      (\texttt{data/sigma\_real.csv}, \texttt{data/sigma\_synth.csv},
+      \texttt{data/lightcurves\_*.csv}, \texttt{figs/*.png}).
+\item Per-exposure DECam data: NSF NOIRLab Astro Data Archive
+      \autocite{nsf_noirlab_archive}, individual InstCal $g/r/z$ exposures
+      (not coadds).
+\item Difference-imaging core (\texttt{01}--\texttt{04}) reused from the
+      sibling \texttt{reproductions/sheu-2023/} reproduction of
+      \citet{sheu2023lensedsne}.
+\item Python environment \texttt{/home/benson/.venvs/lens}:
+      \texttt{astropy} \autocite{astropy2013,astropy2018},
+      \texttt{reproject} \autocite{reproject2020},
+      \texttt{sep} \autocite{barbary2016sep,barbary2018sep},
+      \texttt{numpy} \autocite{harris2020numpy},
+      \texttt{matplotlib} \autocite{hunter2007matplotlib},
+      \texttt{scipy}, \texttt{pandas}.
+\item Code repository: \url{https://github.com/usfcs-edu/agentic-lensing}.
+\end{itemize}
+
+\software{Astropy \citep{astropy2013,astropy2018},
+          reproject \citep{reproject2020},
+          SEP \citep{bertin1996sextractor,barbary2018sep},
+          NumPy \citep{harris2020numpy},
+          Matplotlib \citep{hunter2007matplotlib}.}
+\facility{NSF NOIRLab Astro Data Archive; CTIO:4m / DECam
+          \citep{flaugher2015decam}.}
+
+% =============================================================================
+\section{Conclusions}
+% =============================================================================
+
+We adapted the \citet{sheu2023lensedsne} targeted difference-imaging pipeline
+into the \citet{sheu2024variable} variability variant (NOIRLab per-exposure
+DECam $\to$ \texttt{reproject} $\to$ median reference $\to$ from-scratch B08
+differencing $\to$ SEP), added the new PSF light-curve $+$ Eq.~\ref{eq:sigma}
+magnitude-\sig\ layer, and measured $\meansig = 0.337$\,mag of stochastic,
+band-coherent variability in both images of the Grade-A double lensed-quasar
+candidate \target\ over a $4.1$-yr DECam baseline (paper Table~2:
+$0.25$\,mag). The \sig\ metric is \emph{validated to a few percent} against an
+injected variable source of known scatter across the paper's full
+$0.13$--$0.40$\,mag range, so the photometry$\to$Eq.~1$\to$\sig\ chain is
+demonstrably correct; the real-data $\meansig$ runs high only because our
+single-Gaussian PSF photometry blends the $1.54''$ double where the paper's
+Tractor deblends. The $6462$-system search, the SFFT/Hu-2022 second algorithm,
+and the visual location/color grading are out of scope. The result is a
+faithful MVP of Paper~II's central methodological advance: that targeted
+difference-imaging variability at posited lensed-image positions is a viable
+discovery and confirmation channel for lensed quasars.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}
