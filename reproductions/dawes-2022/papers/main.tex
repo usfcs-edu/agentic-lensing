@@ -1,0 +1,446 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Internal Reproduction Report — Dawes+2023 (ApJS 269:61) autocorrelation
+%% search for multiply lensed and binary quasars in the DESI Legacy Surveys.
+%%
+%% Single-column `article` class with the shared tech-report preamble at
+%% reproductions/tech-report.sty. Builds with vanilla TeX Live (>= 2022).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[11pt,letterpaper]{article}
+\usepackage{../../tech-report}
+
+% Dawes-specific math macros (\asec is already provided by amsmath; we
+% define a robust as-text arcsecond marker under a private name instead)
+\newcommand{\asec}{\ensuremath{^{\prime\prime}}}
+\newcommand{\PMSIG}{\ensuremath{\mathrm{PMSIG}}}
+\newcommand{\PXSIG}{\ensuremath{\mathrm{PXSIG}}}
+\newcommand{\degsq}{\ensuremath{\mathrm{deg}^2}}
+
+\title{Reproducing the Dawes 2022/2023 Autocorrelation Search for\\
+       Multiply Lensed and Binary Quasars in the DESI Legacy Surveys}
+\author{Greg Benson \and Xiaosheng Huang}
+\date{June 2026}
+\addbibresource{references.bib}
+
+\begin{document}
+
+\maketitle
+\subtitle{Internal Reproduction Report}
+
+\begin{abstract}
+We reproduce the algorithmic core of the \citet{dawes2023quasars}
+``autocorrelation'' search for multiply lensed and binary quasars in the
+DESI Legacy Imaging Surveys. The published autocorrelation step is a
+friends-of-friends (FoF) angular grouping of quasar targets at a fixed
+linking length --- searched first at $10\asec$, then halved to ${<}5\asec$
+--- followed by Gaia EDR3 proper-motion and parallax cuts and human visual
+grading. Because Dawes' ${\sim}5{\rm M}$-target \emph{photometric} DESI Quasar
+Sample is not on disk, we run the identical \texttt{spherimatch} FoF
+\autocite{spherimatch} on the most directly available proxy --- the
+$1{,}645{,}843$-spectrum DESI DR1 \emph{spectroscopic} QSO sample from
+\texttt{zall-pix-iron.fits}. The proxy is ${\sim}1/3$ the size and is
+selected differently, so absolute candidate counts cannot match the
+published $436$; what we reproduce faithfully is the \emph{algorithm} and
+the \emph{recovery of discoverable systems}. Our headline result: every
+published candidate that is \emph{discoverable in our proxy} (has $\geq 2$
+distinct DR1 spectroscopic QSOs within $5\asec$) is correctly grouped by
+our FoF --- $58/58 = 100\,\%$, the apples-to-apples analog of the paper's
+$94/94 = 100\,\%$ recovery of its ``discoverable known'' systems. Recovered
+matches sit a median $0.139\asec$ from the published centroid. The full
+$1.6{\rm M}$-QSO FoF runs in ${\sim}3$\,s. Visual-inspection grading
+(Grades A/B/C) is explicitly out of scope, exactly as in the companion
+\citet{hsu2025pairwise} reproduction.
+\end{abstract}
+
+\tableofcontents
+
+\bigskip
+
+% =============================================================================
+\section{Introduction}
+% =============================================================================
+
+This report documents the reproduction of \citet{dawes2023quasars}
+(ApJS~269:61; arXiv submitted 2022, hence the ``Dawes 2022/2023'' label),
+one of a series of internal reproductions covering
+Prof. Xiaosheng Huang's strong-gravitational-lensing program. Companion
+reports cover \citet{huang2020decals} (DECaLS ResNet lens finder) and
+\citet{hsu2025pairwise} (pair-wise spectroscopic lens search over DESI
+DR1); the present work is the quasar-lens analog of the latter.
+
+\paragraph{What the paper did.} Multiply lensed quasars are powerful
+cosmological probes: the time delay between their multiple images yields
+an independent measurement of $H_0$
+\autocite{treu2016marshall,dawes2023quasars}. To grow the small known
+sample, \citet{dawes2023quasars} search the $19{,}000\,\degsq$ DESI Legacy
+Imaging Surveys \autocite{dey2019legacysurveys} for new lensed and binary
+quasars. They apply an \emph{autocorrelation algorithm} to the
+${\sim}5$~million objects classified as quasars in the DESI Quasar Sample,
+visually inspect and rank the resulting systems, and present
+\textbf{436 new multiply lensed and binary quasar candidates}.
+
+\paragraph{The autocorrelation algorithm (\S3).} The paper's
+``autocorrelation'' step groups quasar targets that lie within an angular
+separation cut and ``recursively connects multiple pairs of quasar targets
+within the same candidate system (such as would occur in `triples' and
+`quads')''. This is precisely a \textbf{friends-of-friends} grouping with a
+fixed angular linking length. Dawes first search a $10\asec$ radius
+(``to err on the side of completeness''), then halve the cut to ${<}5\asec$
+because ${>}95\,\%$ of the discoverable known systems have images separated
+by ${<}5\asec$. They test the algorithm on the 94 ``discoverable known''
+systems and on simulations, \textbf{achieving a 100\,\% success rate}, then
+deploy it on the full ${\sim}5{\rm M}$ quasar-target sample.
+
+\paragraph{Lensed-quasar system bookkeeping (Table~1).} Of the
+${\sim}300$ known lensed-quasar systems in the footprint, $94$ are
+``discoverable known'' (have $\geq 2$ objects in the DESI Quasar Sample so
+the algorithm \emph{can} group them), of which $72$ are ``discoverable
+confirmed''. The new output is the $436$ candidates.
+
+\paragraph{Post-FoF stellar rejection (\S4.1).} Milky-Way stellar
+contaminants are rejected using Gaia EDR3 \autocite{gaiaedr3} proper motion
+and parallax. Dawes define significances
+$\PMSIG = \sqrt{\mu_\alpha^2 + \mu_\delta^2}/\sqrt{\sigma_{\mu_\alpha}^2 +
+\sigma_{\mu_\delta}^2}$ and $\PXSIG = \varpi/\sigma_\varpi$, and accept a
+source as extragalactic if $\PMSIG < 8$ \emph{and} $\PXSIG < 3.5$. Gaia
+information is available for at least one image of $380/436 \approx 87\,\%$
+of the published candidates.
+
+\paragraph{Scope.} As with the \citet{hsu2025pairwise} reproduction, the
+published pipeline has an algorithmic stage (autocorrelation FoF + Gaia
+cuts) followed by a human visual-inspection / grading stage (Grades
+A/B/C). \textbf{This reproduction covers the algorithmic stage only.}
+Visual grading is not attempted.
+
+% =============================================================================
+\section{The proxy sample (and why absolute counts cannot match)}
+% =============================================================================
+
+The single most important caveat of this reproduction is the input
+catalog. Dawes ran on the DESI Legacy Imaging Surveys \emph{photometric}
+DESI Quasar Sample --- ${\sim}5$~million Random-Forest-selected QSO
+\emph{targets}, one detection per source. \textbf{That photometric target
+catalog is not on disk.} We therefore substitute the most directly
+available proxy: the DESI DR1 \emph{spectroscopic} QSO sample carved from
+the shared $28.4{\rm M}$-fiber \texttt{zall-pix-iron.fits}
+\autocite{desidr1} via the pre-filter cascade in Table~\ref{tab:prefilter}.
+
+\begin{table}[ht]
+\centering
+\caption{QSO pre-filter cascade on \texttt{zall-pix-iron.fits} (DR1).}
+\label{tab:prefilter}
+\begin{tabular}{lr}
+\toprule
+filter                                     & remaining \\
+\midrule
+raw rows                                   & 28{,}425{,}963 \\
+\texttt{ZCAT\_PRIMARY == True}             & 27{,}547{,}223 \\
+\texttt{ZWARN == 0}                        & 20{,}415{,}199 \\
+\texttt{SPECTYPE == QSO}                   & \textbf{1{,}645{,}843} \\
+\midrule
+Dawes input (photometric, NOT used)        & ${\sim}5{,}000{,}000$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+This proxy is a related but \textbf{not identical} sample: it is
+${\sim}1/3$ the size and selected differently (spectroscopically confirmed
+QSOs only, vs.\ photometric RF-selected targets). Two consequences follow
+and are quantified honestly throughout this report:
+\begin{enumerate}
+\item \textbf{Absolute candidate counts cannot match $436$.} Most published
+      candidate \emph{images} are faint, blended lensed images that DESI
+      never spectroscopically confirmed as QSOs. Only $138/436$ published
+      candidates have \emph{any} DR1 QSO within $5\asec$, and only
+      $58/436$ have $\geq 2$ \emph{distinct} DR1 QSOs (i.e.\ are
+      ``discoverable'' in our proxy).
+\item \textbf{The reproduction targets are the algorithm and the recovery
+      of discoverable systems}, not the raw $436$. We assess these in
+      \S\ref{sec:recovery}.
+\end{enumerate}
+
+% =============================================================================
+\section{Pipeline}
+% =============================================================================
+
+The pipeline is implemented in seven numbered scripts at
+\texttt{reproductions/dawes-2022/}, summarized in Table~\ref{tab:scripts}.
+The FoF engine is the exact \texttt{spherimatch} \autocite{spherimatch}
+tool used by the \citet{hsu2025pairwise} pipeline; the catalog fetch and
+Gaia queries use \texttt{astroquery} \autocite{astroquery2019}; sky-coordinate
+matching uses \texttt{astropy} \autocite{astropy2022}.
+
+\begin{table}[ht]
+\centering
+\caption{Reproduction scripts.}
+\label{tab:scripts}
+\small
+\begin{tabular}{lp{0.66\linewidth}}
+\toprule
+script & purpose \\
+\midrule
+\texttt{00\_fetch\_published\_catalog.py} &
+  download Dawes Table~2 from VizieR \texttt{J/ApJS/269/61}
+  ($875$ image-rows $\to 436$ systems). \\
+\texttt{01\_build\_qso\_sample\_and\_fof.py} &
+  build the DR1 QSO proxy sample; \texttt{spherimatch} FoF at $5\asec$
+  and $10\asec$. \\
+\texttt{02\_recover\_published\_candidates.py} &
+  nearest-group recovery of the $436$ published positions. \\
+\texttt{03\_gaia\_pm\_px\_cuts.py} &
+  Gaia EDR3 $\PMSIG$/$\PXSIG$ stellar rejection (checkpointed/resumable). \\
+\texttt{04\_make\_figures.py} &
+  separation histogram + recovery-offset histogram. \\
+\texttt{05\_refine\_candidates.py} &
+  collapse spectroscopic duplicates, keep resolved
+  ($0.3\asec \le \mathrm{sep} \le 5\asec$) candidate systems. \\
+\texttt{06\_recovery\_ceiling.py} &
+  proxy-aware \emph{conditional} recovery (analog of $94/94$). \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{FoF grouping.} For each of the two linking lengths
+($\ell = 5\asec$ and $10\asec$) we call \texttt{spherimatch.fof} on the
+(\texttt{TARGET\_RA}, \texttt{TARGET\_DEC}) of the $1{,}645{,}843$ QSOs and
+retain groups of size $\geq 2$. The $5\asec$ run takes $2.8$\,s, the
+$10\asec$ run $2.8$\,s; loading the $28.4{\rm M}$-row catalog dominates the
+wall-clock at $30$\,s.
+
+\paragraph{Refinement.} The raw FoF groups are dominated by pairs at
+${\sim}0\asec$ separation: distinct \texttt{TARGETID}s at the \emph{same}
+sky position (the same physical QSO observed under multiple DESI
+surveys/programs, or Tractor splits). Dawes' photometric target catalog has
+one detection per source and so never sees this pile-up. Script~05 collapses
+near-zero-separation duplicates (dedup within $0.2\asec$) and keeps only
+``resolved'' systems with maximum internal image separation in
+$[0.3\asec, 5\asec]$ --- $0.3\asec$ matches the minimum published Dawes
+separation of $0.32\asec$.
+
+% =============================================================================
+\section{Algorithmic-step results}
+% =============================================================================
+
+The headline comparison of our output against \citet{dawes2023quasars} is
+in Table~\ref{tab:headline}. Because the input samples differ in size and
+selection, the absolute group counts are expected to differ and are shown
+for transparency rather than as a match claim; the rows that constitute the
+actual reproduction target (recovery of discoverable systems) are in
+\S\ref{sec:recovery}.
+
+\begin{table}[ht]
+\centering
+\caption{Algorithmic-step output: published vs ours. The
+$\dagger$ rows compare counts across \emph{different input samples}
+(${\sim}5{\rm M}$ photometric targets vs $1.6{\rm M}$ spectroscopic QSOs)
+and are not expected to match.}
+\label{tab:headline}
+\small
+\begin{tabular}{lrr}
+\toprule
+metric & published (Dawes) & ours (DR1 QSO proxy) \\
+\midrule
+QSO input sample                          & ${\sim}5{,}000{,}000$ phot. & 1{,}645{,}843 spec. \\
+FoF groups @ $5\asec$ (raw)$^\dagger$    & ---                   & 10{,}917 \\
+FoF groups @ $10\asec$ (raw)$^\dagger$   & ---                   & 12{,}896 \\
+recommendations @ $10\asec$$^\dagger$    & ${>}27{,}000$ targets & 25{,}962 spectra \\
+recommendations @ $5\asec$$^\dagger$     & ${\sim}6{,}000$ targets & 21{,}965 spectra \\
+resolved candidates @ $5\asec$$^\dagger$ & 436 candidates        & 1{,}548 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Multiplicity breakdown.} The raw $5\asec$ FoF groups split into
+$10{,}790$ doubles, $123$ triples and $4$ quads ($\geq 4$ images); the
+$10\asec$ run gives $12{,}730/162/4$. After refinement (\S5) the
+resolved systems are $1{,}529$ doubles, $18$ triples and $1$ quad, a
+double-to-multi ratio of ${\approx}80{:}1$. Dawes report
+${\approx}21{:}1$ in the text ($24$ quads identified by the algorithm; the
+published Type column lists $432$ Double $+\,4$ Quad). The ratio cannot
+match because spectroscopic confirmation of \emph{all} faint images of a
+quad is rare in DR1 --- most published quads were Tractor-deblended from
+photometric data we have no access to.
+
+\paragraph{Separation distribution.} Figure~\ref{fig:sep} contrasts the
+maximum within-group image separation of our $5\asec$ FoF groups against
+the published Dawes separations. Our distribution piles up at $0\asec$
+(the spectroscopic-duplicate artifact); the published separations span
+$0.32$--$4.99\asec$ with median $1.9\asec$, the physically meaningful
+regime that script~05's refinement isolates.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{figures/separation_hist.png}
+\caption{Maximum within-group image separation: our $5\asec$ FoF groups
+(filled, $N=10{,}917$) vs the published Dawes+2023 separations
+(red outline, $N=436$). The $0\asec$ spike in our distribution is distinct
+\texttt{TARGETID}s at the same sky position (the same physical QSO observed
+under multiple DESI surveys/programs); the refinement step (\S5) removes it.}
+\label{fig:sep}
+\end{figure}
+
+% =============================================================================
+\section{Recovery of the published candidates}
+\label{sec:recovery}
+% =============================================================================
+
+The paper's headline target is \textbf{100\,\% recovery of the 94
+``discoverable known'' systems}. We assess recovery at two levels.
+
+\paragraph{Raw recovery (all 436).} Cross-matching each of the $436$
+published candidate positions against our FoF group centroids
+(recovered if the nearest centroid is within $3\asec$) gives
+\textbf{$61/436 = 14.0\,\%$}, identical at $5\asec$ and $10\asec$, with
+a median offset of $\mathbf{0.139\asec}$ for recovered systems. The
+by-grade breakdown is $17/102$ (A), $15/118$ (B), $29/216$ (C). This raw
+fraction is \emph{capped by the proxy}: only $138/436$ candidates have any
+DR1 QSO within $5\asec$ at all, so $\sim\!86\,\%$ of the misses are simply
+candidates with no spectroscopic counterpart to group. Figure~\ref{fig:off}
+shows the bimodal offset distribution --- a tight recovered population at
+${\sim}0.1\asec$ and a large unrecoverable population whose nearest QSO
+group is ${\sim}30\asec$ away.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{figures/recovery_offsets.png}
+\caption{Offset from each of the $436$ published candidates to the nearest
+$5\asec$ FoF group centroid. $61$ fall within $3\asec$ (dashed line);
+the recovered population sits at median $0.139\asec$. The
+${\sim}30\asec$ pile-up is published candidates with no nearby DR1
+spectroscopic QSO --- a proxy limitation, not an algorithmic failure.}
+\label{fig:off}
+\end{figure}
+
+\paragraph{Conditional recovery --- the apples-to-apples analog of 94/94.}
+The fair comparison restricts to candidates that are \emph{discoverable in
+our proxy}: those with $\geq 2$ distinct DR1 spectroscopic QSOs within
+$5\asec$ (the proxy analog of Dawes' ``$\geq 2$ objects in the DESI Quasar
+Sample'' definition of ``discoverable known''). There are $58$ such
+candidates, and our FoF algorithm correctly groups
+\textbf{all $58$ of them: $58/58 = 100.0\,\%$}. This is the direct analog of
+the paper's $94/94 = 100\,\%$ recovery, and it reproduces.
+
+\begin{table}[ht]
+\centering
+\caption{Recovery results. The conditional row is the apples-to-apples
+analog of the published $94/94$.}
+\label{tab:recovery}
+\begin{tabular}{lrr}
+\toprule
+quantity & published (Dawes) & ours (DR1 QSO proxy) \\
+\midrule
+discoverable systems                  & 94             & 58 \\
+\;of which grouped by FoF             & 94 ($100\,\%$) & \textbf{58 ($\mathbf{100\,\%}$)} \\
+raw recovery of all candidates        & n/a            & $61/436 = 14.0\,\%$ \\
+median offset of recovered            & ---            & $0.139\asec$ \\
+candidates with any DR1 QSO ${<}5\asec$ & n/a        & $138/436$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% =============================================================================
+\section{Gaia EDR3 stellar rejection}
+% =============================================================================
+
+Script~03 reproduces the Dawes \S4.1 Gaia EDR3 \autocite{gaiaedr3}
+contaminant cut. For every QSO image in the $1{,}548$ resolved candidate
+groups ($3{,}179$ images) it performs a $2\asec$ cone search of
+\texttt{gaiaedr3.gaia\_source} via \texttt{astroquery.gaia}
+\autocite{astroquery2019}, computes $\PMSIG$ and $\PXSIG$ from the published
+formulae, and flags a group as stellar if any matched image has
+$\PMSIG \geq 8$ or $\PXSIG \geq 3.5$. The query is per-position and
+checkpointed (the bulk TAP upload-join hangs on the host), so it is the
+slowest step.
+
+\paragraph{Status.} Because faint lensed images mostly fall below Gaia's
+${\sim}21$\,mag limit, a large fraction of our QSO images have \emph{no}
+Gaia match --- that absence is itself part of the quasar signature, and
+Dawes report Gaia information for $\geq 1$ image of only $380/436
+\approx 87\,\%$ of candidates. At the time of this report the per-position
+Gaia crawl over all $3{,}179$ images was still in progress (the ESA Gaia
+archive is throttled in the run-up to DR4 and times out intermittently);
+the cut logic is implemented and validated on the queried subset, but the
+final per-group survival count is not yet finalized and is therefore
+reported as an incomplete step rather than a headline number.
+
+% =============================================================================
+\section{Reproducibility caveats / not reproduced}
+% =============================================================================
+
+\paragraph{Proxy sample (the dominant caveat).} Every absolute-count
+discrepancy in this report traces to the input substitution: a
+$1.6{\rm M}$-spectrum DR1 spectroscopic QSO sample standing in for Dawes'
+${\sim}5{\rm M}$ photometric RF-selected target catalog, which is not on
+disk. The proxy is ${\sim}1/3$ the size and selected differently. We make no
+claim of matching the $436$ candidate count, the
+${>}27{,}000$/${\sim}6{,}000$ recommendation counts, or the $\approx 21{:}1$
+double-to-quad ratio; these compare quantities derived from different input
+samples.
+
+\paragraph{Spectroscopic-duplicate pile-up.} The raw FoF groups are
+dominated by ${\sim}0\asec$ pairs (distinct \texttt{TARGETID}s at the same
+sky position). This is an artifact of using a multi-survey
+\emph{spectroscopic} catalog and is absent from Dawes' one-detection-per-source
+photometric catalog. Script~05's dedup-and-resolve step removes it, yielding
+the $1{,}548$ resolved systems.
+
+\paragraph{Double:quad ratio.} Our $80{:}1$ (1{,}529 doubles, 1 quad) vs
+the published ${\approx}21{:}1$ ($24$ quads). Spectroscopic confirmation of
+\emph{all} images of a quad is rare in DR1; most published quads were
+Tractor-deblended from photometric imaging we cannot access.
+
+\paragraph{Visual grading.} The reduction from algorithmic candidates to
+the graded A/B/C catalog is a human visual-inspection workflow, out of
+scope here exactly as in the \citet{hsu2025pairwise} reproduction.
+
+\paragraph{Gaia crawl incomplete.} As noted in \S7, the full per-image Gaia
+EDR3 query had not finished at report time; the survival count is pending.
+
+% =============================================================================
+\section{Software and data availability}
+% =============================================================================
+
+\begin{itemize}
+\item Scripts: \texttt{reproductions/dawes-2022/00--06\_*.py}; this report
+      builds against the artifacts they produce in \texttt{data/} and
+      \texttt{figs/}.
+\item Published catalog: VizieR \texttt{J/ApJS/269/61} table~2
+      (\citealt{dawes2023quasars}; $875$ image-rows, $436$ systems), pulled
+      via \texttt{astroquery.vizier} \autocite{astroquery2019}.
+\item DESI DR1 zcatalog source (shared with the \citet{hsu2025pairwise}
+      reproduction):
+      \url{https://data.desi.lbl.gov/public/dr1/spectro/redux/iron/zcatalog/v1/zall-pix-iron.fits}
+      (22.4~GB, public).
+\item \texttt{spherimatch} \autocite{spherimatch}: PyPI, MIT licensed; the
+      same FoF tool used by the \citet{hsu2025pairwise} pipeline.
+\item Gaia EDR3 \autocite{gaiaedr3} via \texttt{astroquery.gaia}
+      \autocite{astroquery2019}; sky matching via \texttt{astropy}
+      \autocite{astropy2022}.
+\item Python environment: \texttt{/home/benson/.venvs/hsu} ---
+      \texttt{spherimatch}, \texttt{astropy}, \texttt{astroquery},
+      \texttt{pyarrow}, \texttt{pandas}, \texttt{pdfminer.six}.
+\item Code repository: \url{https://github.com/usfcs-edu/agentic-lensing}.
+\end{itemize}
+
+% =============================================================================
+\section{Conclusions}
+% =============================================================================
+
+The autocorrelation algorithm at the heart of \citet{dawes2023quasars} is a
+friends-of-friends angular grouping; reproduced with the exact
+\texttt{spherimatch} FoF tool at the published $5\asec$ and $10\asec$
+linking lengths, it \textbf{recovers $100\,\%$ of the systems discoverable
+in our sample ($58/58$)} --- the apples-to-apples analog of the paper's
+$94/94 = 100\,\%$ recovery of its discoverable-known systems --- with a
+median centroid offset of $0.139\asec$. The raw $14\,\%$ recovery and the
+mismatches in absolute candidate counts and double-to-quad ratio are driven
+\emph{entirely} by the proxy input sample (DR1 spectroscopic QSOs,
+${\sim}1/3$ the size, differently selected), not by the algorithm. The full
+$1.6{\rm M}$-QSO FoF runs in ${\sim}3$~seconds on local hardware. The Gaia
+EDR3 stellar-rejection step is implemented per the paper's $\PMSIG < 8$,
+$\PXSIG < 3.5$ definitions but its per-position crawl was incomplete at
+report time, and visual grading remains out of scope.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}
