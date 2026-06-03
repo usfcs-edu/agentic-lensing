@@ -1,0 +1,179 @@
+--- a/nersc/_mps.py
++++ b/nersc/_mps.py
+@@ -0,0 +1,29 @@
++"""Torch device selection for the Apple Silicon (MPS) port of redshifty.
++
++Prefers Metal Performance Shaders (Apple Silicon GPU), then CUDA, then CPU. Setting
++PYTORCH_ENABLE_MPS_FALLBACK=1 routes any op without an MPS kernel to the CPU instead
++of erroring — set here (before torch initializes the backend) and also exported in
++the run commands as a belt-and-suspenders measure.
++
++This file is copied verbatim into the patched source as `src-redshifty/nersc/_mps.py`
++so the (sys.path-on-nersc) trainers can `from _mps import pick_device, pin_ok`.
++"""
++import os
++
++os.environ.setdefault("PYTORCH_ENABLE_MPS_FALLBACK", "1")
++
++import torch  # noqa: E402
++
++
++def pick_device(prefer_gpu_index=None):
++    """Return the best available torch device: mps > cuda > cpu."""
++    if torch.backends.mps.is_available():
++        return torch.device("mps")
++    if torch.cuda.is_available():
++        return torch.device(f"cuda:{prefer_gpu_index or 0}")
++    return torch.device("cpu")
++
++
++def pin_ok(device) -> bool:
++    """pin_memory only helps CUDA; MPS unified memory has no pinned host memory."""
++    return device.type == "cuda"
+--- a/nersc/train_transformer.py
++++ b/nersc/train_transformer.py
+@@ -44,6 +44,8 @@
+ sys.path.insert(0, str(HERE.parent))
+ sys.path.insert(0, str(HERE))
+ 
++from _mps import pick_device, pin_ok  # noqa: E402  Apple Silicon / MPS device selection
++
+ # Core logic — moved to src/training/ for reusability.
+ from src.models.transformer import SpectrumTransformer, MASK_TOKEN, TOTAL_VOCAB_SIZE  # noqa: E402
+ from src.tokenizers.redshift import RedshiftTokenizer  # noqa: E402
+@@ -236,7 +238,7 @@
+         device = torch.device(f"cuda:{cuda_idx}")
+     else:
+         rank, world_size, local_rank = 0, 1, 0
+-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
++        device = pick_device()  # MPS > CUDA > CPU (Apple Silicon port)
+ 
+     print(f"[setup] rank={rank}/{world_size} device={device} approach={args.approach} "
+           f"steps={args.steps} mask_ratio={args.encoder_mask_ratio} "
+@@ -365,7 +367,7 @@
+     # exponent range and is native on L4 (SM 8.9) / A100. GradScaler is only
+     # meaningful for fp16, so enable it only in that case.
+     amp_dtype = torch.bfloat16
+-    scaler = torch.amp.GradScaler("cuda", enabled=args.amp and amp_dtype is torch.float16)
++    scaler = torch.amp.GradScaler(device.type, enabled=args.amp and amp_dtype is torch.float16)
+ 
+     # Wandb init — rank 0 only
+     wandb_run = None
+@@ -453,7 +455,7 @@
+         )
+ 
+         optim.zero_grad(set_to_none=True)
+-        with torch.amp.autocast("cuda", enabled=args.amp, dtype=amp_dtype):
++        with torch.amp.autocast(device.type, enabled=args.amp, dtype=amp_dtype):
+             if is_ar_step:
+                 logits, loss = model.ar_loss(
+                     enc, tgt,
+--- a/nersc/pretrain_tokenizer.py
++++ b/nersc/pretrain_tokenizer.py
+@@ -41,6 +41,7 @@
+ 
+ # Local imports
+ sys.path.insert(0, str(HERE))
++from _mps import pick_device, pin_ok  # noqa: E402  Apple Silicon / MPS device selection
+ from dr1_dataset import (  # noqa: E402
+     DR1IndexedDataset,
+     collate_dr1_skip_none,
+@@ -115,11 +116,11 @@
+                 continue
+             if i >= max_batches:
+                 break
+-            flux = batch["flux"].to(device, non_blocking=True)
+-            ivar = batch["ivar"].to(device, non_blocking=True)
++            flux = batch["flux"].to(device, non_blocking=pin_ok(device))
++            ivar = batch["ivar"].to(device, non_blocking=pin_ok(device))
+             istd = torch.sqrt(ivar.clamp(min=1e-10))
+             x = torch.stack([flux, istd], dim=1)
+-            with torch.amp.autocast("cuda", enabled=amp):
++            with torch.amp.autocast(device.type, enabled=amp, dtype=torch.bfloat16):
+                 _, loss, _ = model(x)
+             for k in losses:
+                 losses[k] += loss[k].item()
+@@ -161,7 +162,7 @@
+         device = torch.device(f"cuda:{cuda_idx}")
+     else:
+         rank, world_size, local_rank = 0, 1, 0
+-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
++        device = pick_device()  # MPS > CUDA > CPU (Apple Silicon port)
+ 
+     print(f"[setup] rank={rank}/{world_size} device={device} amp={args.amp} steps={args.steps}")
+     print(f"[setup] scratch_out={args.scratch_out}")
+@@ -230,7 +231,10 @@
+         lr=args.lr,
+         weight_decay=args.weight_decay,
+     )
+-    scaler = torch.amp.GradScaler("cuda", enabled=args.amp)
++    # bf16 AMP below (matches train_transformer.py): bf16 has fp32's exponent range,
++    # so no GradScaler is needed; fp16 (the original default) NaN-diverges + scaler is
++    # a CUDA-only no-op on MPS anyway.
++    scaler = torch.amp.GradScaler(device.type, enabled=False)
+ 
+     # Wandb init — rank 0 only
+     wandb_run = None
+@@ -276,13 +280,13 @@
+         for g_ in optim.param_groups:
+             g_["lr"] = lr_at(step, args.lr, args.warmup, args.steps)
+ 
+-        flux = batch["flux"].to(device, non_blocking=True)
+-        ivar = batch["ivar"].to(device, non_blocking=True)
++        flux = batch["flux"].to(device, non_blocking=pin_ok(device))
++        ivar = batch["ivar"].to(device, non_blocking=pin_ok(device))
+         istd = torch.sqrt(ivar.clamp(min=1e-10))
+         x = torch.stack([flux, istd], dim=1)
+ 
+         optim.zero_grad(set_to_none=True)
+-        with torch.amp.autocast("cuda", enabled=args.amp):
++        with torch.amp.autocast(device.type, enabled=args.amp, dtype=torch.bfloat16):
+             _, loss, _ = model(x)
+ 
+         scaler.scale(loss["total"]).backward()
+--- a/nersc/dr1_tokenized_dataset.py
++++ b/nersc/dr1_tokenized_dataset.py
+@@ -75,8 +75,8 @@
+         if spec is None:
+             return None
+ 
+-        flux = spec["flux"].unsqueeze(0).to(self.device, non_blocking=True)
+-        ivar = spec["ivar"].unsqueeze(0).to(self.device, non_blocking=True)
++        flux = spec["flux"].unsqueeze(0).to(self.device, non_blocking=(self.device.type == "cuda"))
++        ivar = spec["ivar"].unsqueeze(0).to(self.device, non_blocking=(self.device.type == "cuda"))
+         istd = torch.sqrt(ivar.clamp(min=1e-10))
+         x = torch.stack([flux, istd], dim=1)
+ 
+--- a/src/training/sequences.py
++++ b/src/training/sequences.py
+@@ -69,8 +69,8 @@
+     if not 0.0 <= encoder_mask_ratio <= 1.0:
+         raise ValueError(f"encoder_mask_ratio must be in [0, 1], got {encoder_mask_ratio}")
+ 
+-    flux = raw_batch["flux"].to(device, non_blocking=True)
+-    ivar = raw_batch["ivar"].to(device, non_blocking=True)
++    flux = raw_batch["flux"].to(device, non_blocking=(device.type == "cuda"))
++    ivar = raw_batch["ivar"].to(device, non_blocking=(device.type == "cuda"))
+     z_vals = raw_batch["z"]  # may stay on CPU; encode is per-item
+ 
+     istd = torch.sqrt(ivar.clamp(min=1e-10))
+--- a/src/training/eval.py
++++ b/src/training/eval.py
+@@ -81,7 +81,7 @@
+             raw, spec_tok, z_tok, approach, device,
+             encoder_mask_ratio=encoder_mask_ratio,
+         )
+-        with torch.amp.autocast("cuda", enabled=amp):
++        with torch.amp.autocast(device.type, enabled=amp, dtype=torch.bfloat16):
+             logits, loss = model(enc, dec, targets=tgt, redshift_weight=redshift_weight,
+                                   aux_redshift_weight=aux_redshift_weight)
+         losses += float(loss.item())
+@@ -227,7 +227,7 @@
+ 
+         # AUC/R²: run forward pass with generated decoder input to get logits.
+         # This measures how well the model ranks correct tokens given what it generated.
+-        with torch.amp.autocast("cuda", enabled=False):
++        with torch.amp.autocast(device.type, enabled=False):
+             logits_ar, _ = model(enc, gen_preds)  # (B, L_dec, V)
+         aa = compute_all_auc(logits_ar, tgt)
+         ar = compute_all_r2(logits_ar, tgt)

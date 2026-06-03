@@ -1,0 +1,18 @@
+# venv + caches
+.venv/
+__pycache__/
+*.log
+
+# Vendored redshifty source (third-party: desi-foundation-model). We commit the
+# MPS diff (mps_redshifty.patch), NOT the whole upstream tree. Re-create with
+# `./sync_from_phoenix.sh code` then `git apply mps_redshifty.patch`.
+src-redshifty/
+
+# All synced DESI data + phoenix checkpoints live here, exposed at /raid via a
+# one-time `sudo ln -s _raid /raid`. Hundreds of GiB — never commit.
+_raid/
+
+# The whole data/ dir is ignored anyway (the repo-root .gitignore has `data`), so the
+# committed result artifacts (verify report + MPS-vs-CUDA xcheck verdict) live in
+# results/ instead — that dir IS tracked. Driver scripts / patch / README sit at the
+# port root and are tracked.

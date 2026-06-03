@@ -1,0 +1,46 @@
+{
+  "n_spectra": 44,
+  "logits_shape": [
+    44,
+    274,
+    2056
+  ],
+  "devices": {
+    "mps": "2.6.0",
+    "cuda": "2.12.0+cu130"
+  },
+  "gates": {
+    "loss_rel<=1e-3": {
+      "value": 0.00025114275798610594,
+      "pass": true
+    },
+    "median|\u0394|<=1e-3": {
+      "value": 1.430511474609375e-06,
+      "pass": true
+    },
+    "argmax_agree>=99.5%": {
+      "value": 0.9985069674850697,
+      "pass": true
+    },
+    "|\u0394redshift_acc|<=0.005": {
+      "value": 0.0,
+      "pass": true
+    }
+  },
+  "informational": {
+    "max_abs_delta": 3.1544650197029114,
+    "p99_9_abs_delta": 0.625812609434129,
+    "median_abs_delta": 1.430511474609375e-06,
+    "argmax_agreement": 0.9985069674850697,
+    "loss_mps": 221.8911590576172,
+    "loss_cuda": 221.9468994140625,
+    "loss_rel_delta": 0.00025114275798610594,
+    "redshift_acc_mps": 0.1818181872367859,
+    "redshift_acc_cuda": 0.1818181872367859,
+    "spectrum_acc_delta": 0.0001665055751800537,
+    "logits_sum_rel_delta": 0.0011320556628079811,
+    "logits_absmax_mps": 24.982282638549805,
+    "logits_absmax_cuda": 24.982280731201172
+  },
+  "overall_pass": true
+}
