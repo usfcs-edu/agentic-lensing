@@ -10,18 +10,29 @@ export PYTORCH_ENABLE_MPS_FALLBACK=1 PYTHONUNBUFFERED=1
 AS="$(pwd)"
 REPO_ROOT="$(cd ../../.. && pwd)"
 RAID_LOCAL="$AS/_raid"
+LRD="$RAID_LOCAL/benson/data/desi_dr1_medium"
 SPEC="$REPO_ROOT/experiments/specs/redshifty_approach_a_phase10_mix_mps.yaml"
 
-# --- preconditions ---
-if ! { [ -L /raid ] && [ "$(readlink /raid)" = "$RAID_LOCAL" ]; }; then
-  echo "[tier2] MISSING /raid symlink (one-time, sudo). In this session run:"
-  echo "    ! sudo ln -s \"$RAID_LOCAL\" /raid"
-  echo "    (reversible: sudo rm /raid)"
-  exit 3
-fi
 ./sync_from_phoenix.sh links >/dev/null 2>&1
-test -f /raid/benson/data/desi_dr1_medium/manifest_mix.jsonl \
-  || { echo "[tier2] manifest_mix missing — run ./sync_from_phoenix.sh mix first"; exit 3; }
+
+# --- resolve data paths: prefer the verbatim /raid symlink; else a no-sudo local spec ---
+if [ -L /raid ] && [ "$(readlink /raid)" = "$RAID_LOCAL" ]; then
+  echo "[tier2] /raid symlink present — running the verbatim spec"
+  test -f /raid/benson/data/desi_dr1_medium/manifest_mix.jsonl \
+    || { echo "[tier2] manifest_mix missing — run ./sync_from_phoenix.sh mix first"; exit 3; }
+else
+  echo "[tier2] no /raid symlink — building a no-sudo local-path spec (harness still unmodified)"
+  test -f "$LRD/manifest_mix.jsonl" \
+    || { echo "[tier2] $LRD/manifest_mix.jsonl missing — run ./sync_from_phoenix.sh mix first"; exit 3; }
+  # rewrite the manifest's absolute /raid coadd/redrock paths to the Mac-local data root
+  sed "s#/raid/benson/data/desi_dr1_medium#$LRD#g" "$LRD/manifest_mix.jsonl" > "$LRD/manifest_mix_local.jsonl"
+  # derive a local spec from the committed one (only the absolute paths change)
+  SPEC_LOCAL="$AS/data/redshifty_approach_a_phase10_mix_mps_local.yaml"
+  mkdir -p "$AS/data"
+  sed -e "s#/raid/benson/data/desi_dr1_medium/manifest_mix.jsonl#$LRD/manifest_mix_local.jsonl#g" \
+      -e "s#/raid/benson/data/desi_dr1_medium#$LRD#g" "$SPEC" > "$SPEC_LOCAL"
+  SPEC="$SPEC_LOCAL"
+fi
 
 echo "[tier2] dry-run preflight (resolve command + venv):"
 .venv/bin/python "$REPO_ROOT/tools/spectrumfm/exp_run.py" "$SPEC" --dry-run || exit 4
