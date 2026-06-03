@@ -22,6 +22,14 @@ reproductions/huang-2020/data/cutouts_jpeg_dr9/
 # Model checkpoint can be regenerated (or downloaded once published)
 reproductions/huang-2020/data/checkpoint_best.pt
 
+# Data
+data
+
+
 # Python bytecode caches
 __pycache__/
 *.pyc
+
+# Claude Code
+.claude
+
