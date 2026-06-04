@@ -111,9 +111,18 @@ via `_watch.sh`), with `run_fixes.sh` / `run_remaining.sh` for the M4 tail.
   published Walmsley+2022 vote fractions to define high-confidence spirals
   (~24k) and the rare mergers (~3.4k), fetched priority-first (mergers → spirals
   → distractors) into a 63k-image corpus over a multi-day, resumable campaign —
-  matching the paper's rare-positive setup. Pre-imaged shortcuts were ruled out:
-  MMU `ssl_legacysurvey` is grz-only with no RA/Dec, and the phoenix DECaLS
-  cutout archive was unreachable (no SSH key present on this host).
+  matching the paper's rare-positive setup. The campaign runs on **two IPs in
+  parallel** (this host + phoenix via `phoenix_fetch.py`, cache-key-compatible,
+  rsync-merged by `run_phoenix_sync.sh`) for ~2× griz throughput.
+
+  Pre-imaged shortcuts were investigated and ruled out for tasks 7/8: MMU
+  `ssl_legacysurvey` is grz-only with no RA/Dec; phoenix has ~550k DECaLS cutouts
+  but they are (a) grz-only — though AION's masked-modeling image codec *does*
+  accept a band subset (verified: 3-band grz encodes fine, i-band masked) — and
+  (b) a lens-search sample that overlaps GZ-DECaLS by only ~1.4k galaxies, with
+  no brick coadds on disk to generate new cutouts (`phoenix_overlap_check.py`).
+  Phoenix's value is therefore as a second cutout-fetching IP, not a pre-imaged
+  source.
 - **Task 9 positives** are SuGOHI grade-A/B candidates (human-graded, not all
   spectroscopically confirmed); distractors are PROVABGS galaxies.
 - **Undocumented paper details** (seeds, exact splits, head hyperparams) → we fix
