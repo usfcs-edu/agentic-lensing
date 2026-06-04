@@ -63,21 +63,27 @@ transformer (103.7M) train from random init on a bounded ~9 GB sv3-bright subset
 (the non_blocking-NaN sentinel) with the val metric improving. bf16 autocast genuinely engages
 on MPS (verified); throughput ~2 step/s (tokenizer) on a single MPS device.
 
-**(c) Full-mix redshift ignition — capstone — reproduced (within the variance band).** The
-exact ignition spec (frozen tokenizer, `manifest_mix.jsonl` 1137 px / 1.72M train spectra, 10k
-steps, bf16) ran from scratch on a single MPS device in **8.76 h**, driven through the
-**unmodified `tools/spectrumfm/exp_run.py` harness** (so the Track-2 tooling is validated on
-Apple Silicon too). The **ignition phase transition fired**: `val_z_acc` held the ~1–3%
-pre-ignition floor through step 5500, then climbed in the back half to a **7.88% peak** (step
-9500), with the honest AR readout igniting to **5.8%** (1.14× the TF acc there) and
-`val_loss_redshift` descending 5.01→4.09. The port-correctness gate is the reproducible
-STRUCTURE — back-half climb ≥ 2.5× the floor (got **6.0×**), AR ≥ TF/2, peak within the phoenix
-seed-sweep band 3.76–8.76% (got **7.88%**) — which all PASS. The exact peak is **not** gated: it
-is a high-variance, hardware-path-dependent quantity (bf16 kernels diverge the 10k-step
-trajectory). This seed-42 MPS draw (7.88%) lands inside the phoenix seed band but **below the
-reference mix draw's 14.86% / the doc's ≥10%-sustained bar** — reported informationally. A
-re-seed or the doc-recommended ≥20k-step run could land higher (or lower). Reference (phoenix
-L4): peak 14.86%, `val_loss` 190.67, `val_loss_redshift` drop 1.19, AR/TF 0.73.
+**(c) Full-mix redshift ignition — capstone — REPRODUCED.** The exact ignition spec (frozen
+tokenizer, `manifest_mix.jsonl` 1137 px / 1.72M train spectra, bf16) ran from scratch on a single
+MPS device through the **unmodified `tools/spectrumfm/exp_run.py` harness** (validating the Track-2
+tooling on Apple Silicon too). The **20k-step run reproduces the full ignition** — meeting all of
+the redshifty author's own criteria:
+
+| criterion | reference (phoenix L4) | MPS 20k | gate |
+| :--- | ---: | ---: | :---: |
+| `val_z_acc` ≥10% sustained | 14.86% peak | **12.70% peak, 6 late vals ≥10%** | PASS |
+| `val_loss_redshift` drop ≥1.0 | 1.19 | **1.03** | PASS |
+| AR ≥ TF/2 (honest, no teacher-forcing) | 0.73× | **0.60× (AR 6.6%)** | PASS |
+| `val_loss` min | 190.67 | 200.7 | (info) |
+
+The back-half climb continued past step 10000 — `val_z_acc` 7.72% @ 12500 → 10.35% @ 17000 →
+**12.70% @ 19500** — landing close to the phoenix reference's 14.86%. This directly confirms the
+author's note that *"10000 steps was barely enough to see ignition kinetics; future runs should
+use ≥20000 steps to give the post-ignition phase room."* A shorter **10k-step MPS run** (8.76 h)
+peaked at **7.88%** — within the phoenix seed-sweep band 3.76–8.76% but short of the ≥10% bar,
+exactly as the author's note predicts. Both trajectories are committed
+(`results/ignition_metrics_mps{,_20k}.jsonl`). The exact peak is high-variance and
+hardware-path-dependent (bf16 kernels diverge the trajectory), so it is reported, not gated.
 
 ### Apple Silicon gotchas (important)
 

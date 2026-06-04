@@ -114,57 +114,60 @@ else:
 
 
 # ---- (c) Tier-2 ignition ----
+# Prefer the canonical 20k run (the doc-recommended length that completes the climb), then
+# the 10k run, then any harness run dir. Both runs' metrics are committed under results/.
 def find_ignition_metrics():
-    cands = [RAID / "checkpoints/checkpoints/approach_a_phase10_mix_mps/metrics.jsonl"]
+    ck = RAID / "checkpoints/checkpoints"
+    cands = [ck / "approach_a_phase10_mix_mps_20k/metrics.jsonl",
+             RESULTS / "ignition_metrics_mps_20k.jsonl",
+             ck / "approach_a_phase10_mix_mps/metrics.jsonl",
+             RESULTS / "ignition_metrics_mps.jsonl"]
     cands += [Path(p) for p in glob.glob(str(DATA / "runs/*/metrics.jsonl"))]
     for c in cands:
         m = load_jsonl(c)
         if m and any("val_redshift_acc" in r for r in m):
-            return m
-    return None
+            return m, c
+    return None, None
 
 
-ig = find_ignition_metrics()
+ig, ig_src = find_ignition_metrics()
 if ig:
+    nsteps = max((r.get("step", 0) for r in ig), default=0)
+    tag = "20k" if nsteps >= 15000 else "10k"
     tf = [r for r in ig if "val_redshift_acc" in r]
     ar = [r for r in ig if "val_ar_ar_redshift_acc" in r]
     nan = has_nan(ig, ("val_loss", "val_redshift_acc", "val_loss_redshift"))
     z = {r["step"]: r["val_redshift_acc"] for r in tf}
-    early = [v for s, v in z.items() if s <= 2000]
-    late = [v for s, v in z.items() if s >= 6000]
-    early_mean = sum(early) / len(early) if early else 0.0
-    late_max = max(late) if late else 0.0
     peak_z = max(z.values(), default=0.0)
-    climb = (late_max / early_mean) if early_mean > 0 else 0.0
+    # "sustained >=10%": at least 2 val points >=10% in the last third of training.
+    last_third = [v for s, v in z.items() if s >= 2 * nsteps / 3]
+    n_ge10 = sum(1 for v in last_third if v >= 0.10)
+    sustained = n_ge10 >= 2
     lr_series = [r["val_loss_redshift"] for r in tf if "val_loss_redshift" in r]
     lr_drop = (lr_series[0] - min(lr_series)) if len(lr_series) >= 2 else 0.0
     vloss_min = min((r["val_loss"] for r in tf if "val_loss" in r), default=float("inf"))
-    # AR honest readout: the encoder genuinely encodes redshift (no teacher forcing).
-    # Compare AR peak to the TF acc at that same step (AR>=TF/2 there).
+    # AR honest readout (no teacher forcing): AR peak vs the TF acc at that same step.
     ar_peak, ar_ratio = 0.0, 0.0
     if ar:
         ar_best = max(ar, key=lambda r: r["val_ar_ar_redshift_acc"])
         ar_peak = ar_best["val_ar_ar_redshift_acc"]
         tf_at = z.get(ar_best["step"], peak_z)
         ar_ratio = ar_peak / tf_at if tf_at > 0 else 0.0
-    PHX_SEED_FLOOR = 0.0376  # phoenix seed-sweep floor on this spec (3.76%) — the variance band
 
-    # HARD GATES — the reproducible ignition PHENOMENON (variance-robust), not the exact peak.
-    rec("c: ignition/MPS", f"NaN-free ({len(ig)} rows)", "no NaN", "clean" if not nan else "NaN!", not nan)
-    rec("c: ignition/MPS", "back-half phase transition (late peak vs early floor)", ">=2.5x",
-        f"{climb:.1f}x ({early_mean*100:.1f}%->{late_max*100:.1f}%)", climb >= 2.5)
-    rec("c: ignition/MPS", "AR readout ignites (AR peak vs TF there)", ">=0.5xTF",
+    # HARD GATES = the redshifty author's own full-ignition criteria, met by the 20k run.
+    rec(f"c: ignition/MPS [{tag}]", f"NaN-free ({len(ig)} rows)", "no NaN", "clean" if not nan else "NaN!", not nan)
+    rec(f"c: ignition/MPS [{tag}]", f"val_z_acc >=10% sustained (>=2 late vals; got {n_ge10})",
+        ">=10%", f"{peak_z*100:.2f}% peak", sustained)
+    rec(f"c: ignition/MPS [{tag}]", "val_loss_redshift cumulative drop", ">=1.0", f"{lr_drop:.2f}", lr_drop >= 1.0)
+    rec(f"c: ignition/MPS [{tag}]", "AR readout >= TF/2 (honest, no teacher forcing)", ">=0.5xTF",
         f"AR={ar_peak*100:.1f}% ({ar_ratio:.2f}xTF)", ar_ratio >= 0.5)
-    rec("c: ignition/MPS", "peak within phoenix seed-sweep band", ">=3.76%",
-        f"{peak_z*100:.2f}%", peak_z >= PHX_SEED_FLOOR)
-    rec("c: ignition/MPS", "val_loss_redshift descends", ">=0.8", f"{lr_drop:.2f}", lr_drop >= 0.8)
 
-    # INFORMATIONAL — this seed-42 draw vs the reference draw (legitimate retrain/hardware variance).
-    rec("c: ignition (info)", "peak val_z_acc vs phoenix mix draw 14.86% (band 3.76-8.76%)",
-        "14.86%", f"{peak_z*100:.2f}%", None, gate=False)
-    rec("c: ignition (info)", "doc full-ignition bar: >=10% sustained", ">=10%",
-        f"{late_max*100:.2f}% peak (not crossed)", None, gate=False)
+    # INFORMATIONAL — vs the phoenix reference draw (legitimate retrain/hardware variance).
+    rec("c: ignition (info)", f"peak val_z_acc vs phoenix 14.86% ({tag} run)", "14.86%",
+        f"{peak_z*100:.2f}%", None, gate=False)
     rec("c: ignition (info)", "val_loss min vs phoenix 190.67", "190.67", f"{vloss_min:.1f}", None, gate=False)
+    rec("c: ignition (info)", "10k MPS run peak (doc: 10k barely enough)", "info",
+        "7.88% (within band 3.76-8.76%)", None, gate=False)
 else:
     rec("c: ignition/MPS", "ignition metrics.jsonl", "ignition struct", "PENDING (run run_tier2.sh)", None)
 
@@ -186,12 +189,13 @@ lines = [
     "# Apple Silicon (MPS) redshifty SpectrumFM-Phase-I reproduction vs. phoenix",
     "", f"Provenance: {prov}", "",
     "Gated on (a) same-checkpoint MPS-vs-CUDA forward fidelity, (b) NaN-free from-scratch",
-    "training on MPS that improves, and (c) the reproducible STRUCTURE of the redshift",
-    "ignition — the back-half phase transition, the honest AR readout igniting, and a peak",
-    "within the phoenix seed-sweep variance band (3.76-8.76%). The exact peak is NOT gated:",
-    "it is a high-variance, hardware-path-dependent quantity (bf16 kernels diverge the",
-    "10k-step trajectory), reported informationally against the phoenix L4 mix draw",
-    "(val_z_acc 14.86% peak @ 9500, val_loss 190.67, val_loss_redshift drop 1.19).", "",
+    "training on MPS that improves, and (c) the redshifty author's full-ignition criteria —",
+    "val_z_acc >=10% sustained, val_loss_redshift drop >=1.0, AR >= TF/2 — met by the",
+    "canonical 20k-step MPS run (the author noted 10k 'was barely enough; future runs should",
+    "use >=20000 steps'). The exact peak is reported informationally — it is a high-variance,",
+    "hardware-path-dependent quantity. Reference (phoenix L4, 10k): val_z_acc 14.86% peak,",
+    "val_loss 190.67, val_loss_redshift drop 1.19, AR/TF 0.73. The shorter 10k MPS run peaked",
+    "at 7.88% (within the phoenix seed band 3.76-8.76%) — consistent with the author's note.", "",
     "| layer | metric | reference | MPS | result |",
     "| :--- | :--- | ---: | ---: | :--- |",
 ]
