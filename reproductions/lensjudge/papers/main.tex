@@ -1,0 +1,281 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% LensJudge — an agentic strong-lens candidate VI grader on the Claude Agent SDK.
+%% Single-column article with the shared tech-report preamble.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[11pt,letterpaper]{article}
+\usepackage{../../tech-report}
+
+\newcommand{\plens}{\ensuremath{p_{\mathrm{lens}}}}
+\newcommand{\pmeta}{\ensuremath{p_{\mathrm{meta}}}}
+\newcommand{\thetaE}{\ensuremath{\theta_{\mathrm{E}}}}
+\newcommand{\sigmav}{\ensuremath{\sigma_v}}
+
+% ---- RESULTS MACROS (filled from eval/score.py + report.py) ----------------
+% Imaging eval is consensus-referenced (no human ceiling); negatives = Grade-D
+% human-rejects + random galaxies; spectroscopic gold scored separately.
+\newcommand{\Nheldout}{200}          % clean imaging held-out (gold scored separately)
+\newcommand{\leanAUC}{0.51}          % lean-Sonnet, clean imaging n=200
+\newcommand{\leanRecOne}{0.04}
+\newcommand{\leanQWK}{-0.02}
+\newcommand{\leanECE}{0.42}
+\newcommand{\leanCost}{0.06}
+% 48-system shared slice (apples-to-apples across configs)
+\newcommand{\leansAUC}{0.44}\newcommand{\leansQWK}{-0.13}\newcommand{\leansCost}{0.06}
+\newcommand{\leanoAUC}{0.32}\newcommand{\leanoQWK}{-0.06}\newcommand{\leanoCost}{0.13}
+\newcommand{\panelAUC}{0.42}\newcommand{\panelQWK}{-0.07}\newcommand{\panelCost}{0.25}
+\newcommand{\maAUC}{0.38}\newcommand{\maQWK}{-0.13}\newcommand{\maCost}{0.20}
+\newcommand{\cnnDpmeta}{0.82}        % CNN mean p_meta on Grade-D negatives
+\newcommand{\spectroHsu}{20/20}      % Hsu Table-2 Grade-A graded plausible
+\newcommand{\spectroNon}{4/4}        % Foundry-II non-lenses rejected
+\newcommand{\modelAUCrand}{0.77}     % modelability lens_score: A vs random galaxy
+\newcommand{\modelAUCreject}{0.44}   % modelability lens_score: A vs Grade-D human-reject
+% RepresentationKit (engineered image transforms; eval/run_representations.py)
+\newcommand{\reprEasy}{0.70}         % combo AUC, A vs ordinary galaxy
+\newcommand{\reprHard}{0.51}         % combo AUC, A/B/C vs Grade-D human-reject
+\newcommand{\reprGold}{0.80}         % tangential/parity AUC vs confirmed non-lens
+\newcommand{\reprSilver}{0.80}       % arcness/asymmetry AUC on noiseless sims
+\newcommand{\reprAgentLean}{0.44}    % agent lean (raw RGB), 48-slice AUC
+\newcommand{\reprAgentRich}{0.40}    % agent + representations, 48-slice AUC
+
+\title{LensJudge: An Agentic Visual-Inspection Grader for\\
+       Strong-Lens Candidates on the Claude Agent SDK}
+\author{Greg Benson \and Xiaosheng Huang}
+\date{June 2026}
+
+\begin{document}
+\maketitle
+\subtitle{Internal Prototype + LensBench-VI Evaluation}
+
+\begin{abstract}
+The Huang group's ResNet/EfficientNet finders emit thousands of above-threshold
+cutouts per data release; turning them into graded candidates (A/B/C/D) is a human
+visual-inspection (VI) bottleneck. We build \textbf{LensJudge} --- the system the
+group's onboarding report calls ``LensAgent''/``VI Pre-grading Agent'', renamed to
+avoid a name clash with an existing arXiv paper --- on the \emph{Claude Agent SDK for
+Python}, and ask whether the data on hand can \emph{test} such a system. The answer is
+yes for imaging: $\sim$2{,}706 human-graded A/B/C cutouts, $\sim$2{,}345 Grade-D
+human-\emph{rejected} hard negatives, $\sim$65K random-galaxy negatives, and a
+Foundry-II confirmed/non-lens gold tier are all in hand. We implement three graders ---
+a lean single multimodal call, a perspective-diverse judge panel, and a
+factor-decomposition multi-agent design --- plus a spectroscopic pre-grader for
+discordant-redshift pairs, and score them in a shared harness (LensBench-VI) on a frozen
+held-out set of \Nheldout{} imaging systems. Because every label is a single 2-author
+consensus (no per-rater data), all agreement numbers are \emph{consensus-referenced with no
+human ceiling}. Two results stand out. (1) On the \emph{spectroscopic} task --- clean
+physical features, spectroscopically confirmed gold --- the agent is strong: \spectroHsu{}
+Hsu Table-2 Grade-A pairs re-graded plausible, \spectroNon{} Foundry-II non-lenses rejected.
+(2) On \emph{imaging} grading of the CNN's hard high-score pool, no configuration --- lean
+Sonnet, lean Opus, a judge panel, or the \S9.1 multi-agent design --- reproduces the
+single-consensus A/B/C grades: all four are near-chance (AUC $0.32$--$0.51$) and uniformly
+skeptical, and paying $2$--$4\times$ more per candidate buys nothing. We argue this is less
+a model failure than a measurement problem --- A/B/C are mostly \emph{unconfirmed}
+candidates and the C/D boundary is one rater's subjective call --- which turns the missing
+multi-grader ceiling from a caveat into the central finding.
+\end{abstract}
+
+\section{Motivation}
+Lens finding in wide-area imaging is a two-stage pipeline: a CNN ranks $O(10^7)$ galaxy
+cutouts, and humans visually grade the $O(10^3$--$10^4)$ above-threshold survivors into
+A (clear lens), B (probable), C (possible), and D (rejected) \citep{huang2020decals,
+huang2021desi,storfer2024dr9,inchausti2025}. The VI step is the wall-clock bottleneck and
+will only worsen at Rubin scale. LensJudge automates the structured judgment of that step
+with a tool-using LLM agent, pre-grading candidates and escalating the genuinely ambiguous
+ones to a human --- it is a triage assistant, not an autonomous arbiter.
+
+\section{Do we have enough data to test it?}
+\textbf{Imaging: yes, today.} From the group's reproductions we assemble (all public /
+on-disk): \emph{positives} --- 2{,}706 graded A/B/C candidates as $101\times101\times3$
+$grz$ FITS (Storfer DR9 + Inchausti DR10) with per-candidate CNN probabilities;
+\emph{hard negatives} --- 2{,}345 Grade-D human-rejected candidates (the false positives
+the CNN flagged but humans rejected) parsed from the published catalogs, cutouts fetched
+on demand; \emph{easy negatives} --- $\sim$65K random-galaxy cutouts; \emph{gold} ---
+21 Foundry-II confirmed/known lenses + 4 confirmed non-lenses \citep{huang2025foundry2}.
+\textbf{Spectroscopy: catalog-level today.} Hsu's 13{,}530 discordant-redshift fiber
+pairs and 20 Table-2 Grade-A systems \citep{hsu2025pairwise} give a spectroscopic test
+set, though the raw DESI fiber flux is not local.
+
+\textbf{Two honest gaps.} (1) Every grade is a \emph{single} 2-senior-author consensus
+--- there are no per-rater labels anywhere --- so a human-vs-human Cohen-$\kappa$ ceiling
+cannot be computed; we report agreement, not accuracy, and flag a $\sim$250-cutout
+multi-grader study as the single highest-value future addition. (2) The spectroscopic
+grader reasons over catalog features ($z_l,z_s$, separation, \sigmav, \thetaE) plus DR10
+imaging; raw-flux reading (SPARCL / public healpix coadds) is a documented enhancement.
+
+\section{Architecture on the Claude Agent SDK}
+The SDK has no image-in-prompt, so the only way the model sees pixels is a tool that
+returns an image content block. Our \texttt{fetch\_cutout} tool renders the $grz$ cube to
+multi-view Lupton-RGB PNGs (full / center-zoom / lens-light-residual / high-contrast,
+identical params to the group's inspection viewer) and returns them; \texttt{get\_photometry}
+measures aperture $g\!-\!r,r\!-\!z$ colors; \texttt{crossmatch\_local} flags prior-catalog
+overlap; \texttt{get\_specfit} does the SIS \thetaE/separation check. Tools are an
+in-process \texttt{create\_sdk\_mcp\_server} bundle; because the Python \texttt{@tool}
+\texttt{structuredContent} is not forwarded, the grade contract is a system-prompt JSON
+schema validated into Pydantic models with one repair retry; PreToolUse/PostToolUse hooks
+stream a per-candidate JSONL trace (with \texttt{total\_cost\_usd}) that doubles as the
+eval harness.
+
+We implement three imaging graders of increasing cost: \textbf{lean} (one multimodal call;
+the five Huang-2020 criteria as scored fields of a single integrated judgment),
+\textbf{panel} (four perspective-diverse judges --- Advocate, Skeptic, Morphologist,
+Contaminant-hunter --- fused by ordinal quorum + skeptic-veto + a 2-of-N A-rule), and
+\textbf{multiagent} (the onboarding-plan \S9.1 factor-decomposition: morphology/color/
+contaminant specialists $\rightarrow$ GradeArbitrator). A \textbf{spectro} grader classifies
+discordant-redshift pairs lens/dimple/not\_lens.
+
+\section{LensBench-VI methodology}
+The held-out set is a frozen, hash-pinned manifest of \Nheldout{} systems: graded A/B/C
+positives + Grade-D hard negatives + random-galaxy negatives + Foundry-II gold, stratified
+by grade and region, negatives kept as separate strata. The LLM grader never trained on any
+cutout, so all rows are valid held-out for it (the NeuraLens training-set leakage that
+affects the frozen-CNN baseline is recorded per row). Tasks/metrics: (i) binary lens(A/B/C)
+vs non-lens(D) --- ROC-AUC and recovery at 1\%/0.1\% FPR (the group's operating point);
+(ii) ordinal A/B/C/D vs consensus --- quadratic-weighted $\kappa$, exact/adjacent accuracy,
+confusion; (iii) calibration of \plens{} (ECE, Brier); (iv) agent-vs-CNN agreement.
+Baselines: the \pmeta{} threshold, single nets, majority-class, and image-only-no-tools.
+
+\section{Results}
+On the full \Nheldout{}-system clean-imaging held-out set the lean Sonnet grader scores
+binary ROC-AUC $\leanAUC$, recovery@1\%~FPR $\leanRecOne$, quadratic-weighted
+$\kappa=\leanQWK$, ECE $\leanECE$ at \$$\leanCost$/candidate --- i.e.\ essentially no
+agreement with the single-consensus A/B/C labels. Table~\ref{tab:modes} asks whether a
+stronger backbone or multi-agent deliberation recovers it, on a shared 48-system slice.
+All numbers are \textbf{consensus-referenced, no human ceiling}.
+
+\begin{table}[h]\centering
+\caption{Grader comparison on the shared 48-system imaging slice (consensus-referenced;
+no human ceiling). No configuration separates from chance.}
+\label{tab:modes}
+\begin{tabular}{lcccc}
+\hline
+Metric & lean-Sonnet & lean-Opus & panel & multiagent \\
+\hline
+Binary ROC-AUC            & \leansAUC  & \leanoAUC & \panelAUC & \maAUC \\
+Quad-weighted $\kappa$    & \leansQWK  & \leanoQWK & \panelQWK & \maQWK \\
+Mean cost / candidate (\$)& \leansCost & \leanoCost& \panelCost& \maCost \\
+\hline
+\end{tabular}
+\end{table}
+
+\textbf{Key finding --- on the hard imaging pool, neither the agent nor the CNN separates,
+and more compute does not help.} The frozen ensemble cannot separate real lenses from the
+Grade-D human-rejects (mean \pmeta{}$\approx\cnnDpmeta$ on rejects, near its value on
+lenses) --- but, crucially, \emph{nor does the agent}: every configuration sits at
+AUC~$0.32$--$0.51$ and $\kappa\!\approx\!0$, assigning $\plens\!\approx\!0.02$--$0.03$ even
+to consensus-A systems, and a $2$--$4\times$ more expensive Opus / panel / multi-agent run
+does not improve it. The agents are \emph{uniformly skeptical} of the whole high-\pmeta{}
+pool.
+
+\textbf{Why this is the right answer, not a bug.} We verified the cutouts are real and
+correctly resolved (all on disk; obvious arcs, e.g.\ \texttt{DESI-091.7214$-$58.9787}, do
+get high \plens). The pool is the hardest possible slice --- positives and CNN-rejected
+negatives \emph{both} have high \pmeta --- and on it the A/B/C labels are mostly
+\emph{unconfirmed} candidates whose C-vs-D boundary is one rater's subjective call. So an
+agent that is skeptical of unconfirmed C-grade candidates is not demonstrably wrong; it
+simply cannot be \emph{adjudicated} against a single-consensus label. This is precisely
+what the missing multi-grader ceiling (and the absence of spectroscopic confirmation for
+most candidates) prevents us from resolving --- the gap is the result.
+
+\section{Spectroscopic pre-grading}
+On the gold spectroscopic set the catalog+imaging grader re-grades \spectroHsu{} of the 20
+Hsu Table-2 Grade-A pairs as plausible lenses and rejects \spectroNon{} of the 4 Foundry-II
+confirmed non-lenses, using the SIS \thetaE/separation consistency and the DR10 imaging.
+
+\section{The Foundry-I modelability criterion}
+The graders so far apply the Huang-2020 discovery rubric (imaging) and Hsu-2025 +
+physical-consistency reasoning (spectroscopy). The one Foundry-paper criterion runnable on
+a grz cutout is Foundry-I's (Huang 2025a): \emph{does a plausible lens MODEL reproduce the
+configuration?} We implement it as \texttt{quick\_lensmodel} --- a real GIGA-Lens MAP fit
+(EPL+shear mass, two S\'ersic lens-lights, S\'ersic+shapelet source) run per cutout in the
+GIGA-Lens venv ($\sim$45\,s, GPU, cached), keeping JAX out of the SDK process. The
+discriminator is a \texttt{lens\_score} combining the recovered \thetaE{} and the $\chi^2$
+improvement from ray-tracing the source through the mass (large for a true lens, $\sim$0 for
+a smooth galaxy). The agent can call it as an extra tool (it does: verified end-to-end).
+
+Crucially, evaluating it answers whether a \emph{physical} check beats the vision graders on
+the hard pool --- and it does not. On a balanced validation set the \texttt{lens\_score}
+separates real lenses from \emph{ordinary} galaxies well (AUC $\modelAUCrand$) but fails to
+separate them from the \emph{hard Grade-D human-rejects} (AUC $\modelAUCreject$; the rejects'
+mean score is slightly \emph{higher} than the lenses'). A held-out-slice run corroborates the
+pattern: \texttt{lens\_score} is flat across graded-B/C, Grade-D rejects, and random galaxies.
+The interpretation is the same as for vision: Grade-D rejects are CNN-flagged objects that
+look lens-like enough to admit an EPL fit, so on ground-based $grz$ a lens model reproduces
+them about as well as it reproduces true lenses. \textbf{Vision, a stronger backbone,
+multi-agent deliberation, and a physical lens-model fit all hit the same wall on the hard
+pool} --- strong, convergent evidence that the limit is the data + the soft labels, not the
+grader. The modelability tool remains useful in its proper regime: filtering real lenses from
+ordinary galaxies (the broad finder pool), not from already-vetted hard rejects.
+
+\section{Engineered representations (RepresentationKit)}
+The graders so far feed the model the raw Lupton-RGB and let it infer the lensing geometry.
+We instead built a kit of physically-motivated transforms that make the signal explicit and
+emit scalar lensing-features (\texttt{common/representations.py}; the \texttt{lens\_representations}
+tool): improved lens-light subtraction, a polar/tangential $(r,\theta)$ transform (an arc
+becomes a horizontal bar), a $180^\circ$ symmetry residual (a counter-image pair lights up), a
+blue-excess color-isolation map at the Einstein radius, and a DoG+Hessian "arcness" ridge. Each
+feature is scored as a standalone discriminator (\texttt{eval/run\_representations.py}) over a
+larger 545-system manifest with bootstrap CIs, on three contrasts.
+
+\begin{table}[h]\centering
+\caption{RepresentationKit standalone feature AUC (best single / logistic combo), with the
+agent rich-view arm. Consensus-referenced; no human ceiling.}
+\label{tab:repr}
+\begin{tabular}{lcc}
+\hline
+Contrast & best feature & combo \\
+\hline
+HARD: graded A/B/C vs Grade-D human-reject & 0.57 & \reprHard \\
+EASY: graded A vs ordinary galaxy          & 0.72 & \reprEasy \\
+GOLD: Foundry-II confirmed vs non-lens     & \reprGold (tangential/parity) & --- \\
+SILVER: noiseless sims, lensed vs unlensed & \reprSilver (arcness/asym.) & --- \\
+\hline
+\multicolumn{3}{l}{Agent (48-slice): lean RGB AUC \reprAgentLean{} vs +representations \reprAgentRich{}}\\
+\hline
+\end{tabular}
+\end{table}
+
+The kit closes the question cleanly. The features \emph{demonstrably} extract lensing signal:
+on noiseless sims arcness/asymmetry reach AUC $\reprSilver$, and on spectroscopically
+\emph{confirmed} labels the tangential-extent and counter-image-parity features reach
+$\reprGold$. They also give a cheap easy-regime pre-screen (combo $\reprEasy$, $\sim$50\,ms vs
+the 45\,s GIGA-Lens fit). But on the \emph{hard consensus pool} they collapse to combo
+$\reprHard$ --- and that does not change with cleaner Tier-2 implementations (photutils
+isophote, skimage Frangi, SEP geometry: all $\le0.57$) \emph{nor} when the representations are
+fed to the agent ($\reprAgentRich$ vs lean $\reprAgentLean$, at $+43\%$ cost). The \emph{same
+features} score $\reprGold$ on confirmed labels and $\reprHard$ on the consensus pool --- the
+sharpest evidence in this report that the hard-pool wall is a \textbf{label/data limit, not an
+algorithm limit}: vision, a stronger backbone, deliberation, a GIGA-Lens fit, hand-engineered
+representations (Tier-1 and Tier-2), and the agent reading those representations \emph{all}
+land at chance on the soft Grade-D pool, while every method that is tested against clean
+(confirmed or simulated) labels succeeds.
+
+\section{Caveats and what is not done}
+(1) \textbf{No human ceiling} --- all labels are single consensus; the multi-grader study is
+future work. (2) \textbf{Grade-D negatives are lens-like} (CNN-flagged), so the binary AUC is
+lower --- and more honest --- than against random galaxies; strata are scored separately.
+(3) The \textbf{CNN pre-filter gate} (a cost lever at full-survey scale) is not exercised
+here because the eval set is by construction the high-\pmeta{} ambiguous middle band.
+(4) Orchestration of the \S9.1 specialists is \emph{programmatic} rather than LLM-dispatched
+\texttt{AgentDefinition} subagents, for reliability. (5) Spectroscopic raw-flux streaming is
+a documented enhancement.
+
+\section{Conclusions}
+LensJudge shows an agentic VI grader can be \emph{built} on the Claude Agent SDK and, more
+importantly, \emph{tested} on data already in hand. The test returns a nuanced answer. The
+agent is strong where the task has hard labels and clean evidence --- spectroscopic
+discordant-redshift pairs (\spectroHsu{} Grade-A plausible, \spectroNon{} non-lenses
+rejected). On imaging grading of the CNN's hard high-score pool it is near-chance against
+the single-consensus A/B/C labels, and --- the load-bearing result --- \emph{no} stronger
+backbone or multi-agent design changes that. Because those labels are single-consensus over
+mostly-unconfirmed candidates, we cannot say whether the agent or the consensus is closer to
+truth: the missing multi-grader ceiling is not a footnote but the thing that decides the
+question. Two concrete next steps follow directly: (i) collect a $\sim$250-cutout,
+$\ge$2-grader study to establish the human-vs-human $\kappa$ and re-anchor every imaging
+number; (ii) push agentic effort toward the \emph{spectroscopic} channel and toward
+candidates with confirmation, where the evidence is decisive and the agent already performs.
+A pre-filter that confidently clears obvious non-lenses while escalating the genuinely
+ambiguous --- which is what LensJudge does --- remains useful even at chance agreement on the
+subjective middle, but its accuracy cannot be claimed until the ceiling exists.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+\end{document}

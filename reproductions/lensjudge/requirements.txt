@@ -1,0 +1,16 @@
+# LensJudge — Python >=3.10 (use .venvs/lensjudge, Python 3.13).
+# The SDK rides on the installed `claude` CLI (>=2.1) for transport + auth, so no
+# ANTHROPIC_API_KEY is required when the CLI is logged in.
+claude-agent-sdk>=0.2.89
+astropy>=6.0
+pillow>=10.0
+pandas>=2.0
+pyarrow>=14.0
+numpy>=1.26
+scipy>=1.11
+pydantic>=2.5
+requests>=2.31
+tqdm>=4.66
+# CNN-score and GIGA-Lens VI tools subprocess into the existing envs:
+#   .venvs/lensfinder (torch)   — Stage-C meta-learner scoring (_scorelib.py)
+#   .venvs/gigalens   (JAX)     — quick_lensmodel VI fit

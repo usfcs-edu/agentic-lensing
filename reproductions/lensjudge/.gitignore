@@ -1,0 +1,5 @@
+# LensJudge writes only here; both are bulk/ephemeral and stay untracked.
+outputs/
+cache/
+__pycache__/
+*.pyc
