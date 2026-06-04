@@ -103,10 +103,17 @@ via `_watch.sh`), with `run_fixes.sh` / `run_remaining.sh` for the M4 tail.
 
 - **xlarge ≤ base on photometry-only** — expected; 4 scalars is too little signal
   for a 3B frozen model. Scaling helps in the image+spectrum configs.
-- **Tasks 4 / 7 / 8 are corpus-limited.** We use Galaxy10 DECaLS (~5–14k cutouts,
-  throttled by the LS cutout service at ~20/min) rather than the paper's full
-  GZ-DECaLS (~314k). Morphology lands ≈ DINOv2 level (0.72–0.75 vs paper 0.84);
-  retrieval is best-effort on a smaller, less-rare corpus.
+- **Tasks 4 / 7 / 8 are corpus-limited by the LS cutout service** (~20 cutouts/min,
+  per-IP). Morphology (task 4) grows toward the full 17.7k Galaxy10 set. For
+  retrieval (tasks 7/8) we run **two tiers**: a quick Galaxy10 best-effort
+  (`40_retrieve_gz10.py`) and a **faithful GZ-DECaLS reproduction**
+  (`43_fetch_gzdecals_campaign.py` + `44_retrieve_gzdecals.py`) that uses the
+  published Walmsley+2022 vote fractions to define high-confidence spirals
+  (~24k) and the rare mergers (~3.4k), fetched priority-first (mergers → spirals
+  → distractors) into a 63k-image corpus over a multi-day, resumable campaign —
+  matching the paper's rare-positive setup. Pre-imaged shortcuts were ruled out:
+  MMU `ssl_legacysurvey` is grz-only with no RA/Dec, and the phoenix DECaLS
+  cutout archive was unreachable (no SSH key present on this host).
 - **Task 9 positives** are SuGOHI grade-A/B candidates (human-graded, not all
   spectroscopically confirmed); distractors are PROVABGS galaxies.
 - **Undocumented paper details** (seeds, exact splits, head hyperparams) → we fix
