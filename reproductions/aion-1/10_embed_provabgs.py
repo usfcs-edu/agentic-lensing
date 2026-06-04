@@ -87,6 +87,7 @@ def main():
     ap.add_argument("--variant", default=None, help="base/large/xlarge; default all")
     ap.add_argument("--gpus", default="0,1,2,3,4,5,6")
     ap.add_argument("--pool", default="none", choices=["none", "mean"])
+    ap.add_argument("--batch", type=int, default=0, help="override per-variant embed batch")
     args = ap.parse_args()
 
     gpus = [int(g) for g in args.gpus.split(",")]
@@ -103,7 +104,8 @@ def main():
             continue
         import time
         t = time.time()
-        arr = E.multi_gpu_extract(specs, v, out, pool=args.pool, gpus=gpus)
+        bs = args.batch or None
+        arr = E.multi_gpu_extract(specs, v, out, pool=args.pool, gpus=gpus, batch_size=bs)
         print(f"  [{v}] {out.name} {arr.shape} in {time.time()-t:.1f}s")
     print("EMBED_PROVABGS_OK")
 

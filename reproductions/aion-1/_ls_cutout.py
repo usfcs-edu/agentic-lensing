@@ -34,8 +34,14 @@ def _key(ra, dec, layer, size, pixscale):
 
 
 def fetch_one(ra, dec, layer="ls-dr10", size=160, pixscale=0.262, bands="griz",
-              retries=3, timeout=30):
-    """Return (4,H,W) float32 g,r,i,z cutout, or None on failure. Cached."""
+              retries=5, timeout=45):
+    """Return (4,H,W) float32 g,r,i,z cutout, or None on failure. Cached.
+
+    The LS cutout service rate-limits aggressively (HTTP 429); we honour
+    Retry-After and back off exponentially with jitter so a gentle pool reaches
+    ~100% success instead of being throttled to ~25%."""
+    import random
+
     import requests
     from astropy.io import fits
 
@@ -56,14 +62,22 @@ def fetch_one(ra, dec, layer="ls-dr10", size=160, pixscale=0.262, bands="griz",
                 if arr.ndim == 3 and arr.shape[0] == 4:
                     np.save(cpath, arr)
                     return arr
+                return None  # <4 bands (e.g. northern grz-only) -> unusable
+            if r.status_code == 429:
+                # cap backoff so a throttle episode can't balloon to ~100s/object;
+                # at low concurrency 429 is rare and recovers quickly
+                wait = float(r.headers.get("Retry-After", 0)) or (1.5 ** attempt)
+                time.sleep(min(wait, 8) + random.uniform(0, 1.0))
+                continue
+            if r.status_code in (404, 500) and b"no overlap" in r.content[:200].lower():
                 return None
-            time.sleep(1.0 + attempt)
+            time.sleep(1.5 * (attempt + 1) + random.uniform(0, 1.0))
         except Exception:
-            time.sleep(1.0 + attempt)
+            time.sleep(1.5 * (attempt + 1) + random.uniform(0, 1.0))
     return None
 
 
-def fetch_many(coords, layer="ls-dr10", size=160, pixscale=0.262, workers=16,
+def fetch_many(coords, layer="ls-dr10", size=160, pixscale=0.262, workers=6,
                progress=True):
     """coords: iterable of (ra,dec). Returns (list_of_arrays_or_None, ok_mask)."""
     coords = list(coords)

@@ -31,6 +31,7 @@ def main():
     ap.add_argument("--config", default="phot",
                     choices=["phot", "phot_spec", "phot_image", "phot_image_spec"])
     ap.add_argument("--variant", default=None)
+    ap.add_argument("--force", action="store_true", help="re-probe even if variant already done")
     ap.add_argument("--heads", type=int, default=None, help="cross-attn heads")
     args = ap.parse_args()
     C.seed_everything()
@@ -44,24 +45,40 @@ def main():
         results = json.loads(res_path.read_text())
 
     for v in variants:
+        if not args.force and v in results.get(args.config, {}):
+            print(f"  [skip] {args.config}/{v} already in results")
+            continue
         emb_path = C.EMB / f"provabgs_{args.config}_{v}.npy"
         if not emb_path.exists():
             print(f"  [missing] {emb_path.name}; run 10_embed_provabgs.py --config {args.config} --variant {v}")
             continue
-        X = np.load(emb_path)  # (M,T,D) full tokens
+        # memmap + index split: image/spec configs are up to ~70 GB, so avoid
+        # the full-array copy that train_test_split(X, ...) would make.
+        X = np.load(emb_path, mmap_mode="r")  # (M,T,D) full tokens
         idx_path = C.EMB / f"provabgs_{args.config}_index.npy"
         idx = np.load(idx_path) if idx_path.exists() else np.arange(len(X))
         y = targets[idx]
         assert len(y) == len(X), (len(y), len(X))
-        Xtr, Xte, ytr, yte = train_test_split(X, y, test_size=0.2, random_state=C.SEED)
+        tr_i, te_i = train_test_split(np.arange(len(X)), test_size=0.2, random_state=C.SEED)
+        Xtr, Xte = np.ascontiguousarray(X[tr_i]), np.ascontiguousarray(X[te_i])
+        ytr, yte = y[tr_i], y[te_i]
         dim = X.shape[-1]
+        tok = X.shape[1]
         heads = args.heads or {"base": 12, "large": 16, "xlarge": 32}[v]
+        # token-aware batch so big token x dim configs (e.g. xlarge phot_image,
+        # 580x2048) don't OOM the cross-attention head on a 24 GB card.
+        bs = int(np.clip(5e7 / (tok * dim), 12, 256))
+        import gc
+        import torch
+        gc.collect()
+        torch.cuda.empty_cache()
 
         # attentive pooling (paper head)
         preds, r2s, _ = P.train_regression(
             Xtr, ytr, Xte, yte,
             lambda d, o: P.CrossAttnHead(d, o, num_heads=heads),
-            epochs=120, lr=1e-3, batch_size=256, standardize_x=False, verbose=False)
+            epochs=120, lr=1e-3, batch_size=bs, standardize_x=False, verbose=False)
+        gc.collect(); torch.cuda.empty_cache()
         # mean-pool + MLP (reference)
         Xtr_m, Xte_m = Xtr.mean(1), Xte.mean(1)
         preds_m, r2m, _ = P.train_regression(

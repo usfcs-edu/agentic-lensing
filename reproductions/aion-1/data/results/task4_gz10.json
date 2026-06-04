@@ -1,0 +1,20 @@
+{
+  "base": {
+    "accuracy": 0.7184,
+    "n_train": 4144,
+    "n_test": 1037,
+    "dim": 768
+  },
+  "large": {
+    "accuracy": 0.7473,
+    "n_train": 4144,
+    "n_test": 1037,
+    "dim": 1024
+  },
+  "xlarge": {
+    "accuracy": 0.7059,
+    "n_train": 4144,
+    "n_test": 1037,
+    "dim": 2048
+  }
+}

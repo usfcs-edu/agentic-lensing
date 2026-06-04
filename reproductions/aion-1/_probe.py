@@ -45,6 +45,30 @@ class MLPHead(nn.Module):
         return self.net(x)
 
 
+class SegHead(nn.Module):
+    """Lightweight convolutional upsampler for galaxy-structure segmentation
+    (task 5). AION tokenises a 96x96 image to a 24x24 grid (576 tokens); we
+    reshape the frozen token embeddings back to that grid and upsample to a
+    per-pixel mask. Matches the paper's 'mean-pool spatial tokens + lightweight
+    conv upsampler' recipe (here we keep the full spatial grid, not a mean)."""
+
+    def __init__(self, dim: int, n_classes: int, grid: int = 24):
+        super().__init__()
+        self.grid = grid
+        self.proj = nn.Conv2d(dim, 128, 1)
+        self.up = nn.Sequential(
+            nn.ConvTranspose2d(128, 64, 4, 2, 1), nn.GELU(),  # 24 -> 48
+            nn.ConvTranspose2d(64, 32, 4, 2, 1), nn.GELU(),   # 48 -> 96
+            nn.Conv2d(32, n_classes, 1),
+        )
+
+    def forward(self, x):  # x: (B, grid*grid, D)
+        B, T, D = x.shape
+        g = self.grid
+        x = x[:, : g * g].transpose(1, 2).reshape(B, D, g, g)
+        return self.up(self.proj(x))  # (B, n_classes, 96, 96)
+
+
 class CrossAttnHead(nn.Module):
     """Attentive pooling: ``dim_out`` learned queries cross-attend to the token
     embeddings, then a per-target linear maps each query to a scalar. Matches
@@ -92,13 +116,21 @@ def train_regression(X_tr, Y_tr, X_te, Y_te, head_factory, *, epochs=100, lr=1e-
         Y_tr, Y_te = Y_tr.T, Y_te.T
     ymu, ysd = Y_tr.mean(0), Y_tr.std(0) + 1e-8
 
-    Xtr, Xte = np.asarray(X_tr, dtype=np.float32), np.asarray(X_te, dtype=np.float32)
-    if standardize_x and Xtr.ndim == 2:
+    # Big token-level arrays (N,T,D) stay fp16 and are cast per-batch in _loader,
+    # to avoid a float32 blow-up (xlarge phot_image_spec is ~71 GB fp16; float32
+    # would be ~142 GB and OOM the host).
+    if standardize_x and np.ndim(X_tr) == 2:
+        Xtr = np.asarray(X_tr, dtype=np.float32)
+        Xte = np.asarray(X_te, dtype=np.float32)
         xmu, xsd = Xtr.mean(0), Xtr.std(0) + 1e-6
         Xtr, Xte = (Xtr - xmu) / xsd, (Xte - xmu) / xsd
+    else:
+        Xtr, Xte = X_tr, X_te
 
     Ytr_s = ((Y_tr - ymu) / ysd).astype(np.float32)
-    dim = Xtr.shape[-1]
+    dim = np.shape(Xtr)[-1]
+    # token-aware eval batch (1024 OOMs the GPU for big (N,T,D) image embeddings)
+    eval_bs = 1024 if np.ndim(Xtr) == 2 else int(np.clip(2.5e7 / np.prod(np.shape(Xtr)[1:]), 8, 256))
     head = head_factory(dim, Y_tr.shape[1]).to(device)
     opt = torch.optim.AdamW(head.parameters(), lr=lr, weight_decay=weight_decay)
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=epochs)
@@ -116,7 +148,7 @@ def train_regression(X_tr, Y_tr, X_te, Y_te, head_factory, *, epochs=100, lr=1e-
         head.eval()
         with torch.no_grad():
             preds = []
-            for xb, _ in _loader(Xte, np.zeros((len(Xte), 1)), 1024, False, device):
+            for xb, _ in _loader(Xte, np.zeros((len(Xte), 1)), eval_bs, False, device):
                 preds.append(head(xb).cpu().numpy())
         preds = np.concatenate(preds, 0) * ysd + ymu
         from _metrics import r2_per_target
@@ -141,13 +173,17 @@ def train_classification(X_tr, Y_tr, X_te, Y_te, head_factory, n_classes, *, epo
                          lr=1e-3, weight_decay=1e-4, batch_size=256, patience=15,
                          device="cuda", standardize_x=True, verbose=False):
     """Train a classification head; returns (preds_test, accuracy, best_state)."""
-    Xtr, Xte = np.asarray(X_tr, dtype=np.float32), np.asarray(X_te, dtype=np.float32)
-    if standardize_x and Xtr.ndim == 2:
+    if standardize_x and np.ndim(X_tr) == 2:
+        Xtr = np.asarray(X_tr, dtype=np.float32)
+        Xte = np.asarray(X_te, dtype=np.float32)
         xmu, xsd = Xtr.mean(0), Xtr.std(0) + 1e-6
         Xtr, Xte = (Xtr - xmu) / xsd, (Xte - xmu) / xsd
+    else:
+        Xtr, Xte = X_tr, X_te
     Ytr = np.asarray(Y_tr).astype(np.int64)
     Yte = np.asarray(Y_te).astype(np.int64)
-    dim = Xtr.shape[-1]
+    dim = np.shape(Xtr)[-1]
+    eval_bs = 1024 if np.ndim(Xtr) == 2 else int(np.clip(2.5e7 / np.prod(np.shape(Xtr)[1:]), 8, 256))
     head = head_factory(dim, n_classes).to(device)
     opt = torch.optim.AdamW(head.parameters(), lr=lr, weight_decay=weight_decay)
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=epochs)
@@ -165,7 +201,7 @@ def train_classification(X_tr, Y_tr, X_te, Y_te, head_factory, n_classes, *, epo
         head.eval()
         with torch.no_grad():
             logits = []
-            for xb, _ in _loader(Xte, np.zeros(len(Xte)), 1024, False, device):
+            for xb, _ in _loader(Xte, np.zeros(len(Xte)), eval_bs, False, device):
                 logits.append(head(xb).cpu().numpy())
         preds = np.concatenate(logits, 0).argmax(1)
         acc = float(np.mean(preds == Yte))

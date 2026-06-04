@@ -1,0 +1,44 @@
+{
+  "base": {
+    "spirals": {
+      "ndcg@10": 0.8207,
+      "n_queries": 1297,
+      "corpus": 5181,
+      "n_positive": 1297
+    },
+    "mergers": {
+      "ndcg@10": 0.6848,
+      "n_queries": 761,
+      "corpus": 5181,
+      "n_positive": 761
+    }
+  },
+  "large": {
+    "spirals": {
+      "ndcg@10": 0.828,
+      "n_queries": 1297,
+      "corpus": 5181,
+      "n_positive": 1297
+    },
+    "mergers": {
+      "ndcg@10": 0.6924,
+      "n_queries": 761,
+      "corpus": 5181,
+      "n_positive": 761
+    }
+  },
+  "xlarge": {
+    "spirals": {
+      "ndcg@10": 0.8146,
+      "n_queries": 1297,
+      "corpus": 5181,
+      "n_positive": 1297
+    },
+    "mergers": {
+      "ndcg@10": 0.6803,
+      "n_queries": 761,
+      "corpus": 5181,
+      "n_positive": 761
+    }
+  }
+}
