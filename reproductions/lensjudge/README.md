@@ -142,6 +142,17 @@ python lensjudge/eval/report.py --out lensjudge/outputs/lensbench_v1.md \
    binary detection question is resolution-limited, the soft confidence grade is irreducibly human.
    Crossmatch: `python lensjudge/eval/crossmatch_external.py`; benchmark:
    `python lensjudge/eval/run_euclid.py --mode paired` / `--mode rank`.
+7. **The human ceiling is low — and now estimated, two ways (`eval/human_ceiling.py`).** Per-classifier
+   votes aren't public anywhere (Space Warps releases only skill-weighted SWAP posteriors; SuGOHI/Euclid
+   only consensus), so: **(a) inter-team κ** — the same candidates graded by different expert groups:
+   DESI vs SuGOHI committee QWK **0.29** [0.12–0.44] (n=103), DESI vs Euclid panel 0.17 (n=24);
+   **(b) literature** — Rojas+2023 (55 graders) find only **73%** of repeat gradings identical
+   (intra-rater, QWK ~0.8 = upper bound), Petrillo+2019 only 4.5% of candidates flagged by all 7
+   inspectors, the Euclid 10-expert panel decisive on only ~38%. **The A/B/C grade is intrinsically
+   soft.** On the same SuGOHI-matched set at DESI resolution, LensJudge sits **below** even that low
+   ceiling (κ(agent, DESI) ≈ **0.02**, n=90) — over-skeptical on blurred 1.3″ cutouts — reaching human
+   level only when given resolution (finding #6). So: deploy as a high-recall detect/escalate pre-filter
+   and reserve the "grade" for confirmed/high-res data. `python lensjudge/eval/human_ceiling.py`.
 
 ## Honest caveats
 - **No per-rater DESI ceiling**: DESI labels are a single 2-author consensus. We now anchor a

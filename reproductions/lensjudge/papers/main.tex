@@ -49,6 +49,15 @@
 \newcommand{\eucCeuc}{0.90}          % grade-C subset mean p_lens, Euclid
 \newcommand{\eucRankRho}{0.08}       % Spearman(p_lens, expert_score), Euclid rank
 \newcommand{\eucRankAUC}{0.51}       % A-vs-C AUC at 0.1" (still chance)
+% --- human ceiling (inter-team kappa + literature) ---
+\newcommand{\ceilSugohi}{0.29}       % DESI vs SuGOHI QWK
+\newcommand{\ceilSugohiCI}{0.12--0.44}
+\newcommand{\ceilEuclid}{0.17}       % DESI vs Euclid QWK
+\newcommand{\ceilAgent}{0.02}        % LensJudge vs DESI consensus, ground res
+\newcommand{\ceilAgentN}{90}         % n graded on the SuGOHI-matched set
+\newcommand{\rojasIntra}{73}         % Rojas+2023 % intra-rater exact agreement
+\newcommand{\rojasQWK}{0.8}          % Rojas+2023 intra-rater QWK (upper bound)
+\newcommand{\euclidDecisive}{38}     % Euclid Q1 10-expert panels that are decisive (37.7%)
 
 \title{LensJudge: An Agentic Visual-Inspection Grader for\\
        Strong-Lens Candidates on the Claude Agent SDK}
@@ -314,6 +323,42 @@ and opens up with better data, but the \emph{fine confidence grade} A/B/C is an 
 human judgment that resolution does not make reproducible. (The grade-C objects with Euclid cutouts
 are the modelable, lens-like C's, so this is a conservative contrast.)
 
+\section{The human ceiling is low --- and now estimated}
+\label{sec:ceiling}
+Every imaging number above is consensus-referenced because the DESI grades are a single
+2-author consensus with no per-rater votes. Two independent routes now bound the human ceiling
+(\texttt{eval/human\_ceiling.py}); per-classifier raw votes turn out to be unavailable publicly
+from any survey (Space Warps releases only skill-weighted SWAP posteriors; SuGOHI/Euclid release
+only aggregated consensus), so we use inter-\emph{team} agreement plus the published literature.
+
+\paragraph{Inter-team agreement (computed, data in hand).} The crossmatch gives the same candidates
+graded independently by other expert groups, so their agreement estimates the ceiling. On a
+quadratic-weighted $\kappa$: DESI team vs the SuGOHI $\sim$9-grader committee $=\ceilSugohi$
+(95\% CI \ceilSugohiCI; $n=103$); DESI team vs the Euclid $\sim$10-expert panel $=\ceilEuclid$
+($n=24$; partly a genuine resolution effect, \S\ref{sec:external}). Independent expert teams agree
+only ``fairly'' on A/B/C.
+
+\paragraph{Published human reliability (literature).} This matches the field. Rojas et al.\
+\citep{rojas2023vi} (55 classifiers, 1489 images) find only $\rojasIntra\%$ of repeat gradings
+identical (intra-rater, an \emph{upper} bound; $\sim$QWK $\rojasQWK$) and need $\ge6$ graders to
+stabilise a marginal grade; Petrillo et al.\ \citep{petrillo2019links} report that of candidates
+flagged by $\ge1$ of 7 inspectors only 4.5\% were flagged by all~7; Ca\~nameras et al.\
+\citep{canameras2021holismokes} find only 30\% of a blind set had zero dispersion among 5 graders;
+the Euclid Q1 engine \citep{euclidq1engine} uses 10 experts/object yet its panel is decisive on
+only ${\sim}\euclidDecisive\%$ of candidates. The A/B/C grade is intrinsically soft.
+
+\paragraph{Where the agent sits.} On the same SuGOHI-matched set at DESI resolution, LensJudge
+agrees with the DESI consensus at only $\kappa=\ceilAgent$ ($n=\ceilAgentN$) --- \emph{below} the
+human inter-team ceiling: it is uniformly over-skeptical on $1.3\arcsec$ cutouts, grading most of
+these (HSC-confirmed) candidates ``D'' because the arcs are unresolved. It reaches human-level only
+when given resolution that disambiguates the lens (the Euclid paired test, \S\ref{sec:external};
+$\plens$ $\eucCdesi\rightarrow\eucCeuc$). The operative limits, in order: (i) the fine A/B/C grade
+is barely reproducible by anyone ($\kappa\sim0.3$ between expert teams, $\rojasIntra\%$ intra-rater);
+(ii) at ground resolution the agent underperforms even that, over-rejecting blurred lenses;
+(iii) high-resolution data removes the ambiguity for the binary detection question. The actionable
+reading, now quantified: deploy LensJudge as a high-recall detect/escalate pre-filter and reserve
+the ``grade'' for confirmed or high-resolution data, rather than treating it as a target to reproduce.
+
 \section{Caveats and what is not done}
 (1) \textbf{No per-rater human ceiling} --- all DESI labels are single consensus. We now anchor a
 subset against external \emph{multi-grader} grades (Euclid Q1 ${\sim}10$ votes; SuGOHI committee)
@@ -336,8 +381,11 @@ rejected). On imaging grading of the CNN's hard high-score pool it is near-chanc
 the single-consensus A/B/C labels, and --- the load-bearing result --- \emph{no} stronger
 backbone or multi-agent design changes that. Because those labels are single-consensus over
 mostly-unconfirmed candidates, we cannot say whether the agent or the consensus is closer to
-truth: the missing multi-grader ceiling is not a footnote but the thing that decides the
-question. Two concrete next steps follow directly: (i) collect a $\sim$250-cutout,
+truth: the multi-grader ceiling is the thing that decides the question --- and we now estimate it
+(\S\ref{sec:ceiling}). Independent expert teams agree only at $\kappa\sim\ceilSugohi$ on the A/B/C
+grade (the literature concurs: $\rojasIntra\%$ intra-rater), so the grade is intrinsically soft;
+at ground resolution the agent sits \emph{below} even that low ceiling, while high-resolution
+data closes the gap for the binary detection question. Two concrete next steps follow directly: (i) collect a $\sim$250-cutout,
 $\ge$2-grader study to establish the human-vs-human $\kappa$ and re-anchor every imaging
 number; (ii) push agentic effort toward the \emph{spectroscopic} channel and toward
 candidates with confirmation, where the evidence is decisive and the agent already performs.

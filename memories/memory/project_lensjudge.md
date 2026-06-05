@@ -110,5 +110,23 @@ detect/escalate anchored to confirmed/high-res truth. Per-rater κ still needs t
 Tech report now 7pp (§"External validation"); IRSA random-galaxy fetch = path to a field-realistic
 0.1" lens-vs-nonlens AUC (not done).
 
+**Human ceiling — ESTIMATED, two ways (2026-06-04, `eval/human_ceiling.py`):** the "missing human
+ceiling" caveat is now quantified. Per-classifier raw votes are NOT public anywhere (Tier-2 workflow
+`lensjudge-human-ceiling-tier2` verified: Space Warps releases only skill-weighted SWAP posteriors;
+SuGOHI/Euclid only aggregated consensus). So (a) **inter-team QWK** on crossmatched objects: DESI vs
+SuGOHI ~9-grader committee **0.29** [0.12-0.44] n=103; DESI vs Euclid ~10-expert panel 0.17 n=24 —
+independent expert teams agree only "fairly". (b) **Literature** (`outputs/_ceiling_scratch/`):
+Rojas+2023 (arXiv 2301.03670; 55 graders, 1489 imgs) 73% intra-rater exact / QWK~0.8 (upper bound),
+>=6 graders needed; Petrillo+2019 only 4.5% of cands flagged by all 7; Cañameras+2021 30% zero-disp
+among 5; Euclid Q1 (Walmsley+2025 arXiv 2503.15324) 10-expert panel decisive on only ~38%. → A/B/C
+is intrinsically SOFT. (c) **Agent vs ceiling:** graded 90/104 SuGOHI-matched at DESI 1.3" (lean
+Sonnenfeld... lean Sonnet); κ(agent,DESI)=**0.02** n=90 — BELOW the human ceiling: over-skeptical
+(57/90 graded D on HSC-confirmed cands b/c arcs unresolved). Reaches human level only with resolution
+(Euclid paired). So 3 limits: fine grade barely reproducible by anyone (κ~0.3); agent underperforms
+even that at ground res; high-res closes the gap for DETECTION. Bib + §"The human ceiling is low" added
+(report now 8pp). NOTE: the SuGOHI grading run hung on slow ls-dr9 legacysurvey cutout fetches (no
+fetch timeout) → froze at 90/104; fetch needs a timeout. Refs added: rojas2023vi, euclidq1engine,
+petrillo2019links, canameras2021holismokes, sonnenfeld2018sugohi.
+
 Related: [[project-huang-lensing]], [[project-lensing-repro-sprint-2026-06]],
 [[project-inchausti-2025-reproduction]], [[reference-host-hardware]].
