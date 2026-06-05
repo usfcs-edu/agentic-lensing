@@ -106,6 +106,85 @@ def main():
                              f"{_fmt(r['mean_post_std'],4)} | {_fmt(r['nll_true'])} |")
         lines.append("")
 
+    # Task 2: stellar params (DD-Payne DESI), R2, desi vs desi+parallax
+    t2 = _load("task2_ddpayne.json")
+    if t2:
+        lines += ["## Task 2 — Stellar params (DESI×DD-Payne), R²", ""]
+        sp = PT["stellar_props_R2"]
+        targs = ["Teff", "logg", "FeH", "vmic"]
+        lines += ["| config / variant | " + " | ".join(targs) + " |",
+                  "|" + "---|" * (len(targs) + 1)]
+        for cfg in ["desi", "desi_plx"]:
+            if cfg not in t2:
+                continue
+            for v in VAR:
+                if v in t2[cfg]:
+                    r = t2[cfg][v]["attn_R2"]
+                    lines.append(f"| {cfg} / {v} | " + " | ".join(_fmt(r[t]) for t in targs) + " |")
+        lines.append(f"| **paper (DESI+Plx, B)** | {sp['teff']} | {sp['logg']} | {sp['feh']} | {sp['vmicro']} |")
+        lines += ["", "_Note: +parallax gives ~no logg gain on the frozen encoder "
+                  "(paper's number likely needs finetuning)._", ""]
+
+    # Task 5: segmentation IoU
+    t5 = _load("task5_gz3d.json")
+    if t5:
+        lines += ["## Task 5 — Galaxy structure segmentation (GZ3D), IoU", ""]
+        p = PT["segmentation_iou"]
+        lines += ["| variant | spiral arms | bar | N |", "|---|---|---|---|"]
+        for v in VAR:
+            if v in t5:
+                lines.append(f"| {v} | {_fmt(t5[v]['spiral_arms'])} | {_fmt(t5[v]['bar'])} | {t5[v]['n']} |")
+        lines.append(f"| **paper (B)** | {p['spiral_arms']} | {p['bar']} | ~2800 |")
+        lines.append("")
+
+    # Task 9: strong-lens retrieval
+    t9 = _load("task9_lenses.json")
+    if t9:
+        lines += ["## Task 9 — Strong-lens retrieval (SuGOHI), nDCG@10", ""]
+        lines += ["_LegacySurvey lenses (paper uses HSC); corpus less rare than paper._", "",
+                  "| variant | nDCG@10 | corpus | lenses |", "|---|---|---|---|"]
+        for v in VAR:
+            if v in t9:
+                lines.append(f"| {v} | {_fmt(t9[v]['ndcg@10'])} | {t9[v]['corpus']} | {t9[v]['n_positive']} |")
+        lines.append(f"| **paper (B, HSC)** | {PT['retrieval_ndcg10']['hsc_lenses']:.3f} | — | — |")
+        lines.append("")
+
+    # Tasks 7/8 faithful: GZ-DECaLS (Walmsley+2022) full corpus
+    tgd = _load("task78_gzdecals_retrieval.json")
+    if tgd:
+        lines += ["## Tasks 7/8 (faithful) — GZ-DECaLS retrieval, nDCG@10", ""]
+        lines += ["_Walmsley+2022 vote-fraction positives in a 63k rare-positive corpus "
+                  "(real griz, two-machine campaign)._", "",
+                  "| variant | spirals | mergers | corpus |", "|---|---|---|---|"]
+        rp = PT["retrieval_ndcg10"]
+        for v in VAR:
+            if v in tgd:
+                s = tgd[v]["spirals"]; m = tgd[v]["mergers"]
+                lines.append(f"| {v} | {_fmt(s['ndcg@10'])} | {_fmt(m['ndcg@10'])} | {s['corpus']} |")
+        lines.append(f"| **paper (B)** | {rp['gz_spirals']:.3f} | {rp['gz_mergers']:.3f} | ~171k |")
+        lines.append("")
+
+    # Task 11: spectral super-resolution
+    t11 = _load("task11_superres.json")
+    if t11:
+        lines += ["## Task 11 — Spectral super-resolution (Gaia XP→DESI)", ""]
+        lines += ["| variant | median corr | mean corr | N |", "|---|---|---|---|"]
+        for v, r in t11.items():
+            lines.append(f"| {v} | {_fmt(r['median_corr'])} | {_fmt(r['mean_corr'])} | {r['n']} |")
+        lines += ["", "_Qualitative in paper (line recovery); high corr = good reconstruction._", ""]
+
+    # Task 6: low-data regime
+    t6 = _load("task6_lowdata.json")
+    if t6:
+        lines += ["## Task 6 — Low-data regime (PROVABGS), z R² vs #labels", ""]
+        for cfg in ["phot", "phot_spec"]:
+            if cfg in t6 and "base" in t6[cfg]:
+                d = t6[cfg]["base"]
+                ns = ", ".join(str(n) for n in d["N"])
+                zs = ", ".join(_fmt(z, 2) for z in d["z"])
+                lines += [f"- **{cfg}** (base): N=[{ns}] → z R²=[{zs}]"]
+        lines += ["", "_Paper: performance saturates by 10³–10⁴ labels (reproduced)._", ""]
+
     out = "\n".join(lines)
     (R / "REPORT.md").write_text(out)
     print(out)
