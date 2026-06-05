@@ -45,8 +45,12 @@ RUNS = [
 
 
 def build_spec_tok(path):
-    sd = torch.load(path, map_location=device, weights_only=False)
-    sd = sd.get("model", sd) if isinstance(sd, dict) else sd
+    raw = torch.load(path, map_location=device, weights_only=False)
+    # Per-stage downsampling strides persisted by pretrain_tokenizer; read only
+    # when the ckpt is a dict (vs a bare state_dict). Absent key (old ckpts) ->
+    # historical 32x (1,2,2,2) -> identical behavior.
+    strides = raw.get("downsample_strides", (1, 2, 2, 2)) if isinstance(raw, dict) else (1, 2, 2, 2)
+    sd = raw.get("model", raw) if isinstance(raw, dict) else raw
     # V1 and V2 both have 'decoder_stages.*' keys, so discriminate by the
     # checkpoint directory name (tokenizer_v1_* vs tokenizer_v2*).
     is_v2 = "v2" in Path(path).parent.name.lower()
@@ -55,7 +59,7 @@ def build_spec_tok(path):
         has_ca = any(k.startswith("cross_attn.") for k in sd)
         tok = SpectrumTokenizerV2(use_skip_connections=has_skip, use_cross_attention=has_ca)
     else:
-        tok = SpectrumTokenizer()
+        tok = SpectrumTokenizer(downsample_strides=tuple(strides))
     tok = tok.to(device)
     tok.load_state_dict(sd)
     tok.eval()

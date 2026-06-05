@@ -91,15 +91,19 @@ def build_spec_tok(path, device):
     from src.tokenizers.spectrum import SpectrumTokenizer
     from src.tokenizers.spectrum_v2 import SpectrumTokenizerV2
 
-    sd = torch.load(path, map_location=device, weights_only=False)
-    sd = sd.get("model", sd) if isinstance(sd, dict) else sd
+    raw = torch.load(path, map_location=device, weights_only=False)
+    # Per-stage downsampling strides persisted by pretrain_tokenizer; read only
+    # when the ckpt is a dict (vs a bare state_dict). Absent key (old ckpts) ->
+    # historical 32x (1,2,2,2) -> identical behavior.
+    strides = raw.get("downsample_strides", (1, 2, 2, 2)) if isinstance(raw, dict) else (1, 2, 2, 2)
+    sd = raw.get("model", raw) if isinstance(raw, dict) else raw
     is_v2 = "v2" in Path(path).parent.name.lower()
     if is_v2:
         has_skip = any(k.startswith("skip_proj.") for k in sd)
         has_ca = any(k.startswith("cross_attn.") for k in sd)
         tok = SpectrumTokenizerV2(use_skip_connections=has_skip, use_cross_attention=has_ca)
     else:
-        tok = SpectrumTokenizer()
+        tok = SpectrumTokenizer(downsample_strides=tuple(strides))
     tok = tok.to(device)
     tok.load_state_dict(sd)
     tok.eval()
@@ -147,9 +151,14 @@ def predict(ckpt_path, batch, device, chunk=256):
     assert approach == "a", f"readout assumes approach a (rz at enc pos 1), got {approach}"
     z_tok = build_z_tok(ck["z_tokenizer"])
     spec_tok = build_spec_tok(Path(ck["tokenizer_ckpt_path"]), device)
+    # max_seq_len is the RoPE base length + the forward() length-assertion
+    # ceiling; it does not change weights or RoPE values for used positions, so
+    # 1024 reproduces V1 (seq 275) exactly while admitting a finer-tokenizer arm
+    # (seq 547). Read from the ckpt if persisted, else default to 1024.
     model = SpectrumTransformer(
         vocab_size=TOTAL_VOCAB_SIZE, d_model=768,
         n_encoder_layers=6, n_decoder_layers=6, n_heads=12,
+        max_seq_len=int(ck.get("max_seq_len", 1024)),
     ).to(device)
     model.load_state_dict(ck["model"])
     model.eval()

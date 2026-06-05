@@ -396,6 +396,32 @@ def slide_phase16_eqprior(prs):
     add_footer(slide, "nersc/physical_priors.py; 15k-step matched treatment vs V1 control, both L4s.")
 
 
+def slide_phase17_compression(prs):
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    add_title(slide, "Phase 17 — is tokenizer compression the bottleneck? (No)")
+    add_subtitle(slide, "Finer 16x / 544-token tokenizer (~12 A/tok) vs 32x V1 (~23.5 A/tok); "
+                 "matched 15k arms, max_seq_len 1024", top=Inches(1.05), size=15)
+    add_table(slide, Inches(0.5), Inches(2.6), [
+        ["class", "V1 cat% / med|dz|", "finer16x cat% / med|dz|"],
+        ["LRG", "97.5%  /  0.063", "98.0%  /  0.088"],
+        ["ELG", "97.8%  /  0.111", "98.4%  /  0.153"],
+        ["QSO", "97.3%  /  0.178", "97.3%  /  0.160"],
+        ["MWS", "2.1%  /  0.0002", "2.1%  /  0.0002"],
+        ["BGS", "95.7%  /  0.036", "95.1%  /  0.045"],
+        ["aggregate good-z", "24.1%", "23.9%"],
+    ], col_widths_in=[3.0, 4.6, 4.6], size=13)
+    add_subtitle(slide,
+                 "Finer compression does NOT close the gap — statistically identical, galaxy "
+                 "median |dz| marginally WORSE (the opposite of what finer localization predicts). "
+                 "Compression is not the precision bottleneck; finer = 2x sequence for zero gain.",
+                 top=Inches(5.4), size=13, color=ACCENT)
+    add_subtitle(slide,
+                 "Phases 15–17 rule out EVERY local lever (architecture, physics prior, compression) "
+                 "→ scale (data/model/steps) is the lever. NERSC spec uses V1 32x.",
+                 top=Inches(6.4), size=13, color=NAVY)
+    add_footer(slide, "tools/spectrumfm/eval_per_class.py head-to-head; reproductions/redshifty/NERSC_SCALING_SPEC.md")
+
+
 def slide_10_next(prs):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     add_title(slide, "What's next")
@@ -408,10 +434,12 @@ def slide_10_next(prs):
         (1, "Tokenizer architecture is not the bottleneck; codebook health gates usability"),
         "DONE: Phase-16 evaluation framework — per-class Metric-1 eval + frozen six-class probe",
         (1, "Metric 1 not met at scale (only stars); encoder learns class strongly (macro-F1 0.81–0.85)"),
-        "DONE: physical-prior ablation (redshift equivariance) — works mechanically, no precision gain",
-        (1, "Equivariance & absolute precision are decoupled → scale, not aux losses, is the lever"),
-        "Next: local data×model-size scaling ladder (per-point metric = Metric-1 cat. rate + probe-F1)",
-        (1, "Then the full-DR1 / 250M–1B-param NERSC spec, with eval_per_class.py as the completion gate"),
+        "DONE: physical-prior ablation (equivariance) + compression sweep (finer 16x tokenizer)",
+        (1, "Both no precision gain → Phases 15–17 rule out EVERY local lever; scale is the lever"),
+        "DONE: NERSC full-scale spec written (V1 32x, 104M→1.07B ladder, per-class Metric-1 gate)",
+        (1, "reproductions/redshifty/NERSC_SCALING_SPEC.md — ready to run"),
+        "Next (optional local): data×model-size scaling ladder to pin the low end of the Metric-3 curve",
+        "Next (real): full-DR1 / 250M–1B Perlmutter runs — the actual precision verdict",
         "Open PRs: cosmologyfoundation/redshifty#1 (+ multi-GPU fixes), codecs#1",
     ], size=14)
     add_footer(slide, "Local prototyping done; precision now requires NERSC-scale compute (the proposal's Phase-I premise).")
@@ -449,6 +477,7 @@ def main():
     slide_phase16_perclass(prs)
     slide_phase16_probe(prs)
     slide_phase16_eqprior(prs)
+    slide_phase17_compression(prs)
     slide_10_next(prs)
     slide_11_thanks(prs)
 

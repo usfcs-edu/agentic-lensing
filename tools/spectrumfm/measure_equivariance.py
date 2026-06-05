@@ -54,12 +54,17 @@ def load(ckpt_path, device):
     zt = RedshiftTokenizer(n_levels=int(zs["n_levels"]), gaussian_range=float(zs["gaussian_range"]))
     zt._sorted_z = zs["sorted_z"].cpu()
     zt._min_z = float(zt._sorted_z[0]); zt._max_z = float(zt._sorted_z[-1])
-    st = SpectrumTokenizer().to(device)
-    sd = torch.load(ck["tokenizer_ckpt_path"], map_location=device, weights_only=False)
-    sd = sd.get("model", sd)
+    raw = torch.load(ck["tokenizer_ckpt_path"], map_location=device, weights_only=False)
+    # Per-stage downsampling strides persisted by pretrain_tokenizer; read only
+    # when the ckpt is a dict (vs a bare state_dict). Absent key (old ckpts) ->
+    # historical 32x (1,2,2,2) -> identical behavior.
+    strides = raw.get("downsample_strides", (1, 2, 2, 2)) if isinstance(raw, dict) else (1, 2, 2, 2)
+    sd = raw.get("model", raw) if isinstance(raw, dict) else raw
+    st = SpectrumTokenizer(downsample_strides=tuple(strides)).to(device)
     st.load_state_dict(sd); st.eval()
     m = SpectrumTransformer(vocab_size=TOTAL_VOCAB_SIZE, d_model=768,
-                            n_encoder_layers=6, n_decoder_layers=6, n_heads=12).to(device)
+                            n_encoder_layers=6, n_decoder_layers=6, n_heads=12,
+                            max_seq_len=int(ck.get("max_seq_len", 1024))).to(device)
     m.load_state_dict(ck["model"]); m.eval()
     zc = zt.decode(torch.arange(zt.n_levels)).float().to(device)
     return m, st, zt, zc

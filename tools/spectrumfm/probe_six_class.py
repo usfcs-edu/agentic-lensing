@@ -115,6 +115,7 @@ def extract_features(ckpt_path, batch, device, chunk=256):
     model = SpectrumTransformer(
         vocab_size=TOTAL_VOCAB_SIZE, d_model=768,
         n_encoder_layers=6, n_decoder_layers=6, n_heads=12,
+        max_seq_len=int(ck.get("max_seq_len", 1024)),  # admits finer (seq 547); 1024≡512 for V1
     ).to(device)
     model.load_state_dict(ck["model"])
     model.eval()

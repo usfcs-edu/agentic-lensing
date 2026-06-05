@@ -609,6 +609,64 @@ repair that absolute error. Pushing the weight raises the slope, not the
 precision. Equivariance and precision are decoupled.
 
 % =============================================================================
+\section{Phase 17: spectrum-tokenizer compression is not the precision bottleneck}
+\label{sec:phase17}
+% =============================================================================
+
+The remaining untested lever for precision is the spectrum tokenizer's
+\emph{spatial compression}. The V1 tokenizer compresses the $7781$-pixel
+spectrum to $272$ discrete tokens ($32{\times}$, ${\sim}23.5$~\AA\ per token), so
+a spectral line is localized only to $\Delta\lambda/\lambda \approx 0.0039$---
+right at the $0.0033$ good-$z$ threshold. Crucially, the Phase-15 tokenizer
+comparison varied \emph{architecture} at a \emph{fixed} $32{\times}$ compression
+(V1, V2, and codecs all use the same $4{\times}2{\times}2{\times}2$ stride), so
+the compression ratio itself was never tested. We made the tokenizer's per-stage
+strides configurable (additive, default-preserving; the decoder upsampling
+mirrors the encoder so reconstruction length is exact) and trained a finer
+$16{\times}$ / $544$-token tokenizer (${\sim}12$~\AA\ per token,
+\texttt{--downsample-strides 1,2,2,1}), which passed the codebook-health gate
+($5.18$~bits over $102$ codes, comparable to V1's $5.0$). A matched Approach-A
+arm---identical data mix, $15$k steps, effective batch $64$, seed---was then
+trained on it (encoder sequence $547$, \texttt{--max-seq-len 1024}).
+
+The finer tokenizer does \emph{not} close the gap (Table~\ref{tab:finer}). On
+the binning-fair encoder-masked metric, the per-class catastrophic rates are
+statistically identical to V1, and the galaxy median $|\Delta z|/(1{+}z)$ is if
+anything marginally \emph{worse} (LRG $0.088$ vs $0.063$; ELG $0.153$ vs
+$0.111$), never better---the opposite of what finer localization would predict
+if compression were the limit. The aggregate good-$z$ fraction is unchanged
+($23.9\%$ vs $24.1\%$). \textbf{Spectrum-tokenizer compression is therefore not
+the precision bottleneck either}; the finer tokenizer is simply $2{\times}$ the
+encoder sequence for no benefit. Together with Phases~15--16, this rules out
+every locally-accessible lever---tokenizer architecture, an auxiliary physics
+prior, and now spatial granularity---leaving data/model/training scale as the
+sole remaining lever, exactly the proposal's Phase-I premise.
+
+\begin{table}[t]
+\centering
+\caption{Spectrum-tokenizer compression sweep: per-class catastrophic-outlier
+rate ($|\Delta z|/(1{+}z) \ge 0.0033$, encoder-masked) and median
+$|\Delta z|/(1{+}z)$ on the same $1{,}316$ \texttt{ZWARN}${=}0$ held-out
+spectra, both arms at $15$k steps. The finer $16{\times}$ tokenizer ties V1
+(marginally worse on galaxy medians) at twice the sequence length.}
+\label{tab:finer}
+\begin{tabular}{lcccc}
+\toprule
+ & \multicolumn{2}{c}{V1 ($32\times$, $272$ tok)} & \multicolumn{2}{c}{finer ($16\times$, $544$ tok)} \\
+class & cat.\ rate & med $|\Delta z|$ & cat.\ rate & med $|\Delta z|$ \\
+\midrule
+LRG & $97.5\%$ & $0.063$ & $98.0\%$ & $0.088$ \\
+ELG & $97.8\%$ & $0.111$ & $98.4\%$ & $0.153$ \\
+QSO & $97.3\%$ & $0.178$ & $97.3\%$ & $0.160$ \\
+MWS & $2.1\%$  & $0.0002$ & $2.1\%$ & $0.0002$ \\
+BGS & $95.7\%$ & $0.036$ & $95.1\%$ & $0.045$ \\
+\midrule
+agg good-$z$ & \multicolumn{2}{c}{$24.1\%$} & \multicolumn{2}{c}{$23.9\%$} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% =============================================================================
 \section{Conclusions}
 % =============================================================================
 
@@ -645,13 +703,14 @@ macro-F1 $0.81$--$0.85$ vs $0.10$ no-skill) and can be \emph{taught}
 shift-consistency (the equivariance prior lifts the response slope $0.00 \to
 0.35$); but \emph{absolute} redshift precision---per-class parity with Redrock
 at the $0.0033$ good-$z$ threshold---is met only for stars, and is moved by
-neither the tokenizer architecture (Phase~15) nor an auxiliary physics prior
-(Phase~16). The lever for precision is the same one the proposal stakes its
-Phase-I scaling argument on: corpus size, model capacity, and---plausibly---a
-finer redshift-token / spectrum-token granularity than the prototype's. The
-per-class evaluator built here is the instrument that will read out whether
-scale delivers, and it is ready to run as the completion gate on the full-scale
-NERSC runs.
+neither the tokenizer architecture (Phase~15), an auxiliary physics prior
+(Phase~16), nor---now tested directly (Phase~17)---a finer spectrum-tokenizer
+granularity. With every locally-accessible lever ruled out, the lever for
+precision is exactly the one the proposal stakes its Phase-I scaling argument on:
+corpus size, model capacity, and training steps. The per-class evaluator built
+here is the instrument that will read out whether scale delivers, and it is ready
+to run as the completion gate on the full-scale NERSC runs
+(\texttt{reproductions/redshifty/NERSC\_SCALING\_SPEC.md}).
 
 \bibliographystyle{plainnat}
 \bibliography{references}

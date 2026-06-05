@@ -1,0 +1,68 @@
+name: redshifty_approach_a_mix_l4x2_finer16x
+repo: redshifty
+description: |
+  Part-A compression-sweep TREATMENT arm: identical to
+  redshifty_approach_a_mix_l4x2_v1 (the 32x V1 CONTROL — same data mix / 15k
+  steps / eff-batch 64 / lr 4e-4 / seed 42) EXCEPT the frozen spectrum tokenizer
+  is the finer 16x / 544-token tokenizer (tokenizer_v1_finer16x_large,
+  --downsample-strides 1,2,2,1, codebook-health PASS: 5.18 bits / 102 codes),
+  and --max-seq-len 1024 (encoder seq = 547 > 512). Tests whether finer
+  wavelength granularity (~12 A/token vs ~23.5) closes the galaxy good-z gap that
+  WS1 found. Evaluated head-to-head vs V1 with tools/spectrumfm/eval_per_class.py.
+tags: [xlarge-scale, transformer, approach-a, track3, l4-ddp, partA, compression-sweep, finer16x]
+
+launch:
+  command:
+    - python
+    - -m
+    - torch.distributed.run
+    - --standalone
+    - --nproc_per_node=2
+    - nersc/train_transformer.py
+    - --manifest
+    - /raid/benson/data/desi_dr1_medium/manifest_mix.jsonl
+    - --tokenizer-ckpt
+    - /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v1_finer16x_large/best.pt
+    - --tokenizer-kind
+    - v1
+    - --approach
+    - a
+    - --steps
+    - "15000"
+    - --batch-size
+    - "32"
+    - --lr
+    - "4e-4"
+    - --warmup
+    - "500"
+    - --healpix-holdout-frac
+    - "0.05"
+    - --val-every
+    - "500"
+    - --save-every
+    - "2500"
+    - --log-every
+    - "100"
+    - --num-workers
+    - "4"
+    - --amp
+    - --redshift-loss-weight
+    - "50.0"
+    - --encoder-mask-ratio
+    - "0.50"
+    - --ar-eval-batches
+    - "8"
+    - --max-seq-len
+    - "1024"
+    - --run-name
+    - approach_a_mix_l4x2_finer16x
+    - --scratch-out
+    - /raid/benson/data/desi_dr1_medium/checkpoints
+    - --wandb-mode
+    - disabled
+    - --no-push-wandb-artifact
+
+env:
+  CUDA_DEVICE_ORDER: PCI_BUS_ID
+  CUDA_VISIBLE_DEVICES: "8,9"
+  SCRATCH: /raid/benson/data/desi_dr1_medium
