@@ -53,8 +53,8 @@
 \newcommand{\ceilSugohi}{0.29}       % DESI vs SuGOHI QWK
 \newcommand{\ceilSugohiCI}{0.12--0.44}
 \newcommand{\ceilEuclid}{0.17}       % DESI vs Euclid QWK
-\newcommand{\ceilAgent}{0.02}        % LensJudge vs DESI consensus, ground res
-\newcommand{\ceilAgentN}{90}         % n graded on the SuGOHI-matched set
+\newcommand{\ceilAgent}{0.00}        % LensJudge vs DESI consensus, ground res (kappa=0.003)
+\newcommand{\ceilAgentN}{104}        % n graded on the SuGOHI-matched set
 \newcommand{\rojasIntra}{73}         % Rojas+2023 % intra-rater exact agreement
 \newcommand{\rojasQWK}{0.8}          % Rojas+2023 intra-rater QWK (upper bound)
 \newcommand{\euclidDecisive}{38}     % Euclid Q1 10-expert panels that are decisive (37.7%)
@@ -349,8 +349,9 @@ only ${\sim}\euclidDecisive\%$ of candidates. The A/B/C grade is intrinsically s
 
 \paragraph{Where the agent sits.} On the same SuGOHI-matched set at DESI resolution, LensJudge
 agrees with the DESI consensus at only $\kappa=\ceilAgent$ ($n=\ceilAgentN$) --- \emph{below} the
-human inter-team ceiling: it is uniformly over-skeptical on $1.3\arcsec$ cutouts, grading most of
-these (HSC-confirmed) candidates ``D'' because the arcs are unresolved. It reaches human-level only
+human inter-team ceiling (essentially uncorrelated with the consensus): it is uniformly
+over-skeptical on $1.3\arcsec$ cutouts, grading 66 of these 104 HSC-confirmed candidates ``D''
+and none ``A'' because the arcs are unresolved. It reaches human-level only
 when given resolution that disambiguates the lens (the Euclid paired test, \S\ref{sec:external};
 $\plens$ $\eucCdesi\rightarrow\eucCeuc$). The operative limits, in order: (i) the fine A/B/C grade
 is barely reproducible by anyone ($\kappa\sim0.3$ between expert teams, $\rojasIntra\%$ intra-rater);

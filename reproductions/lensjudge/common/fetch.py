@@ -21,6 +21,7 @@ from lensjudge import config
 
 BASE = "https://www.legacysurvey.org/viewer"
 TIMEOUT, RETRIES, RETRY_BACKOFF, RATELIMIT_BACKOFF = 60, 5, 4.0, 30.0
+MAX_FETCH_WALL = 120.0   # total wall-clock cap per candidate across retries (graceful give-up)
 _CUBE_CACHE = config.CACHE / "cubes"
 
 
@@ -64,10 +65,15 @@ def fetch_endpoint(ra: float, dec: float, layer: str = "ls-dr10",
         if cube is not None:
             return cube
     url = _endpoint_url(ra, dec, layer)
+    t0 = time.time()
     for attempt in range(1, RETRIES + 1):
+        if time.time() - t0 > MAX_FETCH_WALL:   # graceful give-up instead of an unbounded slow tail
+            break
         try:
             r = requests.get(url, timeout=TIMEOUT, stream=True)
             if r.status_code == 429:
+                if time.time() - t0 > MAX_FETCH_WALL - RATELIMIT_BACKOFF:
+                    break
                 time.sleep(RATELIMIT_BACKOFF)
                 continue
             r.raise_for_status()
@@ -82,7 +88,7 @@ def fetch_endpoint(ra: float, dec: float, layer: str = "ls-dr10",
             tmp.rename(cached)
             return _read_fits_cube(cached)
         except Exception:
-            if attempt < RETRIES:
+            if attempt < RETRIES and time.time() - t0 < MAX_FETCH_WALL:
                 time.sleep(RETRY_BACKOFF * attempt)
     return None
 

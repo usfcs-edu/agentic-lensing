@@ -150,8 +150,9 @@ python lensjudge/eval/report.py --out lensjudge/outputs/lensbench_v1.md \
    (intra-rater, QWK ~0.8 = upper bound), Petrillo+2019 only 4.5% of candidates flagged by all 7
    inspectors, the Euclid 10-expert panel decisive on only ~38%. **The A/B/C grade is intrinsically
    soft.** On the same SuGOHI-matched set at DESI resolution, LensJudge sits **below** even that low
-   ceiling (κ(agent, DESI) ≈ **0.02**, n=90) — over-skeptical on blurred 1.3″ cutouts — reaching human
-   level only when given resolution (finding #6). So: deploy as a high-recall detect/escalate pre-filter
+   ceiling (κ(agent, DESI) ≈ **0.00**, n=104 — essentially uncorrelated; it grades 66/104 of these
+   HSC-confirmed candidates "D" and none "A") — over-skeptical on blurred 1.3″ cutouts — reaching
+   human level only when given resolution (finding #6). So: deploy as a high-recall detect/escalate pre-filter
    and reserve the "grade" for confirmed/high-res data. `python lensjudge/eval/human_ceiling.py`.
 
 ## Honest caveats
