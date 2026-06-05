@@ -83,5 +83,32 @@ multiagent/GIGA-Lens/Tier-1-features/Tier-2-features/agent+features ALL hit the 
 the soft Grade-D pool → the wall is a **label/data limit, not an algorithm limit**, definitively.
 Next: the ~250-cutout 2–3-grader study; push agentic effort to the spectroscopic channel.
 
+**External validation — BETTER DATA BREAKS THE WALL (2026-06-04):** found + tested the "better
+data / better labels" the report flagged as future work. Network from the sandbox reaches Zenodo /
+MAST / VizieR / IRSA (Python DNS works; IRSA was a transient blip). Pulled **Euclid Q1 Strong
+Lensing Discovery Engine** (Zenodo 10.5281/zenodo.15025832, ~3.6GB → `reproductions/euclid-q1/data/`,
+gitignored; tracked `euclid-q1/README.md`): 2,584 candidates (A309/B267/C2008) with `expert_score`
++ `grade` + **`expert_total_votes`~10** (a multi-grader 0.1" catalog); 539 objects ship 4-band
+**VIS+NIR Y/J/H FITS @ 0.1"/px (300×300, 30")** + full SIE/MGE/Sérsic models. `unsuccess/`=modeling
+failed NOT lens-rejected → ALL 539 are positives (no released non-lens cutouts). Built the Euclid
+arm: `common/euclid.py` (loader + RGB/VIS/vis_sub renderers), `tools/euclid_cutout.py`
+(`fetch_euclid_cutout`, registered in server._lazy), `eval/run_euclid.py` (modes paired|rank),
+`eval/crossmatch_external.py` (master table + Euclid xmatch). **Crossmatch (4,354 unique cands →
+291 have external high-res / multi-grader / confirmation; 89 are DESI grade-C):** SuGOHI/HSC 104
+(0.6", ~9-grader committee + spec-z), archival HST/MAST 148 of 1414 grade-A+B (0.05-0.1"; 99/481
+grade-A, 49/933 grade-B), AGEL DR2 77
+Keck-confirmed, Euclid Q1 24, BELLS-Gallery/CASTLES/SpaceWarps 8 (ran as a 3-agent Workflow:
+`lensjudge-external-xmatch`). **RESULTS:** (1) 53% of DESI grade-C cands in Euclid Q1 are graded
+A/B by 10 experts (6/17 → A) — "C" = unresolved, not weak. (2) **Paired within-object** (same 10
+objects, DESI 1.3" vs Euclid 0.1", lean Sonnet): mean p_lens 0.14→0.75 (up 9/10); **DESI grade-C
+subset 0.05→0.90** — the agent rejects them as blobs at ground res, grades them clear Einstein
+rings at 0.1" (montage `outputs/euclid_grade_flip_montage.png`). DETECTION wall is resolution+label
+limited, NOT algorithm. (3) But fine A/B/C grade stays ~chance even at 0.1"/10-votes (A-vs-C AUC
+0.51, Spearman 0.08) — the confidence grade is irreducibly soft; replace it with binary
+detect/escalate anchored to confirmed/high-res truth. Per-rater κ still needs the in-house
+~250-cutout study (only consensus is publicly downloadable; per-classifier votes = Zooniscience).
+Tech report now 7pp (§"External validation"); IRSA random-galaxy fetch = path to a field-realistic
+0.1" lens-vs-nonlens AUC (not done).
+
 Related: [[project-huang-lensing]], [[project-lensing-repro-sprint-2026-06]],
 [[project-inchausti-2025-reproduction]], [[reference-host-hardware]].

@@ -37,6 +37,9 @@ def _lazy(name):
         if name == "lens_representations":
             from lensjudge.tools.representations import lens_representations
             return lens_representations
+        if name == "fetch_euclid_cutout":
+            from lensjudge.tools.euclid_cutout import fetch_euclid_cutout
+            return fetch_euclid_cutout
     except Exception:
         return None
     return None

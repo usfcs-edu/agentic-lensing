@@ -126,10 +126,31 @@ python lensjudge/eval/report.py --out lensjudge/outputs/lensbench_v1.md \
    0.44, +43% cost). The *same features* score 0.80 on confirmed and 0.51 on consensus — the
    wall is the soft Grade-D labels, not the method. Gate: `python lensjudge/eval/run_representations.py`;
    Tier-2: `python lensjudge/eval/run_representations_tier2.py`; agent: `run_batch.py --mode lean --representations`.
+6. **External validation — better data DOES break the wall (for detection).** We located the data
+   the report had flagged as future work and tested it directly. Crossmatching the 4,354 unique
+   candidates: **291 have external high-resolution imaging, multi-grader grades, or spectroscopic
+   confirmation** — 104 in SuGOHI (HSC 0.6″, ~9-grader committee + spec-z), 148 of 1,414 grade-A+B
+   with archival HST in MAST (0.05–0.1″; 99/481 grade-A, 49/933 grade-B), 77 AGEL Keck-confirmed,
+   24 in **Euclid Q1** (VIS 0.1″, ~10 expert votes); **89 of the 291 are DESI grade-C**. We stood up Euclid Q1 as a 0.1″ benchmark
+   (`common/euclid.py`, `tools/euclid_cutout.py`, `eval/run_euclid.py`). Two results: **(a) paired,
+   within-object** — grading the *same* objects at DESI 1.3″ vs Euclid 0.1″, mean p_lens rises
+   0.14→0.75 (up on 9/10); on the DESI grade-C subset **0.05→0.90** — the agent rejects them as flat
+   blobs at ground resolution and grades them clear Einstein rings at 0.1″, agreeing with 10 Euclid
+   experts (see `outputs/euclid_grade_flip_montage.png`). **(b)** 53% of DESI grade-C candidates in
+   Euclid Q1 are graded A/B by the 10-expert panel — the "C" was an *unresolved* lens, not a weak one.
+   But the **fine A/B/C grade stays ~chance even at 0.1″** (A-vs-C AUC 0.51, Spearman 0.08): the
+   binary detection question is resolution-limited, the soft confidence grade is irreducibly human.
+   Crossmatch: `python lensjudge/eval/crossmatch_external.py`; benchmark:
+   `python lensjudge/eval/run_euclid.py --mode paired` / `--mode rank`.
 
 ## Honest caveats
-- **Consensus-referenced, no human ceiling**: labels are a single 2-author consensus; a
-  ~250-cutout 2–3-grader study is the noted future fix to compute a human-vs-human κ.
+- **No per-rater DESI ceiling**: DESI labels are a single 2-author consensus. We now anchor a
+  subset against *external* multi-grader grades (Euclid ~10 votes; SuGOHI committee) + HST/Keck
+  confirmation for 291 candidates, but a per-rater κ over the DESI grades still needs the
+  ~250-cutout in-house study (per-classifier votes elsewhere are only available via Zooniverse).
+- **Euclid Q1 has no released non-lens cutouts** (all 539 downloadable objects are positives;
+  IRSA random-galaxy fetch is the path to a field-realistic 0.1″ lens-vs-nonlens AUC). The paired
+  *within-object* design sidesteps this and is the stronger test.
 - **Grade-D negatives are lens-*like*** (CNN-flagged) hard negatives — binary AUC is lower
   (and more honest) than against random galaxies; the strata are scored separately.
 - **Spectroscopic** runs on catalog features + imaging; raw DESI fiber flux streaming

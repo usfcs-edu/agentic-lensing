@@ -36,6 +36,19 @@
 \newcommand{\reprSilver}{0.80}       % arcness/asymmetry AUC on noiseless sims
 \newcommand{\reprAgentLean}{0.44}    % agent lean (raw RGB), 48-slice AUC
 \newcommand{\reprAgentRich}{0.40}    % agent + representations, 48-slice AUC
+% --- external high-res / multi-grader crossmatch + Euclid Q1 benchmark ---
+\newcommand{\xmUnion}{291}           % distinct candidates with external high-res/multi-grader/confirmed data
+\newcommand{\xmSugohi}{104}          % matched to SuGOHI (HSC 0.6", committee grade + spec-z)
+\newcommand{\xmHST}{148}             % grade-A+B candidates with archival HST in MAST (of 1414)
+\newcommand{\xmAGEL}{77}             % AGEL DR2 Keck-confirmed
+\newcommand{\xmEuclid}{24}           % fall in Euclid Q1 (0.1", ~10 expert votes)
+\newcommand{\xmCgrade}{89}           % of the 258, how many are DESI grade-C
+\newcommand{\eucPairedDesi}{0.14}    % paired mean p_lens, DESI 1.3"
+\newcommand{\eucPairedEuc}{0.75}     % paired mean p_lens, Euclid 0.1"
+\newcommand{\eucCdesi}{0.05}         % grade-C subset mean p_lens, DESI
+\newcommand{\eucCeuc}{0.90}          % grade-C subset mean p_lens, Euclid
+\newcommand{\eucRankRho}{0.08}       % Spearman(p_lens, expert_score), Euclid rank
+\newcommand{\eucRankAUC}{0.51}       % A-vs-C AUC at 0.1" (still chance)
 
 \title{LensJudge: An Agentic Visual-Inspection Grader for\\
        Strong-Lens Candidates on the Claude Agent SDK}
@@ -94,12 +107,15 @@ on demand; \emph{easy negatives} --- $\sim$65K random-galaxy cutouts; \emph{gold
 pairs and 20 Table-2 Grade-A systems \citep{hsu2025pairwise} give a spectroscopic test
 set, though the raw DESI fiber flux is not local.
 
-\textbf{Two honest gaps.} (1) Every grade is a \emph{single} 2-senior-author consensus
---- there are no per-rater labels anywhere --- so a human-vs-human Cohen-$\kappa$ ceiling
-cannot be computed; we report agreement, not accuracy, and flag a $\sim$250-cutout
-multi-grader study as the single highest-value future addition. (2) The spectroscopic
-grader reasons over catalog features ($z_l,z_s$, separation, \sigmav, \thetaE) plus DR10
-imaging; raw-flux reading (SPARCL / public healpix coadds) is a documented enhancement.
+\textbf{Two honest gaps --- one now partly closed externally.} (1) Every \emph{DESI} grade is a
+\emph{single} 2-senior-author consensus --- there are no per-rater labels in the DESI catalogs ---
+so a human-vs-human Cohen-$\kappa$ ceiling cannot be computed from them. We later locate external
+data that re-anchors a subset (\S\ref{sec:external}): \xmUnion{} candidates carry higher-resolution
+imaging, multi-grader grades, or spectroscopic confirmation, and we stand up the Euclid Q1
+($0.1\arcsec$, ${\sim}10$-vote) field as a high-resolution benchmark. A per-rater $\kappa$ over the
+\emph{DESI} grades still needs the ${\sim}250$-cutout in-house study. (2) The spectroscopic grader
+reasons over catalog features ($z_l,z_s$, separation, \sigmav, \thetaE) plus DR10 imaging; raw-flux
+reading (SPARCL / public healpix coadds) is a documented enhancement.
 
 \section{Architecture on the Claude Agent SDK}
 The SDK has no image-in-prompt, so the only way the model sees pixels is a tool that
@@ -248,9 +264,62 @@ representations (Tier-1 and Tier-2), and the agent reading those representations
 land at chance on the soft Grade-D pool, while every method that is tested against clean
 (confirmed or simulated) labels succeeds.
 
+\section{External validation: do better data and more graders break the wall?}
+\label{sec:external}
+The RepresentationKit result localises the imaging wall to the labels and the ${\sim}1.3\arcsec$
+ground-based PSF. We test that directly: crossmatch the candidates against surveys that supply
+either \emph{higher resolution} or \emph{more graders}, then re-run the grader on the
+high-resolution pixels (\texttt{eval/crossmatch\_external.py}, the external-archive workflow, and
+\texttt{eval/run\_euclid.py}).
+
+\paragraph{The data exist.} Of the 4{,}354 unique candidates, \textbf{\xmUnion{} have external
+higher-quality data}: \xmSugohi{} in SuGOHI (HSC $0.6\arcsec$, a ${\sim}9$-grader ``committee''
+grade plus, for many, spectroscopic $z_l,z_s,\thetaE$); \xmHST{} of the 1{,}414 grade-A and
+grade-B candidates have archival \emph{HST} imaging ($0.05$--$0.1\arcsec$; ACS/WFC, WFC3) in MAST
+(99/481 grade-A, 49/933 grade-B); \xmAGEL{} are
+AGEL\,DR2 Keck-confirmed lenses; and \xmEuclid{} fall in the Euclid Q1 Strong Lensing Discovery
+Engine field (VIS $0.1\arcsec$, ${\sim}10$ expert votes each). \textbf{\xmCgrade{} of the \xmUnion{}
+are DESI grade-C} --- precisely the soft pool where the agent and the consensus are unsure.
+
+\paragraph{The ``C'' grade is information-limited at ground resolution.} For the \xmEuclid{}
+candidates that Euclid independently rediscovered, the DESI $1.3\arcsec$ grade and the Euclid
+$0.1\arcsec$ 10-expert grade disagree in one direction: \textbf{53\% of the DESI grade-C candidates
+are graded A or B by the Euclid panel} (6 of 17 jump to grade A). The ``C'' was not a weak lens;
+it was an unresolved one.
+
+\begin{figure}[h]\centering
+\includegraphics[width=0.8\linewidth]{euclid_flip.png}
+\caption{Three DESI grade-C candidates that fall in Euclid Q1. \emph{Left}: DESI grz at
+$1.3\arcsec$ seeing (\plens{} $0.02$--$0.05$; the agent grades D). \emph{Middle/right}: Euclid
+$0.1\arcsec$ colour and lens-subtracted VIS --- unmistakable Einstein rings/arcs (\plens{}
+$0.91$--$0.97$; the agent and 10 Euclid experts grade A). Same agent, same rubric; only the
+pixels change.}
+\label{fig:flip}
+\end{figure}
+
+\paragraph{Resolution breaks the \emph{detection} wall (paired, within-object).} For the 10 matched
+candidates with Euclid cutouts on disk we grade the \emph{same object} twice --- on the DESI grz
+cutout and on the Euclid VIS$+$NIR cutout (\texttt{fetch\_euclid\_cutout}, a $0.1\arcsec$ analog of
+\texttt{fetch\_cutout}). Mean \plens{} rises from \eucPairedDesi{} (DESI) to \eucPairedEuc{}
+(Euclid), increasing on 9 of 10; on the DESI grade-C subset it goes from \eucCdesi{} to \eucCeuc{}.
+The objects the agent rejected as flat blobs at $1.3\arcsec$ it grades as clear rings at
+$0.1\arcsec$ (Fig.~\ref{fig:flip}), agreeing with the Euclid experts. This is the within-object
+proof that the hard-pool wall was resolution- (and label-) limited, not algorithm-limited.
+
+\paragraph{But the fine A/B/C grade stays soft even at $0.1\arcsec$.} Ranking 95 Euclid candidates
+by \plens{} against the 10-expert grade gives Spearman $\rho=\eucRankRho$ (n.s.) and A-vs-C
+AUC $=\eucRankAUC$ --- chance. This is the RepresentationKit finding again at $13\times$ the
+resolution and $10\times$ the graders: the binary \emph{detection} question is resolution-limited
+and opens up with better data, but the \emph{fine confidence grade} A/B/C is an irreducibly soft
+human judgment that resolution does not make reproducible. (The grade-C objects with Euclid cutouts
+are the modelable, lens-like C's, so this is a conservative contrast.)
+
 \section{Caveats and what is not done}
-(1) \textbf{No human ceiling} --- all labels are single consensus; the multi-grader study is
-future work. (2) \textbf{Grade-D negatives are lens-like} (CNN-flagged), so the binary AUC is
+(1) \textbf{No per-rater human ceiling} --- all DESI labels are single consensus. We now anchor a
+subset against external \emph{multi-grader} grades (Euclid Q1 ${\sim}10$ votes; SuGOHI committee)
+and HST/Keck confirmation for \xmUnion{} candidates, but a per-rater $\kappa$ still needs either
+the ${\sim}250$-cutout in-house study or Zooniverse per-classifier votes (consensus is all that is
+publicly downloadable). (2) \textbf{Grade-D negatives are lens-like} (CNN-flagged), so the binary AUC is
 lower --- and more honest --- than against random galaxies; strata are scored separately.
 (3) The \textbf{CNN pre-filter gate} (a cost lever at full-survey scale) is not exercised
 here because the eval set is by construction the high-\pmeta{} ambiguous middle band.
@@ -275,6 +344,19 @@ candidates with confirmation, where the evidence is decisive and the agent alrea
 A pre-filter that confidently clears obvious non-lenses while escalating the genuinely
 ambiguous --- which is what LensJudge does --- remains useful even at chance agreement on the
 subjective middle, but its accuracy cannot be claimed until the ceiling exists.
+
+Crucially, both next steps are now \emph{actionable with data we located}. \xmUnion{} candidates
+(including \xmCgrade{} of the soft grade-C ones) have external high-resolution imaging,
+multi-grader grades, or spectroscopic confirmation --- from Euclid Q1 ($0.1\arcsec$, ${\sim}10$
+votes), SuGOHI/HSC, archival HST, and AGEL. Re-grading the same objects on Euclid pixels settles
+the question for \emph{detection}: \plens{} on the hard-pool grade-C candidates rises from
+\eucCdesi{} at $1.3\arcsec$ to \eucCeuc{} at $0.1\arcsec$, where the agent and 10 experts agree
+they are clear lenses. The wall the rest of this report documents is therefore the joint product
+of ground-based resolution and soft single-consensus labels --- not a ceiling on the agent. What
+high resolution does \emph{not} fix is the fine A/B/C confidence grade (A-vs-C AUC $\eucRankAUC$ at
+$0.1\arcsec$), confirming that the residual ``grade'' is a subjective human quantity best replaced,
+for the agent's purposes, by a binary detect/escalate decision anchored to confirmed or
+high-resolution truth.
 
 \bibliographystyle{plainnat}
 \bibliography{references}
