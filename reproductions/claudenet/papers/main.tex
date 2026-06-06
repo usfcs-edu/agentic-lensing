@@ -166,6 +166,97 @@ near $\sim$300 labels (Phase~3).}
 \label{fig:grid}
 \end{figure}
 
+\section{Discovery impact and scan deployment}
+The matched-FPR gains of Table~\ref{tab:flagship} are best read operationally,
+because a real 45\,M-cutout sweep cannot run at 1\,\% FPR ($\sim$450{,}000 false
+positives) or even 0.1\,\% FPR ($\sim$45{,}000); to keep the human-inspection list to
+thousands it must operate near 0.01\,\% FPR. The \cnet{} advantage \emph{grows} as the
+threshold tightens ($+0.030\!\to\!+0.098$ Storfer, $+0.012\!\to\!+0.090$ Inchausti
+across $1\%\!\to\!0.1\%$ FPR), so it helps most where scans actually run.
+
+\paragraph{Fewer missed lenses at a fixed inspection budget.} At fixed false-positive
+load the extra completeness is a direct cut to the missed-lens (false-negative) rate
+(Table~\ref{tab:impact}): at the strict 0.1\,\% point, $\sim$40\,\% fewer Storfer and
+$\sim$58\,\% fewer Inchausti lenses are missed (the gate-certified \emph{learned}
+combiner gives a slightly smaller $\sim$37/56\,\%; the naive average is tabulated). The
+dual view --- fewer false positives at \emph{fixed} completeness --- is of order
+$2\times$ within the measured $0.1$--$1\%$ band ($\sim$0.44--0.54\,\% FPR matches the
+baseline's $1\%$-FPR completeness), i.e.\ $\sim$200{,}000--250{,}000 fewer objects to
+inspect on a DR9/DR10 sweep. Two guarantees prior finders lack compound this:
+conformal selection (Phase~4) delivers a \emph{certified} false-discovery ceiling
+rather than an ad-hoc score cut, and deep-ensemble triage (Phase~6) makes the
+confident $\sim$half essentially error-free (selective error
+$0.022\!\to\!0.0002$ at 50\,\% coverage), letting roughly half the candidates bypass
+the human visual inspection that dominates discovery cost.
+
+\begin{table}[t]\centering
+\caption{Missed-lens (false-negative) reduction at fixed FPR, derived from the
+Table~\ref{tab:flagship} recoveries.}
+\label{tab:impact}
+\begin{tabular}{lcc}
+\toprule
+operating point & recovery (meta$\,\to\,$\cnet{}) & fewer missed lenses\\
+\midrule
+Storfer @1\,\% FPR     & $0.908\to0.938$ & 33\,\%\\
+Storfer @0.1\,\% FPR   & $0.755\to0.853$ & \textbf{40\,\%}\\
+Inchausti @1\,\% FPR   & $0.968\to0.980$ & 38\,\%\\
+Inchausti @0.1\,\% FPR & $0.845\to0.935$ & \textbf{58\,\%}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Scan throughput.} Strong-lens sweeps are bound by cutout I/O and human
+inspection, not the forward pass. The five \emph{grz} 101-px finder members consume
+the same cutout, so a scan pays the FITS load once and runs five cheap forwards;
+measured single-GPU compute throughput (Table~\ref{tab:throughput}) is
+$2.8$--$6.7\times10^{3}$ cutouts\,s$^{-1}$ per member --- far above what the
+brick-slice loader feeds --- so in the I/O-bound regime the five-member stage costs
+about a single model's wall-clock ($\sim$3 GPU-hours for $45$\,M on five TITAN~RTX,
+compute-only). The \aion{} foundation-model member is the lone exception
+($\sim$30--40 img\,s$^{-1}$, $\sim$$100\times$ slower, needing heavier 4-band 160-px
+cutouts); it is quarantined to a \emph{second stage} on the $\sim$$10^{4}$--$10^{6}$
+survivors of the cheap first-stage filter --- exactly the two-stage design the
+Huang/Storfer/Inchausti lineage already uses. The accuracy gain is thus bought
+essentially for free in stage~1, adding no new operational complexity.
+
+\begin{table}[t]\centering
+\caption{Measured single-GPU inference throughput (TITAN~RTX, batch~256, compute-only
+upper bounds; real scans are I/O-bound).}
+\label{tab:throughput}
+\begin{tabular}{lcr}
+\toprule
+member & params & cutouts\,s$^{-1}$\,GPU$^{-1}$\\
+\midrule
+shielded-194k             & 0.2\,M  & 2{,}843\\
+Lanusse ResNet-46         & 3.5\,M  & 3{,}349\\
+EfficientNetV2-S          & 20.5\,M & 5{,}594\\
+EfficientNet-B3           & 11.1\,M & 6{,}728\\
+5-member finder stage     & ---     & 865 (shared load)\\
+\aion{}-base (stage 2)    & 314\,M  & $\sim$35\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Survey-scale outlook and honest limits.} The field is moving to
+$10^{5}$-scale samples --- Euclid $\sim$$1$--$1.7\times10^{5}$ lenses
+\citep{collett2015}, Rubin/LSST $\sim$$6$--$12\times10^{4}$ --- over $10^{8}$--$10^{9}$
+galaxies where human vetting is the binding constraint; a $\sim$$+0.09$ strict-FPR
+completeness edge maps to of order $+10^{4}$ additional lenses at fixed inspection
+budget, and the certified purity is a prerequisite, not a nicety, for the
+contamination-sensitive cosmology those samples feed (time-delay $H_0$
+\citep{birrer2021tdcosmo}, substructure, population inference). We flag the limits
+plainly: ``recovery'' is the held-out true-positive rate on the \emph{existing}
+Storfer/Inchausti catalogues, not newly discovered lenses; the $0.1\%$-FPR threshold
+is pinned by only $\sim$6--7 of $\sim$6{,}500 held-out negatives (no confidence
+interval), so the strict-point deltas carry $\sim$$\pm10$\,pp of statistical noise;
+the absolute counts and the $\sim$$2\times$ inspection saving are interpolations on
+incomplete catalogues; the end-to-end sky-scan wall-clock is a structural I/O-bound
+argument, not yet benchmarked; and the survey-scale extrapolation assumes the
+DESI-Legacy-measured deltas transfer across bands, PSF, and depth. The defensible
+claim is: at the same inspection budget, $\sim$9--10 points more real lenses at the
+operating point that matters, plus a certifiable purity statement --- a meaningful,
+not transformational, lift.
+
 \section{Discussion}
 Across seven directions, the single decisive lever is member \emph{diversity}: the
 published lineage diagnosed the meta-learner collapse but never engineered diverse

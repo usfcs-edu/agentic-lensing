@@ -62,6 +62,34 @@ correlated-base meta-learner, especially at the strict 0.1 % FPR point that cont
 purity. (The ensemble matches/beats the single best member everywhere except a 0.002
 tie at the loose 1 % FPR.)
 
+## Discovery impact & scan deployment
+
+The recovery gains are best read operationally: a 45 M-cutout sweep must run near
+**0.01 % FPR** (1 % FPR = ~450 K false positives), and ClaudeNet's advantage *grows*
+as the threshold tightens (+0.030→+0.098 Storfer, +0.012→+0.090 Inchausti over
+1 %→0.1 % FPR) — it helps most where scans actually operate.
+
+- **Fewer missed lenses at fixed inspection budget:** at 0.1 % FPR, **~40 % fewer
+  Storfer / ~58 % fewer Inchausti** lenses missed (~37 %/56 % with the gate-certified
+  learned combiner). Dual view: **~2× fewer false positives at fixed completeness**
+  (~200–250 K fewer objects to inspect on a DR9/DR10 sweep; interpolation, 1.3–2.2×).
+- **Two guarantees prior finders lack:** certified-FDR conformal selection (a
+  defensible purity ceiling) and deep-ensemble triage (confident ~half essentially
+  error-free → ~halves the human-inspection bottleneck).
+- **Scan throughput:** the 5 *grz* finder members share one cutout load, so an
+  I/O-bound scan costs ~a single model's wall-clock (~3 GPU-h for 45 M on 5 TITAN RTX,
+  compute-only). The AION member (~100× slower, griz-160) is **stage-2 only** on
+  filtered survivors — the lineage's existing two-stage design. **Net: same inspection
+  budget, ~9–10 points more real lenses at the operating point that matters.**
+- **Honest limits:** "recovery" is held-out TPR on *existing* catalogs (no new lenses
+  found here); the 0.1 % threshold is pinned by ~6–7 of ~6,500 held-out negatives
+  (±~10 pp, no CI); absolute counts and the ~2× saving are interpolations; survey-scale
+  extrapolations (Euclid ~10⁵, LSST ~6–12×10⁴; order +10⁴ lenses at fixed budget)
+  assume the DESI-Legacy deltas transfer across bands/PSF/depth — unverified.
+
+See `papers/main.pdf` §"Discovery impact and scan deployment" for the full tables and
+the measured per-member throughputs.
+
 ## Pipeline
 
 ```
