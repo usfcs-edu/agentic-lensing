@@ -7,6 +7,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \documentclass[11pt,letterpaper]{article}
 \usepackage{../../tech-report}
+\usepackage{float} % [H] placement for the side-by-side comparison appendix
 
 % Phase-specific math macros. NOTE: the shared preamble already defines
 % \arcsec via \providecommand, so we use a distinct name \asec here to avoid
@@ -414,6 +415,42 @@ reproduction isolates a hardware/depth limit, not a method defect.
 logs, and the pooled / depth-test outputs are under
 \texttt{reproductions/gu-2022/data/}. Code repository:
 \url{https://github.com/usfcs-edu/agentic-lensing}.
+
+% =============================================================================
+\clearpage
+\appendix
+\section{Side-by-side comparison with the published figures and tables}
+\label{app:compare}
+% =============================================================================
+
+For visual verification, the panel below pairs the summary-statistics table
+reproduced in this report \textbf{(a, top)} with the corresponding table from
+the published paper \textbf{(b, bottom)}. The published table is reproduced
+from \citet{gu2022gigalens} for comparison; the full discussion is in \S3.3.
+
+\begin{figure}[H]
+\centering
+{\small\textbf{(a) This work (Table~\ref{tab:pooled})}}\\[3pt]
+\includegraphics[width=0.85\linewidth]{figures/ours_gu-2022_tab_pooled.png}\\[10pt]
+{\small\textbf{(b) \citet{gu2022gigalens}, Table~2}}\\[3pt]
+\includegraphics[width=0.63\linewidth]{figures/orig_gu-2022_table2.png}
+\caption{\textbf{Summary statistics of the recovered lensing parameters.}
+(a)~This work: the pooled mean scaled error $\muz$, $\langle\Rhat\rangle$,
+max-$\Rhat$, and min-ESS over the 12-system validation subset (report
+Table~\ref{tab:pooled}), laid out in the paper's Table-2 format. (b)~The
+published Table~2, the same diagnostics over all 100 simulated systems and all
+22 model parameters. On the well-mixed parameters our $\muz$ sits near zero,
+matching the paper's unbiased recovery ($\muz\approx0$ throughout their
+Table~2); the large $|\muz|$ / low-ESS entries (e.g.\ $e_1,e_2$) coincide with
+the single unconverged system~11 --- a sampling-depth artifact of the single
+15\,GB A16 run rather than a recovery bias (\S3.3). The paper's uniform target
+of min-ESS $=26{,}822$ over all 100 systems is the high bar not reached on our
+most degenerate systems; note that the published table tabulates all 22
+parameters at near-uniform $\langle\Rhat\rangle=1.000$--$1.001$, whereas we pool
+the 8 lensing parameters. Panel (b) reproduced from \citet{gu2022gigalens},
+their Table~2, for comparison.}
+\label{fig:cmp-gu-2022-tabpooled}
+\end{figure}
 
 \bibliographystyle{plainnat}
 \bibliography{references}

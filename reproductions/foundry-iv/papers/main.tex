@@ -275,6 +275,8 @@ the published source $z$. The lens column is the robust, fully-automated win;
 the unguided source column is interloper-prone (see \S\ref{sec:sources}).}
 \label{tab:headline}
 \small
+\setlength{\tabcolsep}{4pt}
+\resizebox{\linewidth}{!}{%
 \begin{tabular}{lcccccc}
 \toprule
 System & $\zlens$ ours & $\zlens$ paper & $\dz$ &
@@ -284,7 +286,7 @@ DESI J003.6745$-$13.5042 (Lens16) & \textbf{0.4314} & 0.431 & $+0.0004$ & 0.500 
 DESI J060.5238$-$22.0990 (Lens22) & \textbf{0.4668} & 0.467 & $-0.0002$ & 1.473 & \textbf{0.821} & 0.821 \\
 DESI J065.6453$-$28.0646 (Lens24) & \textbf{0.6048} & 0.620 & $-0.0152$ & 0.520 & 1.230 & 1.175 \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table}
 
 \paragraph{Lens redshifts (the robust win).} All three lens redshifts are
@@ -455,5 +457,95 @@ to the remaining matched cubes without further archive work.
 
 \bibliographystyle{plainnat}
 \bibliography{references}
+
+% =============================================================================
+\appendix
+\section{Side-by-side comparison with the published figures and tables}
+\label{app:compare}
+% =============================================================================
+
+For visual verification, each panel below pairs an artifact reproduced in this
+report \textbf{(a)} with its published counterpart \textbf{(b)} from
+\citet{lin2025foundry4}. Tables are stacked (reproduced grid above published
+grid); the lensed-source spectra are placed side by side. Headline agreement is
+restated in each caption; the full discussion is in the Results and
+\S\ref{sec:sources}.
+
+\begin{figure}[ht]
+\centering
+{\small\textbf{(a) This work (Table~\ref{tab:catalog})}}\\[3pt]
+\includegraphics[width=0.92\linewidth]{figures/ours_foundry-iv_catalog.png}\\[12pt]
+{\small\textbf{(b) \citet{lin2025foundry4}, Table~2}}\\[3pt]
+\includegraphics[width=0.99\linewidth]{figures/orig_foundry-iv_table2.png}
+\caption{\textbf{Ground-truth catalog vs the published confirmed-systems table.}
+(a)~This work: the hand-curated ground-truth catalog of 13 systems transcribed
+from \citet{lin2025foundry4} \S4.1, spanning $\zlens=0.25$--$0.66$ and
+$\zsrc=0.82$--$2.83$. (b)~The published Table~2 confirmed-systems grid (its first
+systems, page~5), listing the lens and source redshifts per object. The
+transcribed redshifts match the published values object-for-object (e.g.\ DESI
+J003.6745$-$13.5042 $\zlens/\zsrc = 0.431/0.908$; J060.5238$-$22.0990
+$0.467/0.821$; J065.6453$-$28.0646 $0.620/1.175$). Panel (b) reproduced from
+\citet{lin2025foundry4}, their Table~2, for comparison.}
+\label{fig:cmp-foundry-iv-catalog}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+{\small\textbf{(a) This work (Table~\ref{tab:headline})}}\\[3pt]
+\includegraphics[width=0.99\linewidth]{figures/ours_foundry-iv_headline.png}\\[12pt]
+{\small\textbf{(b) \citet{lin2025foundry4}, Table~2}}\\[3pt]
+\includegraphics[width=0.99\linewidth]{figures/orig_foundry-iv_table2.png}
+\caption{\textbf{Automated redshifts vs the published values.} (a)~This work:
+the automated-vs-published redshift table for the three MVP systems. The
+fully-automated lens redshifts recover the published values essentially exactly
+--- $0.4314/0.4668/0.6048$ vs.\ $0.431/0.467/0.620$, two of three within
+$\dz<0.003$ --- and the guided source redshift for Lens22 recovers
+$\zsrc=0.821$ exactly. (b)~The published Table~2 grid supplying those reference
+redshifts; the ``$\zsrc$ paper'' column of panel (a), $0.908/0.821/1.175$, are
+the source rows of panel (b). Panel (b) reproduced from
+\citet{lin2025foundry4}, their Table~2, for comparison.}
+\label{fig:cmp-foundry-iv-headline}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\begin{minipage}[b]{0.37\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/ours_foundry-iv_guided_lens22.png}\\[3pt]
+  {\small\textbf{(a) This work}}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.60\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/orig_foundry-iv_fig5.png}\\[3pt]
+  {\small\textbf{(b) \citet{lin2025foundry4}, Fig.~5}}
+\end{minipage}
+\caption{\textbf{Guided lensed-source spectrum, Lens22.} (a)~This work: the
+guided arc spectrum of DESI J060.5238$-$22.0990 (Lens22) in observed wavelength,
+with the redshifted emission-line markers (report Fig.~\ref{fig:guided}, middle
+row); the 1D emission engine recovers $\zsrc=0.8210$, \textbf{matching the
+published $0.821$ exactly}. (b)~The published MUSE lensed-source spectrum for the
+same system (rest frame, $\zsrc=0.821$), showing the same \OII/H$\beta$/\OIII{}
+emission. Panel (b) reproduced from \citet{lin2025foundry4}, their Fig.~5
+(lensed-source panel), for comparison.}
+\label{fig:cmp-foundry-iv-lens22}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\begin{minipage}[b]{0.42\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/ours_foundry-iv_guided_lens24.png}\\[3pt]
+  {\small\textbf{(a) This work}}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.55\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/orig_foundry-iv_fig6.png}\\[3pt]
+  {\small\textbf{(b) \citet{lin2025foundry4}, Fig.~6}}
+\end{minipage}
+\caption{\textbf{Guided lensed-source spectrum, Lens24.} (a)~This work: the
+guided arc spectrum of DESI J065.6453$-$28.0646 (Lens24) in observed wavelength
+(report Fig.~\ref{fig:guided}, bottom row); the engine recovers $\zsrc=1.230$
+against the published $1.175$ ($\dz=+0.055$). (b)~The published MUSE
+lensed-source spectrum for the same system (rest frame, $\zsrc=1.175$); both show
+the faint \OII{} arc against a rising continuum. Panel (b) reproduced from
+\citet{lin2025foundry4}, their Fig.~6 (lensed-source panel), for comparison.}
+\label{fig:cmp-foundry-iv-lens24}
+\end{figure}
 
 \end{document}

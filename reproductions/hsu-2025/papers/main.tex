@@ -188,6 +188,7 @@ wildly conservative.
 
 % =============================================================================
 \section{Recall on the Hsu Table 2 published candidates}
+\label{sec:recall}
 % =============================================================================
 
 \citet{hsu2025pairwise} Table 2 tabulates the 20 ``Grade A new'' lens
@@ -357,6 +358,42 @@ The full 28-million-row pipeline runs in $\sim$2 minutes on local
 hardware --- considerably faster than the original Phase 2 plan's
 2--4 week estimate, primarily because \texttt{spherimatch} turned out to
 be sublinear in our regime ($t \sim N^{0.63}$).
+
+% =============================================================================
+\appendix
+\section{Side-by-side comparison with the published figures and tables}
+\label{app:compare}
+% =============================================================================
+
+For visual verification, the panel below pairs the artifact reproduced in this
+report \textbf{(a, left)} with the corresponding artifact from the published
+paper \textbf{(b, right)}. The published panel is reproduced from
+\citet{hsu2025pairwise} for comparison; the headline agreement is restated in
+the caption and discussed in full in \S\ref{sec:recall}.
+
+\begin{figure}[ht]
+\centering
+\begin{minipage}[b]{0.45\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/inspect_table2.jpg}\\[3pt]
+  {\small\textbf{(a) This work (Figure~\ref{fig:table2})}}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.52\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/orig_hsu-2025_fig3.png}\\[3pt]
+  {\small\textbf{(b) \citet{hsu2025pairwise}, Fig.~3}}
+\end{minipage}
+\caption{\textbf{The 20 Grade A new lens candidates.} (a)~This work: DR10
+$grz$ image cutouts at the centroids of the 20 \citet{hsu2025pairwise} Table~2
+Grade A systems as recovered by our algorithmic pipeline, labelled with the
+published name and the $(z_{\min}, z_{\max})$ redshift pair from our
+$13{,}530$-group output (report Figure~\ref{fig:table2}). (b)~The published
+Figure~3 showing the same 20 candidates, labelled with name and the
+spectroscopic $(z_d, z_s)$ pair. All $20$ of $20$ are recovered within $3''$ of
+our group centroids (median offset $0.91''$, maximum $1.54''$), with the matched
+group redshifts reproducing the paper's $(z_d, z_s)$ columns to three decimal
+places. Panel (b) reproduced from \citet{hsu2025pairwise}, their Fig.~3, for
+comparison.}
+\label{fig:cmp-hsu-2025-1}
+\end{figure}
 
 \bibliographystyle{plainnat}
 \bibliography{references}

@@ -464,6 +464,80 @@ lesson is that the paper's true difficulty --- individual per-exposure DECam
 access, rather than Legacy-Survey coadds --- is reproducible from the public
 NOIRLab archive on commodity CPU hardware.
 
+% =============================================================================
+\appendix
+\section{Side-by-side comparison with the published figures and tables}
+\label{app:compare}
+% =============================================================================
+
+For visual verification, each panel below pairs an artifact reproduced in this
+report \textbf{(a)} with the corresponding artifact from
+\citet{sheu2023lensedsne} \textbf{(b)}. Headline agreement is restated in each
+caption; the full discussion is in \S\ref{sec:synth} and \S\ref{sec:caveats}.
+
+% --- Comparison 1: re-detection panel vs Fig. 10 ---
+\begin{figure}[ht]
+\centering
+\begin{minipage}[b]{0.40\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/redetection_panel.png}\\[3pt]
+  {\small\textbf{(a) This work (Fig.~\ref{fig:redetection})}}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.57\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/orig_sheu-2023_fig10.png}\\[3pt]
+  {\small\textbf{(b) \citet{sheu2023lensedsne}, Fig.~10}}
+\end{minipage}
+\caption{\textbf{Re-detection of the Grade-A L-SN on the counter-image.}
+(a)~This work: $g/r/z$ median references (top) and from-scratch B08
+difference-image stamps (bottom) with the re-detected transient (group~26517)
+circled --- an 11-sub-detection, 5-epoch, $grz$ source $1.48''$ from the lens
+centre. (b)~The published detection exposures for the same system (top:
+single-pass images; bottom: SFFT difference images, red circle on the detected
+transient). Both isolate the transient on the $\thetaE\approx1.5''$
+counter-image. Panel (b) reproduced from \citet{sheu2023lensedsne}, their
+Fig.~10, for comparison.}
+\label{fig:cmp-sheu-2023-redetect}
+\end{figure}
+
+% --- Comparison 2: headline table vs Table 3 (DESI-344 block) ---
+\begin{figure}[ht]
+\centering
+{\small\textbf{(a) This work (Table~\ref{tab:headline})}}\\[3pt]
+\includegraphics[width=0.80\linewidth]{figures/ours_sheu-2023_headline.png}\\[12pt]
+{\small\textbf{(b) \citet{sheu2023lensedsne}, Table~3 (system \texttt{DESI-344.6252$-$48.8977})}}\\[3pt]
+\includegraphics[width=\linewidth]{figures/orig_sheu-2023_table3.png}
+\caption{\textbf{Headline comparison for \target.} (a)~This work: our
+reproduction against the published numbers under the L-SN~Ia hypothesis.
+(b)~The published candidate table, showing the four scenario rows for this
+system; the \texttt{L-SN Ia} row gives best-fit $z_{SN}=0.833\pm0.042$,
+$\chi^2/\mathrm{DOF}=2.81$, Hubble residual $-2.29\pm0.30$, and required
+amplification $8.23^{+2.61}_{-1.98}$. Our synthetic-injection recovery
+reproduces these ($\muamp=8.61$, residual $-2.34$, $\chi^2/\mathrm{dof}=2.2$).
+Panel (b) reproduced from \citet{sheu2023lensedsne}, their Table~3, for
+comparison.}
+\label{fig:cmp-sheu-2023-table3}
+\end{figure}
+
+% --- Comparison 3: SALT3 light curve vs Fig. 12 ---
+\begin{figure}[ht]
+\centering
+\begin{minipage}[b]{0.55\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/lightcurve_synth.png}\\[3pt]
+  {\small\textbf{(a) This work (Fig.~\ref{fig:lc})}}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.41\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/orig_sheu-2023_fig12.png}\\[3pt]
+  {\small\textbf{(b) \citet{sheu2023lensedsne}, Fig.~12}}
+\end{minipage}
+\caption{\textbf{SALT3 light-curve fit at $z=0.833$.} (a)~This work:
+synthetic-injection SALT3 fit at the paper's parameters (injected $\muamp=8.0$,
+$z=0.833$); recovered $\muamp=8.61$, $\chi^2/\mathrm{dof}=2.16$. (b)~The
+published best-fit SALT3 model for \target, whose right-panel annotation gives
+the same best-fit $z=0.833\pm0.042$. Both are SALT3 SN~Ia light-curve fits for
+this system reproducing $\muamp\approx8$. Panel (b) reproduced from
+\citet{sheu2023lensedsne}, their Fig.~12 (light-curve panel), for comparison.}
+\label{fig:cmp-sheu-2023-lc}
+\end{figure}
+
 \bibliographystyle{plainnat}
 \bibliography{references}
 

@@ -448,6 +448,36 @@ is the DR9/DR10 successors (Storfer~2024, Inchausti~2025), which add a second
 backbone (EfficientNetV2) and a meta-learner on top of the shielded \ResNet{}
 reproduced here.
 
+% =============================================================================
+\appendix
+\section{Side-by-side comparison with the published figures and tables}
+\label{app:compare}
+% =============================================================================
+
+For visual verification, the table below pairs the catalog reconstructed in this
+report \textbf{(a, top)} with the corresponding table from the published paper
+\textbf{(b, bottom)}. The published grid is reproduced from
+\citet{huang2021desi} for comparison; the full discussion is in
+\S\ref{sec:catalog}.
+
+\begin{figure}[ht]
+\centering
+{\small\textbf{(a) This work (Table~\ref{tab:catalog})}}\\[3pt]
+\includegraphics[width=0.9\linewidth]{figures/ours_huang-2021_catalog.png}\\[12pt]
+{\small\textbf{(b) \citet{huang2021desi}, Table~3}}\\[3pt]
+\includegraphics[width=0.9\linewidth]{figures/orig_huang-2021_table3.png}
+\caption{\textbf{Published candidate catalog.} (a)~This work: the
+$1{,}312$-candidate Huang+2021 catalog reconstructed from the NeuraLens release,
+with its grade breakdown and per-model (L18 vs.\ shielded) split. (b)~The
+published candidate-count table; our reproduction targets its top
+``L18+Shielded Models'' row. The reproduced grade counts
+($216$~A~$+$~$199$~B~$+$~$897$~C, the latter the sum of the published
+$\mathrm{C}=387\,(2.5)+510\,(2.0)$) and the $1{,}312$ total ($949$ L18-model
+$+$ $363$ shielded-model) match that row exactly. Panel (b) reproduced from
+\citet{huang2021desi}, their Table~3, for comparison.}
+\label{fig:cmp-huang-2021-catalog}
+\end{figure}
+
 \bibliographystyle{plainnat}
 \bibliography{references}
 

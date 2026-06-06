@@ -400,6 +400,60 @@ The honest ceiling on an automated reproduction is set by the human
 visual-inspection corrections baked into the published catalog, which no DESI
 catalog cross-match can recover.
 
+% =============================================================================
+\clearpage
+\appendix
+\section{Side-by-side comparison with the published figures and tables}
+\label{app:compare}
+% =============================================================================
+
+For visual verification, each pair below stacks a table reproduced in this
+report \textbf{(a, top)} above its published counterpart \textbf{(b, bottom)}.
+Both reproduced tables are summaries of \citet{huang2025foundry2} Table~2 (``All
+Systems''): panel~(b) is the same published Table~2 in both cases --- its
+section subheadings carry the sample counts and its per-system $\zd$, $\zs$, and
+$\sigmav$ columns carry the measured values that the two reproduced tables tally
+and recover. Headline agreement is restated in each caption; the full discussion
+is in \S\ref{sec:caveats} and the results sections above.
+
+\begin{figure}[ht]
+\centering
+{\small\textbf{(a) This work (Table~\ref{tab:sample})}}\\[3pt]
+\includegraphics[width=0.86\linewidth]{figures/ours_foundry-ii_tab_sample.png}\\[12pt]
+{\small\textbf{(b) \citet{huang2025foundry2}, Table~2 (header + ``Confirmed
+systems'' and ``Known system'' sections)}}\\[3pt]
+\includegraphics[width=0.92\linewidth]{figures/orig_foundry-ii_table2.png}
+\caption{\textbf{Sample composition.} (a)~This work: the parsed Table~2 sample
+breakdown (from \texttt{pdfplumber}) against the paper's stated composition.
+(b)~The published Table~2, whose bold section subheadings encode the same
+counts --- ``Confirmed systems~(20)'', ``Known system with lens observed by
+DESI~(1)'', and (on the next pages) the pending and ``Confirmed Nonlenses~(4)''
+groups. Our parse reproduces the published sample \emph{exactly}: 20 confirmed,
+1 known, 4 nonlenses, 73 total, with 72 lens redshifts and 22 source redshifts.
+Panel~(b) reproduced from \citet{huang2025foundry2}, their Table~2, for
+comparison.}
+\label{fig:cmp-foundry-ii-sample}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+{\small\textbf{(a) This work (Table~\ref{tab:headline})}}\\[3pt]
+\includegraphics[width=0.96\linewidth]{figures/ours_foundry-ii_tab_headline.png}\\[12pt]
+{\small\textbf{(b) \citet{huang2025foundry2}, Table~2 (per-system $\zd$, $\zs$,
+$\sigmav$ columns)}}\\[3pt]
+\includegraphics[width=0.92\linewidth]{figures/orig_foundry-ii_table2.png}
+\caption{\textbf{Recovery from public DR1.} (a)~This work: the count of Table~2
+quantities re-derived from the public DESI DR1 (\texttt{Iron}) products against
+the count present in the published EDR (\texttt{Fuji}) catalog. (b)~The
+published Table~2, columns (4)~$\zd$, (5)~$\zs$, (6)~$\sigmav$, whose populated
+cells (72, 22, 71) are the ``published'' totals. All 73 systems have a DR1 fiber
+within $1.5''$; we recover \textbf{70 of 72} lens redshifts and \textbf{16 of
+22} source redshifts to $|\dz|<0.005$ (median $|\dz|\approx3\times10^{-5}$), and
+\textbf{65 of 71} velocity dispersions ($r=0.80$, median ratio $0.96$). Panel~(b)
+reproduced from \citet{huang2025foundry2}, their Table~2, for comparison.}
+\label{fig:cmp-foundry-ii-headline}
+\end{figure}
+
 \bibliographystyle{plainnat}
 \bibliography{references}
 

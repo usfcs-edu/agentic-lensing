@@ -505,6 +505,56 @@ reduction-agnostic and drops directly onto reduced 1D spectra once they
 exist --- the only remaining step to convert this proxy into a genuine
 re-measurement.
 
+% =============================================================================
+\appendix
+\section{Side-by-side comparison with the published figures and tables}
+\label{app:compare}
+% =============================================================================
+
+For visual verification, each block below pairs a table reproduced in this
+report \textbf{(a, top)} with the corresponding table from the published paper
+\textbf{(b, bottom)}. Published grids are reproduced from
+\citet{agarwal2025foundry3} for comparison. Headline agreement is restated in
+each caption; the full discussion is in \S\ref{sec:linefit} and
+\S\ref{sec:scope}.
+
+\begin{figure}[ht]
+\centering
+{\small\textbf{(a) This work (Table~\ref{tab:headline})}}\\[3pt]
+\includegraphics[width=0.96\linewidth]{figures/ours_foundry-iii_headline.png}\\[12pt]
+{\small\textbf{(b) \citet{agarwal2025foundry3}, Table~2}}\\[3pt]
+\includegraphics[width=0.82\linewidth]{figures/orig_foundry-iii_table2.png}
+\caption{\textbf{Source redshifts.} (a)~This work: our blind fit of the paper's
+exact two-Gaussian model (Eq.~\ref{eq:twogauss}) to \NIRES-realistic synthetic
+spectra, listing the published $\zs^{\mathrm{pub}}$ against our recovered
+$\zs^{\mathrm{fit}}$. (b)~The published redshift results; the bold
+$\zs$ column is the counterpart of our $\zs^{\mathrm{pub}}$. All six \NIRES{}
+source redshifts ($\zs = 1.675$--$3.332$) are recovered to $|\dz| < 0.001$,
+worst single-shot $2.2\times10^{-4}$. Panel (b) reproduced from
+\citet{agarwal2025foundry3}, their Table~2, for comparison.}
+\label{fig:cmp-foundry-iii-headline}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+{\small\textbf{(a) This work (Table~\ref{tab:koa})}}\\[3pt]
+\includegraphics[width=0.62\linewidth]{figures/ours_foundry-iii_koa.png}\\[12pt]
+{\small\textbf{(b) \citet{agarwal2025foundry3}, Table~1}}\\[3pt]
+\includegraphics[width=0.98\linewidth]{figures/orig_foundry-iii_table1.png}
+\caption{\textbf{Keck \NIRES{} observation log.} (a)~This work: the per-system
+raw \NIRES{} science frames located in the Keck Observatory Archive, with the
+recovered $N_{\mathrm{frame}}\times300$\,s on-source exposure time. (b)~The
+published observation log; the rightmost \emph{Exp.\ Time (s)} column is the
+counterpart of our $t_{\mathrm{exp}}$. The KOA query recovers all eight
+systems' nights and sky positions, and five of the eight tabulated on-source
+exposure times are reproduced exactly (J006, J023, J094, J154, J165). J024
+returns zero positionally-matched science frames (a non-detection), while the
+archive yields more matched frames than the paper's nominal value for J133
+($4800$ vs $2400$\,s) and fewer for J215 ($1200$ vs $2400$\,s). Panel (b)
+reproduced from \citet{agarwal2025foundry3}, their Table~1, for comparison.}
+\label{fig:cmp-foundry-iii-koa}
+\end{figure}
+
 \bibliographystyle{plainnat}
 \bibliography{references}
 

@@ -11,7 +11,15 @@
         "kind": "image",
         "original_png": "figs/orig_sheu2024b_fig4_magnification.png",
         "original_ref": "Fig. 4 (bottom-middle det(A^-1) magnification panel)",
-        "crop": {"page": 8, "bbox": [233, 196, 393, 331]}
+        "crop": {
+          "page": 8,
+          "bbox": [
+            233,
+            196,
+            393,
+            331
+          ]
+        }
       },
       {
         "label": "fig:cmp-sheu2024b-predicted",
@@ -19,7 +27,15 @@
         "kind": "image",
         "original_png": "figs/orig_sheu2024b_fig6_predicted.png",
         "original_ref": "Fig. 6 (predicted image locations + critical curves)",
-        "crop": {"page": 10, "bbox": [70, 62, 560, 383]}
+        "crop": {
+          "page": 10,
+          "bbox": [
+            70,
+            62,
+            560,
+            383
+          ]
+        }
       },
       {
         "label": "fig:cmp-sheu2024b-corner",
@@ -27,27 +43,796 @@
         "kind": "chart",
         "original_png": "figs/orig_sheu2024b_fig5_corner.png",
         "original_ref": "Fig. 5 (parameter posteriors)",
-        "crop": {"page": 9, "bbox": [55, 62, 560, 585]}
+        "crop": {
+          "page": 9,
+          "bbox": [
+            55,
+            62,
+            560,
+            585
+          ]
+        }
       },
       {
         "label": "fig:cmp-sheu2024b-tabforward",
         "layout": "stacked (ours above original); caption-free data grids",
         "ours": "figs/ours_sheu2024b_tab_forward.png",
-        "ours_crop": {"source": "reproductions/sheu-2024b/papers/main.pdf", "page": 3, "bbox": [120, 623, 500, 710]},
+        "ours_crop": {
+          "source": "reproductions/sheu-2024b/papers/main.pdf",
+          "page": 3,
+          "bbox": [
+            120,
+            623,
+            500,
+            710
+          ]
+        },
         "kind": "table",
         "original_png": "figs/orig_sheu2024b_table2.png",
         "original_ref": "Table 2 (lens model parameters)",
-        "crop": {"page": 7, "bbox": [92, 408, 528, 493]}
+        "crop": {
+          "page": 7,
+          "bbox": [
+            92,
+            408,
+            528,
+            493
+          ]
+        }
       },
       {
         "label": "fig:cmp-sheu2024b-tabrecovery",
         "layout": "stacked (ours above original); caption-free data grids",
         "ours": "figs/ours_sheu2024b_tab_recovery.png",
-        "ours_crop": {"source": "reproductions/sheu-2024b/papers/main.pdf", "page": 6, "bbox": [168, 101, 492, 211]},
+        "ours_crop": {
+          "source": "reproductions/sheu-2024b/papers/main.pdf",
+          "page": 6,
+          "bbox": [
+            168,
+            101,
+            492,
+            211
+          ]
+        },
         "kind": "table",
         "original_png": "figs/orig_sheu2024b_table2.png",
         "original_ref": "Table 2 (lens model parameters; reused crop)",
-        "crop": {"page": 7, "bbox": [92, 408, 528, 493]}
+        "crop": {
+          "page": 7,
+          "bbox": [
+            92,
+            408,
+            528,
+            493
+          ]
+        }
+      }
+    ]
+  },
+  "cikota-2023": {
+    "source_paper": "papers/Cikota_2023_Einstein_cross.pdf",
+    "bibkey": "cikota2023einstein",
+    "had_existing_appendix": false,
+    "appendix_pages": [
+      7,
+      8
+    ],
+    "comparisons": [
+      {
+        "label": "fig:cmp-cikota-2023-fig4",
+        "kind": "image",
+        "layout": "stacked",
+        "ours": "figures/03_residual_critcurve.png",
+        "original_png": "figures/orig_cikota-2023_fig4.png",
+        "original_ref": "Fig. 4",
+        "crop": {
+          "page": 5,
+          "bbox": [
+            40,
+            55,
+            588,
+            146
+          ]
+        },
+        "status": "note"
+      },
+      {
+        "label": "fig:cmp-cikota-2023-tab3",
+        "kind": "table",
+        "layout": "stacked",
+        "ours": "figures/ours_cikota-2023_tab_headline.png",
+        "original_png": "figures/orig_cikota-2023_table3.png",
+        "original_ref": "Table 3",
+        "crop": {
+          "page": 7,
+          "bbox": [
+            335,
+            91,
+            590,
+            232
+          ]
+        },
+        "status": "ok"
+      }
+    ]
+  },
+  "dawes-2022": {
+    "source_paper": "papers/Dawes_2022_multiply_lensed_quasars.pdf",
+    "bibkey": "dawes2023quasars",
+    "had_existing_appendix": false,
+    "appendix_pages": [
+      8
+    ],
+    "comparisons": [
+      {
+        "label": "Image-separation distribution",
+        "kind": "chart",
+        "layout": "side-by-side",
+        "ours": "figures/separation_hist.png",
+        "original_png": "figures/orig_dawes-2022_fig2.png",
+        "original_ref": "Fig. 2",
+        "crop": {
+          "page": 3,
+          "bbox": [
+            134,
+            46,
+            487,
+            224
+          ]
+        },
+        "status": "ok"
+      }
+    ]
+  },
+  "foundry-i": {
+    "source_paper": "papers/Huang_2025a_DESI_Foundry_I.pdf",
+    "bibkey": "huang2025foundry1",
+    "had_existing_appendix": true,
+    "appendix_pages": [
+      22,
+      23,
+      24,
+      26
+    ],
+    "comparisons": [
+      {
+        "label": "HST WFC3/F140W cutout of DESI-165.4754-06.0423",
+        "kind": "image",
+        "layout": "side-by-side",
+        "ours": "figures/ours_foundry-i_cutout_asinh.png",
+        "original_png": "figures/orig_foundry-i_fig7.png",
+        "original_ref": "Fig. 7",
+        "crop": {
+          "page": 18,
+          "bbox": [
+            88,
+            61,
+            547,
+            346
+          ]
+        },
+        "status": "ok"
+      },
+      {
+        "label": "Headline mass-parameter reproduction (v10 SVI vs published)",
+        "kind": "table",
+        "layout": "stacked",
+        "ours": "figures/ours_foundry-i_tab_mass.png",
+        "original_png": "figures/orig_foundry-i_table3.png",
+        "original_ref": "Table 3",
+        "crop": {
+          "page": 21,
+          "bbox": [
+            55,
+            84,
+            549,
+            131
+          ]
+        },
+        "status": "ok"
+      },
+      {
+        "label": "v11f NUTS second-mode point estimate vs published",
+        "kind": "table",
+        "layout": "stacked",
+        "ours": "figures/ours_foundry-i_tab_nuts_v11f.png",
+        "original_png": "figures/orig_foundry-i_table3.png",
+        "original_ref": "Table 3",
+        "crop": {
+          "page": 21,
+          "bbox": [
+            55,
+            84,
+            549,
+            131
+          ]
+        },
+        "status": "ok"
+      },
+      {
+        "label": "Internal ablation v1->v11 vs published best-fit",
+        "kind": "table",
+        "layout": "stacked",
+        "ours": "figures/ours_foundry-i_tab_ablation.png",
+        "original_png": "figures/orig_foundry-i_table3.png",
+        "original_ref": "Table 3",
+        "crop": {
+          "page": 21,
+          "bbox": [
+            55,
+            84,
+            549,
+            131
+          ]
+        },
+        "status": "ok"
+      },
+      {
+        "label": "Model prior specification",
+        "kind": "table",
+        "layout": "side-by-side",
+        "ours": "figures/ours_foundry-i_tab_priors.png",
+        "original_png": "figures/orig_foundry-i_table2.png",
+        "original_ref": "Table 2",
+        "crop": {
+          "page": 19,
+          "bbox": [
+            110,
+            92,
+            505,
+            533
+          ]
+        },
+        "status": "ok"
+      }
+    ]
+  },
+  "foundry-ii": {
+    "source_paper": "papers/Huang_2025b_DESI_Foundry_II.pdf",
+    "bibkey": "huang2025foundry2",
+    "had_existing_appendix": false,
+    "appendix_pages": [
+      8,
+      9,
+      10
+    ],
+    "comparisons": [
+      {
+        "label": "Sample composition vs Table 2",
+        "kind": "table",
+        "layout": "stacked",
+        "ours": "figures/ours_foundry-ii_tab_sample.png",
+        "original_png": "figures/orig_foundry-ii_table2.png",
+        "original_ref": "Table 2",
+        "crop": {
+          "page": 5,
+          "bbox": [
+            46,
+            210,
+            567,
+            578
+          ]
+        },
+        "status": "ok"
+      },
+      {
+        "label": "DR1 recovery of z_d/z_s/sigma_v vs Table 2",
+        "kind": "table",
+        "layout": "stacked",
+        "ours": "figures/ours_foundry-ii_tab_headline.png",
+        "original_png": "figures/orig_foundry-ii_table2.png",
+        "original_ref": "Table 2",
+        "crop": {
+          "page": 5,
+          "bbox": [
+            46,
+            210,
+            567,
+            578
+          ]
+        },
+        "status": "ok"
+      }
+    ]
+  },
+  "foundry-iii": {
+    "source_paper": "papers/Agarwal_2025_DESI_Foundry_III.pdf",
+    "bibkey": "agarwal2025foundry3",
+    "had_existing_appendix": false,
+    "appendix_pages": [
+      8,
+      9,
+      10
+    ],
+    "comparisons": [
+      {
+        "label": "Source redshifts (z_s)",
+        "kind": "table",
+        "layout": "stacked",
+        "ours": "figures/ours_foundry-iii_headline.png",
+        "original_png": "figures/orig_foundry-iii_table2.png",
+        "original_ref": "Table 2",
+        "crop": {
+          "page": 6,
+          "bbox": [
+            138,
+            372,
+            470,
+            509
+          ]
+        },
+        "status": "fixed"
+      },
+      {
+        "label": "Keck NIRES observation log (exposure times)",
+        "kind": "table",
+        "layout": "stacked",
+        "ours": "figures/ours_foundry-iii_koa.png",
+        "original_png": "figures/orig_foundry-iii_table1.png",
+        "original_ref": "Table 1",
+        "crop": {
+          "page": 4,
+          "bbox": [
+            16,
+            80,
+            587,
+            307
+          ]
+        },
+        "status": "fixed"
+      }
+    ]
+  },
+  "foundry-iv": {
+    "source_paper": "papers/Lin_2025_DESI_Foundry_IV.pdf",
+    "bibkey": "lin2025foundry4",
+    "had_existing_appendix": false,
+    "appendix_pages": [
+      10,
+      11,
+      12,
+      13
+    ],
+    "comparisons": [
+      {
+        "label": "catalog",
+        "kind": "table",
+        "layout": "stacked",
+        "ours": "figures/ours_foundry-iv_catalog.png",
+        "original_png": "figures/orig_foundry-iv_table2.png",
+        "original_ref": "Table 2",
+        "crop": {
+          "page": 5,
+          "bbox": [
+            48,
+            390,
+            564,
+            626
+          ]
+        },
+        "status": "ok"
+      },
+      {
+        "label": "headline",
+        "kind": "table",
+        "layout": "stacked",
+        "ours": "figures/ours_foundry-iv_headline.png",
+        "original_png": "figures/orig_foundry-iv_table2.png",
+        "original_ref": "Table 2",
+        "crop": {
+          "page": 5,
+          "bbox": [
+            48,
+            390,
+            564,
+            626
+          ]
+        },
+        "status": "fixed"
+      },
+      {
+        "label": "lens22-source",
+        "kind": "chart",
+        "layout": "side-by-side",
+        "ours": "figures/ours_foundry-iv_guided_lens22.png",
+        "original_png": "figures/orig_foundry-iv_fig5.png",
+        "original_ref": "Fig. 5 (lensed-source panel)",
+        "crop": {
+          "page": 24,
+          "bbox": [
+            64,
+            323,
+            560,
+            460
+          ]
+        },
+        "status": "fixed"
+      },
+      {
+        "label": "lens24-source",
+        "kind": "chart",
+        "layout": "side-by-side",
+        "ours": "figures/ours_foundry-iv_guided_lens24.png",
+        "original_png": "figures/orig_foundry-iv_fig6.png",
+        "original_ref": "Fig. 6 (lensed-source panel)",
+        "crop": {
+          "page": 25,
+          "bbox": [
+            62,
+            322,
+            432,
+            470
+          ]
+        },
+        "status": "fixed"
+      }
+    ],
+    "omitted": [
+      {
+        "what": "fig:lens16 (04_Lens16_spectra.png, Lens16 = DESI J003.6745-13.5042 extracted spectra) vs the paper's Figure 1.",
+        "why": "Confirmed an internal inconsistency in the published Figure 1 (source page 20): its caption reads 'DESI J003.6745-13.5042' but the page text carries a spectrum-panel label 'DESI J043.6663-04.3068', a different system (host z=0.344, high-z rest-UV source). Pairing Figure 1 with the reproduced Lens16 OII/OIII source (z_src=0.908) would not be a like-for-like, so it was dropped. Lens16 still appears in both reproduced tables; the brief's 'also Figs 5,6' allowance is satisfied by the clean Lens22 (Fig 5) and Lens24 (Fig 6) spectrum comparisons."
+      }
+    ]
+  },
+  "gu-2022": {
+    "source_paper": "papers/Gu_2022_GIGA_Lens.pdf",
+    "bibkey": "gu2022gigalens",
+    "had_existing_appendix": false,
+    "appendix_pages": [
+      8
+    ],
+    "comparisons": [
+      {
+        "label": "Summary statistics of recovered lensing parameters",
+        "kind": "table",
+        "layout": "stacked",
+        "ours": "figures/ours_gu-2022_tab_pooled.png",
+        "original_png": "figures/orig_gu-2022_table2.png",
+        "original_ref": "Table 2",
+        "crop": {
+          "page": 17,
+          "bbox": [
+            90,
+            76,
+            528,
+            363
+          ]
+        },
+        "status": "ok"
+      }
+    ]
+  },
+  "hsu-2025": {
+    "source_paper": "papers/Hsu_2025_pairwise_spectroscopic.pdf",
+    "bibkey": "hsu2025pairwise",
+    "had_existing_appendix": false,
+    "appendix_pages": [
+      6,
+      8
+    ],
+    "comparisons": [
+      {
+        "label": "The 20 Grade A new lens candidates (postage-stamp grid)",
+        "kind": "image",
+        "layout": "side-by-side",
+        "ours": "figures/inspect_table2.jpg",
+        "original_png": "figures/orig_hsu-2025_fig3.png",
+        "original_ref": "Fig. 3",
+        "crop": {
+          "page": 8,
+          "bbox": [
+            40,
+            56,
+            576,
+            480
+          ]
+        },
+        "status": "ok"
+      }
+    ]
+  },
+  "huang-2020": {
+    "source_paper": "papers/Huang_2020_DECaLS_lenses.pdf",
+    "bibkey": "huang2020decals",
+    "had_existing_appendix": true,
+    "appendix_pages": [
+      13,
+      14,
+      15
+    ],
+    "comparisons": [
+      {
+        "label": "Training and validation loss curves",
+        "kind": "chart",
+        "layout": "side-by-side",
+        "ours": "figures/training_curves.png",
+        "original_png": "figures/orig_huang-2020_fig3_left.png",
+        "original_ref": "Fig. 3 (left)",
+        "crop": {
+          "page": 7,
+          "bbox": [
+            60,
+            58,
+            305,
+            258
+          ]
+        },
+        "status": "ok"
+      },
+      {
+        "label": "ROC curve with AUC",
+        "kind": "chart",
+        "layout": "side-by-side",
+        "ours": "figures/roc_curve.png",
+        "original_png": "figures/orig_huang-2020_fig3_right.png",
+        "original_ref": "Fig. 3 (right)",
+        "crop": {
+          "page": 7,
+          "bbox": [
+            305,
+            58,
+            555,
+            258
+          ]
+        },
+        "status": "ok"
+      }
+    ]
+  },
+  "huang-2021": {
+    "source_paper": "papers/Huang_2021_DESI_legacy_lenses.pdf",
+    "bibkey": "huang2021desi",
+    "had_existing_appendix": false,
+    "appendix_pages": [
+      8
+    ],
+    "comparisons": [
+      {
+        "label": "fig:cmp-huang-2021-catalog",
+        "kind": "table",
+        "layout": "stacked",
+        "ours": "figures/ours_huang-2021_catalog.png",
+        "original_png": "figures/orig_huang-2021_table3.png",
+        "original_ref": "Table 3",
+        "crop": {
+          "page": 16,
+          "bbox": [
+            165,
+            285,
+            455,
+            372
+          ]
+        },
+        "status": "ok"
+      }
+    ]
+  },
+  "inchausti-2025": {
+    "source_paper": "papers/Inchausti_2025_DR10_two_architectures.pdf",
+    "bibkey": "inchausti2025dr10",
+    "had_existing_appendix": false,
+    "appendix_pages": [
+      7,
+      8
+    ],
+    "comparisons": [
+      {
+        "label": "Controlled ensemble-AUC comparison",
+        "kind": "chart",
+        "layout": "side-by-side",
+        "ours": "figures/ours_inchausti-2025_ensemble_auc_bars.png",
+        "original_png": "figures/orig_inchausti-2025_fig6.png",
+        "original_ref": "Fig. 6",
+        "crop": {
+          "page": 9,
+          "bbox": [
+            74,
+            68,
+            524,
+            298
+          ]
+        },
+        "status": "ok"
+      }
+    ]
+  },
+  "sheu-2023": {
+    "source_paper": "papers/Sheu_2023_lensed_supernovae.pdf",
+    "bibkey": "sheu2023lensedsne",
+    "had_existing_appendix": false,
+    "appendix_pages": [
+      9,
+      10,
+      11
+    ],
+    "comparisons": [
+      {
+        "label": "fig:cmp-sheu-2023-redetect",
+        "kind": "image",
+        "layout": "side-by-side",
+        "ours": "figures/redetection_panel.png",
+        "original_png": "figures/orig_sheu-2023_fig10.png",
+        "original_ref": "Fig. 10",
+        "crop": {
+          "page": 16,
+          "bbox": [
+            42,
+            413,
+            580,
+            658
+          ]
+        },
+        "status": "ok"
+      },
+      {
+        "label": "fig:cmp-sheu-2023-table3",
+        "kind": "table",
+        "layout": "stacked",
+        "ours": "figures/ours_sheu-2023_headline.png",
+        "original_png": "figures/orig_sheu-2023_table3.png",
+        "original_ref": "Table 3 (system DESI-344.6252-48.8977, L-SN Ia row)",
+        "crop": {
+          "page": 14,
+          "bbox": [
+            28.8,
+            82.8,
+            748.8,
+            179.5
+          ]
+        },
+        "status": "note"
+      },
+      {
+        "label": "fig:cmp-sheu-2023-lc",
+        "kind": "chart",
+        "layout": "side-by-side",
+        "ours": "figures/lightcurve_synth.png",
+        "original_png": "figures/orig_sheu-2023_fig12.png",
+        "original_ref": "Fig. 12 (right SALT3 light-curve panel)",
+        "crop": {
+          "page": 18,
+          "bbox": [
+            296,
+            152,
+            582,
+            410
+          ]
+        },
+        "status": "ok"
+      }
+    ]
+  },
+  "sheu-2024a": {
+    "source_paper": "papers/Sheu_2024a_variable_lensed_quasars.pdf",
+    "bibkey": "sheu2024variable",
+    "had_existing_appendix": false,
+    "appendix_pages": [
+      8,
+      9,
+      10,
+      11
+    ],
+    "comparisons": [
+      {
+        "label": "Imaging + over/under-subtraction evidence panel",
+        "kind": "image",
+        "layout": "side-by-side",
+        "ours": "figures/variability_panel.png",
+        "original_png": "figures/orig_sheu-2024a_figB1_4-imaging.png",
+        "original_ref": "Fig. B1.4 (top)",
+        "crop": {
+          "page": 39,
+          "bbox": [
+            33,
+            113,
+            578,
+            311
+          ]
+        },
+        "status": "ok"
+      },
+      {
+        "label": "PSF-photometry light curves at the two lensed images",
+        "kind": "chart",
+        "layout": "side-by-side",
+        "ours": "figures/lightcurve_real.png",
+        "original_png": "figures/orig_sheu-2024a_figB1_4-lc.png",
+        "original_ref": "Fig. B1.4 (bottom)",
+        "crop": {
+          "page": 39,
+          "bbox": [
+            30,
+            309,
+            580,
+            473
+          ]
+        },
+        "status": "ok"
+      },
+      {
+        "label": "Headline variability sigma table (DESI-038.0655-24.4942)",
+        "kind": "table",
+        "layout": "stacked",
+        "ours": "figures/ours_sheu-2024a_tab_headline.png",
+        "original_png": "figures/orig_sheu-2024a_table2.png",
+        "original_ref": "Table 2 (DESI-038.0655-24.4942 row)",
+        "crop": {
+          "page": 7,
+          "bbox": [
+            40,
+            82,
+            570,
+            464.5
+          ]
+        },
+        "status": "ok"
+      }
+    ]
+  },
+  "silver-2025": {
+    "source_paper": "papers/Silver_2025_ML_driven_discoveries.pdf",
+    "bibkey": "silver2025ml",
+    "had_existing_appendix": false,
+    "appendix_pages": [
+      6,
+      7,
+      8,
+      9
+    ],
+    "comparisons": [
+      {
+        "label": "fig:cmp-silver-2025-sims",
+        "kind": "image",
+        "layout": "side-by-side",
+        "ours": "figures/sim_preview.png",
+        "original_png": "figures/orig_silver-2025_fig6.png",
+        "original_ref": "Fig. 6",
+        "crop": {
+          "page": 18,
+          "bbox": [
+            50,
+            58,
+            562,
+            498
+          ]
+        },
+        "status": "ok"
+      },
+      {
+        "label": "fig:cmp-silver-2025-curves",
+        "kind": "chart",
+        "layout": "side-by-side",
+        "ours": "figures/training_curves_model1a.png",
+        "original_png": "figures/orig_silver-2025_fig7.png",
+        "original_ref": "Fig. 7",
+        "crop": {
+          "page": 19,
+          "bbox": [
+            50,
+            60,
+            562,
+            272
+          ]
+        },
+        "status": "ok"
+      },
+      {
+        "label": "fig:cmp-silver-2025-headline",
+        "kind": "table",
+        "layout": "stacked",
+        "ours": "figures/ours_silver-2025_tab_headline.png",
+        "original_png": "figures/orig_silver-2025_table3.png",
+        "original_ref": "Table 3",
+        "crop": {
+          "page": 12,
+          "bbox": [
+            78,
+            82,
+            522,
+            180
+          ]
+        },
+        "status": "note"
       }
     ]
   }

@@ -394,6 +394,62 @@ when fed the paper's own $\thetaE$, isolating the offset to the recovered
 radius rather than the analysis. Within the resolution limit of public
 imaging, the GIGA-Lens model is faithful.
 
+% =============================================================================
+\appendix
+\section{Side-by-side comparison with the published figures and tables}
+\label{app:compare}
+% =============================================================================
+
+For visual verification, each block below pairs an artifact reproduced in this
+report with the corresponding artifact from \citet{cikota2023einstein}. The
+headline agreement is restated in each caption; the full discussion is in the
+Results section and the PSF/seeing ablation (\S\ref{sec:ablation}). Published
+panels are reproduced from \citet{cikota2023einstein} for comparison.
+
+\begin{figure}[ht]
+\centering
+{\small\textbf{(a) This work (Fig.~\ref{fig:headline})}}\\[3pt]
+\includegraphics[width=\linewidth]{figures/03_residual_critcurve.png}\\[12pt]
+{\small\textbf{(b) \citet{cikota2023einstein}, Fig.~4}}\\[3pt]
+\includegraphics[width=\linewidth]{figures/orig_cikota-2023_fig4.png}
+\caption{\textbf{Headline reproduction (four-panel model summary).} Both
+strips show, left to right: the observed $g$-band image; the best-fit
+GIGA-Lens model with the tangential critical curve (cyan here / red in the
+paper); the reduced residual; and the recovered unlensed source with the
+astroid caustic (orange here / green in the paper). (a)~This work, on the
+public DESI Legacy DR10 $g$-band coadd ($1.35\arcsec$ seeing),
+$\chi^2/\mathrm{px}=0.90$. (b)~\citet{cikota2023einstein}, on their
+MUSE-derived $g$ image ($0.6\arcsec$), $\chi^2/\mathrm{DOF}=0.89$. The
+four-image Einstein-cross geometry, the closed critical ellipse threading the
+images, the featureless residual, and the compact source inside the caustic
+all reproduce. Panel (b) reproduced from \citet{cikota2023einstein}, their
+Fig.~4, for comparison.}
+\label{fig:cmp-cikota-2023-fig4}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+{\small\textbf{(a) This work (Table~\ref{tab:headline})}}\\[3pt]
+\includegraphics[width=0.92\linewidth]{figures/ours_cikota-2023_tab_headline.png}\\[12pt]
+{\small\textbf{(b) \citet{cikota2023einstein}, Table~3}}\\[3pt]
+\includegraphics[width=0.62\linewidth]{figures/orig_cikota-2023_table3.png}
+\caption{\textbf{Recovered lens-model quantities.} (a)~This work: our
+recovered quantities (public Legacy $g$, $1.35\arcsec$ PSF) beside the
+published values, including derived quantities ($\sigmaSIE$,
+$\mu_{\mathrm{tot}}$, $\chi^2/\mathrm{px}$) not tabulated by the paper.
+(b)~The published best-fit mass parameters for the main lens L1, the secondary
+lens L2, and the external shear. On the overlapping quantities the agreement is
+within the resolution limit: $\thetaE(\mathrm{L1}) = 2.10\arcsec$ vs
+$2.520\arcsec$ ($-17\,\%$), the implied $\sigmaSIE = 347$ vs $379\,$km/s
+($-8\,\%$), $\thetaE(\mathrm{L2}) = 0.17\arcsec$ vs $0.261\arcsec$, and
+$\mu_{\mathrm{tot}} = 7.0$ vs $10.47$; the L1 ellipticity is recovered with the
+correct sign but smaller magnitude and the weakly-constrained external shear
+differs, as discussed in \S\ref{sec:ablation}. Panel (b) reproduced from
+\citet{cikota2023einstein}, their Table~3, for comparison.}
+\label{fig:cmp-cikota-2023-tab3}
+\end{figure}
+
+\clearpage
 \bibliographystyle{plainnat}
 \bibliography{references}
 

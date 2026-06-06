@@ -1491,6 +1491,106 @@ centers on the source-extraction detection on the v2 residual map
 (Figure~\ref{fig:nearby}). Total: 74 free non-linear parameters.}
 \end{table}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Side-by-side comparison with the published figures and tables}
+\label{app:compare}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+For visual verification, each block below pairs an artifact reproduced in this
+report \textbf{(a)} with the corresponding artifact from
+\citet{huang2025foundry1} \textbf{(b)}. Headline agreement is restated in each
+caption; the full discussion is in \S\ref{sec:results}. Our v10 SVI posterior
+matches \thetaE\ to $3.0\%$, $\eone$ to $2.5\%$, and the external-shear position
+angle to within $1^{\circ}$ of the published HMC result, with sign-quadrant
+agreement on all six mass parameters; the v11f NUTS mode reproduces \thetaE\ to
+$1.6\%$.
+
+\begin{figure}[ht]
+\centering
+\begin{minipage}[b]{0.38\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/ours_foundry-i_cutout_asinh.png}\\[3pt]
+  {\small\textbf{(a) This work}}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.58\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/orig_foundry-i_fig7.png}\\[3pt]
+  {\small\textbf{(b) \citet{huang2025foundry1}, Fig.~7}}
+\end{minipage}
+\caption{\textbf{HST WFC3/F140W cutout of \foundry.} (a)~This work: the
+asinh-stretched science cutout at $0\farcs13\,\mathrm{pix}^{-1}$ (the centre
+panel of report Figure~\ref{fig:cutout}), showing the tangential arc system, the
+bright central deflector, and the nearby companion at lower-left. (b)~The
+published F140W image of the same system with the four lensed images labelled
+A--D and the companion arrowed. We reprocess the same GO--15867 exposure from
+MAST; the arc geometry, deflector, and companion position match. Panel (b)
+reproduced from \citet{huang2025foundry1}, their Fig.~7, for comparison.}
+\label{fig:cmp-foundry-i-cutout}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+{\small\textbf{(a) This work (Table~\ref{tab:mass})}}\\[3pt]
+\includegraphics[width=0.97\linewidth]{figures/ours_foundry-i_tab_mass.png}\\[12pt]
+{\small\textbf{(b) \citet{huang2025foundry1}, Table~3}}\\[3pt]
+\includegraphics[width=0.98\linewidth]{figures/orig_foundry-i_table3.png}
+\caption{\textbf{Headline mass-parameter reproduction.} (a)~This work: the v10
+SVI Gaussian variational posterior medians and $1\sigma$ widths against the
+published HMC values. (b)~The published best-fit mass parameters. All six sign
+quadrants agree; \thetaE\ matches to $3.0\%$, \eone\ to $2.5\%$, and the
+external-shear position angle to within $1^{\circ}$. Panel (b) reproduced from
+\citet{huang2025foundry1}, their Table~3, for comparison.}
+\label{fig:cmp-foundry-i-mass}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+{\small\textbf{(a) This work (Table~\ref{tab:nuts_v11f})}}\\[3pt]
+\includegraphics[width=0.55\linewidth]{figures/ours_foundry-i_tab_nuts_v11f.png}\\[12pt]
+{\small\textbf{(b) \citet{huang2025foundry1}, Table~3}}\\[3pt]
+\includegraphics[width=0.98\linewidth]{figures/orig_foundry-i_table3.png}
+\caption{\textbf{v11f NUTS second-mode point estimate.} (a)~This work: posterior
+medians of the v11f NUTS chain (a second local basin, not a mixed chain) against
+the published HMC values. (b)~The published best-fit mass parameters. The v11f
+mode reproduces $\thetaE = 2.604''$ to $1.6\%$ --- the closest single-version
+match for \thetaE\ obtained in this reproduction. Panel (b) reproduced from
+\citet{huang2025foundry1}, their Table~3, for comparison.}
+\label{fig:cmp-foundry-i-nuts}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+{\small\textbf{(a) This work (Table~\ref{tab:ablation})}}\\[3pt]
+\includegraphics[width=0.97\linewidth]{figures/ours_foundry-i_tab_ablation.png}\\[12pt]
+{\small\textbf{(b) \citet{huang2025foundry1}, Table~3}}\\[3pt]
+\includegraphics[width=0.98\linewidth]{figures/orig_foundry-i_table3.png}
+\caption{\textbf{Internal ablation v1$\to$v11.} (a)~This work: best-fit mass
+parameters across the internal reproduction versions, with the published
+``Paper (HMC)'' row for reference. (b)~The published best-fit mass parameters
+that the bottom row of (a) reproduces. The positive-$I_{e}$ priors (v5) and the
+empirical PSF (v9/v10) bring \thetaE\ to within $0.5\%$--$3\%$ of the published
+value. Panel (b) reproduced from \citet{huang2025foundry1}, their Table~3, for
+comparison.}
+\label{fig:cmp-foundry-i-ablation}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\begin{minipage}[b]{0.49\linewidth}\centering
+  {\small\textbf{(a) This work (Table~\ref{tab:priors})}}\\[3pt]
+  \includegraphics[width=\linewidth]{figures/ours_foundry-i_tab_priors.png}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.49\linewidth}\centering
+  {\small\textbf{(b) \citet{huang2025foundry1}, Table~2}}\\[3pt]
+  \includegraphics[width=\linewidth]{figures/orig_foundry-i_table2.png}
+\end{minipage}
+\caption{\textbf{Model prior specification.} (a)~This work: the prior
+distributions on the 74 free non-linear parameters of the lens model. (b)~The
+published prior table, which ours follows closely (with the
+native-pixel-scale and centroid modifications discussed in \S\ref{sec:model}).
+Panel (b) reproduced from \citet{huang2025foundry1}, their Table~2, for
+comparison.}
+\label{fig:cmp-foundry-i-priors}
+\end{figure}
+
 \bibliographystyle{plainnat}
 \bibliography{references}
 

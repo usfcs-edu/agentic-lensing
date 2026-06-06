@@ -424,6 +424,42 @@ false-positive rate, the best of the series. The residual gap to a true same-dat
 run is now only the papers' object-level visual curation and an A100-scale epoch
 budget, neither of which is recoverable from the published material.
 
+\appendix
+\section{Side-by-side comparison with the published figures and tables}
+\label{app:compare}
+
+For visual verification, the panel below pairs the headline artifact reproduced
+in this report \textbf{(a, left)} with its published counterpart
+\textbf{(b, right)} from \citet{inchausti2025dr10}; the published panel is
+reproduced for comparison. The headline agreement is restated in the caption and
+discussed in full in \S\ref{sec:ensemble}.
+
+\begin{figure}[ht]
+\centering
+\begin{minipage}[b]{0.38\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/ours_inchausti-2025_ensemble_auc_bars.png}\\[3pt]
+  {\small\textbf{(a) This work}}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.60\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/orig_inchausti-2025_fig6.png}\\[3pt]
+  {\small\textbf{(b) \citet{inchausti2025dr10}, Fig.~6}}
+\end{minipage}
+\caption{\textbf{Controlled ensemble-AUC comparison.} (a)~This work: held-out
+validation AUC of the shielded \ResNet{}, \EffNet{}-S, the \FWLS{} meta-learner,
+and the parameterless simple average on the identical train/val/test split
+(blue), against the values reported by \citet{inchausti2025dr10} (orange); the
+underlying numbers are Table~\ref{tab:auc} and
+\texttt{papers/figures/ensemble\_auc.png}. (b)~The published Fig.~6 ROC curves for the
+same four models (legend AUCs: \EffNet{} $0.9987$, \ResNet{} $0.9984$,
+meta-learner $0.9989$, averaged $0.9989$). We reproduce the paper's central
+finding: the meta-learner (val AUC \rMetaVal{}) is statistically equal to the
+simple average (\rAvgVal{}), because the two correlated base models leave little
+for stacking to add over averaging --- exactly the published result, where the
+meta-learner and the average both reach $0.9989$. Panel (b) reproduced from
+\citet{inchausti2025dr10}, their Fig.~6, for comparison.}
+\label{fig:cmp-inchausti-2025-1}
+\end{figure}
+
 \bibliographystyle{plainnat}
 \bibliography{references}
 

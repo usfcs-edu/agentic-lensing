@@ -343,6 +343,80 @@ the small-$\thetaE$ U-Net localizer that is the paper's headline novelty
 --- are documented follow-ons, with VELA sources the highest-value next
 upgrade.
 
+% =============================================================================
+\appendix
+\section{Side-by-side comparison with the published figures and tables}
+\label{app:compare}
+% =============================================================================
+
+For visual verification, each panel below pairs an artifact reproduced in this
+report \textbf{(a)} with the corresponding artifact from the published paper
+\textbf{(b)}. Published panels are reproduced from \citet{silver2025ml} for
+comparison only. The headline agreement --- a best validation
+$\mathrm{AUC} = 0.9937$ against the published $0.9978$, within $0.4\,\%$ --- is
+restated in each caption; the full discussion is in
+\S\ref{sec:caveats} and the Results section.
+
+\begin{figure}[ht]
+\centering
+\begin{minipage}[b]{0.45\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/sim_preview.png}\\[3pt]
+  {\small\textbf{(a) This work (Fig.~\ref{fig:sims})}}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.51\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/orig_silver-2025_fig6.png}\\[3pt]
+  {\small\textbf{(b) \citet{silver2025ml}, Fig.~6}}
+\end{minipage}
+\caption{\textbf{Simulated lensed Model~1a cutouts.} (a)~This work: 25
+simulated \emph{lensed} cutouts ($64\times64$, $0.031''$/pixel, analytic
+S\'ersic sources standing in for the paper's VELA stamps). (b)~The published
+examples of simulated lensed systems with $0.5'' < \thetaE < 1.5''$ (Model~1,
+HST). Both panels render the same conventional-lens morphology --- complete
+Einstein rings, partial arcs, doubles, and quads. Panel (b) reproduced from
+\citet{silver2025ml}, their Fig.~6, for comparison.}
+\label{fig:cmp-silver-2025-sims}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\begin{minipage}[b]{0.50\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/training_curves_model1a.png}\\[3pt]
+  {\small\textbf{(a) This work (Fig.~\ref{fig:curves})}}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.47\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/orig_silver-2025_fig7.png}\\[3pt]
+  {\small\textbf{(b) \citet{silver2025ml}, Fig.~7}}
+\end{minipage}
+\caption{\textbf{Model~1a training curves over 360 epochs.} (a)~This work:
+train/validation BCE loss and validation AUC; our best $\mathrm{AUC} = 0.9937$
+is reached at epoch~283 (boxcar-smoothed, window~3). (b)~The published loss and
+AUC curves for Model~1a (HST-long), peak validation $\mathrm{AUC} = 0.9978$.
+The two curves share the same shape --- AUC climbs past $0.99$ within the first
+$\sim$80 epochs and plateaus near unity while the validation loss bottoms out
+near $0.05$--$0.075$ --- and the peak values agree to within $0.4\,\%$. Panel
+(b) reproduced from \citet{silver2025ml}, their Fig.~7, for comparison.}
+\label{fig:cmp-silver-2025-curves}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+{\small\textbf{(a) This work (Table~\ref{tab:headline})}}\\[3pt]
+\includegraphics[width=0.72\linewidth]{figures/ours_silver-2025_tab_headline.png}\\[12pt]
+{\small\textbf{(b) \citet{silver2025ml}, Table~3}}\\[3pt]
+\includegraphics[width=0.92\linewidth]{figures/orig_silver-2025_table3.png}
+\caption{\textbf{Model~1a definition and headline result.} (a)~This work
+(Table~\ref{tab:headline}): our best validation $\mathrm{AUC} = 0.9937$ against
+the published $0.9978$ (within $0.4\,\%$), with the matching training schedule
+(360 epochs, batch~64, $\mathrm{lr}_0 = 1.25\times10^{-3}$, 32-filter shields).
+(b)~The published ``Three ResNet Models'' table, which fixes the Model~1a
+(HST-long) regime this reproduction targets --- $0.5'' < \thetaE < 1.5''$,
+simulated HST, $\sim$2000--7200\,s exposures. The published peak AUC of
+$0.9978$ itself is quoted in their Fig.~7 caption (\S3.2.1.1) rather than in
+this table. Panel (b) reproduced from \citet{silver2025ml}, their Table~3, for
+comparison.}
+\label{fig:cmp-silver-2025-headline}
+\end{figure}
+
 \bibliographystyle{plainnat}
 \bibliography{references}
 

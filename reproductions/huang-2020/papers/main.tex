@@ -756,6 +756,59 @@ epoch & LR        & train loss & val loss & val \AUC{} \\
 \end{tabular}
 \end{table}
 
+% =============================================================================
+\section{Side-by-side comparison with the published figures}
+\label{app:compare}
+% =============================================================================
+
+For visual verification, each panel below pairs an artifact reproduced in this
+report \textbf{(a, left)} with the corresponding artifact from
+\citet{huang2020decals} \textbf{(b, right)}. Both reproduced figures are the
+direct analogues of the two panels of the paper's Figure~3 (training/validation
+loss on the left, the ROC curve on the right); headline agreement is restated in
+each caption.
+
+\begin{figure}[ht]
+\centering
+\begin{minipage}[b]{0.56\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/training_curves.png}\\[3pt]
+  {\small\textbf{(a) This work}}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.40\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/orig_huang-2020_fig3_left.png}\\[3pt]
+  {\small\textbf{(b) \citet{huang2020decals}, Fig.~3 (left)}}
+\end{minipage}
+\caption{\textbf{Training and validation loss.} (a)~This work: the train and
+validation BCE-with-logits loss and the validation \AUC{} over the 120-epoch run
+(report Figure~\ref{fig:curves}). (b)~The published cross-entropy loss for the
+training and validation sets over the same 120 epochs. Both runs show the same
+fast early descent, noisy early-epoch behaviour, and a stable converged loss
+floor; our best validation \AUC{} is $0.9983$ against the published $0.98$. Panel
+(b) reproduced from \citet{huang2020decals}, their Fig.~3 (left), for comparison.}
+\label{fig:cmp-huang-2020-1}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\begin{minipage}[b]{0.44\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/roc_curve.png}\\[3pt]
+  {\small\textbf{(a) This work}}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.50\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/orig_huang-2020_fig3_right.png}\\[3pt]
+  {\small\textbf{(b) \citet{huang2020decals}, Fig.~3 (right)}}
+\end{minipage}
+\caption{\textbf{Receiver operating characteristic.} (a)~This work: the ROC on
+the held-out test set, test \AUC{} $=0.9991$ (report Figure~\ref{fig:roc}).
+(b)~The published ROC for the validation set, with the area under the curve
+$=0.977$ ($0.98$ as quoted in their text). Both curves rise nearly vertically to
+$\mathrm{TPR}\approx1$ at very low false-positive rate. The modest gap reflects
+the two methodological substitutions discussed in \S\ref{sec:caveats}, not the
+architecture or training recipe. Panel (b) reproduced from
+\citet{huang2020decals}, their Fig.~3 (right), for comparison.}
+\label{fig:cmp-huang-2020-2}
+\end{figure}
+
 \bibliographystyle{plainnat}
 \bibliography{references}
 

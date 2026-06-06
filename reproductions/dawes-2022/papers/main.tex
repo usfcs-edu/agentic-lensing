@@ -440,6 +440,42 @@ EDR3 stellar-rejection step is implemented per the paper's $\PMSIG < 8$,
 $\PXSIG < 3.5$ definitions but its per-position crawl was incomplete at
 report time, and visual grading remains out of scope.
 
+% =============================================================================
+\appendix
+\section{Side-by-side comparison with the published figures and tables}
+\label{app:compare}
+% =============================================================================
+
+For visual verification, the panel below pairs the separation-distribution
+artifact reproduced in this report \textbf{(a, left)} with the corresponding
+published artifact \textbf{(b, right)}. The published panel is reproduced from
+\citet{dawes2023quasars} for comparison; the full discussion is in
+\S\ref{sec:recovery} and the surrounding text.
+
+\begin{figure}[ht]
+\centering
+\begin{minipage}[b]{0.44\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/separation_hist.png}\\[3pt]
+  {\small\textbf{(a) This work}}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.54\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/orig_dawes-2022_fig2.png}\\[3pt]
+  {\small\textbf{(b) \citet{dawes2023quasars}, Fig.~2}}
+\end{minipage}
+\caption{\textbf{Image-separation distribution.} (a)~This work: the maximum
+within-group image separation of our $5\asec$ \texttt{spherimatch} FoF groups
+(filled, $N=10{,}917$) with the published Dawes+2023 candidate separations
+overlaid (red outline, $N=436$); the $0\asec$ spike is the
+spectroscopic-duplicate artifact removed by the \S5 refinement. (b)~The
+published histogram of image separations for the $94$ ``discoverable known''
+systems. Both distributions confirm that essentially all lensed-quasar image
+separations fall below $5\asec$ --- the motivation for halving the FoF linking
+length from $10\asec$ to $5\asec$ --- and peak at $1$--$2\asec$ (our overlaid
+published separations span $0.32$--$4.99\asec$ with median $1.9\asec$). Panel
+(b) reproduced from \citet{dawes2023quasars}, their Fig.~2, for comparison.}
+\label{fig:cmp-dawes-2022-1}
+\end{figure}
+
 \bibliographystyle{plainnat}
 \bibliography{references}
 
