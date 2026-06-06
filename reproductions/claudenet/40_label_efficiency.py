@@ -104,6 +104,10 @@ def main():
     neg_rows = man[man.label == 0][["row_id", "label", "fits_dir"]].reset_index(drop=True)
     val = pd.read_parquet(C.DATA / "eval_val.parquet")[["row_id", "label", "fits_dir"]]
     val["fits_dir"] = val["fits_dir"].apply(lambda p: str(C.DATA / Path(str(p)).name))
+    # subsample val for fast early-stopping only (final eval uses held-out sets, unaffected)
+    vp = val[val.label == 1]
+    vn = val[val.label == 0].sample(n=min(2500, (val.label == 0).sum()), random_state=C.SEED)
+    val = pd.concat([vp, vn], ignore_index=True)
     ev_rows = {}
     for sp, f in (("testneg", "eval_testneg.parquet"), ("storfer", "eval_storfer.parquet"),
                   ("inchausti", "eval_inchausti.parquet")):
@@ -132,7 +136,7 @@ def main():
         # shielded from scratch on the same objects
         sub_pos_rows = pos_rows.iloc[sel]
         tr = pd.concat([sub_pos_rows, neg_rows], ignore_index=True)
-        m, mean, std, _ = ML.train_shielded(tr, val, cache, device, epochs=30, aug_seed=800 + int(f * 100))
+        m, mean, std, _ = ML.train_shielded(tr, val, cache, device, epochs=15, aug_seed=800 + int(f * 100))
         neg_s = ML.score(m, ev_rows["testneg"], cache, mean, std, device)
         for cat in ("storfer", "inchausti"):
             cs = ML.score(m, ev_rows[cat], cache, mean, std, device)
