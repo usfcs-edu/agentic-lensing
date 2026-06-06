@@ -1,0 +1,28 @@
+# ClaudeNet — large / transient data, not in git (regeneratable).
+data/cutouts_fits_*
+data/emb/
+data/ckpt/
+data/brick_tmp*/
+data/*.npy
+data/*.pt
+data/venv_build.log
+
+# Full score parquets (commit only slim *_summary.csv / *.json metrics)
+data/scores_*.parquet
+data/negpool_*.parquet
+
+# Symlinked reuse libs (tracked as link files, harmless, but ignore __pycache__)
+__pycache__/
+*.log
+
+# LaTeX build artifacts (keep main.pdf, main.tex, references.bib, Makefile)
+papers/*.aux
+papers/*.bbl
+papers/*.blg
+papers/*.out
+papers/*.toc
+papers/*.fls
+papers/*.fdb_latexmk
+papers/*.synctex.gz
+papers/figures/inspection*/thumbs/
+papers/figures/inspection*/page_*.html
