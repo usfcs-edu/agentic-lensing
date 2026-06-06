@@ -32,10 +32,12 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--variant", default="base", choices=["base", "large", "xlarge"])
     ap.add_argument("--gpus", default="0,2,3,4,5,6")
+    ap.add_argument("--splits", default=",".join(SPLITS),
+                    help="comma list of input splits to embed")
     args = ap.parse_args()
     gpus = [int(g) for g in args.gpus.split(",")]
 
-    for sp in SPLITS:
+    for sp in args.splits.split(","):
         flux = EMB / f"aion_in_{sp}.npy"
         if not flux.exists():
             print(f"[skip] missing {flux.name}; run 10_build_aion_inputs.py first")
