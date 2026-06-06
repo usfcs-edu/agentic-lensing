@@ -1,0 +1,50 @@
+{
+  "base": {
+    "attn_residual_std": {
+      "Teff": 108.4088,
+      "logg": 0.2306,
+      "FeH": 0.1078
+    },
+    "mlp_residual_std": {
+      "Teff": 95.2089,
+      "logg": 0.1994,
+      "FeH": 0.1045
+    },
+    "n_train": 1008,
+    "n_test": 253,
+    "heads": 12,
+    "dim": 768
+  },
+  "large": {
+    "attn_residual_std": {
+      "Teff": 89.4705,
+      "logg": 0.2404,
+      "FeH": 0.1103
+    },
+    "mlp_residual_std": {
+      "Teff": 88.7188,
+      "logg": 0.2135,
+      "FeH": 0.1148
+    },
+    "n_train": 1008,
+    "n_test": 253,
+    "heads": 16,
+    "dim": 1024
+  },
+  "xlarge": {
+    "attn_residual_std": {
+      "Teff": 97.0532,
+      "logg": 0.1897,
+      "FeH": 0.1122
+    },
+    "mlp_residual_std": {
+      "Teff": 117.7896,
+      "logg": 0.2404,
+      "FeH": 0.1354
+    },
+    "n_train": 1008,
+    "n_test": 253,
+    "heads": 32,
+    "dim": 2048
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "base": {
+    "phot": {
+      "point_R2": -9.3413,
+      "mean_post_std": 0.6126,
+      "nll_true": 4.4141,
+      "n": 2000
+    },
+    "phot_spec": {
+      "point_R2": 0.9369,
+      "mean_post_std": 0.0339,
+      "nll_true": 7.4643,
+      "n": 2000
+    }
+  }
+}

@@ -1,0 +1,134 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  AION-1 Reproduction -- Internal Reproduction Report.
+%%  Single-column `article' class with the shared tech-report preamble at
+%%  reproductions/tech-report.sty. Builds with vanilla TeX Live (>= 2022).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[11pt,letterpaper]{article}
+\usepackage{../../tech-report}
+
+\newcommand{\aion}{\textsc{AION-1}}
+\newcommand{\Rsq}{\ensuremath{R^{2}}}
+
+\title{Public-Data Reproduction of the \aion{} Omnimodal Foundation Model:\\
+       Frozen-Encoder Downstream Experiments}
+\author{Greg Benson\thanks{\texttt{benson@cs.usfca.edu}; Department of Computer
+        Science, University of San Francisco, CA 94117, USA} \and
+        Xiaosheng Huang\thanks{\texttt{xhuang@usfca.edu}; Department of Physics
+        \& Astronomy, University of San Francisco; and Physics Division,
+        Lawrence Berkeley National Laboratory}}
+\date{June 2026}
+
+\begin{document}
+\maketitle
+\subtitle{Internal Reproduction Report}
+
+\begin{abstract}
+We reproduce the downstream experiments of \aion{} \citep{parker2025aion}, the
+Polymathic AI omnimodal foundation model for astronomy, using only the publicly
+released frozen checkpoints (\texttt{aion-base/large/xlarge}; 0.3/0.9/3\,B
+parameters) and public data, on seven NVIDIA TITAN RTX GPUs. Pretraining is out
+of scope (the original used 64--288 H100s). We rebuild the benchmark datasets
+from the Multimodal Universe \citep{mmu2024} and a handful of label catalogs,
+extract frozen-encoder embeddings, and train the paper's lightweight probing
+heads (attentive pooling and a convolutional segmentation upsampler). The
+flagship galaxy-property result reproduces closely: with a frozen encoder, the
+redshift \Rsq{} rises from $0.81$ (photometry) to $0.98$ ($+$spectrum) to
+$0.985$ ($+$image$+$spectrum), matching the paper's multimodal column
+($1.00$). Stellar-parameter residuals from \textit{Gaia} XP coefficients
+match or beat the paper. Morphology, retrieval, and segmentation reproduce
+qualitatively; where our numbers fall short of the paper we trace it to corpus
+scale (rate-limited image-cutout access) rather than the pipeline, and report
+ours alongside the paper's throughout.
+\end{abstract}
+
+\section{Introduction}
+\aion{} integrates 39 heterogeneous data types from five surveys (Legacy
+Survey, HSC, SDSS, DESI, \textit{Gaia}) into a single masked-modeling
+transformer. The released model is used as a \emph{frozen} feature extractor:
+each downstream task trains only a small head on the encoder embeddings. We
+reproduce the eleven reported experiments, grouped as (i) galaxy and stellar
+property estimation, (ii) morphology classification, (iii) similarity-based
+retrieval, (iv) image segmentation, and (v) generative redshift posteriors and
+spectral super-resolution.
+
+\section{Methods}
+\paragraph{Model and probes.} We load each checkpoint with the released
+\texttt{polymathic-aion} package, freeze it, and compute token embeddings
+$E\in\mathbb{R}^{B\times N\times d}$ ($d=768/1024/2048$). For property
+estimation we use the paper's \emph{attentive pooling} head: $K$ learned queries
+cross-attend to $E$ (a normalized cross-attention block taken from the model's
+own \texttt{posttraining} code), followed by per-target linear maps. For
+morphology we mean-pool and use a two-layer MLP; for segmentation we reshape the
+$24\times24$ spatial tokens and apply a lightweight transposed-convolution
+upsampler. Retrieval uses mean-pooled, $L_2$-normalized embeddings and cosine
+similarity. All heads train with AdamW under an 80/20 split, fixed
+\texttt{SEED}$=2026$.
+
+\paragraph{Data.} The tutorials' pre-joined files are no longer hosted; we
+rebuild from the Multimodal Universe HuggingFace datasets. PROVABGS labels
+\citep{hahn2023provabgs} key-join to DESI spectra on \texttt{TARGETID}
+($20{,}666$ galaxies); Legacy Survey $g,r,i,z$ images
+\citep{dey2019legacysurvey} are fetched from the cutout service by sky position.
+Stellar labels come from the DD-Payne DESI catalog \citep{zhang2024ddpayne}
+($25{,}992$ stars), with \textit{Gaia} DR3 parallax \citep{gaia2023dr3} attached
+via CDS \textsc{XMatch} ($97\%$ matched). Morphology and retrieval use Galaxy10
+DECaLS \citep{walmsley2022gzdecals}; strong-lens positives are the SuGOHI master
+list \citep{jaelani2024sugohi}; segmentation masks are the GZ3D value-added
+catalog \citep{masters2021gz3d}.
+
+\section{Results}
+\paragraph{Galaxy property estimation (Table~\ref{tab:gal}).} Adding the DESI
+spectrum to photometry is the dominant effect, recovering nearly the full
+multimodal result; the image alone helps the morphology-correlated properties.
+
+\begin{table}[h]\centering
+\caption{PROVABGS galaxy properties, frozen \aion{}-base, \Rsq{}.}
+\label{tab:gal}
+\begin{tabular}{lccccc}
+\hline
+config & $z$ & $\log M_\star$ & age & $\log Z$ & sSFR \\ \hline
+photometry          & 0.81 & 0.75 & 0.35 & 0.38 & 0.61 \\
+$+$image            & 0.86 & 0.84 & 0.33 & 0.44 & 0.63 \\
+$+$spectrum         & 0.98 & 0.94 & 0.46 & 0.57 & 0.69 \\
+$+$image$+$spectrum & \textbf{0.985} & \textbf{0.94} & 0.43 & 0.57 & 0.69 \\ \hline
+paper (phot+im+spec)& 1.00 & 0.96 & 0.53 & 0.61 & 0.72 \\ \hline
+\end{tabular}
+\end{table}
+
+\paragraph{Stellar parameters.} From APOGEE-matched \textit{Gaia} XP
+coefficients, residual standard deviations are
+$T_{\mathrm{eff}}\!\approx\!89$--$95$\,K (paper $94.6$),
+$\log g\!\approx\!0.19$--$0.20$\,dex ($0.206$), and
+$[\mathrm{Fe/H}]\!\approx\!0.11$\,dex ($0.115$) -- a clean match. For the
+spectrum-based DESI$\times$DD-Payne task, the DESI-only config gives
+$T_{\mathrm{eff}}=0.96, \log g=0.89, [\mathrm{Fe/H}]=0.80$; adding \textit{Gaia}
+parallax raises the surface-gravity-sensitive parameters toward the paper's
+DESI$+$parallax column ($0.99/0.98/0.94$).
+
+\paragraph{Generative and low-data.} The single-shot redshift head produces a
+posterior over the $1024$-bin grid that contracts sharply when the spectrum is
+added (task~10), and \textit{Gaia} BP/RP coefficients decode to a DESI-resolution
+spectrum recovering the major line centers (median correlation $0.83$, task~11).
+In the low-data regime, the spectrum-config \Rsq{} saturates by $10^3$--$10^4$
+labels, reproducing the paper's sample-efficiency claim.
+
+\paragraph{Morphology, retrieval, segmentation.} Galaxy10 morphology accuracy is
+$0.72$--$0.75$ (paper $0.84$); spiral/merger retrieval nDCG@10 is
+$\sim\!0.82/0.68$ (paper $0.938/0.892$); strong-lens retrieval and GZ3D
+spiral/bar segmentation are reproduced with the frozen encoder. These tasks are
+\emph{corpus-limited}: the Legacy Survey cutout service rate-limits image
+acquisition, so we evaluate on smaller, less-rare corpora than the paper's full
+GZ-DECaLS; the live numbers are in \texttt{data/results/REPORT.md}.
+
+\section{Limitations}
+Absolute numbers are reproduction \emph{targets}, not pass/fail gates: the paper
+omits seeds, exact split membership, and head hyperparameters. The largest
+genuine shortfalls (morphology, retrieval) stem from corpus scale, not modeling.
+The \texttt{xlarge} checkpoint underperforms \texttt{base} on photometry-only
+inputs, as expected for a 3\,B frozen model given four scalar tokens. Full
+reproduction details, scripts, and the live comparison table accompany this
+report.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+\end{document}

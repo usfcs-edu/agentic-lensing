@@ -1,0 +1,5 @@
+{
+  "returncode": 0,
+  "passed": true,
+  "tail": "........................................................                 [100%]\n=============================== warnings summary ===============================\ntests/codecs/test_catalog_codec.py: 1 warning\ntests/codecs/test_codec_manager.py: 3 warnings\ntests/codecs/test_scalar_codec.py: 29 warnings\ntests/codecs/test_scalar_field_codec.py: 1 warning\n  /home2/benson/.venvs/aion/lib/python3.11/site-packages/huggingface_hub/file_download.py:1856: DeprecationWarning: hf_xet.download_files() is deprecated. Use XetSession().new_file_download_group().start_download_file() instead.\n    xet_get(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n56 passed, 34 warnings in 119.88s (0:01:59)"
+}

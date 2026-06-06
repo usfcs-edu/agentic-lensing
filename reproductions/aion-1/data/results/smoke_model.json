@@ -1,0 +1,54 @@
+{
+  "base": {
+    "load_s": 7.7,
+    "dim": 768,
+    "params_M": 314,
+    "emb_shape": [
+      8,
+      4,
+      768
+    ],
+    "z_logits_shape": [
+      8,
+      1,
+      1025
+    ],
+    "peak_mem_GB": 1.29
+  },
+  "large": {
+    "load_s": 19.2,
+    "dim": 1024,
+    "params_M": 860,
+    "emb_shape": [
+      8,
+      4,
+      1024
+    ],
+    "z_logits_shape": [
+      8,
+      1,
+      1025
+    ],
+    "peak_mem_GB": 3.48
+  },
+  "xlarge": {
+    "load_s": 68.9,
+    "dim": 2048,
+    "params_M": 3131,
+    "emb_shape": [
+      8,
+      4,
+      2048
+    ],
+    "z_logits_shape": [
+      8,
+      1,
+      1025
+    ],
+    "peak_mem_GB": 12.58
+  },
+  "torch_compile": {
+    "works": true,
+    "max_abs_diff": 2.086162567138672e-07
+  }
+}
