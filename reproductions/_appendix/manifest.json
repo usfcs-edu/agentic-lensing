@@ -1,0 +1,54 @@
+{
+  "_about": "Provenance for the side-by-side comparison appendices. Each entry records the reproduced artifact, the published counterpart, and the exact PDF page (1-based) + bbox (PDF points, top-left origin) used to crop the original. Crops produced with crop_pdf.py @300dpi via /raid/benson/.venvs/lens/bin/python3.",
+  "sheu-2024b": {
+    "source_paper": "papers/Sheu_2024b_carousel_lens.pdf",
+    "bibkey": "sheu2024carousel",
+    "comparisons": [
+      {
+        "label": "fig:cmp-sheu2024b-magnification",
+        "ours": "figs/ours_sheu2024b_magnification.png",
+        "ours_note": "right (magnification) panel cropped from figs/forward_model.png (report Fig. 1) for a like-for-like comparison",
+        "kind": "image",
+        "original_png": "figs/orig_sheu2024b_fig4_magnification.png",
+        "original_ref": "Fig. 4 (bottom-middle det(A^-1) magnification panel)",
+        "crop": {"page": 8, "bbox": [233, 196, 393, 331]}
+      },
+      {
+        "label": "fig:cmp-sheu2024b-predicted",
+        "ours": "figs/predicted_images.png",
+        "kind": "image",
+        "original_png": "figs/orig_sheu2024b_fig6_predicted.png",
+        "original_ref": "Fig. 6 (predicted image locations + critical curves)",
+        "crop": {"page": 10, "bbox": [70, 62, 560, 383]}
+      },
+      {
+        "label": "fig:cmp-sheu2024b-corner",
+        "ours": "figs/corner.png",
+        "kind": "chart",
+        "original_png": "figs/orig_sheu2024b_fig5_corner.png",
+        "original_ref": "Fig. 5 (parameter posteriors)",
+        "crop": {"page": 9, "bbox": [55, 62, 560, 585]}
+      },
+      {
+        "label": "fig:cmp-sheu2024b-tabforward",
+        "layout": "stacked (ours above original); caption-free data grids",
+        "ours": "figs/ours_sheu2024b_tab_forward.png",
+        "ours_crop": {"source": "reproductions/sheu-2024b/papers/main.pdf", "page": 3, "bbox": [120, 623, 500, 710]},
+        "kind": "table",
+        "original_png": "figs/orig_sheu2024b_table2.png",
+        "original_ref": "Table 2 (lens model parameters)",
+        "crop": {"page": 7, "bbox": [92, 408, 528, 493]}
+      },
+      {
+        "label": "fig:cmp-sheu2024b-tabrecovery",
+        "layout": "stacked (ours above original); caption-free data grids",
+        "ours": "figs/ours_sheu2024b_tab_recovery.png",
+        "ours_crop": {"source": "reproductions/sheu-2024b/papers/main.pdf", "page": 6, "bbox": [168, 101, 492, 211]},
+        "kind": "table",
+        "original_png": "figs/orig_sheu2024b_table2.png",
+        "original_ref": "Table 2 (lens model parameters; reused crop)",
+        "crop": {"page": 7, "bbox": [92, 408, 528, 493]}
+      }
+    ]
+  }
+}

@@ -408,6 +408,106 @@ $\chi^2_\nu = 2.3$ result), a faithful $0.070''/$px modeling image, the MUSE
 reduction, and the $\zs = 4.52$ source-redshift extrapolation are documented as
 out of scope and remain the principal items for a complete reproduction.
 
+% =============================================================================
+\appendix
+\section{Side-by-side comparison with the published figures and tables}
+\label{app:compare}
+% =============================================================================
+
+For visual verification, each panel below pairs an artifact reproduced in this
+report \textbf{(a, left)} with the corresponding artifact from the published
+paper \textbf{(b, right)}. Published panels are reproduced from
+\citet{sheu2024carousel} for comparison. Headline agreement is restated in each
+caption; the full discussion is in \S\ref{sec:forward}--\S\ref{sec:recovery}.
+
+\begin{figure}[ht]
+\centering
+\begin{minipage}[b]{0.45\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/ours_sheu2024b_magnification.png}\\[3pt]
+  {\small\textbf{(a) This work}}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.42\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/orig_sheu2024b_fig4_magnification.png}\\[3pt]
+  {\small\textbf{(b) \citet{sheu2024carousel}, Fig.~4}}
+\end{minipage}
+\caption{\textbf{Magnification map.} (a)~This work: the magnification map at
+$\zs=1.432$ of the forward-validated model (the right panel of report
+Figure~\ref{fig:forward}; green crosses are the multiple images of a test
+source). (b)~The published $\det(A^{-1})$ magnification panel (bottom-middle of
+their Fig.~4). The primary tangential critical-curve radius agrees to
+$0.5\,\%$ ($\thetaE = 12.96''$ vs $13.03''$). Panel (b) reproduced from
+\citet{sheu2024carousel} for comparison.}
+\label{fig:cmp-sheu2024b-magnification}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\begin{minipage}[b]{0.49\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/predicted_images.png}\\[3pt]
+  {\small\textbf{(a) This work}}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.49\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/orig_sheu2024b_fig6_predicted.png}\\[3pt]
+  {\small\textbf{(b) \citet{sheu2024carousel}, Fig.~6}}
+\end{minipage}
+\caption{\textbf{Predicted images and critical curves.} (a)~This work:
+published best-fit model predicted image configurations for four source planes
+on the HST F140W image, with the $13.03''$ tangential ring (green dashed)
+tracing the observed giant arc. (b)~The published predicted image locations and
+critical curves for the same system. Panel (b) reproduced from
+\citet{sheu2024carousel}, their Fig.~6, for comparison.}
+\label{fig:cmp-sheu2024b-predicted}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\begin{minipage}[b]{0.49\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/corner.png}\\[3pt]
+  {\small\textbf{(a) This work}}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.46\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/orig_sheu2024b_fig5_corner.png}\\[3pt]
+  {\small\textbf{(b) \citet{sheu2024carousel}, Fig.~5}}
+\end{minipage}
+\caption{\textbf{Parameter posteriors.} (a)~This work: \texttt{emcee} posterior
+for the six free mass-model parameters; red lines mark the published best-fit.
+(b)~The published posteriors of the lens-model parameters. $\thetaE^a$ and the
+slope $\gammaslope^a$ sit close to the published values. Panel (b) reproduced
+from \citet{sheu2024carousel}, their Fig.~5, for comparison.}
+\label{fig:cmp-sheu2024b-corner}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+{\small\textbf{(a) This work (Table~\ref{tab:forward})}}\\[3pt]
+\includegraphics[width=0.96\linewidth]{figures/ours_sheu2024b_tab_forward.png}\\[12pt]
+{\small\textbf{(b) \citet{sheu2024carousel}, Table~2}}\\[3pt]
+\includegraphics[width=0.96\linewidth]{figures/orig_sheu2024b_table2.png}
+\caption{\textbf{Forward-model validation table.} (a)~This work: derived
+quantities from feeding the published parameters into the multi-plane
+\texttt{LensModel}, against the published values. (b)~The published lens-model
+parameter table. $\thetaE$ and $M(<\thetaE)$ agree to $0.5\,\%$ and $3.4\,\%$.
+Panel (b) reproduced from \citet{sheu2024carousel}, their Table~2, for
+comparison.}
+\label{fig:cmp-sheu2024b-tabforward}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+{\small\textbf{(a) This work (Table~\ref{tab:recovery})}}\\[3pt]
+\includegraphics[width=0.80\linewidth]{figures/ours_sheu2024b_tab_recovery.png}\\[12pt]
+{\small\textbf{(b) \citet{sheu2024carousel}, Table~2}}\\[3pt]
+\includegraphics[width=0.96\linewidth]{figures/orig_sheu2024b_table2.png}
+\caption{\textbf{Independent-recovery table.} (a)~This work: the PSO\,+\,\texttt{emcee}
+recovered mass-model parameters (closed-loop on conjugate image families)
+against the published best-fit. (b)~The published lens-model parameter table
+(same as above). The headline $\thetaE$ and slope $\gammaslope$ recover in the
+right regime ($13.20''$ vs $13.03''$; $1.53$ vs $1.67$); axis ratio, PA, and
+shear show the expected ellipticity--shear degeneracy. Panel (b) reproduced
+from \citet{sheu2024carousel}, their Table~2, for comparison.}
+\label{fig:cmp-sheu2024b-tabrecovery}
+\end{figure}
+
 \bibliographystyle{plainnat}
 \bibliography{references}
 
