@@ -1,0 +1,185 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  ClaudeNet -- Internal Research Report.
+%%  Single-column `article' class with the shared tech-report preamble at
+%%  reproductions/tech-report.sty. Builds with vanilla TeX Live (>= 2022).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[11pt,letterpaper]{article}
+\usepackage{../../tech-report}
+
+\newcommand{\cnet}{\textsc{ClaudeNet}}
+\newcommand{\aion}{\textsc{AION-1}}
+\newcommand{\fpr}[1]{@#1\,\%\,FPR}
+
+\title{\cnet{}: Improving ML Strong-Lens Finding Beyond ResNet/EfficientNet\\
+       via Engineered Ensemble Diversity}
+\author{Greg Benson\thanks{\texttt{benson@cs.usfca.edu}; Department of Computer
+        Science, University of San Francisco, CA 94117, USA} \and
+        Xiaosheng Huang\thanks{Department of Physics \& Astronomy, University of
+        San Francisco; and Physics Division, Lawrence Berkeley National Laboratory}}
+\date{June 2026}
+\addbibresource{references.bib}
+
+\begin{document}
+\maketitle
+\subtitle{Internal Research Report}
+
+\begin{abstract}
+The Huang-group strong-lens-finding lineage reproduced in this repository
+established a hard negative result: at the deployment operating point,
+\emph{architecture is not the bottleneck}. A 194\,K-parameter shielded ResNet
+matches a 20.5\,M-parameter EfficientNetV2-S to within $\pm0.003$ AUC, and the
+\citet{inchausti2025} feature-weighted meta-learner collapses to a simple average
+because its two base models are trained on byte-identical data and so make
+correlated errors. \cnet{} attacks the axes the lineage left unused. We replace
+the collapsed meta-learner with an ensemble of deliberately \emph{decorrelated}
+members --- three EfficientNet-family backbones, an \citet{parker2025aion}
+frozen-embedding probe, and two ResNets --- and show it beats the published
+meta-learner at \emph{every} matched-false-positive-rate operating point
+($+0.030$ Storfer\fpr{1}, $+0.090$\fpr{0.1}; $+0.012$/$+0.090$ Inchausti),
+because real member diversity (Spearman $\sim$0.45 vs the lineage's $\sim$1.0)
+gives a combiner signal to exploit. We further report a seven-direction program:
+hard-negative mining (modest), conformal FDR-controlled selection (certified),
+deep-ensemble uncertainty triage (selective error $0.022\!\to\!0.0002$ at 50\,\%
+coverage), test-time equivariance ($+0.04$), foundation-model label efficiency
+(only below $\sim$150 labels), and an honest negative result for naive
+domain-adaptation. All experiments run on seven NVIDIA TITAN RTX GPUs; metrics
+reuse the reproduced \texttt{22\_fpr\_operating\_point} arithmetic verbatim so
+every number is directly comparable to the baseline.
+\end{abstract}
+
+\section{Premise and method}
+We take as baseline the reproduced Stage-D \citet{inchausti2025} ensemble
+(\texttt{reproductions/inchausti-2025}). Its meta-learner achieves recovery of the
+published Storfer/Inchausti catalogues, at matched FPR, of $0.908/0.755$ (Storfer
+@1/0.1\,\%) and $0.968/0.845$ (Inchausti); \cnet{}'s
+\texttt{03\_reproduce\_baseline} reproduces these to $|\Delta|\le0.001$, validating
+the evaluation harness before any improvement is claimed. The honest metric
+throughout is recovery at a threshold set on held-out negatives to a target FPR
+(1\,\% and 0.1\,\%), identical to the baseline.
+
+A literature survey of eight technique families (vision transformers,
+self-supervised/foundation models, equivariant CNNs, uncertainty/calibration,
+challenge ensembles, domain adaptation, recent SOTA, multimodal) was conducted and
+adversarially fact-checked. It converged with the repository's finding: no
+transformer/SSL/equivariant method cleanly beats a tuned EfficientNet at matched
+FPR for DECaLS \emph{grz} lens finding \citep{parlange2025gravit}; the demonstrated
+wins are in ensemble \emph{diversity} \citep{des2025ensemble,rezaei2025kids},
+negative quality, and label efficiency. \cnet{} targets those.
+
+\section{Phase~1: engineered-diversity ensemble (flagship)}
+We train five members as independent per-GPU jobs: EfficientNetV2-S ($\times2$) and
+EfficientNet-B3 (diversified by bootstrap-resampled negative subsets and
+augmentation seeds at the baseline 1:33 ratio), an \aion{}-base frozen-embedding
+two-layer MLP probe (a different objective, data, and band-set, hence maximally
+decorrelated), and two ResNets (the 194\,K shielded net and the 3.5\,M Lanusse-46).
+Each member is isotonic-calibrated on a validation split, then combined by
+average, logistic regression, and a random forest \citep{coscrato2020nnstacking}.
+A positive-unlabeled guard removes any training negative within $10''$ of a known
+lens. Figure~\ref{fig:div} shows the member score-correlation matrix:
+off-diagonals average $\sim$0.45 (Spearman), versus $\sim$1.0 for the lineage's
+correlated bases.
+
+\begin{table}[t]\centering
+\caption{Phase~1: \cnet{} ensemble vs the published meta-learner, recovery at
+matched FPR on the held-out Storfer/Inchausti catalogues.}
+\label{tab:flagship}
+\begin{tabular}{lccc}
+\toprule
+metric & published meta & \cnet{} & $\Delta$\\
+\midrule
+Storfer @1\,\% FPR    & 0.908 & \textbf{0.938} & $+0.030$\\
+Storfer @0.1\,\% FPR  & 0.755 & \textbf{0.853} & $\mathbf{+0.090}$\\
+Inchausti @1\,\% FPR  & 0.968 & \textbf{0.980} & $+0.012$\\
+Inchausti @0.1\,\% FPR& 0.845 & \textbf{0.935} & $\mathbf{+0.090}$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]\centering
+\includegraphics[width=0.49\linewidth]{figures/diversity_heatmap.png}\hfill
+\includegraphics[width=0.49\linewidth]{figures/flagship_operating_point.png}
+\caption{Left: member score correlation (the diversity the lineage lacked).
+Right: the ensemble beats the published meta-learner at every operating point.}
+\label{fig:div}
+\end{figure}
+
+The result (Table~\ref{tab:flagship}) is a clear improvement over the published
+method, largest ($+0.09$) at the strict 0.1\,\% FPR point that governs purity. The
+mechanism is diversity, not combiner cleverness: with decorrelated strong members
+even the naive \emph{average} beats the correlated-base meta-learner. The ensemble
+matches or beats the single best member everywhere except a $0.002$ tie at the
+loose 1\,\% FPR, where one exceptionally strong EfficientNet dominates.
+
+\section{Phases~2--7: the supporting program}
+\paragraph{Phase~2 --- hard-negative mining.} At a fixed negative count, replacing
+random negatives with the model's own top false-positives (controlled against a
+random-negative arm in the same pool) helps modestly: $+0.008$ Storfer\fpr{1},
+$+0.031$ Inchausti\fpr{1}; iterating helps the 0.1\,\% point. Negative quality is a
+real but second-order lever versus the negative \emph{ratio} the lineage already
+exploited; the deployment-scale version (fresh brick pool + EfficientNet miner) is a
+NERSC follow-up.
+
+\paragraph{Phase~4 --- conformal selection.} Split-conformal $p$-values with
+Benjamini-Hochberg \citep{jin2023conformal} turn the arbitrary threshold into a
+\emph{certified} one: empirical false-discovery rate stays at or below the nominal
+target at every level ($\alpha{=}0.05\!\to\!0.03$, $0.25\!\to\!0.16$) with
+completeness 0.96--0.999 (Fig.~\ref{fig:grid}, top-left). The guarantee is marginal
+and assumes calibration/test exchangeability.
+
+\paragraph{Phase~6 --- uncertainty triage.} Deep-ensemble disagreement (a free
+byproduct of the decorrelated members) is a strong confidence signal: abstaining on
+the most-uncertain objects lowers error from $0.022$ to $0.0002$ at 50\,\% coverage
+and $0.0026$ at 70\,\% (Fig.~\ref{fig:grid}, top-right). Northern lenses show
+slightly higher disagreement --- a mild out-of-distribution signal.
+
+\paragraph{Phase~7 --- equivariance.} Lenses have no preferred orientation, so we
+test dihedral ($D_4$) invariance the cheap way: test-time pooling over the eight
+rotation/reflection symmetries (no retraining) lifts Storfer\fpr{1} by $+0.032$
+(shielded) and $+0.049$ (Lanusse-46), mean $+0.041$. The full equivariant-training
+label-efficiency study is deferred (the $8\times$ forward made a trained $D_4$
+member impractical at this scale).
+
+\paragraph{Phase~3 --- label efficiency.} The \aion{} frozen-embedding probe is
+more label-efficient than a supervised CNN \emph{only} in the extreme-scarce regime
+($<$150 labels: $0.344$ vs $0.279$ at 5\,\%); the CNN ``turns on'' near 300 labels
+and dominates thereafter ($0.862$ vs $0.529$ at 25\,\%; $0.894$ vs $0.659$ at full),
+the frozen features plateauing (Fig.~\ref{fig:grid}, bottom-left). At the
+$\sim$1--2\,k labels real lens-finding has, the supervised member wins --- so the
+foundation model's value here is as a decorrelated \emph{ensemble member}
+(Phase~1), not a standalone classifier.
+
+\paragraph{Phase~5 --- domain adaptation (negative result).} The DECaLS
+north$\leftrightarrow$south gap is real (north\fpr{1} $0.688$ vs south $0.874$,
+$-0.186$), but naive MMD feature alignment ($\lambda{=}1$, aligning only negatives)
+\emph{hurt} both domains ($-0.06$): it over-regularized and erased
+lens-discriminative features. Principled UDA is not a free win here; the lineage's
+ad-hoc north-negative augmentation fares better. (Only $\sim$80 held-out north
+lenses, so the target estimate is noisy.)
+
+\begin{figure}[t]\centering
+\includegraphics[width=0.49\linewidth]{figures/conformal_fdr.png}\hfill
+\includegraphics[width=0.49\linewidth]{figures/selective_prediction.png}\\[4pt]
+\includegraphics[width=0.49\linewidth]{figures/label_efficiency.png}
+\caption{Top: conformal FDR control (Phase~4) and selective-prediction
+risk-coverage (Phase~6). Bottom: foundation-model label efficiency crosses over
+near $\sim$300 labels (Phase~3).}
+\label{fig:grid}
+\end{figure}
+
+\section{Discussion}
+Across seven directions, the single decisive lever is member \emph{diversity}: the
+published lineage diagnosed the meta-learner collapse but never engineered diverse
+members, and doing so yields a clean, controlled improvement over the published
+method at every operating point. The remaining directions are honestly mixed ---
+hard-negative quality and equivariance help modestly, conformal selection and
+ensemble-uncertainty triage are robust operational wins, foundation features help
+only in the cold-start regime, and naive domain adaptation fails. All experiments
+fit on seven Turing-class GPUs; the natural scale-ups (native-griz \aion{} member,
+deployment-scale mining, full equivariant training, full-sky deployment with
+conformal control) are deferred to NERSC. The honest takeaway reinforces the
+repository's thesis: for DECaLS lens finding the returns are in data, calibration,
+and \emph{diversity}, not in the backbone.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+\end{document}
