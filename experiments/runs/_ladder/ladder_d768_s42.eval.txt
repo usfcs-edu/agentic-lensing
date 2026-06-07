@@ -1,0 +1,35 @@
+[device] cuda
+[split] 1137 records -> 57 held-out val (holdout_frac=0.05, seed=42)
+[sample] 88855 val spectra -> 4096 strided picks
+[data] 3422 spectra; z in [-0.002, 5.498]; class counts {'BGS': 704, 'OTHER': 692, 'LRG': 410, 'MWS': 552, 'QSO': 173, 'ELG': 891}
+[caveat] QSO row is INDICATIVE (Redrock-only comparator, no QuasarNET/broad-MgII).
+[caveat] classes with N(ZWARN==0) < 30 are reported but not voted.
+
+================  ladder_d768_s42  ================
+  N=3422  (2622 ZWARN==0 / 800 ZWARN!=0)   z-bins=256   catastrophic thr |dz|/(1+z) >= 0.0033
+  class    N(z0)  SFM cat%  med|dz|  RR fail%   verdict
+  -----------------------------------------------------
+  LRG        403      95.3   0.0542       1.7      FAIL
+  ELG        743      98.9   0.1468      16.6      FAIL
+  QSO        148     100.0   0.1868      14.5      FAIL *
+  MWS        550       8.4   0.0001       0.4      FAIL
+  BGS        691      95.5   0.0415       1.8      FAIL
+  OTHER       87      96.6   0.7012      87.4       ctx
+  -----------------------------------------------------
+  aggregate catastrophic rate: all spectra= 83.3% (good-z=16.7%),  ZWARN==0 only= 78.5% (good-z=21.5%)   [cf. eval_redshift_dz.py good-z~19% on its records[:96] subset]
+
+  confidence calibration (top-1 softmax prob over z-bins):
+        conf bin     N  meanConf  obs.acc
+    [0.0,0.1)   1572     0.052    0.295
+    [0.1,0.2)   1338     0.156    0.061
+    [0.2,0.3)    335     0.236    0.051
+    [0.3,0.4)    133     0.342    0.030
+    [0.4,0.5)     38     0.451    0.105
+    [0.5,0.6)      5     0.555    0.400
+    [0.6,0.7)      1     0.612    0.000
+  self-selected confident subset (top 77% by conf, matching Redrock's ZWARN==0 selection): SFM catastrophic rate = 89.44%
+
+  >>> METRIC-1 VERDICT: FAIL   (voted: LRG=F, ELG=F, QSO=F, MWS=F, BGS=F)
+
+========== SUMMARY ==========
+  ladder_d768_s42                  Metric-1: FAIL

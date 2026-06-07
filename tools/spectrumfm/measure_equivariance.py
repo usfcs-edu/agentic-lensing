@@ -62,9 +62,18 @@ def load(ckpt_path, device):
     sd = raw.get("model", raw) if isinstance(raw, dict) else raw
     st = SpectrumTokenizer(downsample_strides=tuple(strides)).to(device)
     st.load_state_dict(sd); st.eval()
-    m = SpectrumTransformer(vocab_size=TOTAL_VOCAB_SIZE, d_model=768,
-                            n_encoder_layers=6, n_decoder_layers=6, n_heads=12,
-                            max_seq_len=int(ck.get("max_seq_len", 1024))).to(device)
+    # Read model architecture from the checkpoint if persisted (ladder arms
+    # with d_model!=768); fall back to the historical 768/6/6/12 defaults so
+    # OLD checkpoints lacking "model_config" build byte-identically to today.
+    cfg = ck.get("model_config", {})
+    d_model = cfg.get("d_model", 768)
+    n_encoder_layers = cfg.get("n_encoder_layers", 6)
+    n_decoder_layers = cfg.get("n_decoder_layers", 6)
+    n_heads = cfg.get("n_heads", 12)
+    max_seq_len = cfg.get("max_seq_len", int(ck.get("max_seq_len", 1024)))
+    m = SpectrumTransformer(vocab_size=TOTAL_VOCAB_SIZE, d_model=d_model,
+                            n_encoder_layers=n_encoder_layers, n_decoder_layers=n_decoder_layers,
+                            n_heads=n_heads, max_seq_len=max_seq_len).to(device)
     m.load_state_dict(ck["model"]); m.eval()
     zc = zt.decode(torch.arange(zt.n_levels)).float().to(device)
     return m, st, zt, zc

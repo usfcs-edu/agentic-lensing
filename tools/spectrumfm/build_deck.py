@@ -422,6 +422,32 @@ def slide_phase17_compression(prs):
     add_footer(slide, "tools/spectrumfm/eval_per_class.py head-to-head; reproductions/redshifty/NERSC_SCALING_SPEC.md")
 
 
+def slide_phase18_ladder(prs):
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    add_title(slide, "Phase 18 — local scaling ladder (does scale help?)")
+    add_subtitle(slide, "Model-size ladder 13–104M params, 8k steps, eff-batch 64, n=4096 eval; "
+                 "endpoints seed-replicated for noise bars", top=Inches(1.05), size=14)
+    add_table(slide, Inches(0.5), Inches(2.4), [
+        ["d_model", "params", "seed", "good-z", "gal-cat"],
+        ["256", "13.1M", "42", "0.222", "0.960"],
+        ["384", "26.8M", "42", "0.221", "0.956"],
+        ["512", "50.0M", "42", "0.232", "0.962"],
+        ["768", "103.7M", "42", "0.215", "0.966"],
+        ["256", "13.1M", "123", "0.102  (12pp seed swing!)", "0.974"],
+        ["768", "103.7M", "123", "0.213  (0.2pp seed swing)", "0.971"],
+    ], col_widths_in=[1.6, 1.8, 1.2, 4.4, 1.6], size=13)
+    add_subtitle(slide,
+                 "good-z slope = −0.004/decade (R²=0.04): FLAT. Galaxy ceiling ~22% at every size. "
+                 "Scale buys training STABILITY (small model = coin-flip ignition; large = stable), "
+                 "NOT a higher galaxy ceiling.",
+                 top=Inches(5.5), size=13, color=ACCENT)
+    add_subtitle(slide,
+                 "Flat LOCAL slope is pre-threshold → inconclusive re NERSC (galaxy z is a phase "
+                 "transition: ref 8%→73.8% over 219k→394k spectra). Precision verdict deferred to full scale.",
+                 top=Inches(6.5), size=13, color=NAVY)
+    add_footer(slide, "tools/spectrumfm/scaling_ladder.py; figures/scaling_ladder.png; every local lever now exhausted (Phases 15–18)")
+
+
 def slide_10_next(prs):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     add_title(slide, "What's next")
@@ -478,6 +504,7 @@ def main():
     slide_phase16_probe(prs)
     slide_phase16_eqprior(prs)
     slide_phase17_compression(prs)
+    slide_phase18_ladder(prs)
     slide_10_next(prs)
     slide_11_thanks(prs)
 

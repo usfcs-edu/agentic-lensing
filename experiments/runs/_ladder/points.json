@@ -1,0 +1,34 @@
+[
+  {
+    "label": "d=256",
+    "axis": "model",
+    "params": 13061376,
+    "n_spectra": 1810000,
+    "good_z": 0.222,
+    "galaxy_cat": 0.9596666666666667
+  },
+  {
+    "label": "d=384",
+    "axis": "model",
+    "params": 26768128,
+    "n_spectra": 1810000,
+    "good_z": 0.221,
+    "galaxy_cat": 0.9556666666666667
+  },
+  {
+    "label": "d=512",
+    "axis": "model",
+    "params": 49977600,
+    "n_spectra": 1810000,
+    "good_z": 0.23199999999999998,
+    "galaxy_cat": 0.9623333333333334
+  },
+  {
+    "label": "d=768",
+    "axis": "model",
+    "params": 103671040,
+    "n_spectra": 1810000,
+    "good_z": 0.215,
+    "galaxy_cat": 0.9656666666666668
+  }
+]

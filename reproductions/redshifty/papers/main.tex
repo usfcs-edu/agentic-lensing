@@ -667,6 +667,87 @@ agg good-$z$ & \multicolumn{2}{c}{$24.1\%$} & \multicolumn{2}{c}{$23.9\%$} \\
 \end{table}
 
 % =============================================================================
+\section{Phase 18: a local scaling ladder --- model size, with seed-noise bars}
+\label{sec:phase18}
+% =============================================================================
+
+Phases~15--17 ruled out every \emph{architectural} lever; Phase~18 asks the
+remaining question directly: within the locally-reachable regime, does
+per-class redshift good-$z$ \emph{improve with scale}? We trained a model-size
+ladder---$d_{\mathrm model}\in\{256,384,512,768\}$ (head dimension fixed at
+$64$, $6{+}6$ layers, $13.1$--$103.7$\,M parameters), all on the full mix at a
+\emph{fixed} $8$k-step budget, effective batch $64$, identical lr, V1
+tokenizer---and, crucially, \emph{replicated the two endpoints at a second seed}
+to measure run-to-run noise (\texttt{tools/spectrumfm/scaling\_ladder.py};
+per-point metric is the same encoder-masked per-class good-$z$ from
+\texttt{eval\_per\_class.py} at $n{=}4096$). Acceptance was pre-specified: a
+good-$z$ slope $\ge +0.04$ per decade with $R^2>0.5$ \emph{and} exceeding the
+seed noise would count as ``scale helps.''
+
+The model-axis good-$z$ slope is \textbf{flat}: $-0.004$ per decade
+($R^2{=}0.04$) across an $8{\times}$ parameter range (Table~\ref{tab:ladder},
+Fig.~\ref{fig:ladder}); the good-$z$ ceiling is ${\sim}22\%$ regardless of size
+and the galaxy classes stay $95$--$98\%$ catastrophic throughout. It fails the
+pre-specified bar by an order of magnitude. But the \emph{seed-noise bars} are
+the real finding: at $d{=}768$ the two seeds agree to $0.2$\,pp ($21.5\%$ vs
+$21.3\%$), whereas at $d{=}256$ they differ by \textbf{$12$\,pp} ($22.2\%$ vs
+$10.2\%$; the second seed barely ignited---its stellar catastrophic rate was
+$57\%$ versus $9\%$). \textbf{Scale's clear local benefit is reliability, not
+ceiling}: the small model is a coin-flip on ignition while the large model
+ignites stably---any size trend in good-$z$ is dwarfed by this variance at small
+$d$. The $8$k points also sit just below V1@$15$k ($24.1\%$), so the slope is a
+\emph{lower bound} (fixed-$8$k under-trains; more steps help).
+
+Two cautions frame the verdict. First, this is a flat slope \emph{within} a
+narrow, pre-ignition regime: galaxy redshift recovery is a phase transition (the
+NERSC reference jumped from ${\sim}8\%$ to $73.8\%$ between $219$k and $394$k
+spectra at otherwise-identical settings), and a local ladder spanning $<\!1$
+order of magnitude almost certainly sits below it. A flat \emph{local} slope
+therefore \textbf{neither confirms nor refutes} that NERSC-scale (${\sim}60$M
+spectra, $250$M--$1$B parameters) will deliver galaxy parity---it only shows the
+lever is not reachable at $2{\times}$L4 scale. Second, the data axis is not
+locally resolvable ($<\!1$ dex of unique spectra, and small-$N$ galaxy classes
+make the per-decade slope noise-dominated) and is deferred to NERSC. The honest
+conclusion: \emph{model size does not move galaxy good-$z$ in the local regime
+but does buy training stability; the precision verdict requires crossing the
+ignition threshold at full scale.}
+
+\begin{table}[t]
+\centering
+\caption{Local model-size ladder (full mix, $8$k steps, eff-batch $64$,
+$n{=}4096$ eval). good-$z$ is the ZWARN${=}0$ aggregate; gal-cat is the mean
+LRG/ELG/BGS catastrophic rate. The seed-$123$ endpoints quantify run-to-run
+noise. The good-$z$ slope is $-0.004$/decade ($R^2{=}0.04$): flat.}
+\label{tab:ladder}
+\begin{tabular}{lcccc}
+\toprule
+$d_{\mathrm model}$ & params & seed & good-$z$ & gal-cat \\
+\midrule
+256 & $13.1$\,M & 42  & $0.222$ & $0.960$ \\
+384 & $26.8$\,M & 42  & $0.221$ & $0.956$ \\
+512 & $50.0$\,M & 42  & $0.232$ & $0.962$ \\
+768 & $103.7$\,M & 42 & $0.215$ & $0.966$ \\
+\midrule
+256 & $13.1$\,M & 123 & $0.102$ & $0.974$ \quad{\small($12$\,pp seed swing)} \\
+768 & $103.7$\,M & 123 & $0.213$ & $0.971$ \quad{\small($0.2$\,pp seed swing)} \\
+\midrule
+\multicolumn{2}{l}{V1@$15$k (ref, more steps)} & 42 & $0.241$ & $0.970$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/scaling_ladder.png}
+\caption{Local Metric-3 scaling ladder. Left: good-$z$ vs model parameters
+(log scale) is flat ($-0.004$/decade); the V1@$15$k reference sits above the
+$8$k ladder (under-training). Right: data axis (deferred --- not locally
+resolvable). The flat local slope reflects a pre-ignition regime, not a
+refutation of full-scale scaling.}
+\label{fig:ladder}
+\end{figure}
+
+% =============================================================================
 \section{Conclusions}
 % =============================================================================
 
@@ -711,6 +792,19 @@ corpus size, model capacity, and training steps. The per-class evaluator built
 here is the instrument that will read out whether scale delivers, and it is ready
 to run as the completion gate on the full-scale NERSC runs
 (\texttt{reproductions/redshifty/NERSC\_SCALING\_SPEC.md}).
+
+Finally, Phase~18 probes that scaling argument as far as $2{\times}$L4 allows: a
+model-size ladder ($13$--$104$\,M parameters, with seed-replicated endpoints)
+shows a \emph{flat} good-$z$ slope ($-0.004$ per decade) with a galaxy ceiling
+pinned at ${\sim}22\%$---but with run-to-run seed noise reaching $12$\,pp at the
+smallest model and $0.2$\,pp at the largest. The honest reading is twofold:
+locally, scale buys training \emph{stability} (reliable ignition) rather than a
+higher galaxy ceiling; and the flat local slope is uninformative about full
+scale because the ladder sits below the data-ignition phase transition (the
+reference $8\%\!\to\!73.8\%$ jump between $219$k and $394$k spectra). The
+galaxy-precision verdict is thus genuinely deferred to the threshold-crossing
+full-scale runs---which is the experiment the NERSC spec is built to gate, not
+one any amount of local compute can substitute for.
 
 \bibliographystyle{plainnat}
 \bibliography{references}

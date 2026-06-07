@@ -155,10 +155,19 @@ def predict(ckpt_path, batch, device, chunk=256):
     # ceiling; it does not change weights or RoPE values for used positions, so
     # 1024 reproduces V1 (seq 275) exactly while admitting a finer-tokenizer arm
     # (seq 547). Read from the ckpt if persisted, else default to 1024.
+    # Read model architecture from the checkpoint if persisted (ladder arms
+    # with d_model!=768); fall back to the historical 768/6/6/12 defaults so
+    # OLD checkpoints lacking "model_config" build byte-identically to today.
+    cfg = ck.get("model_config", {})
+    d_model = cfg.get("d_model", 768)
+    n_encoder_layers = cfg.get("n_encoder_layers", 6)
+    n_decoder_layers = cfg.get("n_decoder_layers", 6)
+    n_heads = cfg.get("n_heads", 12)
+    max_seq_len = cfg.get("max_seq_len", int(ck.get("max_seq_len", 1024)))
     model = SpectrumTransformer(
-        vocab_size=TOTAL_VOCAB_SIZE, d_model=768,
-        n_encoder_layers=6, n_decoder_layers=6, n_heads=12,
-        max_seq_len=int(ck.get("max_seq_len", 1024)),
+        vocab_size=TOTAL_VOCAB_SIZE, d_model=d_model,
+        n_encoder_layers=n_encoder_layers, n_decoder_layers=n_decoder_layers,
+        n_heads=n_heads, max_seq_len=max_seq_len,
     ).to(device)
     model.load_state_dict(ck["model"])
     model.eval()

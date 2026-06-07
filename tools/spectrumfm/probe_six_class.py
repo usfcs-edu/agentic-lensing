@@ -112,10 +112,19 @@ def extract_features(ckpt_path, batch, device, chunk=256):
     assert approach == "a", f"probe assumes approach a (rz at enc pos 1), got {approach}"
     z_tok = build_z_tok(ck["z_tokenizer"])
     spec_tok = build_spec_tok(Path(ck["tokenizer_ckpt_path"]), device)
+    # Read model architecture from the checkpoint if persisted (ladder arms
+    # with d_model!=768); fall back to the historical 768/6/6/12 defaults so
+    # OLD checkpoints lacking "model_config" build byte-identically to today.
+    cfg = ck.get("model_config", {})
+    d_model = cfg.get("d_model", 768)
+    n_encoder_layers = cfg.get("n_encoder_layers", 6)
+    n_decoder_layers = cfg.get("n_decoder_layers", 6)
+    n_heads = cfg.get("n_heads", 12)
+    max_seq_len = cfg.get("max_seq_len", int(ck.get("max_seq_len", 1024)))  # admits finer (seq 547); 1024≡512 for V1
     model = SpectrumTransformer(
-        vocab_size=TOTAL_VOCAB_SIZE, d_model=768,
-        n_encoder_layers=6, n_decoder_layers=6, n_heads=12,
-        max_seq_len=int(ck.get("max_seq_len", 1024)),  # admits finer (seq 547); 1024≡512 for V1
+        vocab_size=TOTAL_VOCAB_SIZE, d_model=d_model,
+        n_encoder_layers=n_encoder_layers, n_decoder_layers=n_decoder_layers,
+        n_heads=n_heads, max_seq_len=max_seq_len,
     ).to(device)
     model.load_state_dict(ck["model"])
     model.eval()

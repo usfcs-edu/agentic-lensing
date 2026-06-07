@@ -1,0 +1,38 @@
+[device] cuda
+[split] 1137 records -> 57 held-out val (holdout_frac=0.05, seed=123)
+[sample] 103438 val spectra -> 4096 strided picks
+[data] 3472 spectra; z in [-0.005, 6.894]; class counts {'MWS': 519, 'BGS': 634, 'OTHER': 663, 'LRG': 437, 'QSO': 178, 'ELG': 1041}
+[caveat] QSO row is INDICATIVE (Redrock-only comparator, no QuasarNET/broad-MgII).
+[caveat] classes with N(ZWARN==0) < 30 are reported but not voted.
+
+================  ladder_d256_s123  ================
+  N=3472  (2667 ZWARN==0 / 805 ZWARN!=0)   z-bins=256   catastrophic thr |dz|/(1+z) >= 0.0033
+  class    N(z0)  SFM cat%  med|dz|  RR fail%   verdict
+  -----------------------------------------------------
+  LRG        430      97.9   0.1155       1.6      FAIL
+  ELG        870      99.1   0.1603      16.4      FAIL
+  QSO        153      99.3   0.2141      14.0      FAIL *
+  MWS        516      56.8   0.1388       0.6      FAIL
+  BGS        619      95.3   0.0570       2.4      FAIL
+  OTHER       79      97.5   0.5862      88.1       ctx
+  -----------------------------------------------------
+  aggregate catastrophic rate: all spectra= 91.9% (good-z= 8.1%),  ZWARN==0 only= 89.8% (good-z=10.2%)   [cf. eval_redshift_dz.py good-z~19% on its records[:96] subset]
+
+  confidence calibration (top-1 softmax prob over z-bins):
+        conf bin     N  meanConf  obs.acc
+    [0.0,0.1)   1328     0.054    0.184
+    [0.1,0.2)    744     0.144    0.032
+    [0.2,0.3)    480     0.248    0.006
+    [0.3,0.4)    334     0.348    0.018
+    [0.4,0.5)    237     0.446    0.004
+    [0.5,0.6)    127     0.546    0.024
+    [0.6,0.7)     91     0.646    0.000
+    [0.7,0.8)     64     0.738    0.000
+    [0.8,0.9)     43     0.844    0.000
+    [0.9,1.0)     24     0.933    0.000
+  self-selected confident subset (top 77% by conf, matching Redrock's ZWARN==0 selection): SFM catastrophic rate = 97.15%
+
+  >>> METRIC-1 VERDICT: FAIL   (voted: LRG=F, ELG=F, QSO=F, MWS=F, BGS=F)
+
+========== SUMMARY ==========
+  ladder_d256_s123                 Metric-1: FAIL
