@@ -1,0 +1,26 @@
+# --- large data products (commit only slim derived results JSON) ---
+data/raw/
+data/emb/
+data/*.npy
+data/*.hdf5
+data/*.h5
+data/*.fits
+data/*.fits.gz
+data/results/_*.log
+data/results/*.tmp
+# keep tracked: data/results/*.json  (headline numbers)
+
+*.log
+__pycache__/
+.ipynb_checkpoints/
+
+# LaTeX build artifacts
+papers/*.aux
+papers/*.bbl
+papers/*.blg
+papers/*.log
+papers/*.out
+papers/*.toc
+papers/*.fdb_latexmk
+papers/*.fls
+papers/*.synctex.gz

@@ -1,0 +1,20 @@
+{
+  "base": {
+    "ndcg@10": 0.8024454716920751,
+    "n_queries": 1436,
+    "corpus": 13436,
+    "n_positive": 1436
+  },
+  "large": {
+    "ndcg@10": 0.7964426663252587,
+    "n_queries": 1436,
+    "corpus": 13436,
+    "n_positive": 1436
+  },
+  "xlarge": {
+    "ndcg@10": 0.8037014861736513,
+    "n_queries": 1436,
+    "corpus": 13436,
+    "n_positive": 1436
+  }
+}
