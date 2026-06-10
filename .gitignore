@@ -36,3 +36,29 @@ __pycache__/
 
 # stray Wave-2 dependency install log (regenerable)
 reproductions/.wave2_deps_install.log
+
+# LaTeX build artifacts under any papers/ dir — regenerable by rebuilding
+# main.tex. Scoped to papers/ so the tracked .log/.out run logs elsewhere
+# (experiments/, reproductions/*) are unaffected. The compiled main.pdf is
+# intentionally NOT ignored.
+**/papers/*.aux
+**/papers/*.bbl
+**/papers/*.blg
+**/papers/*.log
+**/papers/*.out
+**/papers/*.toc
+**/papers/*.fls
+**/papers/*.fdb_latexmk
+**/papers/*.synctex.gz
+**/papers/*.nav
+**/papers/*.snm
+**/papers/*.vrb
+**/papers/*.bcf
+**/papers/*.run.xml
+**/papers/*.lof
+**/papers/*.lot
+**/papers/*.idx
+**/papers/*.ind
+**/papers/*.ilg
+**/papers/*.dvi
+**/papers/*.brf
