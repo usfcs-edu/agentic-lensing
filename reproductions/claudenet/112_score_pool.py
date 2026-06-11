@@ -26,7 +26,10 @@ store variant/head_dim/num_classes (the EfficientNet keys _scorelib.
 load_checkpoint_model requires), so load_member_checkpoint() below infers
 head_dim/num_classes from the state_dict head shapes and takes the timm
 variant from members.json (fallback: hardcoded v1 roster). Everything else
-(arch/mean/std/state_dict/shielded_cfg) matches _scorelib's schema.
+(arch/mean/std/state_dict/shielded_cfg) matches _scorelib's schema. Phase-140
+checkpoints with arch='timm' (140_train_zoobot_member.py: variant + Linear
+head stored in the ckpt) load via the generic timm branch; arch='escnn_d4'
+is NOT loadable here — 142_train_escnn_d4.py exports its own scores.
 
 Inputs: --cutout-root with cutouts_<k>.npy shards (n,3,101,101 float32) +
 index.parquet [row_id,shard,idx_in_shard,ok,nan_frac]; rows with ok=False are
@@ -106,6 +109,20 @@ def load_member_checkpoint(path: Path, device, variant_hint: str | None):
         num_classes = int(sd["head.2.weight"].shape[0])
         model = eff.EfficientNetV2Lens(pretrained=False, variant=variant,
                                        head_dim=head_dim, num_classes=num_classes)
+    elif arch == "timm":
+        # generic timm member (140_train_zoobot_member.py): variant is the plain
+        # timm architecture name stored IN the checkpoint (offline-rebuildable,
+        # pretrained=False), head = Linear(num_features, num_classes); the
+        # num_classes comes from the state_dict head shape, like efficientnet.
+        # NB: C._load (repo root), NOT SL._load_module — _scorelib is a symlink
+        # into inchausti-2025, so its loader resolves relative to THAT dir.
+        zm = C._load("timm_member_112", C.ROOT / "140_train_zoobot_member.py")
+        variant = ckpt.get("variant") or variant_hint
+        if variant is None:
+            raise ValueError(f"{path.name}: timm member without a 'variant' key")
+        num_classes = int(sd["head.weight"].shape[0])
+        model = zm.TimmLens(variant=variant, pretrained=False,
+                            num_classes=num_classes)
     elif arch == "shielded":
         cfg = ckpt.get("shielded_cfg") or {"final_out": int(ckpt.get("final_out", 32))}
         model = SL.ShieldedDeepLens(in_channels=3, **cfg)
@@ -115,8 +132,8 @@ def load_member_checkpoint(path: Path, device, variant_hint: str | None):
         raise ValueError(f"{path.name}: unknown arch {arch!r}")
     model.load_state_dict(sd)
     model.to(device).eval()
-    score_arch = ckpt.get("score_arch") or ("efficientnet" if arch == "efficientnet"
-                                            else "shielded")
+    score_arch = ckpt.get("score_arch") or (
+        "efficientnet" if arch in ("efficientnet", "timm") else "shielded")
     return model, score_arch, mean, std
 
 
@@ -308,17 +325,32 @@ def main() -> int:
     #     timm variant read from the checkpoint itself (121 stores it)
     if args.extra_ckpt_dir:
         extras = sorted(Path(args.extra_ckpt_dir).glob("member_*.pt"))
+        for p in [p for p in extras if p.name.endswith("_smoke.pt")]:
+            print(f"[112] skipping smoke checkpoint {p.name}")
+        extras = [p for p in extras if not p.name.endswith("_smoke.pt")]
         if not extras:
-            print(f"[112] FATAL: --extra-ckpt-dir {args.extra_ckpt_dir} has no member_*.pt")
+            print(f"[112] FATAL: --extra-ckpt-dir {args.extra_ckpt_dir} has no "
+                  f"non-smoke member_*.pt")
             return 1
+        skipped = []
         for path in extras:
             col = path.stem
-            model, score_arch, mean, std = load_member_checkpoint(path, device, None)
-            print(f"[112] {col}: {path.name} score_arch={score_arch} (extra)")
-            cols[col] = run_pass(col, model, score_arch, mean, std, index, root,
-                                 device, args.batch, partial(col))
-            del model
+            try:                     # a non-loadable ckpt (e.g. arch='escnn_d4')
+                model, score_arch, mean, std = load_member_checkpoint(path, device, None)
+                print(f"[112] {col}: {path.name} score_arch={score_arch} (extra)")
+                cols[col] = run_pass(col, model, score_arch, mean, std, index, root,
+                                     device, args.batch, partial(col))
+                del model
+            except Exception as e:   # must not kill the rest of the pass
+                print(f"[112] SKIP {path.name}: {e!r}")
+                skipped.append(path.name)
             torch.cuda.empty_cache()
+        if skipped:
+            print(f"[112] extra checkpoints skipped {len(skipped)}/{len(extras)}: "
+                  f"{skipped}")
+            if len(skipped) == len(extras):
+                print("[112] FATAL: ALL --extra-ckpt-dir checkpoints failed")
+                return 1
 
     # 2. the reproduced Inchausti baselines (bases for baseline_meta)
     for col, fname, arch in (() if args.only_extra else
