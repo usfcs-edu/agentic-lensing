@@ -5,6 +5,21 @@
 \documentclass[11pt,letterpaper]{article}
 \usepackage{../../tech-report}
 
+% ---- appendix transcript boxes (loaded here, not in the shared style) -------
+\usepackage{tcolorbox}
+\tcbuselibrary{listings,skins,breakable}
+\definecolor{toolbg}{gray}{0.94}
+\definecolor{toolfr}{gray}{0.55}
+\newtcblisting{toolio}[2][]{listing only, breakable, enhanced,
+  colback=toolbg, colframe=toolfr, boxrule=0.4pt, arc=1pt,
+  left=4pt, right=4pt, top=2pt, bottom=2pt, before skip=6pt, after skip=6pt,
+  fonttitle=\scriptsize\bfseries\sffamily, title={#2},
+  listing options={basicstyle=\ttfamily\scriptsize, breaklines=true,
+    columns=fullflexible, keepspaces=true,
+    literate={—}{{---}}1 {–}{{--}}1 {″}{{''}}2 {−}{{$-$}}1
+             {≈}{{$\approx$}}1 {Δ}{{$\Delta$}}1},
+  #1}
+
 \newcommand{\plens}{\ensuremath{p_{\mathrm{lens}}}}
 \newcommand{\pmeta}{\ensuremath{p_{\mathrm{meta}}}}
 \newcommand{\thetaE}{\ensuremath{\theta_{\mathrm{E}}}}
@@ -27,6 +42,22 @@
 \newcommand{\cnnDpmeta}{0.82}        % CNN mean p_meta on Grade-D negatives
 \newcommand{\spectroHsu}{20/20}      % Hsu Table-2 Grade-A graded plausible
 \newcommand{\spectroNon}{4/4}        % Foundry-II non-lenses rejected
+% --- reasoning comparison (sec:reasoning; full 225-row manifest, identical rows;
+%     adaptive thinking, summarized display; eval/score.py on the three parquets) ---
+\newcommand{\rbAUC}{0.48}\newcommand{\rbQWK}{-0.08}\newcommand{\rbRecOne}{0.04}
+\newcommand{\rbECE}{0.46}\newcommand{\rbEsc}{0.48}\newcommand{\rbPlensA}{0.13}
+\newcommand{\rbParse}{100\%}\newcommand{\rbCost}{0.06}\newcommand{\rbWall}{43}
+\newcommand{\rsAUC}{0.46}\newcommand{\rsQWK}{-0.10}\newcommand{\rsRecOne}{0.01}
+\newcommand{\rsECE}{0.47}\newcommand{\rsEsc}{0.42}\newcommand{\rsPlensA}{0.14}
+\newcommand{\rsParse}{100\%}\newcommand{\rsCost}{0.08}\newcommand{\rsWall}{47}
+\newcommand{\rsThink}{3{,}359}
+\newcommand{\roAUC}{0.44}\newcommand{\roQWK}{-0.03}\newcommand{\roRecOne}{0.01}
+\newcommand{\roECE}{0.58}\newcommand{\roEsc}{0.12}\newcommand{\roPlensA}{0.05}
+\newcommand{\roParse}{100\%}\newcommand{\roCost}{0.15}\newcommand{\roWall}{33}
+\newcommand{\roThink}{1{,}647}\newcommand{\roCostRatio}{2}
+\newcommand{\rsSpecHsu}{19/20}\newcommand{\rsSpecNon}{4/4}\newcommand{\rsSpecConf}{17/20}
+\newcommand{\roSpecHsu}{18/20}\newcommand{\roSpecNon}{4/4}\newcommand{\roSpecConf}{14/20}
+% --- triage-rubric ablation (48-slice; eval/ablation_compare.py) -------------
 \newcommand{\modelAUCrand}{0.77}     % modelability lens_score: A vs random galaxy
 \newcommand{\modelAUCreject}{0.44}   % modelability lens_score: A vs Grade-D human-reject
 % RepresentationKit (engineered image transforms; eval/run_representations.py)
@@ -127,6 +158,7 @@ reasons over catalog features ($z_l,z_s$, separation, \sigmav, \thetaE) plus DR1
 reading (SPARCL / public healpix coadds) is a documented enhancement.
 
 \section{Architecture on the Claude Agent SDK}
+\label{sec:arch}
 The SDK has no image-in-prompt, so the only way the model sees pixels is a tool that
 returns an image content block. Our \texttt{fetch\_cutout} tool renders the $grz$ cube to
 multi-view Lupton-RGB PNGs (full / center-zoom / lens-light-residual / high-contrast,
@@ -159,6 +191,7 @@ confusion; (iii) calibration of \plens{} (ECE, Brier); (iv) agent-vs-CNN agreeme
 Baselines: the \pmeta{} threshold, single nets, majority-class, and image-only-no-tools.
 
 \section{Results}
+\label{sec:results}
 On the full \Nheldout{}-system clean-imaging held-out set the lean Sonnet grader scores
 binary ROC-AUC $\leanAUC$, recovery@1\%~FPR $\leanRecOne$, quadratic-weighted
 $\kappa=\leanQWK$, ECE $\leanECE$ at \$$\leanCost$/candidate --- i.e.\ essentially no
@@ -199,6 +232,176 @@ agent that is skeptical of unconfirmed C-grade candidates is not demonstrably wr
 simply cannot be \emph{adjudicated} against a single-consensus label. This is precisely
 what the missing multi-grader ceiling (and the absence of spectroscopic confirmation for
 most candidates) prevents us from resolving --- the gap is the result.
+Appendix~\ref{app:examples} shows three of these grading episodes end-to-end --- a
+consensus-A lens, an ambiguous grade-C, and a Grade-D human-reject --- abbreviated but
+otherwise verbatim, to give a concrete feel for how the agent reasons and uses its tools.
+
+\section{Reasoning made visible: Sonnet 4.6 vs Opus 4.8}
+\label{sec:reasoning}
+
+Two instrumentation upgrades motivate this section. First, every grader call now
+\emph{records the model's reasoning}: the Agent SDK's adaptive-thinking summaries are
+written into the per-candidate trace logs alongside the existing tool events, and the
+worked examples in Appendix~\ref{app:examples} display them inline. Second, with
+reasoning observable we re-ran the lean grader on two backbones ---
+\code{claude-sonnet-4-6} and \code{claude-opus-4-8} (1M context) --- holding the
+rubric, tools, 6-turn limit and per-candidate budget cap fixed (the cap was raised
+to \$1.00 for Opus, whose episodes are costlier). Two caveats frame everything
+below: the displayed text is the API's \emph{summarized} reasoning, not the raw
+chain of thought; and instrumenting capture revealed that adaptive thinking is the
+harness \emph{default} --- the frozen Table~\ref{tab:modes} runs were already
+reasoning silently. The comparison is therefore ``reasoning made visible $+$
+backbone swapped'', not ``reasoning switched on''.
+
+Table~\ref{tab:reasoning} scores all three configurations on the identical 225-row
+manifest (the frozen baseline is re-scored on the full row set, which is why its
+numbers differ slightly from the $n{=}200$ clean-slice values quoted in
+\S\ref{sec:results}).
+
+\begin{table}[ht]\centering
+\caption{\textbf{Backbone comparison with reasoning captured} on the full 225-row
+LensBench-VI manifest (consensus-referenced; no human ceiling). ``Baseline'' is the
+frozen Table~\ref{tab:modes} lean-Sonnet run re-scored on the identical rows;
+its reasoning was on by default but unrecorded.}
+\label{tab:reasoning}
+\small
+\begin{tabular}{lccc}
+\hline
+ & lean-Sonnet & Sonnet 4.6 & Opus 4.8 (1M) \\
+Metric & (frozen baseline) & reasoning captured & reasoning captured \\
+\hline
+Binary ROC-AUC            & \rbAUC    & \rsAUC    & \roAUC \\
+Quad-weighted $\kappa$    & \rbQWK    & \rsQWK    & \roQWK \\
+Recovery @1\% FPR         & \rbRecOne & \rsRecOne & \roRecOne \\
+Calibration ECE           & \rbECE    & \rsECE    & \roECE \\
+Escalation rate           & \rbEsc    & \rsEsc    & \roEsc \\
+Mean \plens{} on truth-A  & \rbPlensA & \rsPlensA & \roPlensA \\
+JSON parse rate           & \rbParse  & \rsParse  & \roParse \\
+Mean cost / cand.\ (\$)   & \rbCost   & \rsCost   & \roCost \\
+Mean wall (s)             & \rbWall   & \rsWall   & \roWall \\
+Mean thinking chars       & ---       & \rsThink  & \roThink \\
+\hline
+\end{tabular}
+\end{table}
+
+\textbf{Imaging: the wall is real, reproducible, and backbone-independent.} The
+Sonnet re-run lands within noise of the frozen baseline (AUC \rsAUC{} vs \rbAUC,
+$\kappa$ \rsQWK{} vs \rbQWK) --- the near-chance imaging result of
+\S\ref{sec:results} is stable run-to-run, not an artifact of one sample. Opus~4.8,
+at roughly \roCostRatio$\times$ the per-candidate cost, does not buy agreement with
+the consensus labels either; it is the most decisively skeptical grader yet. It did
+not assign a single A grade on the 225-row manifest, graded 26 of the 30
+consensus-A systems D, held \plens{} flat at $\sim$0.05 across all four truth
+grades, and escalated only \roEsc{} of cases (versus \rsEsc{} for Sonnet) --- where
+Sonnet hedges and hands borderline cases to a human, Opus rejects them with
+confidence. On the appendix's consensus-A system
+(\texttt{DESI-091.7214$-$58.9787}) the two backbones split exactly where the label
+is softest: Sonnet graded B/$\plens{=}0.76$ three times running, Opus C/$0.12$.
+Curiously, Opus also produces \emph{shorter} summarized reasoning than Sonnet
+(\roThink{} vs \rsThink{} characters per candidate) and finishes faster
+(\roWall{}\,s vs \rsWall{}\,s) --- its cost premium is price per token, not
+verbosity.
+
+\textbf{Spectroscopy: the gold-set result survives, with a twist.} With reasoning
+captured, Sonnet re-grades \rsSpecHsu{} Hsu Table-2 pairs plausible and rejects
+\rsSpecNon{} Foundry-II non-lenses (the frozen run scored \spectroHsu{} and
+\spectroNon); it accepts \rsSpecConf{} of the Foundry-II \emph{confirmed} lenses.
+Opus roughly matches it on Hsu (\roSpecHsu) and on the non-lenses (\roSpecNon),
+but accepts only \roSpecConf{} confirmed lenses --- six reasoned rejections versus
+Sonnet's three. (A first Opus pass lost three episodes to JSON parse failures; we
+added the imaging path's one-shot repair retry to the spectro grader, after which
+all 44 parse and three of the apparent rejections resolved to acceptances.) The
+remaining rejections are not noise --- Opus applies stricter physical-plausibility
+checks and catches real data-quality gaps, e.g.:
+
+\begin{toolio}{Opus 4.8 --- rationale for rejecting a confirmed lens (excerpt)}
+theta_E is only 0.26" (sigma_v=152 km/s is modest), yet the imaging shows the companion ~3-4" north of the lens — roughly 10x the Einstein radius, far outside any lensable geometry (the specfit 'strongly lensable' verdict is an artifact of the missing/zeroed separation). [...] Despite the discordant redshifts, this is a chance projection of two galaxies, not a strong lens [...]
+\end{toolio}
+
+\noindent On systems whose catalog features are incomplete, that stricter prior
+errs toward rejection --- and on \emph{confirmed} lenses, skepticism is not free.
+The stronger backbone buys better-argued verdicts, not better agreement.
+
+For a qualitative feel for the two reasoning styles, compare the Sonnet episodes in
+Appendix~\ref{app:examples} with this excerpt from the Opus episode on the same
+consensus-A system (it called \texttt{get\_photometry}, which none of the three
+Sonnet recordings did):
+
+\begin{toolio}{Opus 4.8 thinking (summarized) --- DESI-091.7214$-$58.9787, excerpt}
+The photometry suggests the annulus is bluer than the core, which weakly supports the first criterion, but the morphology is really what I need to focus on. [...] Critically, there's no blue tangential arc, no ring, and no symmetric counter-image pair. The greenish diffuse light around the core isn't actually blue and doesn't have an arc shape, so it doesn't fit the lensing morphology I'd expect.
+[...] This sits right at the C/D boundary. The blue excess in the annulus and low-surface-brightness diffuse light near the lens point toward C (possible lens with a blue neighbor at plausible separation but weak morphology) [...] I'll set p_lens to 0.12, confidence to 0.6, leave contaminant null since this doesn't fit a clear artifact category, and mark it for human eyes given the ambiguity.
+\end{toolio}
+
+\subsection{A prompt ablation: absolute evidence vs.\ relative triage}
+\label{sec:ablation}
+
+Opus's behavior suggests a hypothesis: the rubric states near-absolute evidence
+standards, and the more literal model applies them as written --- while the human
+graders it is scored against were doing \emph{relative triage} within a pool the
+CNN had already selected. We test this with a second rubric
+(\code{prompts/rubric\_imaging\_triage.md}) that holds the five criteria, tools,
+and output schema fixed and changes only the framing: grades are follow-up
+priority bins relative to the pool at $1.3\arcsec$ seeing; a textual ``house
+scale'' describes what consensus A/B/C/D actually look like at this resolution; a
+D \emph{requires} a named contaminant; and the escalation policy is made
+asymmetric (``cannot confirm or refute'' routes to C~$+$~escalate, not to D).
+\plens{} is explicitly kept as an \emph{absolute} probability. After a pilot on
+the shared 48-system slice confirmed the effect, both rubrics ran on the full
+225-row manifest, whose strata let us score behavior on \emph{hard} labels too:
+the 21 Foundry-II spectroscopically confirmed lenses (``gold'') and the 30
+random-galaxy negatives.
+
+\begin{table}[ht]\centering
+\caption{\textbf{Rubric ablation on the full 225-row manifest.} ``Original'' rows
+are the Table~\ref{tab:reasoning} runs. Recovery$_{ABC}$ = fraction of
+consensus-A/B/C systems kept in a lens bin; Gold = fraction of the 21
+\emph{confirmed} lenses kept in a lens bin (hard labels, not consensus).}
+\label{tab:ablation}
+\small
+\begin{tabular}{lcccccc}
+\hline
+Config & Escal. & D-rate & Recovery$_{ABC}$ & Gold & mean \plens{} (truth-A) & AUC \\
+\hline
+lean-Sonnet (frozen) & 0.48 & 0.46 & 0.52 & 0.38 & 0.13 & 0.48 \\
+Sonnet 4.6, original & 0.42 & 0.53 & 0.42 & 0.33 & 0.14 & 0.46 \\
+Sonnet 4.6, triage   & 0.70 & 0.35 & 0.66 & 0.57 & 0.15 & 0.51 \\
+Opus 4.8, original   & 0.12 & 0.88 & 0.08 & 0.14 & 0.05 & 0.44 \\
+Opus 4.8, triage     & 0.68 & 0.63 & 0.40 & 0.33 & 0.09 & 0.49 \\
+\hline
+\end{tabular}
+\end{table}
+
+The split is clean: \textbf{the routing policy is prompt-fixable; the
+discrimination is not}. Under the triage rubric Opus's operationally dangerous
+failure mode disappears --- escalation recovers from 12\% to 68\%, the
+reject-everything D-rate falls from 88\% to 63\%, and five times as many
+consensus-graded candidates stay in the lens bins. The gold tier makes the
+stakes concrete \emph{on hard labels}: with the original rubric Opus kept only
+14\% of spectroscopically \emph{confirmed} lenses in a lens bin --- it would have
+silently discarded six of every seven proven lenses --- versus 33\% under triage
+framing (Sonnet: 33\% $\to$ 57\%). Yet no configuration's ranking moves outside
+noise: every AUC sits at chance (0.44--0.51, $n{=}225$), Opus still assigns
+essentially no A or B grades, and its absolute \plens{} on consensus-A systems
+barely moves ($0.05 \to 0.09$ --- exactly as instructed, since \plens{} was kept
+absolute). The framing also has a price that confirms it adds no information:
+Sonnet under triage rejects only 40\% of the random-galaxy negatives that the
+frozen baseline rejected at 63\% --- the rubric shifts each model's operating
+point along the same recall/precision curve rather than lifting the curve.
+Prompting changes what the agent \emph{does} under uncertainty (hedge and hand to
+a human, rather than reject with confidence); it cannot conjure separability that
+the $1.3\arcsec$ pixels do not contain. That is the same wall, now isolated to
+the data: the fix is better pixels (\S\ref{sec:external}), not a better prompt
+and not a bigger model.
+
+The three worked-example systems of Appendix~\ref{app:examples} (recorded under
+the \emph{original} rubric) trace the ablation in miniature. The consensus-A lens
+is framing-stable (Sonnet B/$\plens{=}0.75$ original vs.\ B/$0.74$ triage; Opus C
+either way). The borderline grade-C system is exactly where the policy bites:
+Sonnet flips D~$\to$~C with escalation under triage, and Opus, still grading D,
+now escalates instead of silently discarding. The Grade-D merger is rejected
+without escalation under all four configurations --- a confident rejection of a
+\emph{nameable} contaminant is robust to framing, which is precisely the behavior
+the asymmetric rule is meant to protect.
 
 \section{Spectroscopic pre-grading}
 On the gold spectroscopic set the catalog+imaging grader re-grades \spectroHsu{} of the 20
@@ -406,6 +609,261 @@ high resolution does \emph{not} fix is the fine A/B/C confidence grade (A-vs-C A
 $0.1\arcsec$), confirming that the residual ``grade'' is a subjective human quantity best replaced,
 for the agent's purposes, by a binary detect/escalate decision anchored to confirmed or
 high-resolution truth.
+
+% =============================================================================
+\appendix
+\section{The agent in action: three worked examples}
+\label{app:examples}
+% =============================================================================
+
+This appendix shows the lean single-agent grader (\S\ref{sec:arch}; the lean-Sonnet
+row of Table~\ref{tab:modes}) grading three real LensBench-VI members end-to-end: a
+consensus Grade-A lens, an ambiguous Grade-C ``possible'', and a Grade-D
+human-rejected contaminant. Episodes were recorded with full message-stream
+capture (\code{eval/run\_appendix\_examples.py}; the benchmark traces log tool events
+only) using the identical configuration scored in Table~\ref{tab:modes} --- the
+\emph{original} rubric of \S\ref{sec:arch}, not the triage variant of
+\S\ref{sec:ablation}: \code{claude-sonnet-4-6} on the Claude Agent SDK, the
+\texttt{fetch\_cutout} +
+\texttt{get\_photometry} tool pair, a 6-turn limit and a \$0.50/candidate budget cap
+(observed: \$0.066--\$0.147 and 31--59\,s per episode). The agent's
+\emph{reasoning} is shown in ``thinking'' boxes at the position it occurred. Two
+caveats: the displayed text is the API's \emph{summarized} reasoning, not the raw
+chain of thought, and adaptive thinking is the harness default --- the instrumented
+recordings in \S\ref{sec:reasoning} make visible what earlier runs (including the
+Table~\ref{tab:modes} benchmark) performed silently. By design the lean grader is
+prompted to ``respond with ONLY the JSON object'', so beyond the thinking blocks its
+deliberation surfaces in the tool-call sequence and in the structured
+\code{criteria}/\code{rationale} fields of its answer. Three editing rules apply: (i)
+abbreviation is by \emph{elision only}, marked \code{[...]} --- the agent's words
+(thinking included) are never paraphrased; (ii) a harness-internal tool-discovery
+call at the start of each episode and the \code{mcp\_\_lens\_\_} tool-namespace
+prefix are elided, and repeated tool-output boilerplate is shown in the first
+episode only; (iii) the PNG views the tool returns to the agent are reproduced as
+figure strips (re-rendered pixel-identically from the same cutout cube). The three
+episodes were selected for legibility from 9 reasoning-instrumented recordings of
+the same three systems (none of which happened to invoke
+\texttt{get\_photometry} --- the Opus~4.8 episode excerpted in
+\S\ref{sec:reasoning} shows that exchange); each example cross-references the grade
+the same system received in the frozen Table~\ref{tab:modes} benchmark run.
+
+% -----------------------------------------------------------------------------
+\subsection*{A.1\quad Positive: a consensus Grade-A lens}
+\texttt{DESI-091.7214$-$58.9787} --- consensus grade A, CNN $\pmeta=0.9998$; the
+benchmark lean run graded it B with $\plens=0.75$.
+
+\begin{toolio}{task message}
+Grade this strong-lens candidate. name='DESI-091.7214-58.9787', survey='storfer'. RA=91.721434, Dec=-58.978734
+Tractor type: DEV, region: DECaLS.
+CNN ensemble scores (prior, not ground truth): p_meta=1.000.
+
+Call fetch_cutout with that name and survey, inspect the views, then respond with ONLY the JSON object.
+\end{toolio}
+
+\begin{toolio}{thinking (summarized)}
+The user wants me to grade a strong-lens candidate. I need to:
+1. Call `fetch_cutout` to get the views
+2. Optionally call `get_photometry` and other tools
+3. Return a JSON grade
+
+Let me first load the schema for `fetch_cutout` and `get_photometry` tools.
+\end{toolio}
+
+\begin{toolio}{tool call --- fetch\_cutout}
+{"name": "DESI-091.7214-58.9787", "survey": "storfer", "ra": 91.721434, "dec": -58.978734, "views": ["full", "zoom", "residual"]}
+\end{toolio}
+
+\begin{toolio}{tool result --- fetch\_cutout (3 images; Figure~\ref{fig:ep-pos})}
+Candidate DESI-091.7214-58.9787 — grz cutout, 26.5" field. Views follow:
+[full] whole cutout, 26.5" across (~0.26"/px), Lupton-RGB (z=R, r=G, g=B). Lens galaxies are red/orange; lensed sources are typically blue.
+[zoom] 2.5x center crop — the 1-5" region where arcs/counter-images appear.
+[residual] lens-light removed (per-band minus a smoothed model): low-surface-brightness arcs and counter-images stand out against a flat background.
+\end{toolio}
+
+\begin{figure}[ht]
+\centering
+\begin{minipage}[b]{0.31\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/appendix_pos_full.png}\\[2pt]{\scriptsize full}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.31\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/appendix_pos_zoom.png}\\[2pt]{\scriptsize zoom}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.31\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/appendix_pos_residual.png}\\[2pt]{\scriptsize residual}
+\end{minipage}
+\caption{\textbf{Views the agent inspected} for \texttt{DESI-091.7214$-$58.9787}
+(consensus A; this episode: agent grade B, $\plens=0.76$). Identical render to the
+tool output returned to the agent ($101$\,px grz cutout, $0.262\arcsec$/px,
+Lupton RGB).}
+\label{fig:ep-pos}
+\end{figure}
+
+\begin{toolio}{thinking (summarized) --- after inspecting the views}
+Let me analyze the three views carefully:
+
+**Full view (26.5" field):**
+- The field shows a central galaxy that appears reddish/orange, surrounded by several other galaxies
+- There's a slightly blue/whitish feature visible near the central red galaxy — in the upper-left area of the central object
+[...]
+**Zoom view (center crop, 1-5" region):**
+[...] There's a blue/cyan feature to the upper-left of the red core that could be a lensed arc or blue companion galaxy, appearing somewhat diffuse without an obvious counter-image on the opposite side
+
+**Residual view (lens light removed):**
+- The residual image reveals a striking blue ring or halo structure surrounding a bright central source [...] — this is strong evidence for gravitational lensing [...]
+- The lens-light removal has exposed this blue ring/arc that was harder to see in the full view
+[...]
+Now I'm evaluating this against the five lensing criteria. The blue source is clearly present in both the zoom and residual views, so that scores around 7-8. [...] Actually, let me reconsider the grading criteria more carefully. For an A grade, I need strong evidence from at least two of curvature, counter_images, or arc_morphology, plus no decisive contaminants. Looking at what the residual shows: the blue emission curves around the central red galaxy (strong curvature evidence), and it's clearly extended and ring-like rather than point-like (strong arc morphology evidence). A ring structure would imply counter-images exist, giving moderate support there too. [...] This could genuinely be an A grade, though the noisy imaging makes me hesitant to commit fully. [...] Finalizing this as a **B** grade with moderate confidence around 0.65 and a lens probability of 0.75-0.80, escalating to human review given the ambiguity about whether this is a complete symmetric ring or just a nearby blue companion.
+\end{toolio}
+
+\begin{toolio}{agent --- final grade (JSON)}
+{
+  "grade": "B",
+  "criteria": {"blue_source": 7, "low_surface_brightness": 6, "curvature": 7,
+               "counter_images": 6, "arc_morphology": 8},
+  "p_lens": 0.76,
+  "confidence": 0.63,
+  "contaminant": null,
+  "escalate_to_human": true,
+  "rationale": "The residual view is the key diagnostic: after lens-light subtraction a clear cyan/blue extended halo appears encircling the central orange-red DEV galaxy, consistent with a partial-to-complete Einstein ring. The zoom view corroborates a blue feature offset ~1–2\" to the upper-left of the red core (criterion 1 and 3). Arc morphology is the strongest signal — the blue emission is diffuse and elongated rather than point-like, and its curvature tracks the centre. Counter-images cannot be cleanly resolved into distinct opposing arcs at this resolution, preventing an A; the ring-like envelope in the residual is suggestive but ambiguous between a near-complete ring and an LSB blue companion. No spiral, stellar halo, or tidal-tail contaminant is apparent. Escalated for human review given the A/B borderline."
+}
+\end{toolio}
+
+The reasoning narrates what the structured output alone cannot: a per-view visual
+analysis, criterion-by-criterion scoring, and an explicit A-versus-B deliberation
+that ends in escalation. Two further reasoning-instrumented recordings of the same
+system returned B ($\plens=0.72$) and B ($\plens=0.62$) --- stable at B, bracketing
+the frozen benchmark run's B/$0.75$.
+
+% -----------------------------------------------------------------------------
+\subsection*{A.2\quad Neutral: an ambiguous Grade-C ``possible''}
+\texttt{DESI-030.9742$+$12.4683} --- consensus grade C, CNN $\pmeta=0.898$; the
+benchmark lean run also graded it C ($\plens=0.12$). The task message is analogous
+to A.1.
+
+\begin{toolio}{tool call --- fetch\_cutout}
+{"name": "DESI-030.9742+12.4683", "survey": "storfer", "views": ["full", "zoom", "residual"]}
+\end{toolio}
+
+\begin{toolio}{tool result --- fetch\_cutout (3 images; Figure~\ref{fig:ep-neu})}
+Candidate DESI-030.9742+12.4683 — grz cutout, 26.5" field. Views follow:
+[full] [...] [zoom] [...] [residual] [...]
+\end{toolio}
+
+\begin{figure}[ht]
+\centering
+\begin{minipage}[b]{0.31\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/appendix_neu_full.png}\\[2pt]{\scriptsize full}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.31\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/appendix_neu_zoom.png}\\[2pt]{\scriptsize zoom}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.31\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/appendix_neu_residual.png}\\[2pt]{\scriptsize residual}
+\end{minipage}
+\caption{\textbf{Views the agent inspected} for \texttt{DESI-030.9742$+$12.4683}
+(consensus C; this episode: agent grade C, $\plens=0.12$, escalated). A smooth red
+elliptical with a faint annular excess visible only in the residual.}
+\label{fig:ep-neu}
+\end{figure}
+
+\begin{toolio}{thinking (summarized) --- after inspecting the views}
+Let me carefully analyze the three views:
+
+**Full view:**
+- Central red/orange elliptical galaxy dominating the field
+- No obvious blue arcs, rings, or counter-images visible around the galaxy
+[...]
+**Residual view:**
+After subtracting the lens model, I can see the central core remaining—likely indicating incomplete subtraction or a ring structure—but the faint features that emerge are reddish/orange rather than blue. [...]
+
+**Visual assessment against lensing criteria:**
+The blue source is essentially absent—I don't see any clear blue feature within 1-5" of the central red galaxy, and the visible residual features are all reddish/orange. [...] The CNN score is quite high at 0.898, but visually this looks like an isolated red elliptical galaxy with possibly some ring-like residual that could just be a PSF or model subtraction artifact rather than a genuine lensing signature.
+
+Looking more closely at the residual, there's a faint ring or partial ring structure around the core, but the color is distinctly orange/reddish rather than blue. This could be a very faint Einstein ring or just an imperfect model subtraction. Given the lack of clearly blue features, no tangential arc, and the residual showing mostly orange/red tones, this is most likely a Grade D or at best Grade C—the ring might hint at some lensing, but it's not convincingly blue. [...] The high CNN score creates some tension with what I'm seeing visually, which makes this a borderline case worth flagging for human review. [...] I'm settling on C with a p_lens around 0.18 and escalating to human review, though the isolated red elliptical explanation seems most plausible given the ambiguous residual features.
+\end{toolio}
+
+\begin{toolio}{agent --- final grade (JSON)}
+{
+  "grade": "C",
+  "criteria": {"blue_source": 2, "low_surface_brightness": 3, "curvature": 1,
+               "counter_images": 1, "arc_morphology": 1},
+  "p_lens": 0.12,
+  "confidence": 0.62,
+  "contaminant": null,
+  "escalate_to_human": true,
+  "rationale": "All three views show a smooth, isolated red elliptical (consistent with the SER Tractor type) with no convincingly blue feature at 1–5\" separation in either the full or zoom frames. The residual reveals a faint ring-like halo around the subtracted core, but its color is orange-red rather than blue, suggesting an imperfect lens-light model fit rather than a lensed source; no tangential curvature or arc morphology is identifiable. The single nearby extended object visible to the upper-right in the residual is also red/orange, ruling it out as a lensed source. Despite the high CNN prior (p_meta=0.898), the absence of any blue arc, counter-image, or tangential elongation reduces p_lens substantially; flagged for human review given the discrepancy between the ML score and the visual evidence."
+}
+\end{toolio}
+
+The reasoning shows the C/D boundary being weighed in real time --- ``most likely a
+Grade D or at best Grade C'' --- before settling on the escalated ``possible''.
+Two further recordings of the same system landed on the other side of that line
+(D, $\plens=0.07$ and D, $\plens=0.12$): the same evidence reads as ``possible'' or
+``rejected'' on different runs, which is precisely the soft boundary
+\S\ref{sec:ceiling} quantifies.
+
+% -----------------------------------------------------------------------------
+\subsection*{A.3\quad Negative: a Grade-D human-rejected contaminant}
+\texttt{DESI-124.2632$+$17.1177} --- consensus grade D (human-rejected), yet CNN
+$\pmeta=0.91$; the benchmark lean run graded it C ($\plens=0.32$). The task message
+is analogous to A.1.
+
+\begin{toolio}{tool call --- fetch\_cutout}
+{"name": "DESI-124.2632+17.1177", "survey": "storfer", "views": ["full", "zoom", "residual"], "ra": 124.263204, "dec": 17.117705}
+\end{toolio}
+
+\begin{toolio}{tool result --- fetch\_cutout (3 images; Figure~\ref{fig:ep-neg})}
+Candidate DESI-124.2632+17.1177 — grz cutout, 26.5" field. Views follow:
+[full] [...] [zoom] [...] [residual] [...]
+\end{toolio}
+
+\begin{figure}[ht]
+\centering
+\begin{minipage}[b]{0.31\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/appendix_neg_full.png}\\[2pt]{\scriptsize full}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.31\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/appendix_neg_zoom.png}\\[2pt]{\scriptsize zoom}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.31\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/appendix_neg_residual.png}\\[2pt]{\scriptsize residual}
+\end{minipage}
+\caption{\textbf{Views the agent inspected} for \texttt{DESI-124.2632$+$17.1177}
+(consensus D; this episode: agent grade D, $\plens=0.05$, contaminant
+\code{merger}). A close pair of red galaxies that the CNN scored $\pmeta=0.91$.}
+\label{fig:ep-neg}
+\end{figure}
+
+\begin{toolio}{thinking (summarized) --- after inspecting the views}
+Let me analyze the three views I received:
+
+**Full view:**
+- There's a central red/orange galaxy (the potential lens)
+- There appears to be another orange/red blob to the upper-left of the main galaxy
+- No obvious blue features are visible - both features appear orange/red in color
+[...]
+Looking at all three views together, this system appears to be dominated by two red/orange galaxies in close proximity with no evidence of blue lensed features, arcs, or a background source - it's more consistent with a galaxy group or interaction rather than a strong lensing system. The CNN flagged this with a high score of 0.910, but that's a classic false positive—red galaxy pairs can easily trigger the model without any actual lensed blue source present. [...] I'm confident enough in the D grade and marking this as not needing human escalation.
+\end{toolio}
+
+\begin{toolio}{agent --- final grade (JSON)}
+{
+  "grade": "D",
+  "criteria": {"blue_source": 1, "low_surface_brightness": 2, "curvature": 0,
+               "counter_images": 0, "arc_morphology": 0},
+  "p_lens": 0.05,
+  "confidence": 0.82,
+  "contaminant": "merger",
+  "escalate_to_human": false,
+  "rationale": "All three views reveal a red/orange galaxy pair in close angular proximity (~2–3\") with no blue source, arc, or tangential feature at any contrast level. The zoom confirms both components are similarly red/orange — consistent with two early-type galaxies at similar redshifts or a galaxy group rather than a lens+background-source configuration. The residual view shows only orange over-subtraction artifacts and a faint reddish satellite; no blue LSB emission, curvature, or counter-image is detected. The high CNN score (p_meta=0.910) is a false positive driven by the compact red galaxy pair morphology."
+}
+\end{toolio}
+
+The shortest reasoning of the three episodes (2{,}051 summarized characters versus
+4{,}220 for A.1): the contaminant is recognized at a glance --- ``that's a classic
+false positive --- red galaxy pairs can easily trigger the model'' --- and the agent
+declines to escalate. A second recording reproduced D/$\plens=0.05$ exactly. The
+confident rejection with a named contaminant is the pre-filter behavior the report
+argues is the agent's useful role on ground-based imaging.
 
 \bibliographystyle{plainnat}
 \bibliography{references}

@@ -84,3 +84,27 @@ QUICKLENS_TIMEOUT_S = int(os.environ.get("LENSJUDGE_QUICKLENS_TIMEOUT", "180"))
 MAX_TURNS = int(os.environ.get("LENSJUDGE_MAX_TURNS", "6"))
 MAX_BUDGET_USD = float(os.environ.get("LENSJUDGE_MAX_BUDGET_USD", "0.50"))  # per candidate
 MCP_SERVER_NAME = "lens"
+
+
+# --- reasoning / extended thinking (off by default: old runs reproduce) -----
+def thinking_options() -> dict:
+    """ClaudeAgentOptions kwargs for the current thinking config.
+
+    LENSJUDGE_THINKING: "off" (default) | "adaptive".
+    LENSJUDGE_EFFORT:   low|medium|high|xhigh|max (optional; API default high).
+    Read at call time so run scripts can set os.environ from CLI flags before
+    grading starts. display="summarized" is explicit because Opus 4.8 defaults
+    to "omitted" (empty thinking text); what comes back is the API's SUMMARIZED
+    reasoning, not the raw chain of thought. Returns {} when off, leaving the
+    original ClaudeAgentOptions byte-identical.
+    """
+    mode = os.environ.get("LENSJUDGE_THINKING", "off")
+    if mode == "off":
+        return {}
+    if mode != "adaptive":
+        raise ValueError(f"LENSJUDGE_THINKING must be off|adaptive, got {mode!r}")
+    out: dict = {"thinking": {"type": "adaptive", "display": "summarized"}}
+    effort = os.environ.get("LENSJUDGE_EFFORT")
+    if effort:
+        out["effort"] = effort
+    return out

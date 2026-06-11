@@ -40,7 +40,9 @@ def _row_dict(g, cand):
             "catalog": cand.get("catalog"), "region": cand.get("region"),
             "p_meta": cand.get("p_meta"), "parse_ok": g.parse_ok,
             "cost_usd": g.cost_usd, "turns": g.num_turns,
-            "wall_s": g.meta.get("wall_s"), "error": g.error}
+            "wall_s": g.meta.get("wall_s"), "error": g.error,
+            "n_thinking_blocks": g.meta.get("n_thinking_blocks"),
+            "thinking_chars": g.meta.get("thinking_chars")}
     if g.grade is not None:
         c = g.grade.criteria.model_dump()
         base.update({"grade_pred": g.grade.grade, "p_lens": g.grade.p_lens,
@@ -79,7 +81,8 @@ def build_set(args) -> pd.DataFrame:
 
 
 async def run(df: pd.DataFrame, out: Path, concurrency: int, model: str | None, mode: str,
-              modelability: bool = False, representations: bool = False):
+              modelability: bool = False, representations: bool = False,
+              trace_tag: str | None = None, rubric: str | None = None):
     grader = _grader(mode)
     done = set()
     if out.exists():
@@ -90,7 +93,8 @@ async def run(df: pd.DataFrame, out: Path, concurrency: int, model: str | None, 
           f"{len(todo)} to grade ({len(done)} already done) -> {out}")
     sem = asyncio.Semaphore(concurrency)
     rows, lock = [], asyncio.Lock()
-    trace_dir = config.OUT / f"traces_{mode}"; trace_dir.mkdir(parents=True, exist_ok=True)
+    trace_dir = config.OUT / (f"traces_{mode}_{trace_tag}" if trace_tag else f"traces_{mode}")
+    trace_dir.mkdir(parents=True, exist_ok=True)
     # extra tools for the lean/panel grader: Foundry-I GIGA-Lens fit and/or the
     # engineered-representation feature+view tool.
     extra = {}
@@ -102,6 +106,10 @@ async def run(df: pd.DataFrame, out: Path, concurrency: int, model: str | None, 
             tools.append("lens_representations")
         if len(tools) > 2:
             extra["tools"] = tuple(tools)
+    if rubric:
+        if mode != "lean":
+            raise SystemExit("--rubric is only supported with --mode lean")
+        extra["system_prompt"] = Path(rubric).read_text()
 
     async def one(cand):
         async with sem:
@@ -160,12 +168,22 @@ def main():
     ap.add_argument("--concurrency", type=int, default=6)
     ap.add_argument("--model", default=None)
     ap.add_argument("--out", default=str(config.OUT / "preds.parquet"))
+    ap.add_argument("--thinking", choices=("off", "adaptive"), default=None)
+    ap.add_argument("--effort", choices=("low", "medium", "high", "xhigh", "max"), default=None)
+    ap.add_argument("--trace-tag", default=None, help="trace dir suffix: traces_{mode}_{tag}")
+    ap.add_argument("--rubric", default=None,
+                    help="path to an alternate system-prompt rubric (lean mode only)")
     args = ap.parse_args()
+    import os
+    if args.thinking:
+        os.environ["LENSJUDGE_THINKING"] = args.thinking
+    if args.effort:
+        os.environ["LENSJUDGE_EFFORT"] = args.effort
     out = Path(args.out)
     df = build_set(args)
     print(f"[set] {len(df)} candidates: {df['grade'].value_counts().to_dict()}")
     asyncio.run(run(df, out, args.concurrency, args.model, args.mode, args.modelability,
-                    args.representations))
+                    args.representations, args.trace_tag, args.rubric))
     summarize(out)
 
 

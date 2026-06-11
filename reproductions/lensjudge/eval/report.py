@@ -31,9 +31,11 @@ _ROWS = [("binary_auc", "Binary ROC-AUC (lens vs non-lens)"),
          ("ece_p_lens", "Calibration ECE (p_lens)"),
          ("agent_vs_cnn_kappa", "Agent-vs-CNN κ"),
          ("escalation_rate", "Escalation rate"),
+         ("mean_p_lens_truth_A", "Mean p_lens on truth-A"),
          ("parse_rate", "JSON parse rate"),
          ("mean_cost_usd", "Mean cost / candidate ($)"),
-         ("mean_wall_s", "Mean wall (s)")]
+         ("mean_wall_s", "Mean wall (s)"),
+         ("mean_thinking_chars", "Mean thinking chars / cand")]
 
 
 def main():

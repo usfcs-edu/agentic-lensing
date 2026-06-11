@@ -91,7 +91,7 @@ async def grade_euclid(obj: dict, model: str | None = None) -> dict:
     )
     t0 = time.time()
     try:
-        raw, cost, turns = await _collect(_euclid_user_message(obj), opts)
+        raw, cost, turns, _ = await _collect(_euclid_user_message(obj), opts)
     except Exception as e:
         return {**obj, "error": f"{type(e).__name__}: {e}", "p_lens": np.nan,
                 "agent_grade": None, "cost_usd": 0.0}

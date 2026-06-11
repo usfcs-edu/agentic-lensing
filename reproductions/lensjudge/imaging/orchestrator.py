@@ -92,7 +92,7 @@ async def _factor(cand, name, model, trace_dir):
         max_turns=config.MAX_TURNS, max_budget_usd=config.MAX_BUDGET_USD,
         setting_sources=None, hooks=tr.hooks() if tr else None)
     try:
-        raw, cost, turns = await _collect(_user_message(cand), opts)
+        raw, cost, turns, _ = await _collect(_user_message(cand), opts)
     except Exception:
         return name, {"score": None, "assessment": "error"}, 0.0, 0
     obj = parse.extract_json_block(raw) or {"score": None, "assessment": raw[:120]}
@@ -119,7 +119,7 @@ async def grade_candidate(cand: dict, *, model: Optional[str] = None,
                                   system_prompt=_ARBITER, permission_mode="bypassPermissions",
                                   max_turns=1, setting_sources=None)
     try:
-        raw, c2, t2 = await _collect(arb_user, arb_opts)
+        raw, c2, t2, _ = await _collect(arb_user, arb_opts)
         cost += c2; turns += t2
     except Exception as e:
         return GradeResult(None, "", cost_usd=cost, num_turns=turns, error=str(e),

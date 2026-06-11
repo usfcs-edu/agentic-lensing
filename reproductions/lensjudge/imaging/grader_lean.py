@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from claude_agent_sdk import (AssistantMessage, ClaudeAgentOptions, ResultMessage,
-                              TextBlock, query)
+                              TextBlock, ThinkingBlock, query)
 
 from lensjudge import config
 from lensjudge.common import hooks, parse
@@ -56,20 +56,33 @@ def _user_message(cand: dict) -> str:
             f"then respond with ONLY the JSON object.")
 
 
-async def _collect(prompt: str, opts: ClaudeAgentOptions):
-    """Run one query(); return (final_text, cost_usd, num_turns)."""
+async def _collect(prompt: str, opts: ClaudeAgentOptions, tr=None):
+    """Run one query(); return (final_text, cost_usd, num_turns, think_stats).
+
+    Thinking/text blocks are logged to the trace here (full text, untrimmed)
+    because the SDK hooks only see tool events — reasoning never reaches them.
+    """
     texts, cost, turns = [], 0.0, 0
+    n_think, think_chars = 0, 0
     async for msg in query(prompt=prompt, options=opts):
         if isinstance(msg, AssistantMessage):
             for b in msg.content:
-                if isinstance(b, TextBlock):
+                if isinstance(b, ThinkingBlock):
+                    n_think += 1
+                    think_chars += len(b.thinking)
+                    if tr is not None:
+                        tr.write("thinking", text=b.thinking)
+                elif isinstance(b, TextBlock):
                     texts.append(b.text)
+                    if tr is not None:
+                        tr.write("assistant_text", text=b.text)
         elif isinstance(msg, ResultMessage):
             cost = msg.total_cost_usd or 0.0
             turns = msg.num_turns or 0
             if msg.result:
                 texts.append(msg.result)
-    return (texts[-1] if texts else ""), cost, turns
+    stats = {"n_thinking_blocks": n_think, "thinking_chars": think_chars}
+    return (texts[-1] if texts else ""), cost, turns, stats
 
 
 async def grade_candidate(cand: dict, *, model: Optional[str] = None,
@@ -88,10 +101,11 @@ async def grade_candidate(cand: dict, *, model: Optional[str] = None,
         max_budget_usd=config.MAX_BUDGET_USD,
         setting_sources=None,          # don't load the repo's .claude settings
         hooks=tr.hooks() if tr else None,
+        **config.thinking_options(),
     )
     t0 = time.time()
     try:
-        raw, cost, turns = await _collect(_user_message(cand), opts)
+        raw, cost, turns, tstats = await _collect(_user_message(cand), opts, tr)
     except Exception as e:
         return GradeResult(None, "", error=f"{type(e).__name__}: {e}")
     grade = parse.parse_model(raw, ImageGrade)
@@ -104,7 +118,8 @@ async def grade_candidate(cand: dict, *, model: Optional[str] = None,
             system_prompt=_RUBRIC, permission_mode="bypassPermissions",
             max_turns=1, setting_sources=None)
         try:
-            raw2, cost2, turns2 = await _collect(_REPAIR + raw, repair_opts)
+            # repair stays non-thinking: a cheap deterministic reformat
+            raw2, cost2, turns2, _ = await _collect(_REPAIR + raw, repair_opts)
             total_cost += cost2; total_turns += turns2
             g2 = parse.parse_model(raw2, ImageGrade)
             if g2 is not None:
@@ -116,5 +131,7 @@ async def grade_candidate(cand: dict, *, model: Optional[str] = None,
         grade=grade, raw=raw, cost_usd=total_cost, num_turns=total_turns,
         parse_ok=grade is not None,
         meta={"name": cand.get("name"), "wall_s": round(time.time() - t0, 2),
-              "trace": str(tr.path) if tr else None},
+              "trace": str(tr.path) if tr else None,
+              "n_thinking_blocks": tstats["n_thinking_blocks"],
+              "thinking_chars": tstats["thinking_chars"]},
     )

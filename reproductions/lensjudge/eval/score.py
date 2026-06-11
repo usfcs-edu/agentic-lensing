@@ -96,6 +96,9 @@ def score(preds: pd.DataFrame) -> dict:
         if "region" in ok:
             out["mean_p_lens_by_region"] = {r: round(float(d["p_lens"].mean()), 3)
                                             for r, d in ok.groupby("region") if len(d)}
+        if (ok.grade_truth == "A").any():
+            out["mean_p_lens_truth_A"] = round(
+                float(ok[ok.grade_truth == "A"]["p_lens"].mean()), 3)
 
     # (ii) ordinal
     out["qwk_vs_consensus"] = round(quadratic_weighted_kappa(ok["grade_truth"], ok["grade_pred"]), 4)
@@ -128,6 +131,10 @@ def score(preds: pd.DataFrame) -> dict:
         out["escalation_rate"] = round(float(ok["escalate"].mean()), 3)
         out["escalation_by_grade"] = {g: round(float(ok[ok.grade_truth == g]["escalate"].mean()), 3)
                                       for g in LABELS if (ok.grade_truth == g).any()}
+
+    # reasoning (present only on thinking-enabled runs)
+    if "thinking_chars" in preds.columns and preds["thinking_chars"].notna().any():
+        out["mean_thinking_chars"] = round(float(preds["thinking_chars"].mean()), 0)
     return out
 
 
@@ -142,7 +149,8 @@ def format_report(out: dict) -> str:
              f"mean_cost=${out.get('mean_cost_usd')}  mean_wall={out.get('mean_wall_s')}s", ""]
     for k in ("binary_auc", "recovery@0.01FPR", "recovery@0.001FPR", "qwk_vs_consensus",
               "exact_acc", "adjacent_acc", "ece_p_lens", "brier_p_lens",
-              "agent_vs_cnn_kappa", "escalation_rate"):
+              "agent_vs_cnn_kappa", "escalation_rate", "mean_p_lens_truth_A",
+              "mean_thinking_chars"):
         if k in out:
             lines.append(f"- **{k}** = {out[k]}")
     for k in ("recovery_by_grade", "escalation_by_grade", "cnn_mean_p_meta_by_truth",

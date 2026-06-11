@@ -62,3 +62,9 @@ reproductions/.wave2_deps_install.log
 **/papers/*.ilg
 **/papers/*.dvi
 **/papers/*.brf
+
+# macOS Finder cruft
+.DS_Store
+
+# LaTeX listings-package artifact (papers builds)
+reproductions/*/papers/*.listing

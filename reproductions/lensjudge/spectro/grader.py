@@ -24,6 +24,11 @@ from lensjudge.tools import server
 
 _RUBRIC = (Path(__file__).resolve().parents[1] / "prompts" / "rubric_spectro.md").read_text()
 
+_REPAIR = ("Your previous reply was not valid JSON for the required schema. Re-emit "
+           "EXACTLY ONE JSON object with keys cls (lens|dimple|not_lens), plausible, "
+           "confidence, z_fg, z_bg, sigma_v, rationale — and nothing else. "
+           "Here is your previous reply to fix:\n\n")
+
 
 @dataclass
 class SpecResult:
@@ -62,12 +67,30 @@ async def grade(pair: dict, *, model: Optional[str] = None,
         model=model or config.MODELS["spectro"], system_prompt=_RUBRIC,
         mcp_servers=mcp_servers, allowed_tools=allowed, permission_mode="bypassPermissions",
         max_turns=config.MAX_TURNS, max_budget_usd=config.MAX_BUDGET_USD,
-        setting_sources=None, hooks=tr.hooks() if tr else None)
+        setting_sources=None, hooks=tr.hooks() if tr else None,
+        **config.thinking_options())
     t0 = time.time()
     try:
-        raw, cost, turns = await _collect(_user_message(pair), opts)
+        raw, cost, turns, tstats = await _collect(_user_message(pair), opts, tr)
     except Exception as e:
         return SpecResult(None, "", error=f"{type(e).__name__}: {e}")
     g = parse.parse_model(raw, SpecGrade)
+
+    if g is None and raw:
+        # one repair retry — no tools, just reformat the prior text (mirrors grader_lean)
+        repair_opts = ClaudeAgentOptions(
+            model=model or config.MODELS["spectro"], system_prompt=_RUBRIC,
+            permission_mode="bypassPermissions", max_turns=1, setting_sources=None)
+        try:
+            raw2, cost2, turns2, _ = await _collect(_REPAIR + raw, repair_opts)
+            cost += cost2; turns += turns2
+            g2 = parse.parse_model(raw2, SpecGrade)
+            if g2 is not None:
+                g, raw = g2, raw2
+        except Exception:
+            pass
+
     return SpecResult(grade=g, raw=raw, cost_usd=cost, num_turns=turns, parse_ok=g is not None,
-                      meta={"name": pair.get("name"), "wall_s": round(time.time() - t0, 2)})
+                      meta={"name": pair.get("name"), "wall_s": round(time.time() - t0, 2),
+                            "n_thinking_blocks": tstats["n_thinking_blocks"],
+                            "thinking_chars": tstats["thinking_chars"]})

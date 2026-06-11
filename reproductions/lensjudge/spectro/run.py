@@ -66,9 +66,10 @@ def build_set() -> list[dict]:
     return pairs
 
 
-async def run(pairs, concurrency, model):
+async def run(pairs, concurrency, model, trace_tag=None):
     sem = asyncio.Semaphore(concurrency)
-    trace_dir = config.OUT / "traces_spectro"; trace_dir.mkdir(parents=True, exist_ok=True)
+    trace_dir = config.OUT / (f"traces_spectro_{trace_tag}" if trace_tag else "traces_spectro")
+    trace_dir.mkdir(parents=True, exist_ok=True)
     rows = []
 
     async def one(p):
@@ -79,6 +80,9 @@ async def run(pairs, concurrency, model):
         rows.append({**{k: p[k] for k in ("name", "truth", "source", "z_lens", "z_src",
                                           "sigma_v_lens", "sep_arcsec")},
                      "parse_ok": res.parse_ok, "cost_usd": res.cost_usd,
+                     "wall_s": res.meta.get("wall_s"),
+                     "n_thinking_blocks": res.meta.get("n_thinking_blocks"),
+                     "thinking_chars": res.meta.get("thinking_chars"),
                      "cls": g.cls if g else None, "plausible": g.plausible if g else None,
                      "confidence": g.confidence if g else None,
                      "rationale": (g.rationale if g else res.raw[:200])})
@@ -105,15 +109,23 @@ def summarize(df: pd.DataFrame):
 
 
 def main():
+    import os
     ap = argparse.ArgumentParser()
     ap.add_argument("--concurrency", type=int, default=5)
     ap.add_argument("--model", default=None)
     ap.add_argument("--out", default=str(config.OUT / "preds_spectro.csv"))
+    ap.add_argument("--thinking", choices=("off", "adaptive"), default=None)
+    ap.add_argument("--effort", choices=("low", "medium", "high", "xhigh", "max"), default=None)
+    ap.add_argument("--trace-tag", default=None, help="trace dir suffix: traces_spectro_{tag}")
     args = ap.parse_args()
+    if args.thinking:
+        os.environ["LENSJUDGE_THINKING"] = args.thinking
+    if args.effort:
+        os.environ["LENSJUDGE_EFFORT"] = args.effort
     pairs = build_set()
     print(f"[set] {len(pairs)} spectroscopic candidates: "
           f"{pd.Series([p['source'] for p in pairs]).value_counts().to_dict()}")
-    df = asyncio.run(run(pairs, args.concurrency, args.model))
+    df = asyncio.run(run(pairs, args.concurrency, args.model, args.trace_tag))
     df.to_csv(args.out, index=False)
     summarize(df)
     print(f"[written] {args.out}")

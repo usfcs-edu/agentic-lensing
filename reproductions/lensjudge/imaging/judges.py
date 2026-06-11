@@ -40,7 +40,7 @@ async def _one_judge(cand, role, model, tools, trace_dir) -> tuple[Optional[Judg
         hooks=tr.hooks() if tr else None,
     )
     try:
-        raw, cost, turns = await _collect(_user_message(cand), opts)
+        raw, cost, turns, _ = await _collect(_user_message(cand), opts)
     except Exception:
         return None, 0.0, 0
     vote = parse.parse_model(raw, JudgeVote)
