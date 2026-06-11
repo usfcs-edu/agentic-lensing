@@ -36,7 +36,10 @@ theme:
         name: Switch to light mode
 
   features:
-    - navigation.indexes
+    # NOTE: navigation.indexes is deliberately OFF — every report page is a
+    # <slug>/index.md, and the feature would adopt the first one as each
+    # section's landing page (clicking "Current" would open LensJudge and
+    # remove it from the child list). Sections should only expand/collapse.
     - navigation.top
     - search.suggest
     - search.highlight
@@ -105,7 +108,7 @@ nav:
       - Silver 2025: reproductions/silver-2025/index.md
   - Other:
       - Apple Silicon:
-          - other/apple-silicon/index.md
+          - Overview: other/apple-silicon/index.md
           - Huang 2020 port: other/apple-silicon/huang-2020.md
           - Huang 2021 port: other/apple-silicon/huang-2021.md
           - Redshifty port: other/apple-silicon/redshifty.md
