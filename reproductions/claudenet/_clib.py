@@ -52,7 +52,11 @@ PHOENIX_RAID = "/raid/benson/git/agentic-lensing/reproductions"
 # --- venvs ------------------------------------------------------------------
 CLAUDENET_PY = "/home2/benson/.venvs/claudenet/bin/python"   # torch+timm+lenstronomy
 AION_PY = "/home2/benson/.venvs/aion/bin/python"             # has the `aion` package
-HF_HOME = os.environ.setdefault("HF_HOME", "/home2/benson/.cache/huggingface")
+# Default HF cache only on the local TITAN box; on other hosts (e.g. Perlmutter,
+# where /home2 does not exist) the caller's HF_HOME / default is left alone.
+if Path("/home2/benson/.cache/huggingface").exists():
+    os.environ.setdefault("HF_HOME", "/home2/benson/.cache/huggingface")
+HF_HOME = os.environ.get("HF_HOME", "")
 
 # inchausti shielded-ResNet config that lands at 194,433 params (Inchausti 2025).
 CFG194 = dict(stage_out=52, stage_mid=32, shield_ch=12, final_out=24)

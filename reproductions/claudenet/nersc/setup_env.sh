@@ -4,7 +4,8 @@
 #
 # Layers project deps onto NERSC's pytorch module via `pip install --user`
 # (PYTHONUSERBASE is per-module, so this never breaks the module), and creates
-# the $SCRATCH staging tree. Pattern from redshifty/nersc/setup_env.sh.
+# the $SCRATCH staging tree. Pattern from the lensing-repos redshifty
+# nersc/setup_env.sh (local checkout: /home2/benson/lensing-repos/redshifty).
 # Re-run if the pytorch module version changes.
 
 set -euo pipefail
@@ -22,6 +23,7 @@ python -m pip install --user --no-cache-dir \
     "pandas>=2.0" \
     "pyarrow>=15.0" \
     "scikit-learn>=1.4" \
+    "scipy>=1.12" \
     "tqdm>=4.66"
 
 echo "[3/3] create scratch tree"
