@@ -1,0 +1,35 @@
+# venv + caches
+.venv/
+__pycache__/
+*.log
+
+# Large/transient data — base inputs are symlinks to the canonical huang-2020/data
+# (and hsu-2025/data) and must never be committed here.
+data/dr7_sweep
+data/cutouts_fits_dr9
+data/cutouts_fits_dr7_train
+data/cutouts_fits_dr7
+data/zall-pix-iron.fits
+data/brick_tmp/
+
+# Reference artifacts copied from phoenix / ../data (duplicates of committed files)
+data/ref/
+data/papers/*.pdf
+
+# Computed bulk outputs (regeneratable)
+data/parent_dr7.parquet
+data/checkpoint_best.pt
+data/checkpoint_best_dr7.pt
+data/inference_scores.parquet
+data/inference_scores_shard*.parquet
+data/inference_scores_dr9trained.parquet
+data/inference_scores_dr7trained.parquet
+data/inference_scores_dr9trained_shard*.parquet
+data/inference_scores_dr7trained_shard*.parquet
+data/brick_manifest_shard*.csv
+data/inference_manifest*.csv
+
+# Inspection viewer outputs (large thumbs; regeneratable)
+papers/figures/inspection/thumbs/
+papers/figures/inspection/page_*.html
+papers/figures/inspection/index.html

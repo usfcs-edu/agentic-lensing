@@ -1,0 +1,18 @@
+{
+  "l18": {
+    "present": true,
+    "n_overlap": 17506,
+    "n_dup_ref_dropped": 5304,
+    "max_abs_delta": 0.0009778141975402832,
+    "median_abs_delta": 8.004280971363187e-08,
+    "p99_9_abs_delta": 0.0003866143524647052
+  },
+  "shielded": {
+    "present": true,
+    "n_overlap": 17506,
+    "n_dup_ref_dropped": 5304,
+    "max_abs_delta": 0.0010714232921600342,
+    "median_abs_delta": 2.6746420189738274e-07,
+    "p99_9_abs_delta": 0.00046923935413365186
+  }
+}

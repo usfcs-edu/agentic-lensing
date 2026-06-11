@@ -1,0 +1,61 @@
+name: redshifty_approach_a_phase10_mix_mps_20k
+repo: redshifty
+description: |
+  20k-step Apple Silicon / MPS ignition run — identical to
+  redshifty_approach_a_phase10_mix_mps.yaml but --steps 20000 (the redshifty author's own
+  recommendation: "10000 steps was barely enough to see ignition kinetics; future runs
+  should use >=20000 steps to give the post-ignition phase room"). Tests whether the MPS
+  trajectory climbs past the 10k run's 7.88% peak toward the reference's 14.86% / the
+  >=10%-sustained bar. Same frozen V1 tokenizer, same 4-way mix, same hparams, same seed.
+  Driven through the unmodified tools/spectrumfm/exp_run.py harness.
+tags: [apple-silicon, mps, transformer, approach-a, ignition, data-mix, 20k]
+
+launch:
+  command:
+    - python
+    - nersc/train_transformer.py
+    - --manifest
+    - /raid/benson/data/desi_dr1_medium/manifest_mix.jsonl
+    - --tokenizer-ckpt
+    - /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v1_large/best.pt
+    - --tokenizer-kind
+    - v1
+    - --approach
+    - a
+    - --steps
+    - "20000"
+    - --batch-size
+    - "32"
+    - --lr
+    - "4e-4"
+    - --warmup
+    - "500"
+    - --healpix-holdout-frac
+    - "0.05"
+    - --val-every
+    - "500"
+    - --save-every
+    - "2500"
+    - --log-every
+    - "100"
+    - --num-workers
+    - "0"
+    - --amp
+    - --redshift-loss-weight
+    - "50.0"
+    - --encoder-mask-ratio
+    - "0.50"
+    - --ar-eval-batches
+    - "8"
+    - --run-name
+    - approach_a_phase10_mix_mps_20k
+    - --scratch-out
+    - /raid/benson/data/desi_dr1_medium/checkpoints
+    - --wandb-mode
+    - disabled
+    - --no-push-wandb-artifact
+
+env:
+  SCRATCH: /raid/benson/data/desi_dr1_medium
+  PYTORCH_ENABLE_MPS_FALLBACK: "1"
+  PYTHONUNBUFFERED: "1"

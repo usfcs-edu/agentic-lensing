@@ -1,0 +1,20 @@
+# Apple Silicon (arm64 / MPS) deps for the redshifty SpectrumFM Phase-I port.
+# All ship prebuilt arm64 macOS wheels; the macOS arm64 torch wheel IS the MPS build
+# (no special index needed). NO mamba-ssm / causal-conv1d / triton — those are the
+# codecs (Mamba3) arm only and are CUDA/Triton-bound; redshifty's V1 (ConvNeXt+LFQ)
+# tokenizer + Approach-A transformer are pure PyTorch + bf16 AMP.
+#
+# redshifty itself (the `src` package) is installed editable from src-redshifty/:
+#   .venv/bin/pip install -e src-redshifty
+torch==2.6.0
+numpy==2.1.3
+scipy==1.14.1
+astropy==6.1.4
+h5py==3.12.1
+matplotlib==3.9.2
+tqdm==4.67.1
+jaxtyping==0.2.34
+python-dotenv==1.0.1
+wandb==0.18.5
+pyarrow==18.1.0
+pyyaml==6.0.2

@@ -1,0 +1,61 @@
+name: redshifty_approach_a_phase10_mix_mps
+repo: redshifty
+description: |
+  Apple Silicon / MPS reproduction of the redshift-ignition run. Byte-identical to
+  redshifty_approach_a_phase10_mix.yaml EXCEPT: --num-workers 0 (macOS spawn + MPS),
+  MPS fallback/unbuffered env, and no CUDA_VISIBLE_DEVICES. Driven through the
+  unmodified tools/spectrumfm/exp_run.py harness — which also validates the Track-2
+  tooling on Apple Silicon. Requires the one-time `sudo ln -s _raid /raid` so the
+  absolute paths below + manifest_mix.jsonl resolve verbatim, and
+  ~/.venvs/redshifty -> the port .venv (created by sync_from_phoenix.sh links).
+tags: [apple-silicon, mps, transformer, approach-a, ignition, data-mix]
+
+launch:
+  command:
+    - python
+    - nersc/train_transformer.py
+    - --manifest
+    - /raid/benson/data/desi_dr1_medium/manifest_mix.jsonl
+    - --tokenizer-ckpt
+    - /raid/benson/data/desi_dr1_medium/checkpoints/tokenizer_v1_large/best.pt
+    - --tokenizer-kind
+    - v1
+    - --approach
+    - a
+    - --steps
+    - "10000"
+    - --batch-size
+    - "32"
+    - --lr
+    - "4e-4"
+    - --warmup
+    - "500"
+    - --healpix-holdout-frac
+    - "0.05"
+    - --val-every
+    - "500"
+    - --save-every
+    - "2500"
+    - --log-every
+    - "100"
+    - --num-workers
+    - "0"
+    - --amp
+    - --redshift-loss-weight
+    - "50.0"
+    - --encoder-mask-ratio
+    - "0.50"
+    - --ar-eval-batches
+    - "8"
+    - --run-name
+    - approach_a_phase10_mix_mps
+    - --scratch-out
+    - /raid/benson/data/desi_dr1_medium/checkpoints
+    - --wandb-mode
+    - disabled
+    - --no-push-wandb-artifact
+
+env:
+  SCRATCH: /raid/benson/data/desi_dr1_medium
+  PYTORCH_ENABLE_MPS_FALLBACK: "1"
+  PYTHONUNBUFFERED: "1"

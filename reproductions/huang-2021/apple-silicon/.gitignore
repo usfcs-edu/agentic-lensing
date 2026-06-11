@@ -1,0 +1,45 @@
+# venv + caches
+.venv/
+__pycache__/
+*.log
+
+# Shared-input symlinks (point into ../../huang-2020 ; never commit here)
+data/cutouts_fits_dr9
+data/cutouts_fits_dr7_train
+data/positives_huang2020.parquet
+data/positives_all.parquet
+data/negatives.parquet
+data/neuralens_catalog.csv
+data/checkpoint_best.pt
+data/checkpoint_best_dr7.pt
+data/huang2020_published_catalog.csv
+
+# Reference baseline pulled from phoenix (dups of committed ../data files)
+data/ref/
+
+# North training cutouts (built by 18 or pulled as fallback)
+data/cutouts_fits_north/
+
+# Computed trained checkpoints (regeneratable from 05 / 05c)
+data/checkpoint_best_shielded_dr9.pt
+data/checkpoint_best_shielded_dr7.pt
+data/checkpoint_best_l18_northaug.pt
+data/checkpoint_best_shielded_northaug.pt
+
+# DR8 deployment artefacts (Tier 2)
+data/dr8_sweep/
+data/cutouts_fits_dr8/
+data/brick_tmp/
+data/parent_dr8.parquet
+data/brick_manifest_shard*.csv
+data/brick_manifest_dr8.csv
+
+# Full inference score parquets — commit only the slim p>=thresh subsets
+data/inference_scores_l18_dr8.parquet
+data/inference_scores_shielded_dr8.parquet
+data/inference_scores_*_shard*.parquet
+
+# Inspection viewer outputs (large thumbs; regeneratable from 16)
+papers/figures/inspection*/thumbs/
+papers/figures/inspection*/page_*.html
+papers/figures/inspection*/index.html

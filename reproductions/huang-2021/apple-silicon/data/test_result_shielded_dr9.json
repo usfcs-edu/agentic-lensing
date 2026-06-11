@@ -1,0 +1,10 @@
+{
+  "arch": "shielded",
+  "dr": "dr9",
+  "final_out": 32,
+  "n_params": 59905,
+  "best_val_auc": 0.9987024505617239,
+  "test_auc": 0.9996269475532148,
+  "best_epoch": 100,
+  "n_test": 583
+}

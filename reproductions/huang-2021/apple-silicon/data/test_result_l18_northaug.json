@@ -1,0 +1,9 @@
+{
+  "arch": "l18",
+  "northaug": true,
+  "n_params": 3508833,
+  "best_val_auc": 0.9991306482295907,
+  "test_auc": 0.9997683197732259,
+  "best_epoch": 62,
+  "n_test": 882
+}
