@@ -256,6 +256,12 @@ def main() -> int:
     ap.add_argument("--batch", type=int, default=512)
     ap.add_argument("--aion", choices=("skip", "score"), default="skip",
                     help="'score' shells out to 112b_score_aion_pool.py (needs `aion`)")
+    ap.add_argument("--extra-ckpt-dir", default=None,
+                    help="also score every member_*.pt in this dir (e.g. the 121 "
+                         "retrained variants in data/v2/ckpt); column = file stem")
+    ap.add_argument("--only-extra", action="store_true",
+                    help="score ONLY --extra-ckpt-dir checkpoints (skip the v1 "
+                         "roster, baselines, meta, aion)")
     ap.add_argument("--self-test", action="store_true",
                     help="prove array-path == file-path on the 1000-row smoke set")
     ap.add_argument("--smoke-fits-dir", default=None,
@@ -287,7 +293,7 @@ def main() -> int:
     cols: dict[str, np.ndarray] = {}
 
     # 1. the five v1 ensemble members
-    for name in MEMBERS:
+    for name in (() if args.only_extra else MEMBERS):
         col = f"member_{name}"
         path = member_ckpt_path(ckpt_dir, name)
         model, score_arch, mean, std = load_member_checkpoint(
@@ -298,9 +304,26 @@ def main() -> int:
         del model
         torch.cuda.empty_cache()
 
+    # 1b. extra checkpoints (121 retrained variants etc.); column = file stem,
+    #     timm variant read from the checkpoint itself (121 stores it)
+    if args.extra_ckpt_dir:
+        extras = sorted(Path(args.extra_ckpt_dir).glob("member_*.pt"))
+        if not extras:
+            print(f"[112] FATAL: --extra-ckpt-dir {args.extra_ckpt_dir} has no member_*.pt")
+            return 1
+        for path in extras:
+            col = path.stem
+            model, score_arch, mean, std = load_member_checkpoint(path, device, None)
+            print(f"[112] {col}: {path.name} score_arch={score_arch} (extra)")
+            cols[col] = run_pass(col, model, score_arch, mean, std, index, root,
+                                 device, args.batch, partial(col))
+            del model
+            torch.cuda.empty_cache()
+
     # 2. the reproduced Inchausti baselines (bases for baseline_meta)
-    for col, fname, arch in (("baseline_resnet", BASE_SH, "shielded"),
-                             ("baseline_effnet", BASE_EF, "efficientnet")):
+    for col, fname, arch in (() if args.only_extra else
+                             (("baseline_resnet", BASE_SH, "shielded"),
+                              ("baseline_effnet", BASE_EF, "efficientnet"))):
         model, _, mean, std, _ = SL.load_checkpoint_model(ckpt_dir / fname, device)
         print(f"[112] {col}: {fname}")
         cols[col] = run_pass(col, model, arch, mean, std, index, root,
@@ -309,13 +332,14 @@ def main() -> int:
         torch.cuda.empty_cache()
 
     # 3. baseline_meta over [p_resnet, p_effnet] (03_reproduce_baseline math)
-    MetaLearner = SL._load_module("meta_learner_112", "03_meta_learner.py").MetaLearner
-    meta = MetaLearner().to(device)
-    meta.load_state_dict(torch.load(str(ckpt_dir / BASE_META), map_location="cpu",
-                                    weights_only=False)["state_dict"])
-    meta.eval()
-    cols["baseline_meta"] = meta_prob(meta, cols["baseline_resnet"],
-                                      cols["baseline_effnet"], device)
+    if not args.only_extra:
+        MetaLearner = SL._load_module("meta_learner_112", "03_meta_learner.py").MetaLearner
+        meta = MetaLearner().to(device)
+        meta.load_state_dict(torch.load(str(ckpt_dir / BASE_META), map_location="cpu",
+                                        weights_only=False)["state_dict"])
+        meta.eval()
+        cols["baseline_meta"] = meta_prob(meta, cols["baseline_resnet"],
+                                          cols["baseline_effnet"], device)
 
     # 4. optional degraded-AION member (separate script: needs the aion package)
     if args.aion == "score":
@@ -334,7 +358,7 @@ def main() -> int:
     for col in cols:
         partial(col).unlink(missing_ok=True)
     print(f"[112] wrote {out} ({len(df):,} rows x {len(cols)} scorers)")
-    if args.aion != "score":
+    if args.aion != "score" and not args.only_extra:
         print("[112] NOTE: --aion skip -> pool lacks member_aion; 113 will DISABLE "
               "the combiners and emit NO flagship verdict. Use --aion score for "
               "the production NegEval run.")
