@@ -51,6 +51,13 @@ def build_swapped_table(member: str, spec: dict, mined: pd.DataFrame,
     """v1 member table with n_mine bootstrap-negative train rows displaced
     (seed 2026+boot_seed, positions without replacement) by the mined rows."""
     df = pd.read_parquet(C.DATA / f"member_{member}_train.parquet")
+    # host-portable: v1 tables carry absolute local paths; remap to THIS host's
+    # C.DATA by basename (19's convention) so the same table runs on Perlmutter
+    from pathlib import Path as _P
+    df["fits_dir"] = df["fits_dir"].apply(lambda p: str(C.DATA / _P(str(p)).name))
+    mined = mined.copy()
+    mined["fits_dir"] = mined["fits_dir"].apply(
+        lambda p: str(C.DATA / "v2" / _P(str(p)).name))
     neg_pos = np.where((df["split"] == "train") & (df["label"] == 0))[0]
     n_pos = int(((df["split"] == "train") & (df["label"] == 1)).sum())
     n_val = int((df["split"] == "val").sum())
@@ -111,6 +118,9 @@ def main() -> int:
                     help="override the v1 epoch count (SMOKE TESTS ONLY)")
     ap.add_argument("--build-only", action="store_true",
                     help="build + write the swapped table, no training (no GPU)")
+    ap.add_argument("--score-only", action="store_true",
+                    help="skip training: load the saved checkpoint and (re)run "
+                         "only the eval-split scoring (crash recovery)")
     args = ap.parse_args()
     name = f"{args.member}_{args.variant}"
     # smoke runs (--epochs override) get '_smoke' artifact names so they can
@@ -151,6 +161,19 @@ def main() -> int:
 
     epochs = args.epochs if args.epochs else M20.EPOCHS[arch]
     score_arch = "efficientnet" if arch == "efficientnet" else "shielded"
+
+    if args.score_only:
+        ckpt_f = V2 / "ckpt" / f"member_{art}.pt"
+        ck = torch.load(str(ckpt_f), map_location="cpu", weights_only=False)
+        model = M20.build_model(arch, spec.get("variant"))
+        model.load_state_dict(ck["state_dict"])
+        model.to(device).eval()
+        mean = np.asarray(ck["mean"], dtype=np.float32)
+        std = np.asarray(ck["std"], dtype=np.float32)
+        print(f"[121] --score-only: loaded {ckpt_f} (val_auc={ck.get('val_auc', 0):.4f})")
+        score_and_write(model, score_arch, mean, std, device, art, name)
+        return 0
+
     model = M20.build_model(arch, spec.get("variant"))
     n_params = sum(p.numel() for p in model.parameters())
     batch, accum = {"efficientnet": (128, 2), "dihedral": (32, 4)}.get(arch, (128, 1))
@@ -174,11 +197,19 @@ def main() -> int:
                ckpt_dir / f"member_{art}.pt")
     print(f"[train] saved {ckpt_dir / f'member_{art}.pt'}")
 
-    # score the shared v1 eval manifests (20_train_member verbatim) + isotonic pc
+    score_and_write(model, score_arch, mean, std, device, art, name)
+    return 0
+
+
+def score_and_write(model, score_arch, mean, std, device, art, name):
+    """Score the shared v1 eval manifests (20_train_member verbatim) + isotonic pc."""
     import _ensemble as E
+    import _train as T
+    from pathlib import Path as _P
     rows = []
     for sp in ("val", "testneg", "storfer", "inchausti"):
         d = pd.read_parquet(C.DATA / f"eval_{sp}.parquet").copy()
+        d["fits_dir"] = d["fits_dir"].apply(lambda p: str(C.DATA / _P(str(p)).name))
         d["p"] = T.score_df(model, score_arch, d, mean, std, device)
         d["split"] = sp
         rows.append(d[["split", "row_id", "label", "p"]])
@@ -191,7 +222,6 @@ def main() -> int:
     out_f = V2 / f"scores_member_{art}.parquet"
     sc.to_parquet(out_f, index=False)
     print(f"[121] {name} done -> {out_f}")
-    return 0
 
 
 if __name__ == "__main__":

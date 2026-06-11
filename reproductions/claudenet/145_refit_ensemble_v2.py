@@ -38,6 +38,19 @@ correlation matrices on calibrated pool scores, the gate), and
 <out-prefix>_pool_combined.parquet (combiner pool scores, 114 purity-audit
 input). Default out-prefix: data/v2/ensemble_v2.
 
+Phase-160 additions (additive; existing flags/outputs unchanged): every
+fitting run ALSO persists the eval roster's fitted objects under
+<out-prefix>_fits/ (ensemble_fits.joblib + meta.json — calibrators pickled,
+combiners stored as their calibrated val-matrix refit basis + reference
+outputs, since fit_combiner returns closures; the refit-twice determinism
+asserted below is exactly what makes refit-on-load bit-identical). The new
+--apply-roster mode then applies that EXACT calibrate+combine path to any
+raw-score pool with NO refitting/eval — 162_stage2_rescore.py drives it on
+the sweep survivors so p_final and the 165 calibration column share one path:
+
+    python 145_refit_ensemble_v2.py --apply-roster data/v2/ensemble_v2_fits \\
+        --pool-scores <survivor 112(,112b) parquets> --apply-out out.parquet
+
     /home2/benson/.venvs/claudenet/bin/python 145_refit_ensemble_v2.py --make-default-roster
     /home2/benson/.venvs/claudenet/bin/python 145_refit_ensemble_v2.py \\
         --roster data/v2/roster_v2.json \\
@@ -235,6 +248,110 @@ def expand_scorers(d: dict, combs, keys, tag, rtag):
     return d
 
 
+# ===== Phase-160: persisted fits + the --apply-roster path =======================
+
+def persist_fits(args, reg, keys, tag, combs, rosters) -> Path:
+    """Save the eval roster's fitted calibrators + the combiner refit basis
+    under <out-prefix>_fits/ (joblib). fit_combiner returns closures over
+    sklearn models, so what is persisted is the calibrated val matrix (P, y)
+    they were fitted on — refit on load is bit-identical (the refit-twice
+    determinism asserted in fit_roster_combiners is exactly this guarantee)
+    and is verified against stored reference outputs at load time."""
+    import joblib
+    import sklearn
+    P, y = roster_val_matrix(reg, keys[tag])
+    fits = {"schema": 1, "tag": tag, "keys": list(keys[tag]),
+            "pool_columns": {k: reg[k]["pool_column"] for k in keys[tag]},
+            "calibrators": {k: reg[k]["cal"] for k in keys[tag]},
+            "combiner_val": {"P": P, "y": y},
+            "combiner_ref": {cn: np.asarray(combs[tag][cn](P)) for cn in COMBINERS},
+            "combiners": list(COMBINERS),
+            "flagship_combiner": args.flagship_combiner,
+            "roster": rosters[tag], "seed": args.seed,
+            "sklearn_version": sklearn.__version__}
+    fdir = Path(f"{args.out_prefix}_fits")
+    fdir.mkdir(parents=True, exist_ok=True)
+    fp = fdir / "ensemble_fits.joblib"
+    tmp = fp.with_suffix(".tmp")
+    joblib.dump(fits, tmp)
+    tmp.rename(fp)
+    meta = {k: fits[k] for k in ("schema", "tag", "keys", "pool_columns",
+                                 "combiners", "flagship_combiner", "seed",
+                                 "sklearn_version")}
+    meta["n_val"] = int(len(y))
+    (fdir / "meta.json").write_text(json.dumps(meta, indent=2))
+    print(f"[145] persisted fitted calibrators+combiners -> {fp} "
+          f"(reuse via --apply-roster {fdir})")
+    return fdir
+
+
+def load_fits(path):
+    """Load <out-prefix>_fits (dir or its ensemble_fits.joblib), rebuild the
+    combiners from the persisted val matrix, verify vs stored references."""
+    import joblib
+    p = _resolve(path)
+    f = p / "ensemble_fits.joblib" if p.is_dir() else p
+    assert f.exists(), f"--apply-roster: {f} missing (run a fitting 145 first)"
+    fits = joblib.load(f)
+    assert fits.get("schema") == 1, f"{f}: unknown fits schema {fits.get('schema')!r}"
+    P, y = fits["combiner_val"]["P"], fits["combiner_val"]["y"]
+    combs = {cn: E.fit_combiner(cn, P, y) for cn in fits["combiners"]}
+    for cn, ref in fits["combiner_ref"].items():
+        d = float(np.max(np.abs(combs[cn](P) - ref)))
+        print(f"[apply] {fits['tag']}:{cn:9s} refit-vs-persisted max|diff| = "
+              f"{d:.3e} (tol 1e-9)")
+        assert d < 1e-9, (f"combiner {cn} refit drifted from the persisted fit "
+                          f"({d:.3e}) — sklearn skew? persisted with "
+                          f"{fits.get('sklearn_version')}")
+    return fits, combs
+
+
+def apply_fits(fits, combs, pool: pd.DataFrame) -> pd.DataFrame:
+    """Apply persisted calibrators+combiners to a merged raw-score pool frame
+    (run_eval's step-2 math, minus the eval). Returns [row_id, pc_<member>...,
+    <tag>_<combiner>...] over the rows with all-finite member scores.
+    Reproducibility note: the rf combiner predicts with n_jobs=-1, so repeat
+    applies can differ by ~1 ULP (3e-16 observed) from threaded tree
+    summation — well inside the 1e-9 tolerance used everywhere here."""
+    keys, tag = fits["keys"], fits["tag"]
+    cols = [fits["pool_columns"][k] for k in keys]
+    for k, c in zip(keys, cols):
+        assert c in pool.columns, (f"pool lacks column {c!r} for member {k} "
+                                   f"(merge the right 112/112b outputs)")
+    X = pool[cols].to_numpy(np.float64)
+    finite = np.isfinite(X).all(axis=1)
+    if (~finite).any():
+        print(f"[apply] dropping {int((~finite).sum()):,}/{len(pool):,} rows "
+              f"with non-finite member scores (failed cutouts)")
+    pool = pool[finite].reset_index(drop=True)
+    Q = np.column_stack([fits["calibrators"][k].transform(
+        pool[fits["pool_columns"][k]].to_numpy(np.float64)) for k in keys])
+    out = pd.DataFrame({"row_id": pool["row_id"].astype(str)})
+    for j, k in enumerate(keys):
+        out[f"pc_{k}"] = Q[:, j]
+    for cn in fits["combiners"]:
+        out[f"{tag}_{cn}"] = combs[cn](Q)
+    return out
+
+
+def apply_roster(args) -> int:
+    """--apply-roster mode: NO fitting, NO eval — load the persisted fits,
+    apply the calibrate+combine path to --pool-scores, write --apply-out."""
+    fits, combs = load_fits(args.apply_roster)
+    print(f"[apply] roster '{fits['tag']}' x {len(fits['keys'])} members "
+          f"{fits['keys']}; flagship combiner = {fits['flagship_combiner']}")
+    pool = load_pool([s for s in args.pool_scores.split(",") if s])
+    out = apply_fits(fits, combs, pool)
+    op = _resolve(args.apply_out)
+    op.parent.mkdir(parents=True, exist_ok=True)
+    tmp = op.with_suffix(op.suffix + ".tmp")
+    out.to_parquet(tmp, index=False)
+    tmp.rename(op)
+    print(f"[145] wrote {op} ({len(out):,} rows; flagship column = "
+          f"{fits['tag']}_{fits['flagship_combiner']})")
+    return 0
+
+
 def load_pool(paths):
     """Merge the comma-listed pool parquets on row_id (inner; 'ok' columns
     dropped; overlapping score columns are an error)."""
@@ -283,6 +400,9 @@ def run_eval(args, fprs, rosters: dict, rng, write_pool_combined=True):
     combs, det = {}, {}
     for t in (tag, rtag):
         combs[t], det[t] = fit_roster_combiners(reg, keys[t], t)
+
+    # -- 1b. persist the eval roster's fitted objects (Phase-160 --apply-roster) -
+    persist_fits(args, reg, keys, tag, combs, rosters)
 
     # -- 2. pool: merge parquets, calibrate member columns, expand scorers ------
     pool = load_pool([s for s in args.pool_scores.split(",") if s])
@@ -664,8 +784,18 @@ def main():
                     help="write the v1 6-member roster to --roster and --ref-roster, then exit")
     ap.add_argument("--synthetic-check", action="store_true",
                     help="run the full path on synthetic members + assert admission/gate logic")
+    ap.add_argument("--apply-roster", default=None, metavar="FITS",
+                    help="apply a previous run's persisted calibrators/combiners "
+                         "(<out-prefix>_fits dir or its ensemble_fits.joblib) to "
+                         "--pool-scores, write --apply-out, exit (no refit/eval)")
+    ap.add_argument("--apply-out", default=None,
+                    help="--apply-roster output parquet path")
     args = ap.parse_args()
     fprs = tuple(float(x) for x in args.fprs.split(","))
+    if args.apply_roster:
+        if not args.apply_out:
+            ap.error("--apply-roster requires --apply-out")
+        return apply_roster(args)
     if args.make_default_roster:
         return make_default_roster(args)
     if args.synthetic_check:

@@ -71,9 +71,12 @@ def crossmatch_topk(top: pd.DataFrame) -> pd.DataFrame:
     return top
 
 
-def render_contact_sheets(top: pd.DataFrame, npz_path: Path, out_dir: Path, grid: int):
+def render_contact_sheets(top: pd.DataFrame, npz_path: Path, out_dir: Path, grid: int,
+                          title: str | None = None, prefix: str = "topk"):
     """Rank-ordered grid x grid Lupton-RGB contact sheets from the 111b npz
-    (cutouts (n, 3, 101, 101) float32 in grz band order, row_ids, ok)."""
+    (cutouts (n, 3, 101, 101) float32 in grz band order, row_ids, ok).
+    `top` needs columns row_id/rank/score/match5; `title`/`prefix` default to
+    the 114 purity-audit captions (164 reuses this for the sweep vet pages)."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -105,9 +108,9 @@ def render_contact_sheets(top: pd.DataFrame, npz_path: Path, out_dir: Path, grid
             star = " *LENS5\"" if bool(r.match5) else ""
             ax.set_title(f"#{int(r['rank'])} p={r.score:.3f}{star}", fontsize=6,
                          color="#d7191c" if r.match5 else "black", pad=2)
-        out = out_dir / f"topk_page{page}.png"
-        fig.suptitle(f"NegEval-1M top-{len(top)} by average combiner — page "
-                     f"{page}/{n_pages} (rank order)", fontsize=9)
+        out = out_dir / f"{prefix}_page{page}.png"
+        base = title or f"NegEval-1M top-{len(top)} by average combiner"
+        fig.suptitle(f"{base} — page {page}/{n_pages} (rank order)", fontsize=9)
         fig.tight_layout(rect=(0, 0, 1, 0.97))
         fig.savefig(out, dpi=150)
         plt.close(fig)

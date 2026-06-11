@@ -265,11 +265,13 @@ def main() -> int:
                ckpt_dir / f"member_{art}.pt")
     print(f"[train] saved {ckpt_dir / f'member_{art}.pt'}")
 
-    # score the shared v1 eval manifests + isotonic pc (121_retrain verbatim)
+    # score the shared v1 eval manifests + isotonic pc (121_retrain verbatim;
+    # fits_dir remapped to THIS host's C.DATA by basename — Perlmutter-portable)
     import _ensemble as E
     rows = []
     for sp in ("val", "testneg", "storfer", "inchausti"):
         d = pd.read_parquet(C.DATA / f"eval_{sp}.parquet").copy()
+        d["fits_dir"] = d["fits_dir"].apply(lambda p: str(C.DATA / Path(str(p)).name))
         d["p"] = T.score_df(model, "efficientnet", d, mean, std, device)
         d["split"] = sp
         rows.append(d[["split", "row_id", "label", "p"]])

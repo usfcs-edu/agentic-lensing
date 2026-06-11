@@ -36,6 +36,25 @@ index.parquet [row_id,shard,idx_in_shard,ok,nan_frac]; rows with ok=False are
 skipped -> NaN in every score column. Per-scorer partial results are cached as
 <out>.partial_<col>.npy (resume-safe; deleted after the final atomic write).
 
+Phase-160 sweep additions (additive; defaults leave everything above intact):
+  --shard-range A:B   score only shards A..B-1 (half-open) — lets the 17.3M-row
+                      sweep fan out as independent shared-GPU jobs. Each range
+                      MUST use its own --out (161_sweep_score.py does), and
+                      this is now ENFORCED: the --out file name must embed the
+                      range (e.g. ..._s00000-00008.parquet, 161's naming), so
+                      concurrent ranges can never share partial sidecars or
+                      clobber each other's final parquet. The partial sidecars
+                      are named after --out and fingerprinted to the filtered
+                      index. Resume granularity is PER COMPLETED CHECKPOINT
+                      PASS: run_pass saves its partial npz only after a full
+                      pass over the range, so a mid-pass kill redoes that
+                      checkpoint's pass. Not combinable with --aion score
+                      (112b has no range support; survivors-only stage-2 roots
+                      are scored whole instead).
+  --skip-baselines    skip baseline_resnet/effnet/meta (stage-1 'members' mode:
+                      the five CNN members only — baselines are wasted GPU-min
+                      at sweep scale and play no part in stage-1 selection).
+
     # Perlmutter (repo synced with symlinks resolved, rsync -L; data/ckpt +
     # the three checkpoint_best_*_staged.pt + members.json synced under data/):
     sbatch --export=ALL,CMD='python 112_score_pool.py \
@@ -279,6 +298,12 @@ def main() -> int:
     ap.add_argument("--only-extra", action="store_true",
                     help="score ONLY --extra-ckpt-dir checkpoints (skip the v1 "
                          "roster, baselines, meta, aion)")
+    ap.add_argument("--shard-range", default=None, metavar="A:B",
+                    help="score only shards [A,B) of the index (Phase-160 sweep "
+                         "fan-out; use a distinct --out per range)")
+    ap.add_argument("--skip-baselines", action="store_true",
+                    help="skip baseline_resnet/baseline_effnet/baseline_meta "
+                         "(Phase-160 stage-1 members mode)")
     ap.add_argument("--self-test", action="store_true",
                     help="prove array-path == file-path on the 1000-row smoke set")
     ap.add_argument("--smoke-fits-dir", default=None,
@@ -296,6 +321,9 @@ def main() -> int:
         return self_test(args, device)
     if not (args.cutout_root and args.out):
         ap.error("--cutout-root and --out are required (or use --self-test)")
+    if args.shard_range and args.aion == "score":
+        ap.error("--shard-range cannot be combined with --aion score "
+                 "(112b scores whole roots; see the docstring)")
 
     root, out, ckpt_dir = Path(args.cutout_root), Path(args.out), Path(args.ckpt_dir)
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -303,6 +331,27 @@ def main() -> int:
              .sort_values(["shard", "idx_in_shard"]).reset_index(drop=True))
     print(f"[112] {len(index):,} rows in {index.shard.nunique()} shards; "
           f"{int(index.ok.sum()):,} ok")
+    if args.shard_range:
+        try:
+            a, b = (int(x) for x in args.shard_range.split(":"))
+        except ValueError:
+            ap.error(f"--shard-range {args.shard_range!r}: expected A:B integers")
+        if not 0 <= a < b:
+            ap.error(f"--shard-range {args.shard_range!r}: need 0 <= A < B")
+        # out-per-range enforcement: concurrent ranges sharing one --out would
+        # clobber each other's partial sidecars AND the final parquet
+        range_tokens = (f"s{a:05d}-{b:05d}", f"s{a}-{b}", f"{a}-{b}",
+                        f"{a}_{b}", f"{a}:{b}")
+        if not any(t in out.name for t in range_tokens):
+            ap.error(f"--shard-range {a}:{b}: --out name {out.name!r} must encode "
+                     f"the range (e.g. ..._s{a:05d}-{b:05d}.parquet, 161's naming) "
+                     f"— each range MUST have its own --out")
+        index = index[(index.shard >= a) & (index.shard < b)].reset_index(drop=True)
+        if index.empty:
+            print(f"[112] FATAL: shard range {a}:{b} matches no shards")
+            return 1
+        print(f"[112] shard-range {a}:{b} -> {len(index):,} rows in "
+              f"{index.shard.nunique()} shards; {int(index.ok.sum()):,} ok")
 
     def partial(col):
         return out.parent / f"{out.name}.partial_{col}.npz"
@@ -353,7 +402,8 @@ def main() -> int:
                 return 1
 
     # 2. the reproduced Inchausti baselines (bases for baseline_meta)
-    for col, fname, arch in (() if args.only_extra else
+    skip_base = args.only_extra or args.skip_baselines
+    for col, fname, arch in (() if skip_base else
                              (("baseline_resnet", BASE_SH, "shielded"),
                               ("baseline_effnet", BASE_EF, "efficientnet"))):
         model, _, mean, std, _ = SL.load_checkpoint_model(ckpt_dir / fname, device)
@@ -364,7 +414,7 @@ def main() -> int:
         torch.cuda.empty_cache()
 
     # 3. baseline_meta over [p_resnet, p_effnet] (03_reproduce_baseline math)
-    if not args.only_extra:
+    if not skip_base:
         MetaLearner = SL._load_module("meta_learner_112", "03_meta_learner.py").MetaLearner
         meta = MetaLearner().to(device)
         meta.load_state_dict(torch.load(str(ckpt_dir / BASE_META), map_location="cpu",
@@ -390,7 +440,7 @@ def main() -> int:
     for col in cols:
         partial(col).unlink(missing_ok=True)
     print(f"[112] wrote {out} ({len(df):,} rows x {len(cols)} scorers)")
-    if args.aion != "score" and not args.only_extra:
+    if args.aion != "score" and not skip_base:
         print("[112] NOTE: --aion skip -> pool lacks member_aion; 113 will DISABLE "
               "the combiners and emit NO flagship verdict. Use --aion score for "
               "the production NegEval run.")
