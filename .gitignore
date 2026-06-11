@@ -66,5 +66,18 @@ reproductions/.wave2_deps_install.log
 # macOS Finder cruft
 .DS_Store
 
+# playwright-cli session artifacts (local browser QA)
+.playwright-cli/
+
 # LaTeX listings-package artifact (papers builds)
 reproductions/*/papers/*.listing
+
+# MkDocs site (site/) — build output and CI-generated report pages.
+# Hand-written content (site/docs/index.md, stylesheets, javascripts,
+# assets, other/apple-silicon/index.md, mkdocs.yml, overrides/) IS tracked.
+site/_site/
+site/docs/current/
+site/docs/reproductions/
+site/docs/other/apple-silicon/huang-2020.md
+site/docs/other/apple-silicon/huang-2021.md
+site/docs/other/apple-silicon/redshifty.md

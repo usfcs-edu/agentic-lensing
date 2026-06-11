@@ -1,0 +1,147 @@
+/* ==============================================================================
+   Agentic Lensing — custom styles (USF palette, adapted from the CS631 site)
+   ============================================================================== */
+
+:root {
+  /* USF brand colors */
+  --md-primary-fg-color: #00543c;           /* USF green */
+  --md-primary-fg-color--light: #2d7d5f;
+  --md-primary-fg-color--dark: #003d2b;
+  --md-primary-bg-color: #ffffff;
+  --md-primary-bg-color--light: #ffffffb3;
+
+  --md-accent-fg-color: #FDBB30;            /* USF gold */
+  --md-accent-fg-color--transparent: #FDBB301a;
+  --md-accent-bg-color: #00543c;
+  --md-accent-bg-color--light: #00543c1a;
+}
+
+/* Dark mode color adjustments */
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #00543c;
+  --md-primary-fg-color--light: #3a8f6f;
+  --md-primary-fg-color--dark: #003d2b;
+  --md-accent-fg-color: #FDBB30;
+  --md-accent-fg-color--transparent: #FDBB301a;
+  /* Body links inherit the primary green, which is unreadable on the dark
+     background — lighten them (hover still goes USF gold via the accent). */
+  --md-typeset-a-color: #6fc7a3;
+}
+
+/* Custom primary color scheme */
+[data-md-color-primary="custom"] {
+  --md-primary-fg-color: #00543c;
+  --md-primary-fg-color--light: #2d7d5f;
+  --md-primary-fg-color--dark: #003d2b;
+}
+
+/* Custom accent color scheme */
+[data-md-color-accent="custom"] {
+  --md-accent-fg-color: #FDBB30;
+  --md-accent-fg-color--transparent: #FDBB301a;
+}
+
+/* Footer customization */
+.md-footer {
+  background-color: var(--md-primary-fg-color);
+}
+
+.md-footer-meta {
+  background-color: var(--md-primary-fg-color--dark);
+}
+
+/* Logo styling improvements (white chip behind the USF wordmark) */
+.md-header__button.md-logo {
+  padding: 0.4rem;
+  background-color: white;
+  border-radius: 0.25rem;
+  margin: 0.5rem 0.2rem 0.45rem 0.2rem;
+}
+
+.md-header__button.md-logo img,
+.md-header__button.md-logo svg {
+  height: 1.6rem;
+  width: auto;
+  transition: transform 0.2s ease-in-out;
+}
+
+.md-header__button.md-logo:hover {
+  background-color: #f5f5f5;
+}
+
+.md-header__button.md-logo:hover img,
+.md-header__button.md-logo:hover svg {
+  transform: scale(1.05);
+}
+
+@media screen and (min-width: 60em) {
+  .md-header__button.md-logo img,
+  .md-header__button.md-logo svg {
+    height: 2rem;
+  }
+}
+
+[data-md-color-scheme="slate"] .md-header__button.md-logo {
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+[data-md-color-scheme="slate"] .md-header__button.md-logo:hover {
+  background-color: rgba(255, 255, 255, 1);
+}
+
+/* Hide the site title in the navigation sidebar only on desktop */
+@media screen and (min-width: 76.25em) {
+  .md-nav--primary .md-nav__title {
+    display: none !important;
+  }
+}
+
+/* ==============================================================================
+   Report-page styles (pandoc-converted LaTeX)
+   ============================================================================== */
+
+/* pandoc emits <span class="smallcaps"> for \textsc */
+.smallcaps {
+  font-variant: small-caps;
+}
+
+/* pandoc emits <span class="math inline"> for math inside raw-HTML tables
+   and figure captions. Material's inline-ADMONITION utility rule
+   (.md-typeset .inline { float: left; width: 11.7rem }) would float every
+   such span out of its sentence, shattering captions and tables. */
+.md-typeset .math.inline,
+.md-typeset .math.display {
+  float: none !important;
+  width: auto !important;
+  margin: 0 !important;
+}
+
+.md-typeset .math.inline {
+  display: inline !important;
+}
+
+/* Wide raw-HTML tables (pandoc multicolumn output sits in a div wrapper):
+   scroll horizontally instead of overflowing into the TOC sidebar. */
+.md-typeset div[markdown] {
+  overflow-x: auto;
+}
+
+/* Hanging indent for citeproc bibliography entries */
+.csl-entry {
+  padding-left: 1.5em;
+  text-indent: -1.5em;
+  margin-bottom: 0.5em;
+}
+
+/* Centered figures with constrained captions, as in the PDF reports */
+figure {
+  text-align: center;
+}
+
+figcaption {
+  font-size: 0.75rem;
+  color: var(--md-default-fg-color--light);
+  text-align: left;
+  margin: 0.4rem auto 0 auto;
+  max-width: 90%;
+}
