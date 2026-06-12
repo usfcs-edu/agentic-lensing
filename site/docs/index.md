@@ -6,6 +6,8 @@ University of San Francisco
 
 *All work and reports on this site were performed by Claude Code.*
 
+---
+
 An agentic-AI research program at USF Computer Science, with USF Physics &
 Astronomy and the DESI Strong Lens Foundry group: a complete public-data
 reproduction of the 16-paper Huang-group strong gravitational lensing corpus —
