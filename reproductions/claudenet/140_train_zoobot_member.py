@@ -206,6 +206,11 @@ def main() -> int:
     ap.add_argument("--pretrained", choices=("zoobot", "imagenet", "none"),
                     default="zoobot",
                     help="start of the LOUD fallback chain zoobot->imagenet->none")
+    ap.add_argument("--lr", type=float, default=1e-4,
+                    help="fine-tune lr. The v1 member recipe's 1e-3 COLLAPSES the "
+                         "pretrained ConvNeXT (constant output, val AUC 0.64 — "
+                         "LayerNorm ConvNeXTs are lr-sensitive where EfficientNets "
+                         "are not); 1e-4 is the documented recipe deviation.")
     ap.add_argument("--epochs", type=int, default=None,
                     help="override the v1 epoch count (SMOKE TESTS ONLY; "
                          "appends '_smoke' to every artifact name)")
@@ -250,7 +255,7 @@ def main() -> int:
     # arch='efficientnet' selects the v1 pretrained-backbone recipe inside
     # train_supervised: CrossEntropy loss + softmax[:,1] val scoring.
     model, val_auc, mean, std = T.train_supervised(
-        model, "efficientnet", dfm, device, epochs=epochs, batch=BATCH, lr=1e-3,
+        model, "efficientnet", dfm, device, epochs=epochs, batch=BATCH, lr=args.lr,
         decay_ep=max(8, epochs // 3), accum=ACCUM, aug_seed=AUG_SEED)
     print(f"[train] {art} best_val_auc={val_auc:.4f} ({(time.time() - t0) / 60:.1f}m)")
 

@@ -217,10 +217,19 @@ def main() -> int:
         return 2
 
     widths = tuple(int(w) for w in args.widths.split(","))
-    twin_widths = tuple(w // 2 for w in widths)
     equiv = EquivLens("c4", widths)
+    pe = n_params(equiv)
+    # self-calibrating twin: search the width scale whose plain-CNN param count
+    # matches the equivariant net (the w//2 heuristic missed by ~1.5x)
+    best = None
+    for s in np.linspace(0.30, 0.60, 31):
+        tw = tuple(max(8, int(round(w * s))) for w in widths)
+        d = abs(n_params(TwinCNN(tw)) - pe) / pe
+        if best is None or d < best[0]:
+            best = (d, tw)
+    twin_widths = best[1]
     twin = TwinCNN(twin_widths)
-    pe, pt = n_params(equiv), n_params(twin)
+    pt = n_params(twin)
     ratio = pe / pt
     print(f"[141] params: equivariant(C4 {widths})={pe:,} "
           f"twin({twin_widths})={pt:,} ratio={ratio:.2f}")
