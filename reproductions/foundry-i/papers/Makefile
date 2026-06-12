@@ -1,11 +1,14 @@
 # =============================================================================
-# Makefile — build the Phase 1 (Foundry I) internal reproduction report.
+# Makefile — build the Foundry I reproduction reports.
+#
+# Two documents share references.bib and ../../tech-report.sty:
+#   main.pdf       — concise final-state report (served on the project site)
+#   evolution.pdf  — complete development record (v1 -> v13)
 #
 # Same skeleton as Phase 2 (hsu-2025) and Phase 3a (huang-2020) papers/.
 # Builds with vanilla TeX Live (>= 2022); no special class file or PATH pin.
 # =============================================================================
-PAPER       := main
-TEX_SOURCE  := $(PAPER).tex
+PAPERS      := main evolution
 BIB_SOURCE  := references.bib
 SHARED_STY  := ../../tech-report.sty
 PDFLATEX    := pdflatex -interaction=nonstopmode -halt-on-error
@@ -13,24 +16,24 @@ BIBTEX      := bibtex
 
 .PHONY: pdf clean distclean help
 
-pdf: $(PAPER).pdf
+pdf: $(addsuffix .pdf,$(PAPERS))
 
-$(PAPER).pdf: $(TEX_SOURCE) $(BIB_SOURCE) $(SHARED_STY)
-	$(PDFLATEX) $(PAPER)
-	$(BIBTEX)   $(PAPER)
-	$(PDFLATEX) $(PAPER)
-	$(PDFLATEX) $(PAPER)
+%.pdf: %.tex $(BIB_SOURCE) $(SHARED_STY)
+	$(PDFLATEX) $*
+	$(BIBTEX)   $*
+	$(PDFLATEX) $*
+	$(PDFLATEX) $*
 
 clean:
-	rm -f $(PAPER).aux $(PAPER).bbl $(PAPER).blg \
-	      $(PAPER).log $(PAPER).out $(PAPER).fdb_latexmk \
-	      $(PAPER).fls $(PAPER).toc $(PAPER).synctex.gz
+	rm -f $(foreach p,$(PAPERS),\
+	      $(p).aux $(p).bbl $(p).blg $(p).log $(p).out \
+	      $(p).fdb_latexmk $(p).fls $(p).toc $(p).synctex.gz)
 
 distclean: clean
-	rm -f $(PAPER).pdf
+	rm -f $(addsuffix .pdf,$(PAPERS))
 
 help:
 	@echo "Targets:"
-	@echo "  pdf        Build $(PAPER).pdf"
-	@echo "  clean      Remove auxiliary build artifacts (keep $(PAPER).pdf)"
-	@echo "  distclean  Remove auxiliary build artifacts AND $(PAPER).pdf"
+	@echo "  pdf        Build $(addsuffix .pdf,$(PAPERS))"
+	@echo "  clean      Remove auxiliary build artifacts (keep PDFs)"
+	@echo "  distclean  Remove auxiliary build artifacts AND PDFs"
