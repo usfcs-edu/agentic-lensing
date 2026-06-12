@@ -13,6 +13,31 @@ chain (`data/nuts_v11f_posterior_mass.npz`) gave a second-mode point estimate.
 The section below documents the subsequent push to **genuine HMC** posterior
 inference.
 
+> **June 2026 update — the paper-scale Perlmutter campaign + rigor revision
+> (scripts `40_*` ... `46_*`, `slurm/`, log in `PERLMUTTER_CAMPAIGN.md`,
+> report sections "Paper-Scale Campaign" and "Rigor revision" in
+> `papers/main.pdf`) supersede the older gamma-discrepancy conclusions
+> below.** The campaign implemented the group's data-treatment feedback at
+> published compute scale (vendored gigalens-sean `multinode-2025`,
+> `vendor/`); the rigor revision then audited it, finding (a) the noise
+> sky-term was over-calibrated by diffuse lens-wing flux (the celebrated
+> chi2=0.451 was an artifact — recalibrated: 0.92, honestly under the
+> group's <1.1 bar), and (b) a **PSF sampling-convention defect** (gigalens
+> kernels must be sampled at delta_pix; the 0.065"-sampled ePSF fed at
+> 0.13"/ss=2 broadened the effective PSF 2x in every native-scale fit).
+> With both fixed (`data/cutout_v2d.npz`), the native MAP floor drops
+> 3.4 -> 1.05 (PSF fix alone, identical noise) and the **final headline
+> posterior is gamma = 1.433 [1.400, 1.468]** (published 1.372 +/- 0.023,
+> consistent <2 sigma; ~0.1 model-class systematic), theta_E = 2.655
+> (0.33% from published), R-hat 1.077, gamma ESS 5,714 (the old gamma-ESS
+> saturation was the broadened kernel, not the sampler), inner critical
+> curve recovered (`figs/ours_foundry-i_fig8_v2d.png`). A 2x2-binned 0.08"
+> refit (`data/cutout_v3b.npz`) exposes an explicit low/steep-slope
+> bimodality (delta-chi2 = 0.078 favoring steep; HMC chains split 45/3
+> with zero migrations; gamma scale-stable only at +/-0.1) — resolving it
+> needs the correlated-noise likelihood, the one open methodological item.
+> Cost: ~44 A100-hours of the 200 budgeted.
+
 Environment: `/raid/benson/.venvs/gigalens/bin/python` (JAX 0.6.2, TFP 0.25.0),
 gigalens at `/raid/benson/lensing-repos/gigalens`.
 
@@ -96,13 +121,18 @@ The fixes compose; each is necessary.
    - `hesscorr` — full Hessian via the diagonally-scaled correlation matrix
      `chol(H) = diag(sqrt(D)) @ chol(D^-1/2 H D^-1/2)`. Lifts correlated mass
      params (theta_E ESS 8 -> 20, gamma2 3 -> 14). The correlation matrix itself
-     still has cond ~1e8 (genuine lensing degeneracies: mass-sheet,
-     slope-ellipticity).
+     still has cond ~1e8 — empirically, a broad valley coupling gamma, e1/e2,
+     and gamma_ext under the pre-correction likelihood (earlier "mass-sheet /
+     slope-ellipticity degeneracy" labels retracted: nothing in this single-band
+     analysis invokes the mass-sheet transformation; the valley largely closed
+     once the June 2026 campaign corrected the likelihood).
 
 ### How to run
 
-All commands are GPU-pinned single-device with the autotuner off. **Use one A16
-per chain; never run on the L4s (reserved).**
+All commands are GPU-pinned single-device with the autotuner off. Use one A16
+per chain. (The L4s were released for general use on 2026-06-10; the old
+"reserved" restriction no longer applies. L4 is ~5.9x an A16 on the f64
+marginalized gradient: 57 ms vs 336 ms.)
 
 **Step 1 — refine to the PD mode** (scipy trust-exact on the smooth marginal
 target). Writes `data/map_marg_pd.npz` + `data/hess_marg_pd.npz`:

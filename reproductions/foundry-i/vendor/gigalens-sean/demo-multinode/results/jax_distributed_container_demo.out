@@ -1,0 +1,154 @@
+2026-02-11 07:33:43.538029: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:467] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+2026-02-11 07:33:43.538422: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:467] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+2026-02-11 07:33:43.538441: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:467] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+2026-02-11 07:33:43.538769: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:467] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1770824023.968615 1226095 cuda_dnn.cc:8579] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1770824023.971974 1226092 cuda_dnn.cc:8579] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1770824023.972249 1226091 cuda_dnn.cc:8579] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1770824023.973143 1226096 cuda_dnn.cc:8579] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+E0000 00:00:1770824024.093365 1226095 cuda_blas.cc:1407] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+E0000 00:00:1770824024.094089 1226091 cuda_blas.cc:1407] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+E0000 00:00:1770824024.094421 1226092 cuda_blas.cc:1407] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+E0000 00:00:1770824024.096869 1226096 cuda_blas.cc:1407] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2026-02-11 07:33:44.597459: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:467] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+2026-02-11 07:33:44.597456: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:467] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+2026-02-11 07:33:44.597462: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:467] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+2026-02-11 07:33:44.597787: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:467] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1770824025.213188 1826035 cuda_dnn.cc:8579] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1770824025.213188 1826039 cuda_dnn.cc:8579] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1770824025.213191 1826040 cuda_dnn.cc:8579] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1770824025.222375 1826036 cuda_dnn.cc:8579] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+W0000 00:00:1770824025.306862 1226096 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1770824025.306893 1226096 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1770824025.306896 1226096 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1770824025.306899 1226096 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1770824025.307208 1226092 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1770824025.307231 1226092 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1770824025.307233 1226092 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1770824025.307235 1226092 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1770824025.307465 1226095 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1770824025.307483 1226095 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1770824025.307485 1226095 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1770824025.307487 1226095 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1770824025.308213 1226091 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1770824025.308235 1226091 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1770824025.308237 1226091 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1770824025.308239 1226091 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+E0000 00:00:1770824025.399177 1826035 cuda_blas.cc:1407] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+E0000 00:00:1770824025.399164 1826036 cuda_blas.cc:1407] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+E0000 00:00:1770824025.399163 1826039 cuda_blas.cc:1407] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+E0000 00:00:1770824025.401872 1826040 cuda_blas.cc:1407] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+W0000 00:00:1770824027.305808 1826035 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1770824027.305834 1826035 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1770824027.305836 1826035 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1770824027.305839 1826035 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1770824027.305806 1826036 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1770824027.305834 1826036 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1770824027.305836 1826036 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1770824027.305839 1826036 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1770824027.305808 1826039 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1770824027.305834 1826039 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1770824027.305836 1826039 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1770824027.305839 1826039 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1770824027.308938 1826040 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1770824027.308955 1826040 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1770824027.308957 1826040 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1770824027.308958 1826040 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+2026-02-11 07:36:04.160430: W external/xla/xla/service/gpu/autotuning/dot_search_space.cc:200] All configs were filtered out because none of them sufficiently match the hints. Maybe the hints set does not contain a good representative set of valid configs?Working around this by using the full hints set instead.
+1: local devices: [CudaDevice(id=1)]
+Starting MAP
+Final Chi-squared: 0.98446
+Starting SVI
+Starting HMC
+Sampling took 30.6s
+The rhats are:
+[1.0012326 1.0016505 1.0083001 1.0079608 1.0216175 1.0058566 1.0163324
+ 1.0123872 1.0013095 1.0013125 1.0003126 1.000979  1.001501  1.0056823
+ 1.0017614 1.0029233 1.0180724 1.0012437 1.0198561 1.0017079 1.001324
+ 1.0026783]
+3: local devices: [CudaDevice(id=3)]
+Starting MAP
+Final Chi-squared: 0.98446
+Starting SVI
+Starting HMC
+Sampling took 27.9s
+The rhats are:
+[1.0012326 1.0016505 1.0083001 1.0079608 1.0216175 1.0058566 1.0163324
+ 1.0123872 1.0013095 1.0013125 1.0003126 1.000979  1.001501  1.0056823
+ 1.0017614 1.0029233 1.0180724 1.0012437 1.0198561 1.0017079 1.001324
+ 1.0026783]
+0: local devices: [CudaDevice(id=0)]
+Global devices: [CudaDevice(id=0), CudaDevice(id=1), CudaDevice(id=2), CudaDevice(id=3), CudaDevice(id=4), CudaDevice(id=5), CudaDevice(id=6), CudaDevice(id=7)]
+Starting MAP
+Final Chi-squared: 0.98446
+Starting SVI
+Starting HMC
+Sampling took 30.0s
+The rhats are:
+[1.0012326 1.0016505 1.0083001 1.0079608 1.0216175 1.0058566 1.0163324
+ 1.0123872 1.0013095 1.0013125 1.0003126 1.000979  1.001501  1.0056823
+ 1.0017614 1.0029233 1.0180724 1.0012437 1.0198561 1.0017079 1.001324
+ 1.0026783]
+2: local devices: [CudaDevice(id=2)]
+Starting MAP
+Final Chi-squared: 0.98446
+Starting SVI
+Starting HMC
+Sampling took 30.6s
+The rhats are:
+[1.0012326 1.0016505 1.0083001 1.0079608 1.0216175 1.0058566 1.0163324
+ 1.0123872 1.0013095 1.0013125 1.0003126 1.000979  1.001501  1.0056823
+ 1.0017614 1.0029233 1.0180724 1.0012437 1.0198561 1.0017079 1.001324
+ 1.0026783]
+4: local devices: [CudaDevice(id=4)]
+Starting MAP
+Final Chi-squared: 0.98446
+Starting SVI
+Starting HMC
+Sampling took 33.3s
+The rhats are:
+[1.0012326 1.0016505 1.0083001 1.0079608 1.0216175 1.0058566 1.0163324
+ 1.0123872 1.0013095 1.0013125 1.0003126 1.000979  1.001501  1.0056823
+ 1.0017614 1.0029233 1.0180724 1.0012437 1.0198561 1.0017079 1.001324
+ 1.0026783]
+6: local devices: [CudaDevice(id=6)]
+Starting MAP
+Final Chi-squared: 0.98446
+Starting SVI
+Starting HMC
+Sampling took 31.6s
+The rhats are:
+[1.0012326 1.0016505 1.0083001 1.0079608 1.0216175 1.0058566 1.0163324
+ 1.0123872 1.0013095 1.0013125 1.0003126 1.000979  1.001501  1.0056823
+ 1.0017614 1.0029233 1.0180724 1.0012437 1.0198561 1.0017079 1.001324
+ 1.0026783]
+7: local devices: [CudaDevice(id=7)]
+Starting MAP
+Final Chi-squared: 0.98446
+Starting SVI
+Starting HMC
+Sampling took 30.7s
+The rhats are:
+[1.0012326 1.0016505 1.0083001 1.0079608 1.0216175 1.0058566 1.0163324
+ 1.0123872 1.0013095 1.0013125 1.0003126 1.000979  1.001501  1.0056823
+ 1.0017614 1.0029233 1.0180724 1.0012437 1.0198561 1.0017079 1.001324
+ 1.0026783]
+5: local devices: [CudaDevice(id=5)]
+Starting MAP
+Final Chi-squared: 0.98446
+Starting SVI
+Starting HMC
+Sampling took 31.0s
+The rhats are:
+[1.0012326 1.0016505 1.0083001 1.0079608 1.0216175 1.0058566 1.0163324
+ 1.0123872 1.0013095 1.0013125 1.0003126 1.000979  1.001501  1.0056823
+ 1.0017614 1.0029233 1.0180724 1.0012437 1.0198561 1.0017079 1.001324
+ 1.0026783]
