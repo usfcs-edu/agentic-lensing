@@ -1,5 +1,9 @@
 # Foundry-I paper-scale campaign on NERSC Perlmutter
 
+> **Report restructure (June 2026):** the final-state report is
+> `papers/main.pdf` (site-served); the full development record is preserved
+> as `papers/evolution.pdf`.
+
 Goal: Huang 2025a "Fig. 8 / Table 3" quality for DESI-165.4754-06.0423.
 Bar: masked reduced chi2 < 1.1 at MAP; SVI full-rank + flat ELBO; HMC split
 R-hat < 1.1 all params, ESS >= 1e3 (paper: 32,200-40,000); gamma vs 1.372+-0.023.

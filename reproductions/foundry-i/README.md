@@ -2,8 +2,11 @@
 
 Public-data reproduction of Huang et al. 2025a, *DESI Strong Lens Foundry I:
 HST Observations and Modeling with GIGA-Lens* (arXiv:2502.03455), system
-DESI-165.4754-06.0423. Working scripts `01_*` ... `35_*` live in this directory;
-data products in `data/`; the LaTeX tech-report in `papers/`.
+DESI-165.4754-06.0423. Working scripts `01_*` ... `46_*` live in this directory;
+data products in `data/`. Two reports live in `papers/`: **`main.pdf`** (13 pp,
+the final-state report — final posterior, corrected treatment, lessons for
+gigalens; served on the project site) and **`evolution.pdf`** (33 pp, the
+complete development record).
 
 The headline Phase-1 result is the SVI surrogate posterior in
 `data/svi_v10_posterior_mass.npz` (a 10,000-sample Gaussian variational
