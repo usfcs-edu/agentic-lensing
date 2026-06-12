@@ -1,0 +1,70 @@
+<?xml version="1.0" ?>
+<!--
+  Spec mirror of the original One_percent pipeline config (from One_percent/north/log/config.log).
+  This file documents the selection/columns this cookbook reproduces. The reference scripts here
+  hard-code the same spec in dr11_collect.py (COLS, SEL_TYPES, the filters in select_mask); edit
+  both together if you change the selection. run_mpi.py copies this file to <out>/log/config.log.
+
+  Notes on faithful reproduction (see README.md):
+   * The stored column ORDER differs from the <MetaData> order below; the canonical output order is
+       brickid, brickname, objid, type, ra, dec, bx, by, nobs_g, nobs_r, nobs_z, mag_g, mag_r, mag_z
+   * brickname/type are stored as Python str (not bytes) despite datatype="bytes".
+   * bx/by are int64, truncated toward zero.
+   * mag = flux2mag(flux) = 22.5 - 2.5*log10(flux), float32.
+-->
+<Configuration name="dr11_cookbook" CreateDateTime="2026-06-11">
+    <Paths>
+        <Data path="/global/cfs/cdirs/cosmo/data/legacysurvey/dr11/north/"/>
+        <Output path="$SCRATCH/dr11_onepercent/north/"/>
+    </Paths>
+    <Tasks>
+        <Collection metadata="True" image="True"/>
+    </Tasks>
+    <BatchIDs>
+        <!-- BatchID = floor(RA) = the 3-digit RA-strip subdir; 0..359 inclusive -->
+        <SingleID id="0"/>
+        <SingleID id="120"/>
+        <SingleID id="240"/>
+        <SingleID id="359"/>
+    </BatchIDs>
+    <MetaData>
+        <Property datatype="int32">brickid</Property>
+        <Property datatype="bytes">brickname</Property>
+        <Property datatype="int32">objid</Property>
+        <Property datatype="bytes">type</Property>
+        <Property datatype="float64">ra</Property>
+        <Property datatype="float64">dec</Property>
+        <Property datatype="int">bx</Property>
+        <Property datatype="int">by</Property>
+        <Property datatype="int16">nobs_g</Property>
+        <Property datatype="int16">nobs_r</Property>
+        <Property datatype="int16">nobs_z</Property>
+        <Converting datatype="float32" convert_from="flux_g" method="flux2mag">mag_g</Converting>
+        <Converting datatype="float32" convert_from="flux_r" method="flux2mag">mag_r</Converting>
+        <Converting datatype="float32" convert_from="flux_z" method="flux2mag">mag_z</Converting>
+    </MetaData>
+    <ObjectFilters>
+        <Filter logic="and">
+            <Condition datatype="bool" field="brick_primary" operator="=">True</Condition>
+        </Filter>
+        <Filter logic="and">
+            <Condition datatype="float" field="flux_g" operator="&gt;">0</Condition>
+            <Condition datatype="float" field="flux_r" operator="&gt;">0</Condition>
+            <Condition datatype="float" field="flux_z" operator="&gt;">0</Condition>
+        </Filter>
+        <Filter logic="and">
+            <Condition datatype="int" field="nobs_g" operator="&gt;=">3</Condition>
+            <Condition datatype="int" field="nobs_r" operator="&gt;=">3</Condition>
+            <Condition datatype="int" field="nobs_z" operator="&gt;=">3</Condition>
+        </Filter>
+        <Filter logic="and">
+            <Condition datatype="float" field="mag_z" operator="&lt;">20</Condition>
+        </Filter>
+        <Filter logic="or">
+            <Condition datatype="bytes" field="type" operator="=">SER</Condition>
+            <Condition datatype="bytes" field="type" operator="=">EXP</Condition>
+            <Condition datatype="bytes" field="type" operator="=">DEV</Condition>
+            <Condition datatype="bytes" field="type" operator="=">REX</Condition>
+        </Filter>
+    </ObjectFilters>
+</Configuration>
