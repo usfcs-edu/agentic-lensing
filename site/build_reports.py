@@ -41,6 +41,12 @@ SLUGS = {
 
 APPLE_SILICON_SLUGS = ["huang-2020", "huang-2021", "redshifty"]
 
+# Additional documents beyond a slug's main.tex, published as their own pages:
+# (section, source slug, tex basename, output slug).
+EXTRA_REPORTS = [
+    ("reproductions", "foundry-i", "evolution", "foundry-i-evolution"),
+]
+
 MARKERS = ("TITLE", "AUTHORS", "DATE", "ABSTRACT", "BODY")
 
 # Pandoc-readable stand-ins for the tech-report.sty macros (pandoc must not
@@ -170,11 +176,11 @@ def plain_text(s: str) -> str:
     return one_line(s)
 
 
-def buttons(gh_url: str, pdf: bool) -> str:
+def buttons(gh_url: str, pdf_name: str = None) -> str:
     rows = []
-    if pdf:
-        rows.append("[:material-file-download: Download PDF](main.pdf)"
-                    "{ .md-button .md-button--primary }")
+    if pdf_name:
+        rows.append("[:material-file-download: Download PDF](%s)"
+                    "{ .md-button .md-button--primary }" % pdf_name)
     rows.append("[:material-github: View on GitHub](%s){ .md-button }" % gh_url)
     return "\n".join(rows)
 
@@ -195,7 +201,8 @@ def resolve_abstract_refs(abstract: str, body: str) -> str:
     return REF_LINK.sub(fix, abstract)
 
 
-def assemble(meta: dict, subtitle: str, slug: str) -> str:
+def assemble(meta: dict, subtitle: str, slug: str,
+             pdf_name: str = "main.pdf") -> str:
     if meta.get("ABSTRACT") and meta.get("BODY"):
         meta["ABSTRACT"] = resolve_abstract_refs(meta["ABSTRACT"], meta["BODY"])
     title_md = one_line(meta.get("TITLE", slug))
@@ -216,7 +223,7 @@ def assemble(meta: dict, subtitle: str, slug: str) -> str:
         parts += ["*%s*" % subtitle, ""]
     if byline_bits:
         parts += [" · ".join(byline_bits), ""]
-    parts += [buttons("%s/%s" % (GH, slug), pdf=True), ""]
+    parts += [buttons("%s/%s" % (GH, slug), pdf_name=pdf_name), ""]
     if meta.get("ABSTRACT"):
         parts += ["## Abstract", "", meta["ABSTRACT"], ""]
     parts += [meta.get("BODY", ""), ""]
@@ -228,29 +235,32 @@ def write_if_changed(path: Path, content: str) -> None:
         path.write_text(content)
 
 
-def copy_assets(papers: Path, out: Path) -> None:
+def copy_assets(papers: Path, out: Path, pdf_name: str = "main.pdf") -> None:
     figures = papers / "figures"
     if figures.is_dir():
         shutil.copytree(figures, out / "figures", dirs_exist_ok=True)
     for pattern in ("*.png", "*.jpg", "*.jpeg"):
         for img in papers.glob(pattern):
             shutil.copy2(img, out / img.name)
-    shutil.copy2(papers / "main.pdf", out / "main.pdf")
+    shutil.copy2(papers / pdf_name, out / pdf_name)
 
 
-def build_report(slug: str, section: str) -> None:
+def build_report(slug: str, section: str, texname: str = "main",
+                 out_slug: str = None) -> None:
     papers = REPRO / slug / "papers"
-    out = DOCS / section / slug
+    out = DOCS / section / (out_slug or slug)
     out.mkdir(parents=True, exist_ok=True)
+    pdf_name = "%s.pdf" % texname
 
-    tex = (papers / "main.tex").read_text()
+    tex = (papers / ("%s.tex" % texname)).read_text()
     subtitle_m = SUBTITLE.search(tex)
     md = run_pandoc(SHIM + preprocess(tex), papers)
     meta = parse_markers(md)
-    page = assemble(meta, subtitle_m.group(1) if subtitle_m else "", slug)
+    page = assemble(meta, subtitle_m.group(1) if subtitle_m else "", slug,
+                    pdf_name=pdf_name)
 
     write_if_changed(out / "index.md", page)
-    copy_assets(papers, out)
+    copy_assets(papers, out, pdf_name)
 
 
 def build_apple_silicon(slug: str) -> None:
@@ -264,10 +274,10 @@ def build_apple_silicon(slug: str) -> None:
     # Insert the GitHub button right after the README's own H1 title.
     for i, line in enumerate(lines):
         if line.startswith("# "):
-            lines[i + 1:i + 1] = ["", buttons(gh_url, pdf=False)]
+            lines[i + 1:i + 1] = ["", buttons(gh_url, pdf_name=None)]
             break
     else:
-        lines[0:0] = [buttons(gh_url, pdf=False), ""]
+        lines[0:0] = [buttons(gh_url, pdf_name=None), ""]
     write_if_changed(out / ("%s.md" % slug), "\n".join(lines))
 
 
@@ -290,6 +300,16 @@ def main() -> None:
             except Exception as exc:  # keep going; report all failures at end
                 failures.append((slug, exc))
                 print("  FAILED: %s" % exc, file=sys.stderr)
+
+    for section, slug, texname, out_slug in EXTRA_REPORTS:
+        if args.only and slug not in args.only and out_slug not in args.only:
+            continue
+        print("[%s] %s" % (section, out_slug))
+        try:
+            build_report(slug, section, texname=texname, out_slug=out_slug)
+        except Exception as exc:
+            failures.append((out_slug, exc))
+            print("  FAILED: %s" % exc, file=sys.stderr)
 
     for slug in APPLE_SILICON_SLUGS:
         if args.only and slug not in args.only:
