@@ -32,7 +32,10 @@ TARGET_FPR = (0.01, 0.001)        # the honest operating points (matched-FPR rec
 # --- paths ------------------------------------------------------------------
 ROOT = Path(__file__).resolve().parent
 REPRO = ROOT.parent
-INCH = REPRO / "inchausti-2025"
+# inchausti-2025 sibling checkout when present (local box); on Perlmutter the
+# repo is staged flat with symlinks dereferenced (rsync -L), so the digit-named
+# model files live in ROOT itself — fall back there.
+INCH = (REPRO / "inchausti-2025") if (REPRO / "inchausti-2025").exists() else ROOT
 HUANG20 = REPRO / "huang-2020"
 HUANG21 = REPRO / "huang-2021"
 SILVER = REPRO / "silver-2025"
