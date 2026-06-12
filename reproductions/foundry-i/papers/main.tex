@@ -80,11 +80,39 @@ $1^{\circ}$ of the published HMC result; the v11f NUTS mode reproduces
 gap --- a $12^{\circ}$ rotation of the lens ellipticity vector,
 $\sim30\%$ smaller $|\etwo|$ and $|\gext|$, and a $57\%$ steeper
 deprojected slope $\gammaEPL=2.15$ versus the published $1.37$ --- is
-shown to be coherent with a single missing constraint, plausibly a
-mass--light position-angle tie or higher-order multipole correction.
+shown to be coherent rather than scattered. (An earlier draft attributed
+it to a missing model ingredient, ``plausibly a mass--light
+position-angle tie or higher-order multipole correction''; that
+hypothesis is retracted --- the published model contains neither, its
+Table~2 eccentricity priors being fully independent, and the campaign
+of \S\ref{sec:campaign} closed the gap through data treatment and a PSF
+sampling-convention fix alone.)
 We document upstream issues in \gigalens\,2.0/JAX\,0.6.2/TFP\,0.25.0
 suitable for filing as GitHub issues, and provide the full software
 stack table to support future Foundry-series reproductions.
+A June 2026 paper-scale campaign on NERSC Perlmutter
+(\S\ref{sec:campaign}), implementing the research group's data-treatment
+feedback (tight crop, interloper masks, corrected noise) at the
+published compute scale, followed by a rigor revision
+(\S\ref{sec:campaign-rigor}) that audited the noise calibration and
+uncovered a PSF sampling-convention defect in all native-scale fits,
+{\bf retires the slope discrepancy}: with the convention-correct PSF
+the native-scale MAP floor drops from $\chi^{2}_{\nu}\approx3.4$ to
+$1.05$ on identical noise, and the corrected HMC posterior gives
+$\gammaEPL=1.433\,[1.400,1.468]$ --- consistent with the published
+$1.372\pm0.023$ at $<2\sigma$, with a $\sim$$0.1$ model-class
+systematic --- $\thetaE=2.655$ within $0.33\%$ of published, strict
+convergence ($\hat R_{\max}=1.077$, $\gammaEPL$ ESS $5{,}714$), and the
+published inner-critical-curve topology recovered. A $0\farcs04$
+fine-skycell rebuild fits to the (recalibrated) noise floor
+($\chi^{2}_{\nu}=0.92$; the nominal $0.45$ was a wing-contaminated
+calibration artifact) and samples at the published efficiency
+($\hat R_{\max}=1.007$, $\mathrm{ESS}_{\min}=28{,}124$), while a
+$2\times2$-binned $0\farcs08$ refit exposes an explicit
+low/steep-slope bimodality ($\Delta\chi^{2}_{\nu}=0.078$ favoring
+steep) that a correlated-noise likelihood will be needed to resolve.
+The earlier $\Delta\log p\approx-32{,}500$ and ``$57\%$ steeper
+slope'' statements are superseded accordingly.
 \end{abstract}
 
 \tableofcontents
@@ -665,9 +693,17 @@ with $D=\mathrm{diag}(|H_{ii}|)$, restores the correlations that the
 diagonal preconditioner drops and lifts the ESS of the {\it correlated}\
 mass parameters ($\thetaE$ ESS $8\!\to\!20$, $\gexttwo$ ESS
 $3\!\to\!14$). But the correlation matrix $D^{-1/2}HD^{-1/2}$ itself
-still has $\mathrm{cond}\sim10^{8}$ --- these are the genuine
-strong-lens degeneracies (mass--sheet, slope--ellipticity) and no static
-preconditioner removes them.
+still has $\mathrm{cond}\sim10^{8}$. We describe this empirically rather
+than by degeneracy taxonomy: under the pre-correction likelihood the
+posterior exhibited a broad, ill-conditioned valley coupling
+$\gammaEPL$, the mass ellipticity components $\eone/\etwo$, and the
+external shear $\gext$, and no static preconditioner removes it. (An
+earlier draft labeled this ``mass--sheet, slope--ellipticity''
+degeneracies; we retract those labels --- nothing in this single-band,
+fixed-source analysis invokes the mass-sheet transformation, and the
+slope--ellipticity coupling was an empirical observation of this
+posterior, not a citation-backed degeneracy. The valley largely closed
+once the likelihood was corrected in \S\ref{sec:campaign}.)
 
 \paragraph{(5) ESS and multi-chain $\hat R$ characterization.} We ran
 both mass-matrix variants as $4$ independent chains each (one per A16
@@ -731,8 +767,9 @@ degeneracy-limited.} Every pathology we had previously attributed to
 stably with no step-size collapse, samples a smooth and near-PD mode,
 and reproduces the correct posterior scale. The residual is purely
 {\it mixing efficiency}: ESS\,$\sim$\,$3$--$20$ per $300$ samples and
-$\hat R>1$ at $500$ samples, set by the intrinsic strong-lens parameter
-degeneracies ($\mathrm{cond}\sim10^{8}$ that survives diagonal scaling),
+$\hat R>1$ at $500$ samples, set by the broad
+$\gammaEPL$--$\eone/\etwo$--$\gext$ valley of the pre-correction
+posterior ($\mathrm{cond}\sim10^{8}$ that survives diagonal scaling),
 not by any sampler defect. Converged inference on this surface would
 require $\sim$$10^{4}$--$10^{5}$ samples per chain, which is feasible on
 A100-class hardware but is $\sim$$17$--$24$\,h even with $8$-way A16
@@ -977,6 +1014,24 @@ global-best paper-mode chain.
 constraint}
 \label{sec:single-constraint}
 
+{\bf Superseded (June 2026).} The hypothesis developed in this
+subsection --- that the coherent parameter residuals point to a missing
+physical constraint such as a mass--light position-angle tie or a
+higher-order multipole --- is retracted, on two grounds. First, it
+misread the published model: the \citet{huang2025foundry1} Table~2
+priors treat the mass eccentricities ($\epsilon_1,\epsilon_2 \sim
+\mathcal{N}(0,0.1)$) and lens-light eccentricities
+($\sim\mathcal{N}(0,0.15)$) as fully independent --- there is no PA tie
+--- and the EPL$+$shear mass model contains no multipole term, so
+neither could have been the ingredient our reproduction was missing.
+Second, the paper-scale campaign of \S\ref{sec:campaign} closed the
+residuals without any such extension: corrected data treatment (crop,
+interloper masks, noise calibration) plus the PSF sampling-convention
+fix of \S\ref{sec:campaign-rigor} moved the native-scale posterior onto
+the published values, and the conditional model-extension stage of the
+campaign plan was never triggered. The original text is preserved below
+as a record of the (pre-correction) reasoning.
+
 The residuals between our v10 posterior and \citet{huang2025foundry1}
 Table 3 are not random across the six parameters --- they are coherent
 along directions that suggest one underlying physical effect. Specifically:
@@ -1198,6 +1253,397 @@ on. These are the natural next-steps for any reader who wishes to push
 this reproduction further.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Paper-Scale Campaign on NERSC Perlmutter (June 2026)}
+\label{sec:campaign}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+After this report was first presented, the strong-lensing research group
+reviewed our residual figure and made three points: (i) the cutout should
+be cropped so the lens system fills the frame, so that interloping objects
+that do not contribute to the lensing need not be modeled; (ii) a correct
+MAP fit should reach a masked reduced $\chi^{2}$ very close to $1$
+($<1.1$) --- our $\chi^{2}\approx12$--$24$ was evidence of incorrect model
+or noise assumptions and/or insufficient optimization; and (iii) in the
+\gigalens\ pipeline each stage preconditions the next, and for this system
+the SVI must show a smooth, flattened ELBO before sampling. This section
+documents the campaign that implemented those points at the published
+paper's own compute scale, on a NERSC Perlmutter GPU node (4$\times$A100,
+account \texttt{deepsrch\_g}), with the group's
+\texttt{seanxuseanxu/gigalens} fork (branch \texttt{multinode-2025},
+vendored at ref \texttt{58ec9a7}) as the inference library. The full
+job-by-job record, including an A100-hour ledger, is in
+\texttt{PERLMUTTER\_CAMPAIGN.md}; the entire campaign consumed
+$\sim$$17$ A100-hours.
+
+\subsection{Corrected data treatment}
+\label{sec:campaign-data}
+
+{\bf Crop and masks.} The new data product
+(\texttt{40\_make\_cutout\_v2.py}) crops to $80\times80$ px
+($10\farcs4$), masks the three faint field galaxies whole, masks the
+compact object superposed on arc A --- identified automatically as the
+most point-like member (DAO sharpness $0.86$ vs.\ $0.43$--$0.65$) of the
+closest pair of ring detections, with the four lensed images left
+unmasked --- and masks the lens and companion cores
+($r\le0\farcs2$).
+
+{\bf Noise.} The per-pixel error map is built from the drizzled
+\texttt{WHT} extension and then rescaled so that source-free sky pixels
+have unit mean squared normalized residual. The required rescale is
+$1.117$: the \texttt{WHT}-implied per-pixel noise underestimates the
+real sky fluctuations by $25\%$ in $\chi^{2}$
+(sky $\chi^{2}_{\mathrm{WHT}}=1.248\to0.973$ after rescaling),
+quantifying the drizzle pixel-correlation effect that the independent
+inverse-variance map ignores. The data-based Poisson term is added on
+top, and {\it one}\ error-map definition is used by the fit and every
+figure. Two further data-level discoveries: the MAST product we model is
+at $0\farcs12825$ per pixel (\texttt{D001SCAL}), not the $0\farcs13$
+assumed throughout the earlier sections --- a $1.36\%$ relabeling of all
+angular parameters (corrected where quoted below) --- and the MAST HAP
+{\it fine skycell}\ mosaics of the same exposures, at $0\farcs04$ per
+pixel, were already on disk, enabling a fine-scale rebuild
+(\texttt{40b\_make\_cutout\_fine.py}, natively-sampled $51\times51$
+empirical PSF from 25 skycell stars) without re-drizzling. Both products
+pass a sky-region gate of reduced $\chi^{2}=1.00\pm0.05$ by
+construction.
+
+\subsection{MAP at paper scale: the $\chi^{2}$ ladder}
+\label{sec:campaign-map}
+
+Multi-start MAP at the published scale (up to $1{,}000$ particles
+$\times$ $8{,}000$ AdaBelief steps; each run $3$--$26$ minutes on the
+node) produced the following masked reduced-$\chi^{2}$ ladder:
+
+\begin{table}[ht]
+\centering
+\caption{Stage-B $\chi^{2}$ ladder (masked reduced $\chi^{2}$, best chain).}
+\label{tab:chi2ladder}
+\begin{tabular}{llcc}
+\hline
+configuration & data & $\chi^{2}_{\nu}$ & plateaued \\
+\hline
+v9 MAP (2025 report, \S\ref{sec:results}) & $128^2$ @ $0\farcs128$, old noise & 11.93 & --- \\
+corrected likelihood, $1000\times2000$ & $80^2$ v2 & 4.02 & no \\
+$500\times3000$ & v2 & 3.84 & no \\
+warm restart, $1000\times4000$ & v2 & 3.59 & no \\
+cold, $1000\times8000$ & v2 & 3.55 & yes \\
+$+$ shapelets $n_{\max}{=}8$ & v2 & 3.42 & yes \\
+$+$ 3rd companion S\'{e}rsic & v2 & 3.46 & yes \\
+$+$ both & v2 & 3.44 & yes \\
+fine-scale rebuild, $1000\times6000$ & $260^2$ @ $0\farcs04$ (v3) & 0.451\textsuperscript{a} & yes \\
+\hline
+\multicolumn{4}{l}{\it rigor revision (\S\ref{sec:campaign-rigor}):}\\
+same v3 MAP, recalibrated $\sigma$ & v3 & 0.915 & --- \\
+{\bf PSF convention fixed, same noise} & {\bf $80^2$ v2c} & {\bf 1.051} & {\bf yes} \\
+$+$ recalibrated $\sigma$ (v2d) & v2d & 1.234 & yes \\
+v2d flexibility ablation ($n_{\max}{=}8$, comp.\,3) & v2d & 1.203 & no \\
+binned rebuild, low-$\gammaEPL$ basin & $130^2$ @ $0\farcs08$ (v3b) & 1.594 & yes \\
+binned rebuild, steep basin & v3b & 1.516 & yes \\
+\hline
+\multicolumn{4}{l}{\footnotesize \textsuperscript{a}per-pixel value
+under a wing-contaminated $\sigma$ calibration; not a calibrated
+statistic (\S\ref{sec:campaign-rigor}).}\\
+\end{tabular}
+\end{table}
+
+The flexibility ablation showed the native-scale $\chi^{2}\approx3.4$
+floor is {\it not}\ model-component limited (17 extra shapelet
+components and an extra companion S\'{e}rsic each buy $\sim$3\%); we
+initially attributed the floor to sampling scale. {\bf That attribution
+is retracted}: the rigor revision (\S\ref{sec:campaign-rigor}) traced
+the floor to a PSF sampling-convention defect --- with the
+convention-correct kernel and no other change, the same native-scale
+data reach $\chi^{2}_{\nu}=1.051$, and with the recalibrated noise the
+honest floor is $1.234$. The $0\farcs04$ value of $0.451$, ``fully
+plateaued,'' is likewise not a calibrated statistic: its sky
+calibration was contaminated by lens-wing flux, and the recalibrated
+figure is $0.915$ --- which {\it does}\ meet the group's
+$\chi^{2}<1.1$ bar, now with honest error bars
+(\S\ref{sec:campaign-rigor}).
+
+\subsection{SVI and HMC at the published convergence bar}
+\label{sec:campaign-hmc}
+
+With the corrected data treatment, the published pipeline recipe works
+as advertised once given adequate scale. SVI at $n_{\mathrm{vi}}=1000$,
+$15{,}000$ steps (the published run invested $112$ min on the same
+node class) produced a {\it full-rank}\ variational covariance
+($91/91$ on v2 with $n_{\max}=8$; $74/74$ on v3; smallest eigenvalues
+$3\times10^{-9}$--$4\times10^{-8}$) with a flattened ELBO --- the
+rank-$53/74$ failure of the v10 SVI (\S\ref{sec:hmc}) is resolved by
+the longer schedule and a larger \texttt{init\_scales}, exactly the
+``finnicky SVI'' behavior the group warned about. Preconditioned HMC
+(ChEES trajectory adaptation, dual-averaging step size, momentum
+covariance $=\Sigma_{\mathrm{VI}}^{-1}$, 48 chains started from SVI
+draws) then samples at the published efficiency:
+
+\begin{table}[ht]
+\centering
+\caption{HMC convergence across the campaign. The published bar is
+$\hat R<1.10$ and ESS $32{,}200$--$40{,}000$.}
+\label{tab:campaignhmc}
+\begin{tabular}{llcccc}
+\hline
+run & draws/chain & $\gammaEPL$ median $[16,84]\%$ & $\thetaE$ & $\hat R_{\max}$ & $\mathrm{ESS}_{\min}$ \\
+\hline
+v2 r1 & 750 & 1.417 [1.400, 1.432] & 2.6344 & 2.37 & 126 \\
+v2 r2 & 2{,}500 & 1.354 [1.339, 1.372] & 2.6350 & 1.68 & 183 \\
+v2 r3 & 8{,}000 & 1.326 [1.310, 1.344] & 2.6351 & 1.43 & 250 \\
+v2 final\textsuperscript{a} & 13{,}000 & 1.324 [1.309, 1.342] & 2.6351 & 1.48 & 259 \\
+v3\textsuperscript{a} & 3{,}500 & 2.585 [2.564, 2.605] & 2.5927 & 1.007 & 28{,}124 \\
+{\bf v2d final}\textsuperscript{b} & {\bf 8{,}000} & {\bf 1.433 [1.400, 1.468]} & {\bf 2.6551} & {\bf 1.077} & {\bf 5{,}714} \\
+v3b, low basin\textsuperscript{c} & 3{,}500 & 1.293 [1.283, 1.305] & 2.6033 & --- & --- \\
+\hline
+published & 750 & 1.372 $\pm$ 0.023 & 2.6463 & $<1.10$ & 32{,}200 \\
+\hline
+\multicolumn{6}{l}{\footnotesize \textsuperscript{a}superseded ---
+v2 rows ran with the $2\times$-broadened PSF and v3 with the
+mis-calibrated $\sigma$ (\S\ref{sec:campaign-rigor}).}\\
+\multicolumn{6}{l}{\footnotesize \textsuperscript{b}corrected PSF $+$
+recalibrated noise (\texttt{cutout\_v2d}); the headline posterior.}\\
+\multicolumn{6}{l}{\footnotesize \textsuperscript{c}conditional on the
+low-slope basin (45 of 48 chains; the other 3 sample the steep mode at
+$\gammaEPL=2.42$ with zero inter-basin}\\
+\multicolumn{6}{l}{\footnotesize \phantom{\textsuperscript{c}}migrations
+in $3{,}500$ draws --- $\hat R$/ESS are deliberately not quoted across a
+bimodal target; \S\ref{sec:campaign-rigor}.}\\
+\end{tabular}
+\end{table}
+
+On the fine-scale product the sampler reaches the published quality
+outright: $\hat R_{\max}=1.007$, $\mathrm{ESS}_{\min}=28{,}124$ from a
+14-minute job --- near-iid draws, exactly the behavior the paper
+reports. On the native-scale product, $\thetaE$ converges strictly
+($\hat R=1.07$, $\mathrm{ESS}=1{,}154$ at 13{,}000 draws) while
+$\gammaEPL$ remains the one slow direction: its ESS saturates
+($250\to259$ for $8{,}000\to13{,}000$ draws), so additional draws alone
+will not reach the strict bar. We initially read this as the windowed
+mass-matrix adaptation need identified in \S\ref{sec:discussion}; the
+rigor revision showed otherwise --- with the PSF convention corrected,
+the same sampler reaches $\gammaEPL$ ESS $=5{,}714$ from $8{,}000$
+draws (\S\ref{sec:campaign-rigor}, the v2d row): the broadened kernel,
+not the sampler, had flattened the $\gammaEPL$ direction. The
+$\gammaEPL$ median is stable at $1.32$--$1.42$ across all four
+(superseded) rounds, with the round-2 credible interval containing the
+published value.
+
+\subsection{The $\gammaEPL$ reconciliation, and a correlation caveat}
+\label{sec:campaign-gamma}
+
+The central 2025-era discrepancy of this reproduction --- a $57\%$
+steeper $\gammaEPL$ --- {\bf dissolves under the corrected likelihood}:
+the native-scale posterior gives $\gammaEPL=1.33$--$1.42$ across
+sampling rounds, bracketing the published $1.372\pm0.023$, and the
+posterior-median model reproduces the published critical-curve topology
+(tangential {\it plus inner}\ critical curve,
+Figure~\ref{fig:fig8v2}) that is the visual signature of the
+$\gammaEPL<2$ mode in the paper's Fig.~8. The earlier $-32{,}500$
+cold-start estimate quoted in \S\ref{sec:discussion} is thereby fully
+retired: the defect chain was (uncropped field $+$ unmasked interlopers
+$+$ drizzle-blind noise $+$ $\sim$$25\times$ under-invested
+optimization), not a missing physical constraint.
+
+The fine-scale posterior, by contrast, is ultra-converged at
+$\gammaEPL=2.585\pm0.021$ --- a sharp tension with both the native-scale
+posterior and the paper. We attribute this to likelihood
+mis-specification by pixel correlation: the $0\farcs04$ mosaic is
+drizzled from $0\farcs128$ native data, so the independent-pixel
+Gaussian likelihood treats each $\sim$$10$-pixel correlated noise patch
+as $\sim$$10$ independent measurements, over-weighting large-scale
+residual structure and over-tightening the posterior. The defensible
+posterior is the native-scale one, whose pixels are nearly independent;
+the published analysis at $0\farcs065$ ($1.97\times$ upsampling) sits
+between the two regimes. {\it [Sharpened by the subsequent audit,
+\S\ref{sec:campaign-rigor}: the $\chi^{2}_{\nu}=0.45<1$ itself traced
+to a wing-contaminated $\sigma$ calibration rather than to correlation;
+the correlation effect proper is the over-weighting above, and the
+steep-mode preference survives at $0\farcs08$ as an explicit
+$\Delta\chi^{2}_{\nu}=0.078$ bimodality.]} A correlated-noise
+likelihood would unify the scales; that remains the one open item.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.99\textwidth]{figures/ours_foundry-i_fig8_v2.png}
+\caption{Fig.-8 analogue from the {\bf native-scale} (v2) posterior
+median ($\gammaEPL=1.326$): observed image, best-fit model with critical
+curves, masked reduced residual ($\chi^{2}_{\nu}=3.41$ --- a
+pre-correction value; this fit ran with the $2\times$-broadened PSF and
+is superseded by Figure~\ref{fig:fig8v2d}), and source
+reconstruction with caustics. The {\it inner}\ critical curve and
+caustic --- the signature feature the published Fig.~8 calls out for
+$\gammaEPL<2$ --- are recovered.}
+\label{fig:fig8v2}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.99\textwidth]{figures/ours_foundry-i_fig8_v3.png}
+\caption{Same, from the {\bf fine-scale} (v3, $0\farcs04$) posterior
+median ($\gammaEPL=2.585$): the masked residual is structureless, and
+the nominal $\chi^{2}_{\nu}=0.45$ later proved to be a
+noise-calibration artifact --- under the recalibrated (honest) noise,
+this same model evaluates to $\chi^{2}\simeq0.92$
+(\S\ref{sec:campaign-rigor}). The steep-slope mode
+has a single (tangential-only) critical curve; the $\gammaEPL$
+difference between the two panels persists at $0\farcs08$ as an
+explicit bimodality (\S\ref{sec:campaign-rigor}).}
+\label{fig:fig8v3}
+\end{figure}
+
+\subsection{Rigor revision: noise-calibration audit, a PSF-convention
+defect, and corrected refits (June 2026)}
+\label{sec:campaign-rigor}
+
+Group review of the campaign flagged the fine-scale
+$\chi^{2}_{\nu}=0.451$ as too low to quote as calibrated --- a reduced
+$\chi^{2}$ that far below unity means the likelihood under-weights the
+data, with real consequences for posterior widths. The audit this
+prompted (\texttt{46\_noise\_audit.py};
+\texttt{data/noise\_audit.json}; Figure~\ref{fig:noiseaudit}) confirmed
+the concern but overturned our first-pass attribution, and exposed a
+second, larger defect in the process. Four findings:
+
+\paragraph{(1) The $\chi^{2}<1$ was a noise-{\it calibration} artifact,
+not primarily correlation.} The cutout pipeline calibrates the
+$\sigma$ sky term so that raw image fluctuations in a source-free
+annulus ($r>4\farcs5$) give sky $\chi^{2}=1$. On the fine product,
+segmentation finds no sources in that annulus --- but the annulus is
+not empty: subtracting the best-fit model shows that $\sim$$70\%$ of
+its apparent variance is diffuse lens-halo wing flux that the
+S\'{e}rsic components fit. The calibration therefore inflated the sky
+term by $1/0.304$ in variance. Recalibrated on {\it model-subtracted}\
+sky residuals (Poisson term unchanged), the same v3 MAP gives
+per-pixel $\chi^{2} = 0.915$ (fitted region), $0.955$ (arcs), $0.898$
+(sky) --- internally consistent, and the group's $\chi^{2}<1.1$ bar is
+met with a calibrated statistic. The data-based Poisson term itself
+checked out: removing it overshoots the arcs to $\chi^{2}=2.26$
+(it contributes $51\%$ of the arc variance), so it is kept.
+
+\paragraph{(2) Pixel correlation, quantified and decoupled from the
+$\chi^{2}$ question.} A mask-aware, background-detrended sky
+autocorrelation gives a correlation length (half-maximum) of $2.5$
+fine pixels --- precisely the $3.2\times$ drizzle-upsampling footprint
+--- and direct binning measurements show $2\times2$ fine-pixel blocks
+are $\sim$$78\%$ internally correlated (quadrature underestimates the
+binned variance by a factor $3.1$ of a maximum $4$). Correlation thus
+chiefly reduces the {\it information content}\ of the fine grid
+($N_{\mathrm{eff}}/N$ between $\sim$$1/10$ and $\sim$$1/60$ depending
+on convention), inflating effective posterior weight rather than
+biasing the mean of per-pixel $\chi^{2}$, whose expectation is $1$
+under correlated noise. (For the same reason the effective-DOF
+statistic $\chi^{2}_{\mathrm{eff}} = \sum r^{2}/\sigma^{2} /
+(N/f_{\mathrm{corr}} - p)$ tends to $f_{\mathrm{corr}}$, not $1$, for
+a perfect model; we record it in the audit JSON with that caveat. We
+also note the published analysis quotes no reduced-$\chi^{2}$ value
+and, per the GIGA-Lens convention, uses a model-flux Poisson term with
+gain; drizzle covariance is not discussed there.)
+
+\paragraph{(3) A PSF sampling-convention defect affected every
+native-scale fit in this report.} \gigalens's simulator passes
+\texttt{sim\_config.kernel} through lenstronomy's
+\texttt{subgrid\_kernel}, which assumes the kernel is sampled at the
+{\it data}\ pixel scale and upsamples it internally. Our
+\texttt{empirical\_psf.npy} is sampled at $0\farcs065$
+(\texttt{EPSFBuilder} oversampling $2$), but was supplied with
+\texttt{delta\_pix}$=0.13$ and \texttt{supersample}$=2$ --- so every
+v1--v10 fit and every campaign v2 fit ran with an effectively
+$2\times$-broadened PSF ($r_{50}$ ratio $1.92$; model images change by
+$5.4\sigma$ RMS when corrected). Refitting the {\it same}\ data with
+the convention-correct kernel (a $13\times13$-class $0\farcs13$-sampled
+kernel least-squares-fitted through \texttt{subgrid\_kernel} itself)
+drops the native-scale MAP floor from $\chi^{2}_{\nu}=3.42$--$3.55$ to
+{\bf 1.051} with no other change. The ``sampling-scale limited''
+reading of Table~\ref{tab:chi2ladder} is therefore retracted: the
+native-scale floor was PSF-limited. A second legacy claim falls with
+it: the ``WHT underestimates sky noise by $25\%$'' rescale
+($1.117$) was wing contamination of the same kind as finding (1) ---
+the model-subtracted factor is $0.787$, and
+$1.117\times\sqrt{0.787}=0.99$, i.e.\ the drizzle-weight noise was
+essentially correct at native scale all along.
+
+\paragraph{(4) Corrected refits and the final posterior.} On the
+corrected native-scale product (\texttt{cutout\_v2d}: fixed PSF $+$
+recalibrated noise) the MAP reaches $\chi^{2}_{\nu}=1.234$ (residual
+misfit localizes at the companion galaxy, $\chi^{2}\simeq9$ over its
+$0\farcs8$ region; a $n_{\max}=8$ $+$ third-companion-S\'{e}rsic
+ablation buys only $1.234\to1.203$ while moving $\gammaEPL$ from
+$1.41$ to $1.31$ --- a $\sim$$0.1$ model-class systematic we quote
+alongside the statistical error). Preconditioned HMC (48 chains,
+$8{,}000$ draws) then gives the headline result of this report:
+\[
+\gammaEPL = 1.433\;[1.400, 1.468],\qquad
+\thetaE = 2.6551\;[2.6530, 2.6572],
+\]
+with $\hat R_{\max}=1.077$ and $\mathrm{ESS}_{\min}=5{,}714$ ---
+$\gammaEPL$ consistent with the published $1.372\pm0.023$ at
+$<2\sigma$ (and the published value inside the model-class systematic
+band), $\thetaE$ within $0.33\%$, and the inner-critical-curve
+topology recovered (Figure~\ref{fig:fig8v2d}). Strikingly, the
+$\gammaEPL$ ESS saturation documented above (ESS $259$ at $13{,}000$
+draws) {\bf dissolves with the PSF fix} --- $22\times$ the ESS from
+$8{,}000$ draws --- identifying the broadened kernel, not sampler
+adaptation, as what had flattened the $\gammaEPL$ direction.
+
+On the binned $0\farcs08$ rebuild (\texttt{cutout\_v3b}: $2\times2$
+block-sum, masks block-ANDed, noise calibrated on model-subtracted
+binned sky --- the honest analogue of the paper's own $0\farcs065$
+choice), both slope basins were refit to convergence parity in the
+74-parameter model: the low-slope solution reaches
+$\chi^{2}_{\nu}=1.594$ at $\gammaEPL=1.369$ (the published value),
+while the steep solution reaches $\chi^{2}_{\nu}=1.516$ at
+$\gammaEPL=2.672$. The fine/binned data thus retain a
+$\Delta\chi^{2}_{\nu}=0.078$ preference for the steep mode even under
+the corrected calibration --- the sharpened residue of the v3 tension
+above, now an explicit bimodality statement rather than an
+overconfident posterior. At native scale, by contrast, the steep mode
+is not even metastable: a MAP started from the fine-scale steep
+solution ($\gammaEPL=2.585$) drains monotonically to
+$\gammaEPL\approx1.17$ ($\chi^{2}_{\nu}=1.297$), so the bimodality is
+a property of the upsampled product, not of the native-scale data.
+
+The v3b HMC run demonstrates the bimodality at the sampling level:
+of 48 chains initialized from the low-basin SVI surrogate, 45 sample
+the low-slope mode --- conditional posterior $\gammaEPL = 1.293\,
+[1.283, 1.305]$, $\thetaE=2.603$ --- while 3 land in the steep mode
+($\gammaEPL=2.42$), with {\it zero}\ inter-basin migrations in
+$3{,}500$ draws ($\hat R_{\gamma}=843$: the diagnostic working
+exactly as intended on a disconnected target). Taking the low-basin
+conditionals at both scales together with the headline native
+posterior, $\gammaEPL$ is scale-stable only at the $\pm$$0.1$ level
+($1.29$ binned, $1.43$ native, published $1.37$ between them) --- a
+useful estimate of the total systematic floor on this single-band
+dataset, several times the per-fit statistical error of
+$\pm$$0.03$. Resolving it (and the residual
+$\chi^{2}\approx1.5$ floor at $0\farcs08$, to which the
+PSF-representation ceiling of the binned kernel contributes) requires
+the correlated-noise likelihood, which remains the campaign's one open
+methodological item.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.92\textwidth]{figures/noise_audit.png}
+\caption{The noise-correlation audit. Top: sky-autocorrelation maps
+(v2, v3) and radial profiles (solid: background-detrended; dashed:
+raw --- the gap is large-scale background structure). Bottom: arc- vs
+sky-region $\chi^{2}$ with and without the Poisson term, and the audit
+summary including the model-subtracted recalibration (``honest'')
+$\chi^{2}$ values.}
+\label{fig:noiseaudit}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.99\textwidth]{figures/ours_foundry-i_fig8_v2d.png}
+\caption{Fig.-8 analogue from the {\bf corrected} native-scale (v2d)
+posterior median ($\gammaEPL=1.433$): with the PSF convention fixed and
+the noise recalibrated, the masked residual sits at
+$\chi^{2}_{\nu}=1.26$ (vs.\ $3.41$ in Figure~\ref{fig:fig8v2}) and the
+inner critical curve and caustic are recovered. This panel supersedes
+Figure~\ref{fig:fig8v2}.}
+\label{fig:fig8v2d}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Software and Data Availability}
 \label{sec:software}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1282,10 +1728,12 @@ are reproduced by our SVI Gaussian variational posterior.
 $2.5\%$; the external-shear position angle to within $1^{\circ}$.
 \item The remaining gap --- a $12^{\circ}$ residual rotation of the
 lens ellipticity, $\sim30\%$ smaller $|\etwo|$ and $|\gext|$, and a
-$57\%$ steeper \gammaEPL\ --- is coherent rather than scattered, and
-is consistent with one missing physical constraint (most likely
-mass--light PA tying or a higher-multipole correction) rather than
-three independent failures.
+$57\%$ steeper \gammaEPL\ --- is coherent rather than scattered.
+[Superseded: an earlier draft read this coherence as one missing
+physical constraint, ``most likely mass--light PA tying or a
+higher-multipole correction''; the campaign (\S\ref{sec:campaign})
+showed the published model contains neither and closed the gap through
+data treatment and the PSF sampling-convention fix alone.]
 \item The Foundry I posterior surface is genuinely multimodal under
 the published priors: in 200 random-start MAP fits with TinyTim PSF,
 only $8.5\%$ of chains land in the paper's quadrant, and the
@@ -1313,14 +1761,37 @@ the reproducibility of any Foundry-lineage analysis --- notably the
 silent NaN from \texttt{jnp.linalg.cholesky} on a rank-deficient SVI
 covariance, and the dual-averaging step-size pathology on
 multimodal-Hessian models.
+\item {\bf (June 2026 campaign and rigor revision,
+\S\ref{sec:campaign}, \S\ref{sec:campaign-rigor}.)} Implementing the
+research group's data-treatment feedback at the published compute scale
+on a Perlmutter A100 node, then auditing the result, retires items
+(3)--(5) above as reproduction-level concerns. The final defect chain
+has five links: uncropped field $+$ unmasked interlopers $+$
+$\sim$$25\times$ under-invested optimization $+$ a wing-contaminated
+noise calibration $+$ a PSF sampling-convention defect ($2\times$
+kernel broadening) that affected every native-scale fit. With all five
+corrected, the native-scale MAP floor is $\chi^{2}_{\nu}=1.05$ (was
+$3.4$) and the headline posterior is $\gammaEPL=1.433\,[1.400,1.468]$
+(published $1.372\pm0.023$; $\sim$$0.1$ model-class systematic),
+$\thetaE=2.655$ ($0.33\%$), $\hat R_{\max}=1.077$, $\gammaEPL$ ESS
+$5{,}714$ --- the earlier $\gammaEPL$-mixing pathology was the
+broadened kernel, not the sampler. The recalibrated fine-scale fit
+meets the group's $\chi^{2}<1.1$ bar honestly ($0.92$); the binned
+$0\farcs08$ refit leaves one open science item --- an explicit
+low/steep-slope bimodality ($\Delta\chi^{2}_{\nu}=0.078$ favoring
+steep) --- and one open methodological item, the correlated-noise
+likelihood needed to resolve it.
 \end{enumerate}
 
 For the broader DESI Strong Lens Foundry program, and for the
 GIGA-Lens lineage at large, these findings argue that an
 in-exposure empirical PSF and a multi-start MAP scan are reasonable
-defaults to add to the published recipe, that mass--light PA tying
-or an equivalent multipole correction is a worthwhile next-order
-modeling improvement, that NUTS with static \texttt{max\_tree\_depth}
+defaults to add to the published recipe (with the PSF kernel sampled at
+the data pixel scale --- the convention \gigalens's
+\texttt{subgrid\_kernel} assumes; see \S\ref{sec:campaign-rigor}), that
+mass--light PA tying and multipole corrections proved unnecessary for
+this system once the data treatment and PSF convention were fixed, that
+NUTS with static \texttt{max\_tree\_depth}
 should replace HMC as the default JIT-tractable sampler at this model
 size, and that mode-aware adaptation (windowed mass-matrix estimation,
 basin-conditional re-tuning, or transparent reporting of the basin a
