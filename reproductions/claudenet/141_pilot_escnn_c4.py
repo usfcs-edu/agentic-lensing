@@ -179,9 +179,11 @@ def eval_recovery(model, mean, std, device, batch: int) -> dict:
     ev = {}
     for sp in ("testneg", "storfer", "inchausti"):
         d = pd.read_parquet(C.DATA / f"eval_{sp}.parquet").copy()
-        if "cutouts" not in str(d.fits_dir.iloc[0]):     # 80_equivariance guard
-            d["fits_dir"] = d["fits_dir"].apply(
-                lambda p: str(C.DATA / Path(str(p)).name))
+        # ALWAYS remap to this host's C.DATA by basename (idempotent locally;
+        # required on Perlmutter where the stored absolute paths don't exist —
+        # the old "cutouts in path" guard skipped the remap and NaN'd every row)
+        d["fits_dir"] = d["fits_dir"].apply(
+            lambda p: str(C.DATA / Path(str(p)).name))
         d["p"] = T.score_df(model, "shielded", d, mean, std, device, batch=batch)
         ev[sp] = d["p"].to_numpy()
         print(f"[score] {sp:10s} n={len(d)} mean_p={np.nanmean(ev[sp]):.3f}")
