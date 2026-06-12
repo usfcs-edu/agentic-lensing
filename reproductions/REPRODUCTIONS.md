@@ -59,6 +59,7 @@ are **out of scope** (cosmology, not lens discovery/modeling).
 - **Difference-imaging core** — `sheu-2023/` from-scratch Bramich-2008 + SEP + SALT3 + NOIRLab per-exposure DECam fetch; reused verbatim by `sheu-2024a/`. venv `/home/benson/.venvs/lens` (sep, sncosmo, reproject, photutils, mpdaf).
 - **Finder stack** — PyTorch Lanusse + shielded ResNet + EfficientNetV2 + meta-learner; legacysurvey brick-FITS download + WCS slicing (~150× faster than the cutout endpoint).
 - **DESI spectroscopic stack** — `hsu-2025/` spherimatch FoF; DR1 `zall-pix-iron.fits` (28M rows) + FastSpecFit σ_v shards on disk. Drives Dawes 2022 and Foundry II.
+- **DR11 `One_percent` dataset generator** — `tools/desi-dr11-cookbook/`; clean reimplementation of the Legacy Survey DR11 → HDF5 ML-dataset pipeline (filtered tractor catalogs + 101×101×3 grz cutouts), reverse-engineered and verified **bit-for-bit** against xhuang's `One_percent` (golden brick north/2400p345). MPI fan-out on Perlmutter CPU nodes. Produces the `One_percent`-format training data feeding the finder lineage (Huang 2020/2021, Inchausti 2025).
 
 ## Verification thresholds (per the reproduction plan)
 - GIGA-Lens modeling — posterior medians within ~1σ of published (θ_E, γ, q, shear); convergence (ESS, R̂) where compute allows.
