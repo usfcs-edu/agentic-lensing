@@ -1,0 +1,221 @@
+\section{\cnet{} v2: Perlmutter-scale validation and a sky sweep}
+The v1 program above was gated on $\sim$6{,}500 held-out negatives, which (as we
+flagged) cannot resolve the $\sim$$10^{-4}$-FPR regime where real scans run. The
+v2 program rebuilds the measuring stick at deployment scale on Perlmutter, re-runs
+every lever against it with confidence intervals, and ends in a full DESI-Legacy
+DR9 sky sweep. We keep all v1 results; v2 is additive. Every number below is read
+from the cited artifact under \texttt{data/v2/}.
+
+\paragraph{An honest measuring stick: NegEval-1M.} We assembled a held-out negative
+pool of $1{,}000{,}000$ DR9 cutouts (\texttt{thresholds\_ci.json},
+\texttt{operating\_points\_v2.csv}), versus v1's $6{,}501$. With $6.5$\,K negatives
+the $0.01\%$-FPR threshold is pinned by $\le1$ negative and is unmeasurable; with
+$10^{6}$ it is pinned by $\sim$100, so for the first time we report paired-bootstrap
+CIs at $1\%$, $0.1\%$, \emph{and} $0.01\%$ FPR. The first-ever $0.01\%$ measurement
+immediately exposed a failure the small set hid: the v1 6-member \emph{average}
+combiner, which beats the published meta at $1\%$ ($+0.049\,[+0.037,+0.061]$
+Storfer vs.\ published meta) and $0.1\%$ ($+0.075\,[+0.057,+0.091]$),
+\emph{collapses} at $0.01\%$ to $-0.120\,[-0.161,-0.084]$ --- the degraded-\aion{}
+member's heavy negative tail poisons the unweighted mean exactly where purity
+matters. The random-forest combiner is robust there ($+0.102\,[+0.083,+0.123]$),
+and the best single member, an EfficientNetV2-S, reaches $+0.194\,[+0.175,+0.215]$
+(recovery $0.708$ vs the meta's $0.513$). A purity audit of the top-200 pool rows
+found $0/200$ within $10''$ of any known lens and no convincing arcs
+(\texttt{audit/visual\_grading.md}); the threshold-sensitivity bound (removing all
+top-200 moves the $0.01\%$ threshold by $-0.108$, the $0.1\%$ by $-0.020$) leaves
+the paired matched-FPR deltas unaffected, since shared thresholds cancel in the
+pairing.
+
+\paragraph{Deployment-scale mining: round~1 ships, round~2 over-mines.} We mined a
+fresh $10^{6}$-cutout brick pool with the baseline EfficientNet, controlling each
+hard-negative arm against a random-negative arm drawn from the same pool
+(\texttt{mining\_v2\_results.json}, \texttt{mining\_v2\_results.csv}). Round~1
+\emph{ships}: the paired (hard$-$random) gain at $0.1\%$ FPR is
+$+0.157\,[+0.139,+0.177]$ mean over three members (Inchausti), with every member
+passing --- e.g.\ ResNet-46 Inchausti\fpr{0.1} $+0.266\,[+0.231,+0.305]$,
+EfficientNet-B3 $+0.159\,[+0.128,+0.190]$, EfficientNetV2-S $+0.047\,[+0.026,+0.070]$;
+the Storfer\fpr{0.1} mean is $+0.121\,[+0.109,+0.134]$. Re-mining the round-1
+members for a round~2 \emph{over-mines} (the hard$^2$ pool's score range collapses
+to $[0.004,0.036]$ vs round-1's $[0.009,0.281]$, \texttt{mined\_stats.json}/\texttt{mined\_r2\_stats.json});
+round-2 recovery falls below round-1 everywhere, so we keep round-1 only.
+
+\paragraph{The \aion{} member: degradation \emph{was} the diversity (negative
+result).} We tested whether feeding \aion{} native four-band \emph{griz} (instead of
+the synthetic-$i$ degraded embeddings v1 used) makes a better member
+(\texttt{aion\_gate\_v2.json}). It does not: on matched rows the native-griz probe
+recovers $0.535$ Storfer\fpr{1} versus the degraded refit's $0.647$ --- the
+matched-rows gate \emph{fails} ($0.535 < 0.647+0.03$). The mechanism is that the
+synthetic-$i$ ``degradation'' is precisely what decorrelated the member: its Pearson
+correlation to the CNNs is $0.13$ degraded versus $0.72$ native (pooled
+$0.65$/$0.72$). Larger native variants (base/large/xlarge,
+val-AUC $0.958$--$0.963$) did not recover the gap, so the LoRA fine-tune was skipped
+($\sim$12 GPU-h saved) and the member's v1 form is retained --- though, as the next
+paragraph shows, even the degraded \aion{} is ultimately dropped at the ensemble
+level.
+
+\paragraph{Headline: ensemble v2-lean ships 4/4.} The shipped v2 ensemble is
+\emph{v2-lean} $=\{$effnet\_B, effnet\_B3\_hard, effnet\_S2\_hard,
+resnet46\_C\_hard, zoobot\_N$\}$ (\texttt{ensemble\_v2lean\_verdict.json}). On
+NegEval-1M, averaged and compared to the v1 flagship with paired-bootstrap CIs, it
+passes all four ship cells ($n_{\mathrm{pass}}{=}4/4$) and beats the published
+meta-learner at every operating point in both catalogues
+(Table~\ref{tab:v2lean}). The gains \emph{widen} as the threshold tightens: vs the
+v1 flagship, Storfer goes $+0.060\!\to\!+0.141\!\to\!+0.340$ across
+$1\%\!\to\!0.1\%\!\to\!0.01\%$ FPR, and the v2-lean absolute Storfer\fpr{0.01}
+recovery is $0.734$, versus $0.394$ for the v1 flagship and $0.513$ for the published
+meta. The ensemble's own correlation structure is the source: member Spearman
+off-diagonals average $\sim$0.43 (Pearson $\sim$0.27).
+
+\begin{table}[t]\centering
+\caption{\textbf{Headline.} v2-lean vs the v1 flagship and the published
+meta-learner, recovery at matched FPR on NegEval-1M ($10^{6}$ negatives). Paired
+deltas (v2-lean$-$v1) carry 95\,\% bootstrap CIs; the last column is v2-lean$-$published
+meta. All entries from \texttt{ensemble\_v2lean\_verdict.json}.}
+\label{tab:v2lean}
+\small
+\begin{tabular}{lcccc}
+\toprule
+metric & v1 flagship & v2-lean & paired $\Delta$ [95\,\% CI] & vs meta\\
+\midrule
+Storfer \fpr{1}      & 0.903 & \textbf{0.963} & $+0.060\,[+0.049,+0.072]$ & $+0.109$\\
+Storfer \fpr{0.1}    & 0.754 & \textbf{0.895} & $+0.141\,[+0.125,+0.160]$ & $+0.216$\\
+Storfer \fpr{0.01}   & 0.394 & \textbf{0.734} & $\mathbf{+0.340\,[+0.306,+0.381]}$ & $+0.220$\\
+Inchausti \fpr{1}    & 0.968 & \textbf{0.996} & $+0.028\,[+0.017,+0.041]$ & $+0.064$\\
+Inchausti \fpr{0.1}  & 0.891 & \textbf{0.961} & $+0.069\,[+0.052,+0.090]$ & $+0.191$\\
+Inchausti \fpr{0.01} & 0.614 & \textbf{0.871} & $\mathbf{+0.256\,[+0.217,+0.301]}$ & $+0.264$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Leave-one-out admission dropped \aion{} and the shielded net.}
+``v2-lean'' is not the full v2 roster: a leave-one-out admission test on the
+\emph{full} seven-member roster
+($\{$\aion{}, effnet\_B, effnet\_B3\_hard, effnet\_S2\_hard, resnet46\_C\_hard,
+shielded\_A, zoobot\_N$\}$, \texttt{ensemble\_v2\_verdict.json}) found that two members
+\emph{hurt} the average at $0.1\%$ FPR with CIs excluding zero: \aion{}
+($\Delta_{\mathrm{Storfer}}=-0.0185\,[-0.0264,-0.0106]$) and the $194$\,K shielded
+net ($-0.0106\,[-0.0179,-0.0021]$). Dropping both is what produced the
+Table~\ref{tab:v2lean} numbers --- the same conclusion the $0.01\%$ average-collapse
+flagged, now reached member-by-member. (The full seven-member roster still ships
+$4/4$, but v2-lean dominates it.) Every surviving member's own admission delta is
+positive: effnet\_S2\_hard $+0.047\,[+0.035,+0.056]$, effnet\_B3\_hard
+$+0.028\,[+0.018,+0.036]$, resnet46\_C\_hard $+0.016\,[+0.008,+0.023]$, zoobot\_N
+$+0.010\,[+0.001,+0.018]$ Storfer\fpr{0.1}.
+
+\paragraph{The Zoobot member and a learning-rate lesson.} The fifth member is a
+Galaxy-Zoo-pretrained ConvNeXT-Nano (Zoobot, \citealt{walmsley2023zoobot},
+$14.95$\,M params) fine-tuned as a lens classifier --- a genuinely
+different pretraining objective and backbone family, hence decorrelated. It carries
+a sharp lesson: at the v1 default $\eta{=}10^{-3}$ the ConvNeXT collapses to a
+constant output (val-AUC $0.64$); at $\eta{=}10^{-4}$ it trains cleanly (val-AUC
+$0.993$, Storfer\fpr{1} $0.898$, Pearson $0.45$ vs effnet\_S2). The member is
+admitted on its own merits (above) and is the throughput leader at
+$6{,}028$ cutouts\,s$^{-1}$ (\texttt{throughput\_v2.json}).
+
+\paragraph{Distillation: faster but not accurate enough (tradeoff).} To collapse the
+five-member stage into one forward pass we distilled it into an EfficientNetV2-S
+student (\texttt{throughput\_v2.json}). The student is fast --- $3{,}494$
+cutouts\,s$^{-1}$, $5.3\times$ the $663$ c\,s$^{-1}$ of the shared-load five-member
+stage --- but it loses too much: recovery drops $-0.111$ Storfer and $-0.068$
+Inchausti at $0.1\%$ FPR versus the teacher, failing the $-0.02$ recovery gate. The
+sweep therefore deploys the shared-load lean members (the documented fallback), for
+which the per-cutout FITS load is paid once and five cheap forwards run on it; this
+is the v1 two-stage I/O-bound argument, now with measured v2 throughputs.
+
+\paragraph{The sky sweep: 17.3\,M $\to$ 29{,}892 $\to$ FDR-controlled candidates.} We
+swept $17{,}290{,}814$ DR9 parent-galaxy positions
+($5{,}018{,}411$ north, $12{,}272{,}362$ south; $41$ non-finite dropped) through the
+v2-lean stage-1 union filter at a $10^{-4}$ per-member FPR
+(\texttt{sweep/stage1\_summary.json}). $29{,}892$ survivors passed
+($1.73\times10^{-3}$ realized rate, consistent with the EVT prediction within
+$\times3$ of the five-member union bound), of which $1{,}440$ crossmatch to known
+lenses and $28{,}452$ are new. Group-conformal Benjamini-Hochberg selection
+(\texttt{sweep/conformal\_summary.json}, \texttt{sweep/sweep\_summary.json}) then
+certifies candidates: at per-group FDR $\le0.05$ it selects $1{,}449$
+($813$ new, $737$ new-and-unseen after excluding training/mining/calibration rows),
+$2{,}836$ at $\le0.10$, and $5{,}141$ at $\le0.25$.
+
+\begin{table}[t]\centering
+\caption{DR9 sweep: group-conformal FDR-controlled candidate counts
+(\texttt{sweep/sweep\_summary.json}). PRIMARY rows use the full per-footprint sweep
+total as $m$ and carry the per-group FDR guarantee; the survivors-only-$m$
+``diagnostic'' column has \emph{no} guarantee.}
+\label{tab:sweep}
+\small
+\begin{tabular}{lcccc}
+\toprule
+FDR $\alpha$ & selected & new & new \& unseen & guarantee\\
+\midrule
+$0.05$ & 1{,}449 & 813   & 737  & per-group FDR $\le\alpha$\\
+$0.10$ & 2{,}836 & 1{,}999 & --- & per-group FDR $\le\alpha$\\
+$0.25$ & 5{,}141 & 4{,}186 & --- & per-group FDR $\le\alpha$\\
+\midrule
+survivors-$m$ diag. & 29{,}892 & 28{,}452 & --- & \emph{none} (anti-conservative)\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Conformal validity and the two-stage-selection trap.} The selection's
+validity rests on one subtlety we state plainly. The PRIMARY estimator computes each
+sweep row's conformal $p$-value against the NegEval calibration with the
+\emph{full} per-footprint sweep total as the multiple-testing count $m$
+(censoring non-survivors at $p{=}1$); because censoring can only raise a $p$-value
+and the unconditional $p$-value of a null sweep row is exchangeable with the
+calibration, the per-group FDR $\le\alpha$ guarantee holds marginally. The tempting
+shortcut --- using $m=n_{\mathrm{survivors}}$ --- conditions the test set on a
+stage-1 selection computed from the \emph{same} members, is anti-conservative, and a
+\texttt{--synthetic-check} demonstrates the violation; it would have ``selected''
+all $29{,}892$ survivors at every $\alpha$ (the diagnostic row of
+Table~\ref{tab:sweep}). The honest cost of validity is power: with a conformal
+$p$-floor of $1/(n_{\mathrm{cal},g}{+}1)$, the north footprint hits the power floor
+at $\alpha{=}0.05$ and selects \emph{nothing} (surfaced, not hidden) --- all
+$1{,}449$ FDR$\le0.05$ candidates are southern, where the calibration set is
+larger. NegEval is used twice (stage-1 thresholds and conformal calibration); a
+deterministic seed-2026 split confines calibration to a disjoint half and drops the
+$735$ calibration rows that re-appear as sweep tests.
+
+\paragraph{Known-lens recall consistency and ``candidates, not confirmations.''}
+The pipeline re-finds real lenses at the same operating point it proposes new ones:
+within the swept coverage it recovers $47.5\%$ of in-coverage catalogued lenses into
+the survivor set ($1{,}676/3{,}528$ union; $40.3\%$ Storfer, $59.0\%$ Inchausti,
+$55.7\%$ Huang21; \texttt{sweep/crossmatch\_recall.json}), and $285$ of them survive
+into the FDR$\le0.05$ set --- the internal consistency the new-candidate claim
+requires. We frame the output honestly (\texttt{sweep/visual\_grading.md}): a
+first-pass visual grading of the top $\sim$300 new candidates finds them
+overwhelmingly luminous red galaxies with blends/companions and only $\sim$5--8\%
+showing plausible lens morphology (a tangential feature, partial ring, or arclet
+pair), because galaxy-galaxy $\theta_E\sim1$--$2''$ is $4$--$8$\,px at DECaLS
+$0.262''$/px, at the resolution floor. \emph{This is a statistically-controlled
+candidate list, not a confirmed-lens catalogue}: any individual candidate needs
+higher-resolution imaging (HSC/Euclid/HST) or spectroscopy to confirm. The
+deliverable's value is the control --- $737$ new-and-unseen candidates at certified
+per-group FDR $\le0.05$ from a $17.3$\,M sweep, with a passing known-lens recall
+sanity check.
+
+\paragraph{Equivariance, trained not test-time.} v1 only tested test-time $D_4$
+pooling (\texttt{equivariance.json}: $+0.032$ shielded, $+0.049$ Lanusse-46
+Storfer\fpr{1}). v2 replaces this with a genuinely \emph{trained} equivariant member
+via \texttt{escnn} \citep{weiler2019escnn}: a cyclic-$C_4$ pilot, gated against a
+self-calibrating parameter-matched plain-CNN twin
+(\texttt{141\_pilot\_escnn\_c4.py}), beat the twin by $+0.120$ Storfer\fpr{1} (\texttt{escnn\_pilot.json}), clearing the $+0.02$ ship margin,
+which justified queueing a full dihedral-$D_4$ member (\texttt{142\_train\_escnn\_d4.py})
+as a bonus add to the roster.
+
+\paragraph{Honest limits (v2).} The v2 program tightens, but does not erase, the v1
+caveats. ``Recovery'' is still the held-out true-positive rate on the
+\emph{existing} Storfer/Inchausti catalogues, not newly confirmed lenses; the
+$1{,}449$/$737$ sky-sweep candidates are exactly that --- candidates --- and none is
+confirmed here. The matched-FPR deltas are now CI-backed down to $0.01\%$ FPR
+(the headline's largest gains), but the $0.01\%$ threshold is pinned by $\sim$100
+NegEval negatives, so a residual PU-contamination assumption remains (bounded, not
+eliminated, by the top-200 audit). The conformal guarantee is marginal and per-group,
+assumes calibration/sweep exchangeability, and buys validity at the cost of power ---
+the north footprint selects nothing at $\alpha{=}0.05$. The sweep's stage-1 rate
+matches EVT only ``within $\times3$,'' and the end-to-end wall-clock remains a
+structural I/O-bound argument rather than a benchmarked production run. The
+defensible v2 claim is sharper than v1's: at the strict operating points scans
+actually use, v2-lean recovers $+0.14$ (Storfer\fpr{0.1}) to $+0.34$
+(Storfer\fpr{0.01}) more catalogued lenses than the v1 flagship and $+0.22$ to
+$+0.26$ more than the published meta-learner, with a certified-FDR candidate list as
+the operational artifact --- a measured, honestly-bounded, deployment-validated lift,
+not a transformational one.

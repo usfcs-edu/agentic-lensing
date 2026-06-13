@@ -32,7 +32,10 @@ TARGET_FPR = (0.01, 0.001)        # the honest operating points (matched-FPR rec
 # --- paths ------------------------------------------------------------------
 ROOT = Path(__file__).resolve().parent
 REPRO = ROOT.parent
-INCH = REPRO / "inchausti-2025"
+# inchausti-2025 sibling checkout when present (local box); on Perlmutter the
+# repo is staged flat with symlinks dereferenced (rsync -L), so the digit-named
+# model files live in ROOT itself — fall back there.
+INCH = (REPRO / "inchausti-2025") if (REPRO / "inchausti-2025").exists() else ROOT
 HUANG20 = REPRO / "huang-2020"
 HUANG21 = REPRO / "huang-2021"
 SILVER = REPRO / "silver-2025"
@@ -52,7 +55,11 @@ PHOENIX_RAID = "/raid/benson/git/agentic-lensing/reproductions"
 # --- venvs ------------------------------------------------------------------
 CLAUDENET_PY = "/home2/benson/.venvs/claudenet/bin/python"   # torch+timm+lenstronomy
 AION_PY = "/home2/benson/.venvs/aion/bin/python"             # has the `aion` package
-HF_HOME = os.environ.setdefault("HF_HOME", "/home2/benson/.cache/huggingface")
+# Default HF cache only on the local TITAN box; on other hosts (e.g. Perlmutter,
+# where /home2 does not exist) the caller's HF_HOME / default is left alone.
+if Path("/home2/benson/.cache/huggingface").exists():
+    os.environ.setdefault("HF_HOME", "/home2/benson/.cache/huggingface")
+HF_HOME = os.environ.get("HF_HOME", "")
 
 # inchausti shielded-ResNet config that lands at 194,433 params (Inchausti 2025).
 CFG194 = dict(stage_out=52, stage_mid=32, shield_ch=12, final_out=24)
