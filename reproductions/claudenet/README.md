@@ -151,5 +151,72 @@ symlinked; the aion-1 harness (`_aion_embed`/`_probe`/`_ls_cutout`) is reused on
 3. Full equivariant-training label-efficiency study (escnn).
 4. Full DR9/DR10 sky sweep with the diversity ensemble + conformal-controlled selection.
 
-*Built on branch `reproductions/claudenet`. Bulk data is gitignored; scripts, result
-JSON/CSV, figures, and this report are tracked.*
+> **All four were executed at survey scale — see the ClaudeNet v2 section below.**
+
+## ClaudeNet v2 (Perlmutter scale-up)
+
+The four NERSC follow-ups above were executed at survey scale on Perlmutter, with the
+**full DESI Legacy Survey archive resident on CFS** (no per-cutout fetch). This turned
+every "deferred — too big locally" caveat in the v1 report into a measured result. All
+numbers below are quoted verbatim from `data/v2/` artifacts (cited per row).
+
+### Results by phase (v2)
+
+| Phase | Direction | Headline result |
+|---|---|---|
+| 110 | **NegEval-1M** honest eval set | The v1 0.1 % threshold was pinned by ~6–7 of **6,501** held-out negatives; v2 rebuilds it on **1,000,000** negatives. The v1 6-member average vs published meta: storfer@1 % **+0.049** [+0.037, +0.061], @0.1 % **+0.075** [+0.057, +0.091]; but @0.01 % (first ever measured) the *average collapses* **−0.120** [−0.161, −0.084] — the degraded-AION member's neg tail poisons it. RF combiner robust @0.01 % **+0.102** [+0.083, +0.123]. Best single member `effnet_S2` @0.01 % **+0.194** [+0.175, +0.215]. (`thresholds_ci.json`, `operating_points_v2.csv`) |
+| 120 | Deployment-scale hard-neg mining (1M pool) | **Round-1 SHIPS** — paired (hard − random) mean over 3 archs at inchausti@0.1 % **+0.157** [+0.139, +0.177]; all members PASS the +0.015 gate. **Round-2 (hard2) rejected**: re-mining with the round-1 model over-mines (hard2 < hard everywhere). Keep round-1 only. (`mining_v2_results.json`) |
+| 130 | AION upgrade (native griz, large/xlarge, LoRA) | **DROP / KEEP-V1.** Matched-rows native-griz storfer@1 % **0.535** < degraded-refit **0.647** → gate FAIL (`gate_a_pass:false`). The synthetic-i "degradation" *was* the diversity mechanism (Pearson vs CNN 0.13 degraded vs ~0.65 native pooled). large/xlarge frozen probes didn't beat the degraded standalone; LoRA skipped (unjustified). (`aion_gate_v2.json`) |
+| 140 | **Ensemble v2-lean refit (HEADLINE)** | **SHIP 4/4.** Roster = {`effnet_B`, `effnet_B3_hard`, `effnet_S2_hard`, `resnet46_C_hard`, `zoobot_N`}; AION + `shielded_A` dropped by leave-one-out admission. New Zoobot ConvNeXT-Nano member needs lr 1e-4 (v1's 1e-3 collapses it). (`ensemble_v2lean_verdict.json`) |
+| 150 | Distill ensemble → single student | **FAILS the gate.** EffNetV2-S student hits **3,494 c/s** vs the 5-member shared-load **663 c/s** (5.3×), but recovery drops **−0.111** storfer@0.1 % vs teacher (gate is −0.02). Deploy the shared-load lean members instead. (`throughput_v2.json`) |
+| 160 | Full DR9 sweep → group-conformal FDR | **17,290,814** parent galaxies swept; **29,892** survivors (stage-1 rate **1.73e-3**); per-group conformal BH at **FDR ≤ 0.05** selects **1,449** (813 new, **737 new-and-unseen**), **2,836** @0.10, **5,141** @0.25. Known-lens recall **47.5 %** in-coverage into survivors (1,676/3,528). (`sweep/{sweep_summary,conformal_summary,crossmatch_recall,stage1_summary}.json`) |
+
+### The v2-lean headline (recovery @ matched FPR, NegEval-1M)
+
+v2-lean **beats the v1 flagship on all four ship cells** and crushes the published meta,
+with paired-bootstrap CIs (10,000 reps) over 1 M negatives (`ensemble_v2lean_verdict.json`):
+
+| metric | published meta | v1 flagship | **v2-lean** | Δ (v2-lean − v1) | Δ (v2-lean − meta) |
+|---|---|---|---|---|---|
+| Storfer @1 % | 0.854 | 0.903 | **0.963** | **+0.060** [+0.049, +0.072] | +0.109 |
+| Storfer @0.1 % | 0.679 | 0.754 | **0.895** | **+0.141** [+0.125, +0.160] | +0.216 |
+| Storfer @0.01 % | 0.513 | 0.394 | **0.734** | **+0.340** [+0.306, +0.381] | +0.220 |
+| Inchausti @1 % | 0.932 | 0.968 | **0.996** | **+0.028** [+0.017, +0.041] | +0.064 |
+| Inchausti @0.1 % | 0.769 | 0.891 | **0.961** | **+0.069** [+0.052, +0.090] | +0.191 |
+| Inchausti @0.01 % | 0.607 | 0.614 | **0.871** | **+0.256** [+0.217, +0.301] | +0.264 |
+
+The gain *grows monotonically as the threshold tightens* — exactly the regime a real sweep
+runs in. The v2-lean **storfer@0.01 % = 0.734** vs the v1 flagship's 0.394 and the meta's
+0.513 is the single most important number: at the operating point a 17 M-cutout sweep
+actually uses, v2-lean recovers nearly twice the lenses the v1 ensemble did. Member
+correlation stays low (Pearson ~0.18–0.40 off-diagonal). The equivariance follow-up is a
+**trained C4 escnn member** (replacing v1's test-time-D4-only result); the pilot/full-D4
+member (scripts `141`/`142`) is a queued bonus, not part of the shipped 5-member roster.
+
+### Sky-sweep candidate list (Phase 160)
+
+From **17,290,814** DR9 parent galaxies (north 5,018,411 + south 12,272,362), the lean
+5-member stage-1 union (per-member 1e-4 FPR) yields **29,892 survivors** (realized rate
+**1.728783e-3**, consistent with the EVT union-bound prediction within ×3). Stage-2 rescore
+with the v2-lean average, then **per-group conformal BH** against the NegEval-1M calibration
+half (`conformal_summary.json`):
+
+| selection | FDR α | n selected | n new | n new-and-unseen | north / south |
+|---|---|---|---|---|---|
+| `sel_group` | **0.05** | **1,449** | 813 | **737** | 0 / 1,449 |
+| `sel_group` | 0.10 | 2,836 | 1,999 | — | 886 / 1,950 |
+| `sel_group` | 0.25 | 5,141 | 4,186 | — | 2,634 / 2,507 |
+
+North @0.05 selects **0** — surfaced honestly: with `n_cal=145,227` the per-group power
+floor (`p ≥ 1/(n_cal+1)`, full-m BH) cannot reach α=0.05, so the valid estimator reports
+nothing rather than over-claiming. Anti-conservative survivors-only-m diagnostics are kept
+separate and explicitly carry **no FDR guarantee**. Visual grading of the top ~300 new
+candidates (`sweep/visual_grading.md`) finds an overwhelmingly LRG population with a
+~5–8 % plausible-arc minority — a **candidate list, not a confirmed-lens list**, whose value
+is the statistical control: 737 new-and-unseen at certified per-group FDR ≤ 0.05 from a 17.3 M
+sweep, with the pipeline re-finding 47.5 % of in-coverage known lenses at the same threshold.
+
+### New pipeline scripts (100–165)
+
+*Built on branch `reproductions/claudenet` (v2 on `reproductions/claudenet-v2`).
+Bulk data is gitignored; scripts, result JSON/CSV, figures, and this report are tracked.*
