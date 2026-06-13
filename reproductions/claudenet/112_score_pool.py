@@ -371,7 +371,9 @@ def main() -> int:
         torch.cuda.empty_cache()
 
     # 1b. extra checkpoints (121 retrained variants etc.); column = file stem,
-    #     timm variant read from the checkpoint itself (121 stores it)
+    #     timm variant read from the checkpoint itself (121 stores it); v1-schema
+    #     ckpts without a 'variant' key (e.g. member_effnet_B.pt in the Phase-160
+    #     lean stage-1 set) fall back to members.json/VARIANT_FALLBACK by stem
     if args.extra_ckpt_dir:
         extras = sorted(Path(args.extra_ckpt_dir).glob("member_*.pt"))
         for p in [p for p in extras if p.name.endswith("_smoke.pt")]:
@@ -385,7 +387,9 @@ def main() -> int:
         for path in extras:
             col = path.stem
             try:                     # a non-loadable ckpt (e.g. arch='escnn_d4')
-                model, score_arch, mean, std = load_member_checkpoint(path, device, None)
+                model, score_arch, mean, std = load_member_checkpoint(
+                    path, device,
+                    member_variant(path.stem.removeprefix("member_"), ckpt_dir))
                 print(f"[112] {col}: {path.name} score_arch={score_arch} (extra)")
                 cols[col] = run_pass(col, model, score_arch, mean, std, index, root,
                                      device, args.batch, partial(col))

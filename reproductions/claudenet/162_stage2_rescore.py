@@ -18,10 +18,14 @@ LOCALLY, CPU; the GPU work between them — survivors-only 111 extraction +
     per-member calibrators from the PERSISTED 145 fits (--fits; FATAL if a
     needed calibrator is absent) and thresholding/margins/p_stage1 all happen
     in calibrated space, where thr, evt_thr and 164's EVT prediction are
-    valid. Before any selection, the thresholds are verified to reproduce
-    --stage1-fpr on the NegEval pool (--negeval-scores; the realized
-    per-member pass fraction must match the target within a factor of 2 —
-    abort otherwise; --skip-negeval-check bypasses when the pool is absent).
+    valid. Before any selection, the thresholds are verified against
+    --stage1-fpr on the NegEval pool (--negeval-scores): each thr is first
+    SNAPPED onto the calibrated pool grid (isotonic-plateau ULP guard, see
+    check_negeval_fpr), then a realized pass fraction below target/2 aborts
+    (recall loss = the space-mismatch failure mode) while a plateau-tie
+    overshoot is recall-safe -> warned + recorded (the union rule and
+    --survivor-budget cap the volume); --skip-negeval-check bypasses when the
+    pool is absent (NOT recommended: it also skips the snap).
       * --stage1-mode student : p_stage1 = calibrated --student-col; survive
         iff p_stage1 >= thr where thr is the EVT-cross-checked --stage1-fpr
         (1e-4) threshold for --stage1-scorer in --operating-points
@@ -84,6 +88,14 @@ LOCALLY, CPU; the GPU work between them — survivors-only 111 extraction +
     stage-2 counts. 163/164/165 read stage2_scores.parquet.
 
     python 162_stage2_rescore.py --make-survivors --stage1-mode members
+    # LEAN v2 roster (161 --stage1 lean outputs; members-mode UNION rule with
+    # the v2lean fits/CSV — the defaults above are v1-era):
+    python 162_stage2_rescore.py --make-survivors --stage1-mode members \\
+        --stage1-scores 'data/v2/sweep/stage1/stage1_*_lean_s*.parquet' \\
+        --members effnet_B,effnet_B3_hard,effnet_S2_hard,resnet46_C_hard,zoobot_N \\
+        --operating-points data/v2/ensemble_v2lean_operating_points.csv \\
+        --fits data/v2/ensemble_v2lean_fits \\
+        --negeval-scores data/v2/scores_negeval_pool_full.parquet,data/v2/scores_negeval_member_variants.parquet
     python 162_stage2_rescore.py --merge \\
         --survivor-scores data/v2/sweep/survivor_scores.parquet
 """
@@ -167,41 +179,92 @@ def load_calibrators(fits_path) -> dict:
 
 
 def check_negeval_fpr(args, cols, thrs, cals) -> dict:
-    """Assert the (calibrated-space) thresholds reproduce the per-scorer target
-    FPR on the NegEval pool BEFORE any sweep selection — the guard against the
-    raw-vs-calibrated space mismatch (realized 3e-6 instead of 1e-4)."""
-    np_ = Path(args.negeval_scores)
+    """Verify the (calibrated-space) thresholds against the NegEval pool BEFORE
+    any sweep selection — the guard against the raw-vs-calibrated space mismatch
+    (realized 3e-6 instead of 1e-4). Two realities of isotonic calibration are
+    handled here (measured on the v2lean fits, 2026-06):
+      * SNAP: the CSV thr is a type-7 quantile of the calibrated pool, but the
+        CSV float roundtrip + calibrator re-application leave it ULP-fragile
+        around the isotonic plateaus (zoobot_N's stored thr sits 2 ULP above
+        its top plateau -> a naive >= passes NOTHING, silently disabling the
+        member). Each thr is therefore snapped to the smallest calibrated pool
+        value >= thr*(1-1e-9) — the operating point the quantile actually
+        selected. `thrs` is updated IN PLACE; the selection and the summary use
+        the snapped values.
+      * TIES: a plateau straddling the target quantile makes the realized
+        >=-FPR jump discretely (effnet_B: 5.6e-4 or 3e-6, nothing near 1e-4).
+        Overshoot is RECALL-SAFE for stage-1 (the union rule + --survivor-budget
+        cap the volume) -> WARN + record. Undershoot below target/2 is recall
+        LOSS (the original space-mismatch failure mode) -> FATAL."""
+    specs = [s for s in str(args.negeval_scores).split(",") if s]
     target = args.stage1_fpr
-    if not np_.exists():
-        msg = (f"{np_} missing — cannot verify the thresholds reproduce "
-               f"fpr {target:g} on the NegEval pool")
+    absent = [s for s in specs if not (Path(s).exists() or globlib.glob(s))]
+    if absent:
+        msg = (f"{', '.join(absent)} missing — cannot verify the thresholds "
+               f"reproduce fpr {target:g} on the NegEval pool")
         if args.skip_negeval_check:
             print(f"[162] WARNING: {msg} (--skip-negeval-check)")
             return {"verdict": "SKIPPED", "note": msg}
         raise SystemExit(f"[162] FATAL: {msg} (point --negeval-scores at the "
-                         f"raw 112 NegEval parquet, or pass --skip-negeval-check)")
-    pool, _ = read_glob(str(np_), "NegEval pool scores",
-                        columns=["row_id", *[c for c in cols]])
+                         f"raw 112 NegEval parquet(s), or pass --skip-negeval-check)")
+    if len(specs) == 1:
+        pool, _ = read_glob(specs[0], "NegEval pool scores",
+                            columns=["row_id", *[c for c in cols]])
+    else:
+        # comma-list (the lean roster's raw NegEval scores live in TWO 112
+        # outputs, e.g. scores_negeval_pool_full + scores_negeval_member_
+        # variants): merge on row_id, each needed column taken from the FIRST
+        # listed parquet whose schema has it (mirrors 145.load_pool)
+        import pyarrow.parquet as pq
+        pool, need = None, list(cols)
+        for s in specs:
+            have = [c for c in need
+                    if c in pq.read_schema(sorted(globlib.glob(s))[0]).names]
+            if not have:
+                continue
+            df, _ = read_glob(s, f"NegEval pool scores [{Path(s).name}]",
+                              columns=["row_id", *have])
+            pool = df if pool is None else pool.merge(
+                df, on="row_id", how="inner", validate="one_to_one")
+            need = [c for c in need if c not in have]
+        if need:
+            raise SystemExit(f"[162] FATAL: --negeval-scores comma-list {specs} "
+                             f"lacks stage-1 columns {need}")
     rep, bad = {}, []
     for c in cols:
         v = pool[c].to_numpy(np.float64)
         v = v[np.isfinite(v)]
         vc = cals[c].transform(v) if cals.get(c) is not None else v
+        thr_csv = thrs[c]
+        above = vc[vc >= thr_csv * (1.0 - 1e-9)]
+        if above.size:                       # SNAP (see docstring)
+            t_eff = float(above.min())
+            if t_eff != thr_csv:
+                print(f"[162] negeval-snap {c}: thr {thr_csv!r} -> {t_eff!r} "
+                      f"(smallest calibrated pool value at/above the CSV "
+                      f"quantile; isotonic-plateau ULP guard)")
+                thrs[c] = t_eff
         frac = float((vc >= thrs[c]).mean())
         slack = max(0.5 * target, 10.0 / max(len(v), 1))
-        ok = abs(frac - target) <= slack
+        undershoot = frac < target - slack
+        overshoot = frac > target + slack
         rep[c] = {"n_pool": int(len(v)), "realized_fpr": frac,
-                  "target_fpr": target, "ok": bool(ok)}
+                  "target_fpr": target, "thr_csv": float(thr_csv),
+                  "thr_effective": float(thrs[c]),
+                  "ok": not undershoot, "overshoot": bool(overshoot)}
+        verdict = ("UNDERSHOOT (recall loss)" if undershoot else
+                   "OVERSHOOT (plateau ties; recall-safe, budget-capped)"
+                   if overshoot else "OK")
         print(f"[162] negeval-fpr {c:28s} realized {frac:.3e} vs target "
-              f"{target:g} -> {'OK' if ok else 'MISMATCH'}")
-        if not ok:
+              f"{target:g} -> {verdict}")
+        if undershoot:
             bad.append(c)
     if bad:
         raise SystemExit(
-            f"[162] FATAL: thresholds do NOT reproduce fpr {target:g} on the "
-            f"NegEval pool for {bad} — score-space mismatch (raw vs calibrated) "
-            f"or a stale operating-points CSV. Refusing to run the sweep "
-            f"selection on invalid thresholds.")
+            f"[162] FATAL: thresholds pass LESS than half the target fpr "
+            f"{target:g} on the NegEval pool for {bad} — score-space mismatch "
+            f"(raw vs calibrated) or a stale operating-points CSV would lose "
+            f"recall. Refusing to run the sweep selection on invalid thresholds.")
     rep["verdict"] = "PASS"
     return rep
 
@@ -524,8 +587,11 @@ def main() -> int:
                     help="student-mode explicit threshold override")
     ap.add_argument("--operating-points", default=str(V2 / "operating_points_v2.csv"))
     ap.add_argument("--negeval-scores", default=str(V2 / "scores_negeval_pool.parquet"),
-                    help="raw 112 NegEval pool parquet: the calibrated thresholds "
-                         "must reproduce --stage1-fpr on it before any selection")
+                    help="raw 112 NegEval pool parquet (comma-list merged on "
+                         "row_id when the roster's columns span several 112 "
+                         "outputs, e.g. the LEAN v2 roster): the calibrated "
+                         "thresholds must reproduce --stage1-fpr on it before "
+                         "any selection")
     ap.add_argument("--skip-negeval-check", action="store_true",
                     help="proceed without the NegEval FPR reproduction check "
                          "(only when the pool parquet is unavailable)")

@@ -10,9 +10,16 @@ This is a thin, collision-safe wrapper around 112_score_pool.py's machinery
 index) can never collide between concurrently running ranges, then invokes
 
   --stage1 members  ->  112 --skip-baselines --shard-range A:B
-                        (the five shared-load CNN members; baselines are
+                        (the five v1 CNN members; baselines are
                         wasted GPU-min at 17.3M scale and play no part in
                         stage-1 selection)
+  --stage1 lean     ->  112 --only-extra --extra-ckpt-dir <--lean-ckpt-dir>
+                        --shard-range A:B   (the LEAN v2 roster
+                        data/v2/roster_v2lean.json: effnet_B + effnet_B3_hard +
+                        effnet_S2_hard + resnet46_C_hard + zoobot_N; columns =
+                        ckpt stems == the persisted v2lean fits' pool_columns.
+                        <--lean-ckpt-dir> must hold EXACTLY those five
+                        member_<name>.pt files — asserted before the GPU pass)
   --stage1 student  ->  112 --only-extra --extra-ckpt-dir <--student-ckpt-dir>
                         --shard-range A:B   (the 150 distilled student,
                         column member_student_distilled)
@@ -69,6 +76,12 @@ import _clib as C
 STAGE1_COLS = {"members": [f"member_{n}" for n in
                            ("shielded_A", "effnet_B", "effnet_B3",
                             "effnet_S2", "resnet46_C")],
+               # LEAN v2 roster (data/v2/roster_v2lean.json) — MUST equal the
+               # persisted v2lean fits' pool_columns AND the member_<name>.pt
+               # stems in --lean-ckpt-dir (112 --only-extra names columns by stem)
+               "lean": [f"member_{n}" for n in
+                        ("effnet_B", "effnet_B3_hard", "effnet_S2_hard",
+                         "resnet46_C_hard", "zoobot_N")],
                "student": None}     # student: columns = ckpt stems (discovered)
 
 
@@ -117,6 +130,9 @@ def plan(args) -> int:
               f"--out-dir {args.out_dir}"
               + (f" --part-tag {args.part_tag}" if args.part_tag else "")
               + (f" --ckpt-dir {args.ckpt_dir}" if args.ckpt_dir != str(C.DATA) else "")
+              + (f" --lean-ckpt-dir {args.lean_ckpt_dir}"
+                 if args.stage1 == "lean"
+                 and args.lean_ckpt_dir != str(C.DATA / 'v2' / 'ckpt_lean') else "")
               + (f" --student-ckpt-dir {args.student_ckpt_dir}"
                  if args.stage1 == "student"
                  and args.student_ckpt_dir != str(C.DATA / 'v2' / 'ckpt_student') else "")
@@ -150,14 +166,18 @@ def main() -> int:
     ap.add_argument("--out-dir", required=True,
                     help="stage-1 score parquets dir (shared across jobs is SAFE: "
                          "file names encode part/mode/range)")
-    ap.add_argument("--stage1", required=True, choices=("members", "student"),
-                    help="stage-1 scorer set (the 150 gate's pick)")
+    ap.add_argument("--stage1", required=True, choices=("members", "lean", "student"),
+                    help="stage-1 scorer set (the 150 gate's pick; 'lean' = the "
+                         "LEAN v2 roster via 112 --only-extra on --lean-ckpt-dir)")
     ap.add_argument("--shard-range", default=None, metavar="A:B",
                     help="half-open shard range of this job (default: ALL shards)")
     ap.add_argument("--part-tag", default=None,
                     help="label in the output file name (default: cutout-root basename)")
     ap.add_argument("--ckpt-dir", default=str(C.DATA),
                     help="112 --ckpt-dir (members mode roster checkpoints)")
+    ap.add_argument("--lean-ckpt-dir", default=str(C.DATA / "v2" / "ckpt_lean"),
+                    help="dir with EXACTLY the five v2lean member_<name>.pt "
+                         "(lean mode; 112 --only-extra --extra-ckpt-dir)")
     ap.add_argument("--student-ckpt-dir", default=str(C.DATA / "v2" / "ckpt_student"),
                     help="dir with member_student_distilled.pt (student mode; "
                          "112 --only-extra --extra-ckpt-dir)")
@@ -193,6 +213,18 @@ def main() -> int:
                "--shard-range", f"{a}:{b}", "--batch", str(args.batch)]
         if args.stage1 == "members":
             cmd += ["--ckpt-dir", args.ckpt_dir, "--skip-baselines"]
+        elif args.stage1 == "lean":
+            ld = Path(args.lean_ckpt_dir)
+            stems = sorted(p.stem for p in ld.glob("member_*.pt")
+                           if not p.name.endswith("_smoke.pt"))
+            want = sorted(STAGE1_COLS["lean"])
+            assert stems == want, (
+                f"--lean-ckpt-dir {ld}: member_*.pt stems {stems} != the v2lean "
+                f"roster {want} — place exactly those five checkpoints there "
+                f"(112 --only-extra scores EVERY member_*.pt and names columns "
+                f"by stem; the persisted v2lean fits expect those columns)")
+            cmd += ["--ckpt-dir", args.ckpt_dir,
+                    "--only-extra", "--extra-ckpt-dir", str(ld)]
         else:
             sd = Path(args.student_ckpt_dir)
             assert list(sd.glob("member_*.pt")), \
