@@ -28,6 +28,10 @@ for _d in (OUT, CACHE):
 CUTOUT_DIRS = {
     "storfer": INCH_DATA / "cutouts_fits_candidates_storfer",
     "inchausti": INCH_DATA / "cutouts_fits_candidates_inchausti",
+    # ClaudeNet v2 sweep qualification campaign: 737 candidates staged on-disk as
+    # {row_id}.fits (grz cube, byte-identical to the v1 cutouts) — fetch resolves
+    # these locally so lensjudge grades the exact CNN-seen pixels (no refetch).
+    "claudenet": REPRO / "claudenet" / "data" / "v2" / "campaign" / "fits",
 }
 SCORE_CSV = {
     "storfer": INCH_DATA / "candidate_scores_storfer.csv",
@@ -45,7 +49,7 @@ NEG_RANDOM_DIR = INCH_DATA / "cutouts_fits_neg_dr9"   # ~65K random-galaxy negat
 OP_POINT_CSV = INCH_DATA / "operating_point.csv"      # meta thresholds @ FPR
 
 # legacysurvey imaging layer per catalog (mirrors 12_download_candidate_cutouts.py)
-SURVEY_LAYER = {"storfer": "ls-dr9", "inchausti": "ls-dr10"}
+SURVEY_LAYER = {"storfer": "ls-dr9", "inchausti": "ls-dr10", "claudenet": "ls-dr9"}
 
 # --- cutout geometry (Huang+2020 §3.2; matches every on-disk cutout) ---------
 SIZE_PIX = 101
