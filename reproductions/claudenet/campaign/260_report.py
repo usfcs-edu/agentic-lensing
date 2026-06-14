@@ -60,7 +60,17 @@ def main() -> int:
     tiers = full[full.qualified].tier.value_counts().to_dict() if "qualified" in full else {}
     n_esc = int(full.get("escalation", pd.Series([], dtype=bool)).sum())
 
-    # copy gallery composites the report embeds
+    fullx = full.set_index("row_id")
+
+    def copy_set(glob_pat):
+        figs = []
+        for src in sorted(GAL.glob(glob_pat)):
+            dst = FIGS / src.name
+            shutil.copy(src, dst)
+            rid = "_".join(src.stem.split("_")[2:])
+            figs.append((rid, dst.name))
+        return figs
+
     qfigs = []
     for _, r in qual.iterrows():
         src = GAL / f"{r['tier']}_{int(r['rank']):03d}_{r['row_id']}.png"
@@ -68,11 +78,9 @@ def main() -> int:
             dst = FIGS / src.name
             shutil.copy(src, dst)
             qfigs.append((r, dst.name))
-    efigs = []
-    for src in sorted(GAL.glob("escalation_*.png")):
-        dst = FIGS / src.name
-        shutil.copy(src, dst)
-        efigs.append((src.stem.split("_", 2)[-1], dst.name))
+    recfigs = copy_set("recovered_*.png")     # >=B by either grader (known lenses)
+    newfigs = copy_set("topnew_*.png")        # best still-NEW (the new population)
+    n_known = int((full.status != "NEW").sum())
 
     # ---- Markdown ----
     L = []
@@ -129,46 +137,53 @@ def main() -> int:
              f"bronze {tiers.get('bronze',0)}). Escalation (one pass ≥B, still NEW): "
              f"**{n_esc}**.\n")
 
+    # the candidates either final grader rates >=B (the validation set)
+    rec = full[(full.my_grade.isin(["A", "B"])) | (full.lensjudge_grade.isin(["A", "B"]))].copy()
+    n_rec_known = int((rec.status != "NEW").sum())
+
     L.append("## Can any of the 737 be undiscovered lenses?\n")
-    if n_qual > 0:
-        L.append(f"**Yes — {n_qual} candidate(s) survive every filter**: still unmatched to any "
-                 "queried catalog, and independently graded ≥B by two methodologically distinct "
-                 "Claude graders (one after adversarial skeptic review). These are the strongest "
-                 "follow-up targets. **This is not a confirmation** — DECaLS grz cannot confirm a "
-                 "small-θ_E arc; qualification means *worth higher-resolution imaging "
-                 "(HSC/Euclid/HST) or spectroscopy*, the only thing that turns candidate into "
-                 "lens.\n")
-    else:
-        L.append("**No candidate passes the strict double-≥B bar after the adversarial skeptic** "
-                 "— so on this evidence the 737 are dominated by the LRG+companion/blend "
-                 "false-positive population, consistent with the conformal null being *random "
-                 "galaxy* (not *non-lens*). The honest answer to *could any be undiscovered "
-                 "lenses* is: a small **escalation set** (one grader ≥B) remains as the only "
-                 "plausible follow-up shortlist; none is supported strongly enough to call a "
-                 "qualified candidate.\n")
+    L.append(f"**On this evidence, no.** Of the 737, **{n_new} remain genuinely NEW** after the "
+             f"expanded crossmatch, but **none of them is rated A or B by either independent "
+             f"grader's strongest pass** (the skeptic-verified structured pass, or the "
+             f"factored multiagent lensjudge pass). Qualified (still-NEW AND ≥B by both): "
+             f"**{n_qual}**.\n")
+    L.append(f"Crucially, this is *not* the graders rejecting everything. Together they rated "
+             f"**{len(rec)} candidates ≥B** — and **{n_rec_known} of those {len(rec)} are "
+             f"already-catalogued lenses** ({int((rec.nearest_catalog=='des_jacobs2019').sum())} "
+             f"matching DES at sub-arcsecond separation, the rest SIMBAD lens-types). The dual "
+             f"grader + skeptic consensus therefore **re-discovered real, known lenses** — a "
+             f"clean internal validation that the vetting identifies genuine lenses — and found "
+             f"nothing among the {n_new} new candidates that rises to the same confidence. The "
+             f"737 are dominated by the LRG+companion/blend false-positive population, exactly "
+             f"the lens-vs-non-lens distinction the conformal step (null = *random galaxy*, not "
+             f"*non-lens*) could not make.\n")
 
-    if qfigs:
-        L.append("## Qualified candidates (gallery)\n")
-        L.append("Each panel: full | zoom | lens-light residual; caption carries the identifier, "
-                 "coordinates, scores and both grades.\n")
-        for r, fn in qfigs:
-            L.append(f"### {r['row_id']}  (tier **{r['tier']}**, rank {int(r['rank'])})\n")
-            L.append(f"- RA={r['RA']:.6f}  DEC={r['DEC']:.6f}  |  p_final={r['p_final']:.3f}  "
-                     f"q_group={r.get('q_group', float('nan')):.2e}  |  status={r['status']}")
-            L.append(f"- visual grade **{r['my_grade']}**, lensjudge **{r['lensjudge_grade']}**")
-            L.append(f"- visual rationale: {r.get('rationale_visual','')}")
-            L.append(f"- lensjudge rationale: {r.get('lensjudge_rationale','')}\n")
-            L.append(f"![{r['row_id']}](figs/{fn})\n")
+    if recfigs:
+        L.append("## Lenses the campaign re-discovered (the validation set)\n")
+        L.append("Every candidate either grader graded ≥B. All are already catalogued — shown "
+                 "here as proof the two independent visual passes recognise genuine lens "
+                 "morphology. Each panel: full | zoom | lens-light residual.\n")
+        for rid, fn in recfigs:
+            r = fullx.loc[rid]
+            L.append(f"**{rid}** — RA={r['RA']:.6f} DEC={r['DEC']:.6f}, p_final={r['p_final']:.3f}, "
+                     f"status **{r['status']}** (nearest {r.get('nearest_catalog','-')} at "
+                     f"{r.get('nearest_sep_arcsec', float('nan')):.2f}″); visual **{r['my_grade']}**, "
+                     f"lensjudge **{r['lensjudge_grade']}**.")
+            L.append(f"![{rid}](figs/{fn})\n")
 
-    if efigs:
-        L.append("## Escalation set (one grader ≥B — follow-up shortlist)\n")
-        em = full.set_index("row_id")
-        for rid, fn in efigs:
-            r = em.loc[rid] if rid in em.index else None
-            cap = ("" if r is None else
-                   f"RA={r['RA']:.6f} DEC={r['DEC']:.6f} p_final={r['p_final']:.3f} "
-                   f"visual={r['my_grade']} lensjudge={r['lensjudge_grade']}")
-            L.append(f"**{rid}** — {cap}\n\n![{rid}](figs/{fn})\n")
+    if newfigs:
+        L.append("## The best of the genuinely-NEW candidates\n")
+        L.append("The top still-NEW candidates by mean grader probability — the strongest of the "
+                 f"{n_new}. None reached ≥B from either final grader (all C/D); shown for "
+                 "transparency. These are the natural targets if higher-resolution follow-up "
+                 "(HSC/Euclid/HST) or spectroscopy is ever pursued, but on DECaLS grz alone "
+                 "they are not confident lenses.\n")
+        for rid, fn in newfigs:
+            r = fullx.loc[rid]
+            L.append(f"**{rid}** — RA={r['RA']:.6f} DEC={r['DEC']:.6f}, p_final={r['p_final']:.3f}; "
+                     f"visual **{r['my_grade']}**, lensjudge **{r['lensjudge_grade']}**. "
+                     f"_{r.get('rationale_visual','')}_")
+            L.append(f"![{rid}](figs/{fn})\n")
 
     L.append("## Honest limits\n")
     L.append("- *Qualified ≠ confirmed.* Every candidate here is a follow-up target, not a "
@@ -186,29 +201,43 @@ def main() -> int:
 
     (REP / "REPORT.md").write_text("\n".join(L) + "\n")
     shutil.copy(OUT / "candidates_qualified.csv", REP / "candidates_qualified.csv")
-    print(f"[260] wrote {REP/'REPORT.md'} ({n_qual} qualified, {len(efigs)} escalation figs)")
+    print(f"[260] wrote {REP/'REPORT.md'} ({n_qual} qualified, {len(recfigs)} recovered, "
+          f"{len(newfigs)} top-new figs)")
 
     # ---- LaTeX section ----
+    def texesc(s):
+        return str(s).replace("_", r"\_").replace("&", r"\&")
+
     tex = [r"\section{Qualifying the 737 ClaudeNet v2 sweep candidates}",
            r"A campaign to test whether any of the 737 new-and-unseen DR9-sweep candidates "
            r"(group-conformal FDR$\le$0.05) could be genuinely undiscovered strong lenses, via "
            r"an expanded crossmatch (SIMBAD + DES/KiDS VizieR; NED/SuGOHI unreachable) and two "
-           r"independent visual passes (a structured Huang-VI rubric pass with an adversarial "
-           r"skeptic re-check, and the independent \texttt{lensjudge} harness on Claude-opus). "
-           r"\emph{Qualified} = still NEW after crossmatch AND graded A/B by BOTH passes.",
-           r"\par\medskip\noindent Of " + str(n) + r" candidates, " + str(n_new) +
-           r" remain NEW after the expanded crossmatch. The structured skeptic confirmed only " +
-           str(my_final.get("A", 0) + my_final.get("B", 0)) + r" of " +
-           str(my_first.get("A", 0) + my_first.get("B", 0)) + r" first-pass A/B. "
-           r"Qualified: \textbf{" + str(n_qual) + r"} (gold " + str(tiers.get("gold", 0)) +
-           r", silver " + str(tiers.get("silver", 0)) + r", bronze " + str(tiers.get("bronze", 0)) +
-           r"); escalation set " + str(n_esc) + r".",
+           r"methodologically-independent visual passes: a structured Huang-VI rubric pass with "
+           r"an adversarial skeptic re-check, and the independent \texttt{lensjudge} harness "
+           r"(factored multiagent, Claude-opus). \emph{Qualified} = still NEW after the "
+           r"crossmatch AND graded A/B by BOTH passes.",
+           r"\par\medskip\noindent\textbf{Result.} Of " + str(n) + r" candidates, " +
+           str(n_known) + r" (" + f"{100*n_known/n:.0f}" + r"\%) coincide with a known lens or "
+           r"lens-candidate (" + str(int((full.nearest_catalog == 'des_jacobs2019').sum())) +
+           r" DES, plus KiDS and SIMBAD lens-types); \textbf{" + str(n_new) + r"} remain NEW. "
+           r"\emph{None} of the " + str(n_new) + r" new candidates is graded A/B by either "
+           r"grader's strongest pass, so \textbf{qualified $=" + str(n_qual) + r"$}. This is not "
+           r"the graders rejecting everything: together they graded " + str(len(rec)) +
+           r" candidates $\ge$B, and \textbf{all " + str(len(rec)) + r" are already-catalogued "
+           r"lenses} (" + str(int((rec.nearest_catalog == 'des_jacobs2019').sum())) +
+           r" sub-arcsecond DES matches) --- the consensus re-discovered real lenses and found "
+           r"nothing comparable among the new ones.",
            ]
-    for r, fn in qfigs:
+    tex.append(r"\par\medskip\noindent\emph{Lenses the campaign re-discovered "
+               r"(already catalogued; the validation):}")
+    for rid, fn in recfigs:
+        r = fullx.loc[rid]
         tex.append(r"\begin{figure}[t]\centering")
         tex.append(rf"\includegraphics[width=0.92\textwidth]{{../campaign/report/figs/{fn}}}")
-        cap = (rf"\textbf{{{r['row_id']}}} (tier {r['tier']}): RA={r['RA']:.5f}, "
-               rf"DEC={r['DEC']:.5f}, $p_{{\rm final}}$={r['p_final']:.3f}; "
+        cap = (rf"\textbf{{{texesc(rid)}}}: RA={r['RA']:.5f}, DEC={r['DEC']:.5f}, "
+               rf"$p_{{\rm final}}$={r['p_final']:.3f}; status {texesc(r['status'])} "
+               rf"(nearest {texesc(r.get('nearest_catalog','-'))} at "
+               rf"{r.get('nearest_sep_arcsec', float('nan')):.2f}$''$); "
                rf"visual {r['my_grade']}, lensjudge {r['lensjudge_grade']}. "
                rf"Full $|$ zoom $|$ residual.")
         tex.append(rf"\caption{{{cap}}}")

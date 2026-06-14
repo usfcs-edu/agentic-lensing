@@ -57,25 +57,32 @@ def composite(row, out_path: Path):
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--also-escalation", action="store_true")
+    ap.add_argument("--topnew", type=int, default=12,
+                    help="also render the top-N still-NEW candidates by consensus_p")
     args = ap.parse_args()
     GAL.mkdir(parents=True, exist_ok=True)
     full = pd.read_parquet(OUT / "consensus_full_737.parquet")
     full["row_id"] = full["row_id"].astype(str)
 
+    # 1. qualified (still-NEW & both >=B) — may be empty
     qual = pd.read_parquet(OUT / "candidates_qualified.parquet")
-    n = 0
     for _, r in qual.iterrows():
         composite(r, GAL / f"{r['tier']}_{int(r['rank']):03d}_{r['row_id']}.png")
-        n += 1
-    print(f"[250] {n} qualified gallery composites -> {GAL}")
+    print(f"[250] {len(qual)} qualified gallery composites")
 
-    if args.also_escalation:
-        esc = full[full.get("escalation", False)].copy()
-        esc = esc.sort_values("consensus_p", ascending=False)
-        for i, (_, r) in enumerate(esc.iterrows(), 1):
-            composite(r, GAL / f"escalation_{i:03d}_{r['row_id']}.png")
-        print(f"[250] {len(esc)} escalation composites -> {GAL}")
+    # 2. recovered: candidates either grader rates >=B (the validation set —
+    #    these turn out to be already-known lenses)
+    rec = full[(full.my_grade.isin(["A", "B"])) | (full.lensjudge_grade.isin(["A", "B"]))].copy()
+    rec = rec.sort_values("consensus_p", ascending=False)
+    for i, (_, r) in enumerate(rec.iterrows(), 1):
+        composite(r, GAL / f"recovered_{i:02d}_{r['row_id']}.png")
+    print(f"[250] {len(rec)} 'recovered' (>=B by either grader) composites")
+
+    # 3. top still-NEW by consensus probability (the best of the genuinely-new)
+    new = full[full.status == "NEW"].sort_values("consensus_p", ascending=False).head(args.topnew)
+    for i, (_, r) in enumerate(new.iterrows(), 1):
+        composite(r, GAL / f"topnew_{i:02d}_{r['row_id']}.png")
+    print(f"[250] {len(new)} top still-NEW composites -> {GAL}")
     return 0
 
 
