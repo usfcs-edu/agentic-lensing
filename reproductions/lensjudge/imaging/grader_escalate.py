@@ -32,8 +32,14 @@ async def grade_candidate(cand: dict, *, model: Optional[str] = None,
                     "p_lens_tier1": (g1.grade.p_lens if g1.grade else None),
                     "p_lens_tier2": None})
 
-    trigger = g1.parse_ok and g1.grade is not None and (
-        g1.grade.grade in ESCALATE_GRADES or g1.grade.escalate_to_human)
+    # Escalate anything that is NOT a confident tier-1 A. This is deliberately liberal because
+    # the REAL cost gate is COVERAGE: resolve_highres() is a cheap local catalog lookup and only
+    # the rare candidates with high-res overlap actually pay for a tier-2 grade. A narrow
+    # grade-based trigger ({B,C}) misses the failure mode that most needs the second look — the
+    # over-skeptical DESI grader at 1.3" seeing buries real lenses in "D" (often with a wrongly
+    # *named* contaminant), and a validation showed those exact rows flip to Euclid A/B at 0.1".
+    g = g1.grade
+    trigger = g1.parse_ok and g is not None and (g.grade != "A" or g.escalate_to_human)
     if not trigger:
         return g1
     hit = highres.resolve_highres(cand.get("name"), cand.get("ra"), cand.get("dec"))

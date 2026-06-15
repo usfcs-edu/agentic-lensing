@@ -44,14 +44,31 @@ than the lens and tangentially curved with a counter-image; a same-color round n
 companion). Adds `lrg_companion`/`blend` to the contaminant enum. Passed via `--rubric` (lean
 or escalate mode), keeping v1's rubric as the controlled baseline.
 
-## B1 — Two-tier high-res escalation  ✅ (mechanism; live-validation data-blocked)
+## B1 — Two-tier high-res escalation  ✅ (LIVE-VALIDATED)
 
-`--mode escalate` (`imaging/grader_escalate.py` + `common/highres.py`) re-grades ambiguous
-tier-1 candidates (grade∈{B,C} or escalate) at Euclid 0.1″ **when coverage exists**, else a
-safe tier-1 no-op, recording tier/escalated/highres_survey/p_lens_tier1-2 provenance.
-**Honest blocker:** the Euclid Q1 cutouts are not on disk in this checkout and DECaLS-south
-has ~no Euclid Q1 overlap, so escalation can't be live-validated yet (a documented data
-dependency, like the Grade-D CSVs). The mechanism is in place and degrades gracefully.
+`--mode escalate` (`imaging/grader_escalate.py` + `common/highres.py`) re-grades candidates at
+Euclid 0.1″ **when coverage exists**, else a safe tier-1 no-op, recording
+tier/escalated/highres_survey/p_lens_tier1-2 provenance. Trigger policy (refined during
+validation): escalate anything that is **not a confident tier-1 A** — because the REAL cost
+gate is COVERAGE (`resolve_highres` is a cheap local catalog lookup; only the rare candidates
+with Euclid/HSC overlap pay for a tier-2 grade). A narrow {B,C} trigger missed the failure
+mode that most needs the second look: the over-skeptical DESI grader buries real lenses in
+"D" (often with a *wrongly* named contaminant).
+
+**Live validation** (Euclid Q1 data now staged, 539 objects): 6 south Euclid-covered objects,
+all escalated, **$0.71**:
+
+| truth | DESI tier-1 p_lens | → Euclid tier-2 |
+|---|---|---|
+| 3 grade-A lenses | mean **0.15** (0.02/0.03/0.40) | **all → A, mean 0.96** |
+| 3 grade-C cands  | 0.38 / 0.08 / 0.02 | **B 0.72 / B 0.62 / D 0.02** |
+
+The DESI grader **missed all 3 real lenses** (~0.15); Euclid escalation recovered all 3 as
+grade **A (0.96)** — the README's flip, through the escalate *mode*. It **discriminates**, not
+just inflates: the lone true non-lens C correctly **stayed D (0.02)**. This is the strongest
+LensJudge v2 lever — when high-res covers a candidate, it converts the resolution-limited
+~0.5-AUC wall into a near-definitive grade. (On a DECaLS sweep, only Euclid/HSC-overlapping
+survivors get tier-2; the rest stay tier-1, so cost is bounded by overlap, not sweep size.)
 
 ## The gated comparison — v1-lean vs v2 (the evidence)  ✅
 
