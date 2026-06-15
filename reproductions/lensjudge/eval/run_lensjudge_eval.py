@@ -44,7 +44,9 @@ from lensjudge import config  # noqa: E402
 from lensjudge.eval import score as S  # noqa: E402
 
 POS_SRC = {"graded"}
-NEG_SRC = {"A": "random_neg", "B": "graded_D"}   # benchmark -> negative source tag
+# benchmark -> set of negative source tags. Benchmark B accepts Grade-D human-rejects AND/OR
+# the ClaudeNet-v3 lens-mimic negatives (so B = lens-vs-mimic when only mimic_neg is present).
+NEG_SRC = {"A": {"random_neg"}, "B": {"graded_D", "mimic_neg"}}
 HERE = Path(__file__).resolve().parent
 
 
@@ -89,18 +91,22 @@ def evaluate(preds: pd.DataFrame, manifest: pd.DataFrame) -> dict:
     report = {"n_preds": len(p), "parse_rate": round(float(p["parse_ok"].mean()), 4),
               "mean_cost_usd": round(float(p["cost_usd"].mean()), 4),
               "total_cost_usd": round(float(p["cost_usd"].sum()), 4)}
-    for bench, negsrc in NEG_SRC.items():
-        sub = p[p["source"].isin(POS_SRC | {negsrc})].copy()
-        if sub["source"].isin(POS_SRC).sum() == 0 or (sub["source"] == negsrc).sum() == 0:
+    for bench, negset in NEG_SRC.items():
+        sub = p[p["source"].isin(POS_SRC | negset)].copy()
+        n_pos = int(sub["source"].isin(POS_SRC).sum())
+        n_neg = int(sub["source"].isin(negset).sum())
+        if n_pos == 0 or n_neg == 0:
             report[f"benchmark_{bench}"] = {"skipped": "missing pos or neg rows",
-                                            "n_pos": int(sub["source"].isin(POS_SRC).sum()),
-                                            "n_neg": int((sub["source"] == negsrc).sum())}
+                                            "n_pos": n_pos, "n_neg": n_neg}
             continue
+        neg_kinds = sorted(set(sub.loc[sub["source"].isin(negset), "source"]))
+        bname = ("detection: lens-vs-random" if bench == "A"
+                 else f"grading: lens-vs-{'/'.join(k.replace('_neg','').replace('graded_','hardreject') for k in neg_kinds)}")
         s = S.score(sub)
         report[f"benchmark_{bench}"] = {
-            "name": ("detection: lens-vs-random" if bench == "A" else "grading: lens-vs-hardreject"),
-            "n_pos": int(sub["source"].isin(POS_SRC).sum()),
-            "n_neg": int((sub["source"] == negsrc).sum()),
+            "name": bname,
+            "n_pos": n_pos,
+            "n_neg": n_neg,
             "binary_auc": s.get("binary_auc"),
             "recovery@0.01FPR": s.get("recovery@0.01FPR"),
             "recovery@0.001FPR": s.get("recovery@0.001FPR"),

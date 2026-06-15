@@ -32,6 +32,9 @@ def _grader(mode):
     if mode == "multiagent":
         from lensjudge.imaging import orchestrator
         return orchestrator
+    if mode == "escalate":
+        from lensjudge.imaging import grader_escalate
+        return grader_escalate
     return grader_lean
 
 
@@ -42,7 +45,12 @@ def _row_dict(g, cand):
             "cost_usd": g.cost_usd, "turns": g.num_turns,
             "wall_s": g.meta.get("wall_s"), "error": g.error,
             "n_thinking_blocks": g.meta.get("n_thinking_blocks"),
-            "thinking_chars": g.meta.get("thinking_chars")}
+            "thinking_chars": g.meta.get("thinking_chars"),
+            # escalate-mode provenance (None for non-escalate modes)
+            "tier": g.meta.get("tier"), "escalated": g.meta.get("escalated"),
+            "highres_survey": g.meta.get("highres_survey"),
+            "p_lens_tier1": g.meta.get("p_lens_tier1"),
+            "p_lens_tier2": g.meta.get("p_lens_tier2")}
     if g.grade is not None:
         c = g.grade.criteria.model_dump()
         base.update({"grade_pred": g.grade.grade, "p_lens": g.grade.p_lens,
@@ -98,7 +106,7 @@ async def run(df: pd.DataFrame, out: Path, concurrency: int, model: str | None, 
     # extra tools for the lean/panel grader: Foundry-I GIGA-Lens fit and/or the
     # engineered-representation feature+view tool.
     extra = {}
-    if mode in ("lean", "panel"):
+    if mode in ("lean", "panel", "escalate"):
         tools = ["fetch_cutout", "get_photometry"]
         if modelability:
             tools.append("quick_lensmodel")
@@ -107,8 +115,8 @@ async def run(df: pd.DataFrame, out: Path, concurrency: int, model: str | None, 
         if len(tools) > 2:
             extra["tools"] = tuple(tools)
     if rubric:
-        if mode != "lean":
-            raise SystemExit("--rubric is only supported with --mode lean")
+        if mode not in ("lean", "escalate"):
+            raise SystemExit("--rubric is only supported with --mode lean or escalate")
         extra["system_prompt"] = Path(rubric).read_text()
 
     async def one(cand):
@@ -156,7 +164,7 @@ def summarize(out: Path):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--mode", choices=("lean", "panel", "multiagent"), default="lean")
+    ap.add_argument("--mode", choices=("lean", "panel", "multiagent", "escalate"), default="lean")
     ap.add_argument("--modelability", action="store_true",
                     help="give the lean/panel grader the Foundry-I quick_lensmodel tool")
     ap.add_argument("--representations", action="store_true",

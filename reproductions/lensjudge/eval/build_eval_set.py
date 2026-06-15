@@ -45,7 +45,7 @@ def _strat_sample(df, n, by, seed=SEED):
     return out
 
 
-def build(n_graded, n_grade_d, n_random, which="both"):
+def build(n_graded, n_grade_d, n_random, which="both", n_mimic=0):
     rows = []
 
     # positives — graded A/B/C, stratified by grade x region
@@ -78,6 +78,21 @@ def build(n_graded, n_grade_d, n_random, which="both"):
                              source="random_neg", region=r.get("footprint", "?"),
                              tractor_type="?", p_meta=None, leak="no"))
 
+    # lens-MIMIC negatives — the 601 ClaudeNet-v3 campaign rejects (CNN-high, dual-agent-
+    # confirmed non-lenses), typed by contaminant. Cutouts resolve via CUTOUT_DIRS['claudenet'].
+    # This makes Benchmark B = lens-vs-MIMIC (the v3 thesis), not just lens-vs-random.
+    mimp = config.REPRO / "claudenet" / "data" / "v3" / "mimic_bank_seed.parquet"
+    if mimp.exists() and n_mimic > 0:
+        mm = pd.read_parquet(mimp)
+        mm["mt"] = mm["mimic_type"].astype(str)
+        mm = _strat_sample(mm, n_mimic, "mt")
+        for _, r in mm.iterrows():
+            rows.append(dict(name=str(r["row_id"]), ra=r.get("RA"), dec=r.get("DEC"),
+                             survey_key="claudenet", grade_truth="D", binary_label="nonlens",
+                             source="mimic_neg", region="dr9_sweep",
+                             tractor_type=str(r.get("mimic_type", "?")),
+                             p_meta=r.get("p_final"), leak="no"))
+
     # gold (blind) — Foundry-II spectroscopically confirmed (20) + known (1) as lens,
     # + the 4 confirmed NON-lenses; the 48 pending systems are EXCLUDED (not ground truth).
     g = io.load_foundry_ii_gold()
@@ -102,10 +117,12 @@ def main():
     ap.add_argument("--n-graded", type=int, default=150)
     ap.add_argument("--n-grade-d", type=int, default=60)
     ap.add_argument("--n-random", type=int, default=60)
+    ap.add_argument("--n-mimic", type=int, default=0,
+                    help="ClaudeNet-v3 lens-mimic negatives (Benchmark B = lens-vs-mimic)")
     ap.add_argument("--which", default="both")
     ap.add_argument("--out", default=str(config.OUT / "lensbench_manifest.csv"))
     args = ap.parse_args()
-    man = build(args.n_graded, args.n_grade_d, args.n_random, args.which)
+    man = build(args.n_graded, args.n_grade_d, args.n_random, args.which, args.n_mimic)
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     man.to_csv(args.out, index=False)
     h = hashlib.sha256(man.to_csv(index=False).encode()).hexdigest()[:16]
