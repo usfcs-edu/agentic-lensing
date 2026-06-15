@@ -108,3 +108,26 @@ full qualification needs the skeptic pass + dual grader + higher-res (Euclid/HSC
 at the top) but **FDR-uncontrollable at DR10 scale and DR9-domain-shifted** — the v3 contaminant-
 aware model + mimic-null selection + DR10/i-band retraining are precisely the fixes, and the
 re-sweep (C-v3) is where the qualified-candidate payoff should land.
+
+### Full qualification of the 8 A/B  ✅ → 5 qualified DR10 candidates
+
+Applied the campaign's rigor: higher-res coverage check + a skeptic-vetted **panel** re-grade
+(advocate/skeptic/morphologist/contaminant-hunter, 2-of-N A-rule). Higher-res: **none of the 8
+fall in Euclid Q1 coverage** (not discovery-engine objects; no full Q1 tiles on hand) → DESI
+resolution only. Panel: **5/8 survive at ≥B** (1 A + 4 B); the 3 demoted to C include **2 caught
+as ring galaxies** by the contaminant hunter. **Qualified (dual-grader ≥B consensus): 5** —
+`v3/dr10_qualified_candidates.csv`:
+
+| row_id | RA | DEC | first / panel grade |
+|---|---|---|---|
+| s_102952_9916 | 334.802 | −43.810 | **A / A** (p_lens 0.81) |
+| s_218895_5179 | 32.753 | −19.636 | A / B |
+| s_34114_13604 | 353.747 | −64.069 | B / B |
+| s_137557_3031 | 43.397 | −35.792 | B / B |
+| s_43736_5986 | 67.394 | −60.191 | B / B |
+
+These are **NEW** (not in storfer/inchausti-811/huang/curated within 5″) — genuine new DR10
+strong-lens *candidates*, dual-grader ≥B at DESI resolution, pending higher-res/spectroscopic
+confirmation. **Both graders are Claude** (different harness/prompt, not statistically
+independent) — the standard campaign caveat. A meaningfully better yield than the DR9 campaign
+(0/601), concentrated at the very top of the score distribution.
