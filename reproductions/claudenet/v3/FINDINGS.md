@@ -131,3 +131,23 @@ strong-lens *candidates*, dual-grader ≥B at DESI resolution, pending higher-re
 confirmation. **Both graders are Claude** (different harness/prompt, not statistically
 independent) — the standard campaign caveat. A meaningfully better yield than the DR9 campaign
 (0/601), concentrated at the very top of the score distribution.
+
+## A1 — Lens-mimic bank grown 601 → 148,625 (DR10-native)  🟡 round-1 done
+
+Rather than mine a fresh pool, A1 reuses the C-now sweep: the **148,034 NEW DR10 survivors** are
+CNN-high, DR10-native non-lenses. `311` assembles + morphology-types them (joined the DR10 parent
+SERSIC/SHAPE_R/TYPE — all 148k matched); `312` combines with the 601 DR9 seed, excludes real-lens
+candidates, and carves a frozen held-out.
+
+- **G1 yield gate (PASS):** direct-graded a 120-row stratified sample → **98.3% non-lens** (104 D,
+  14 C, 2 B, 0 A), $1.50. High-purity hard-negative bank; the 2 possible-lenses are excluded.
+- **Bank:** **118,901 train + 29,724 frozen held-out mimic-eval** (148,024 DR10 + 601 DR9). Typed:
+  cnn_high_other 41.5k, **extended_lrg 34.2k** (the staf327 dominant mimic), compact_rex 25.6k,
+  exp_disk 17k, + fine DR9 types (lrg_companion/ring/spiral/…). **115,489 carry native i-band.**
+- **Why it matters:** DR10-native + contaminant-typed directly attacks *both* gaps C-now exposed
+  (domain shift + mimic separation). Artifacts: `data/v3/{mimic_bank,mimic_bank_eval,
+  mimic_pool_dr10}.parquet`.
+
+**A1 remaining → A2:** stage the bank's cutouts on Perlmutter (survivor shards exist) for member
+retraining (`hard3`). **A2 is the first point v3 moves the A0 mimic-recovery number** (Storfer
+0.168 / Inchausti 0.307 @ mimic-FPR 0.05 — the headline to beat).
