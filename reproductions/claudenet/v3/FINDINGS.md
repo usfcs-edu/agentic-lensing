@@ -63,9 +63,29 @@ v3 re-sweep improves on. Pipeline (160→165) reused unchanged.
   genuinely low (<0.25). So **v2-lean finds ~78/89 (88%) of Inchausti's grade-A at high score**;
   the recall gap at the operating point is a **DR9→DR10 threshold-calibration transfer** effect.
 
-**Implications / next:** (1) recalibrate the per-member operating points in DR10 score-space
-(needs a DR10 NegEval) to recover the ~17 high-scoring grade-A; (2) grow the conformal
-calibration to ~6M for a rigorous DR10 FDR; (3) for the candidate list + vetting now, use the top
-survivors by conformal-p (139 floor / 575 @ p≤1e-5) → B7 cascade. Artifacts under
-`data/v3/sweep_dr10/` (gitignored): `stage2_scores`, `conformal`, `crossmatch`,
-`crossmatch_recall.json`.
+### C-now recalibration + bigger-calibration tests — two honest negatives that sharpen v3
+
+Both done all-locally from the existing 43.7M stage-1 scores (no new Perlmutter job;
+`370_dr10_recalibrate.py`, 6M DR10-native NegEval sampled from the scored parent):
+
+- **Threshold recalibration to DR10's true 1e-4 FPR makes thresholds TIGHTER, not looser**
+  (resnet46_C_hard 0.81→1.00; effnet_S2_hard 0.96→0.98) because DR10 random galaxies have a
+  fatter high-score tail than DR9. Survivors drop 217k→63k and **grade-A recall drops 69%→62%**.
+  So the recall gap is **not** a threshold artifact — it is a genuine **DR9→DR10 model domain
+  shift** (the DR9-trained members under-score a real fraction of DR10 grade-A lenses). The DR9
+  thresholds were *lenient* on DR10 (the 162 FPR-overshoot). → motivates **v3 DR10-aware
+  retraining**, not a threshold tweak.
+- **Growing the conformal calibration to 6M DR10-native negatives STILL selects 0** at α=0.05/
+  0.10/0.25 (full-m). So the 0-selection is **not** a calibration-size limit — v2-lean cannot
+  separate any DR10 survivor from the hardest random galaxies (which include lens-mimics) enough
+  to clear full-m FDR at m=43.7M. **This is the lens-vs-mimic problem at sweep scale** — an
+  independent confirmation of the A0 thesis and of why v3's contaminant-aware model + mimic-null
+  selection are the fix.
+
+**C-now conclusion:** the v2-lean DR10 baseline is *competitive on recall* (finds ~88% of
+Inchausti's grade-A at high score) but **FDR-limited (0 at full-m) and domain-shifted** — exactly
+the two gaps v3 closes (contaminant-aware separation + DR10/i-band retraining). The candidate
+shortlist for vetting therefore comes from the top NEW survivors by ensemble score (not FDR), as
+the DR9 campaign did. Artifacts under `data/v3/sweep_dr10/` (gitignored): `stage2_scores`,
+`conformal`{,`_dr10cal`}, `crossmatch`, `survivors_dr10_recal`, `operating_points_dr10.csv`,
+`recalibrate_dr10_summary.json`.
