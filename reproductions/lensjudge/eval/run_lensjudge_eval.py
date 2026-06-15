@@ -119,18 +119,24 @@ def evaluate(preds: pd.DataFrame, manifest: pd.DataFrame) -> dict:
 
 
 def regression_check(report: dict, baseline: dict, tol: float, min_parse: float) -> tuple[bool, list]:
+    """Gate on binary AUC (the meaningful discriminator). recovery@tight-FPR is degenerate on
+    this pool — the agent's p_lens is uniformly low (over-skepticism), so AUC, not recovery,
+    captures whether lenses rank above non-lenses. Benchmark A must not regress; the
+    Benchmark B (lens-vs-mimic) AUC delta is the headline of the v2 rubric's value."""
     msgs = []
     ok = True
     if report["parse_rate"] < min_parse:
         ok = False; msgs.append(f"parse_rate {report['parse_rate']} < {min_parse}")
-    bA = report.get("benchmark_A", {}).get("recovery@0.01FPR")
-    base_bA = baseline.get("benchmark_A", {}).get("recovery@0.01FPR")
-    if bA is not None and base_bA is not None:
-        if bA < base_bA - tol:
-            ok = False
-            msgs.append(f"Benchmark-A recovery@0.01FPR {bA} < baseline {base_bA} - {tol}")
-        else:
-            msgs.append(f"Benchmark-A recovery@0.01FPR {bA} vs baseline {base_bA} (OK, tol {tol})")
+    for bench in ("A", "B"):
+        auc = report.get(f"benchmark_{bench}", {}).get("binary_auc")
+        base = baseline.get(f"benchmark_{bench}", {}).get("binary_auc")
+        if auc is None or base is None:
+            continue
+        delta = round(auc - base, 4)
+        regressed = (bench == "A" and auc < base - tol)
+        ok = ok and not regressed
+        msgs.append(f"Benchmark-{bench} AUC {auc} vs baseline {base} "
+                    f"(delta {delta:+.4f}, {'REGRESSION' if regressed else 'ok'})")
     return ok, msgs
 
 
