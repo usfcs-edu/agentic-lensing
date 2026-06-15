@@ -89,3 +89,22 @@ shortlist for vetting therefore comes from the top NEW survivors by ensemble sco
 the DR9 campaign did. Artifacts under `data/v3/sweep_dr10/` (gitignored): `stage2_scores`,
 `conformal`{,`_dr10cal`}, `crossmatch`, `survivors_dr10_recal`, `operating_points_dr10.csv`,
 `recalibrate_dr10_summary.json`.
+
+### C-vet (DR10) — agentic vetting of the top-30 NEW candidates  ✅ (preliminary)
+
+148,034 NEW survivors → top-300 by p_final (`v3/dr10_candidates_top300_new.csv`). The top-30
+(p_final 0.979–0.988) vetted with the LensJudge v2 mimic-aware grader (`--mode escalate`,
+`rubric_imaging_v2`, sonnet, **$2.59**, parse_ok 30/30): **2 A, 6 B, 11 C, 11 D**. The D's are
+the expected mimics (lrg_companion 8, merger 2, ring 1) — the rubric catches them. The **8 A/B
+(2 grade-A, p_lens 0.80)** are in `v3/dr10_vet_AB_candidates.csv`.
+
+This is **better than DR9** (which had 0 A/B among 601 NEW) — the strongest DR10 NEW candidates
+include lens-like ones. **Honest caveats:** first-pass *single-grader* grades (the DR9 campaign's
+skeptic + dual-grader consensus demoted most first-pass A/B); DESI-resolution-limited; **none had
+Euclid coverage** to escalate. So these 8 are **promising follow-up targets, not confirmations** —
+full qualification needs the skeptic pass + dual grader + higher-res (Euclid/HSC) escalation.
+
+**C-now bottom line:** v2-lean is a *competitive* DR10 finder (recall, and a non-trivial A/B yield
+at the top) but **FDR-uncontrollable at DR10 scale and DR9-domain-shifted** — the v3 contaminant-
+aware model + mimic-null selection + DR10/i-band retraining are precisely the fixes, and the
+re-sweep (C-v3) is where the qualified-candidate payoff should land.
