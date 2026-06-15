@@ -97,3 +97,24 @@ matters (lens-vs-mimic), so it is justified to deploy v2 on the ClaudeNet candid
 Spent so far on v2: ~$17 of $100. **Next:** B3 (expanded crossmatch) + B6 (export hard
 negatives to v3) — both no/low-$ — and reserve the remaining budget for vetting the actual
 DR10 sweep survivors.
+
+## B7 — Agency ablation: does the agentic loop contribute?  ✅ (separate ablation budget, ≈$6)
+
+Full writeup + the **FOR STAGE-2 deploy recommendation** in **`AGENCY_ABLATION.md`**. New
+artifacts: `imaging/grader_direct.py` (loop-free base-Messages-API grader, `run_batch --mode
+direct`), `eval/run_agency_ablation.py`, `prompts/rubric_imaging_v2_inline.md`. Three findings
+on the frozen evidence manifest (same model/rubric, 2×2 rubric×loop + a thinking arm):
+
+1. **Detection: the loop adds nothing.** No-loop `direct` matches/beats `lean` on lens-vs-random
+   AUC (0.67 vs 0.59) at **~1/6 the cost** (1 turn / $0.012 vs 3.75 / $0.068). Tools are
+   invokable programmatically with no detection loss.
+2. **Lens-vs-mimic: the loop matters (not rubric coupling).** The v2-rubric mimic gain
+   (0.52→**0.71**) lives in the LOOP arm; inline rubric rewrite (0.41) and +thinking (0.55) do
+   not reproduce it. The agentic multi-turn structure helps the hard mimic discrimination.
+3. **Escalation routing is degenerate** — the LLM grade-gate fires ~100% (over-skeptical), no
+   selectivity over a free CNN `p_meta` threshold; coverage gates tier-2 cost.
+
+**Stage-2 implication:** vet survivors as a **cascade** — cheap `direct` triage for detection on
+the bulk, then agentic **v2** for mimic adjudication on the survivors; escalate by coverage, not
+the grade. ~$170 vs ~$355 (all-v2) vs ~$1,575 (all-multiagent) per 5k survivors. Caveat: modest
+n, compressed p_lens → findings (1)/(3) robust, (2) directional.

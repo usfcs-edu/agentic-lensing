@@ -35,6 +35,9 @@ def _grader(mode):
     if mode == "escalate":
         from lensjudge.imaging import grader_escalate
         return grader_escalate
+    if mode == "direct":
+        from lensjudge.imaging import grader_direct
+        return grader_direct
     return grader_lean
 
 
@@ -115,8 +118,8 @@ async def run(df: pd.DataFrame, out: Path, concurrency: int, model: str | None, 
         if len(tools) > 2:
             extra["tools"] = tuple(tools)
     if rubric:
-        if mode not in ("lean", "escalate"):
-            raise SystemExit("--rubric is only supported with --mode lean or escalate")
+        if mode not in ("lean", "escalate", "direct"):
+            raise SystemExit("--rubric is only supported with --mode lean, escalate, or direct")
         extra["system_prompt"] = Path(rubric).read_text()
 
     async def one(cand):
@@ -164,7 +167,8 @@ def summarize(out: Path):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--mode", choices=("lean", "panel", "multiagent", "escalate"), default="lean")
+    ap.add_argument("--mode", choices=("lean", "panel", "multiagent", "escalate", "direct"),
+                    default="lean")
     ap.add_argument("--modelability", action="store_true",
                     help="give the lean/panel grader the Foundry-I quick_lensmodel tool")
     ap.add_argument("--representations", action="store_true",
