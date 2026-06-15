@@ -11,6 +11,7 @@ scipy>=1.11
 pydantic>=2.5
 requests>=2.31
 tqdm>=4.66
+scikit-learn>=1.4   # eval/score.py + eval/run_lensjudge_eval.py (recovery@FPR, AUC, QWK)
 # CNN-score and GIGA-Lens VI tools subprocess into the existing envs:
 #   .venvs/lensfinder (torch)   — Stage-C meta-learner scoring (_scorelib.py)
 #   .venvs/gigalens   (JAX)     — quick_lensmodel VI fit
