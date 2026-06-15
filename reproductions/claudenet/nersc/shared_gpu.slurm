@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -A deepsrch_g
+#SBATCH -A cosmo_g
 #SBATCH -C gpu
 #SBATCH -q shared
 #SBATCH --gpus=1
