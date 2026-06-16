@@ -382,3 +382,17 @@ that net-new discovery beyond Euclid is resolution-bounded. The path to genuinel
 is Euclid DR1's wider area (where v3 can pre-screen DESI before Euclid grades), not deeper DECaLS.
 Artifacts: `data/v3/{cv3_edf_candidates.csv,cv3_edf_select_summary.json,manifests_d4_edf.csv}`,
 `v3/cv3_edf_confirmed.csv`. LensJudge spend ~$42/$100.
+
+## D2 — Panel qualification of the NEW v3 grade-A  ✅
+
+Ran the campaign's 4-role panel (`run_batch --mode panel`: advocate / skeptic / morphology /
+contaminant, independent role-biased graders fused with skeptic-veto + 2-of-N A-rule — the exact
+mechanism that took C-now's 8→5) on the C-vet NEW grade-A. **All 4 survive at ≥B, none flagged as
+a contaminant:** s_441355_1111 (**A→A**, p_lens 0.90), s_310364_6649 (**A→A**, 0.83),
+s_124958_10481 (A→B, 0.74), s_102952_9916 (A→B, 0.70, the recovered v2-qualified anchor). This is
+**cleaner than C-now** (where the panel demoted most first-pass A/B and caught 2 ring mimics) — v3's
+mimic-aware grade-A hold up to adversarial vetting; 2 are **dual-A** (C-vet A AND panel A).
+**Honest caveat (load-bearing):** the panel grades DESI grz at 1″ — and D1/D4 showed
+DESI-resolution `lrg_companion` ≈ lens — so surviving the panel = **DESI-qualified candidates, not
+confirmations**; these positions have no Euclid coverage, so higher-res confirmation isn't available
+(unlike the D1/D4 cross-matches). Artifact `lensjudge/outputs/d2_newA_panel.parquet`. LensJudge ~$44/$100.
