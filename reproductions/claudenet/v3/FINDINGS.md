@@ -232,3 +232,26 @@ random cost) and apply the A3 lens-vs-mimic head as a stage-2 survivor re-ranker
 v3_noR46-level discrimination *without* the random-recall cost (the head only demotes mimics). C-v3
 uses v3blend8 for stage-1/scoring + the head + the mimic-null conformal for selection. Artifact:
 `data/v3/a6_ensemble_refit.json`.
+
+## A3 — Lens-vs-mimic discriminator head (the learned combiner)  ✅ (326 conformal folds into C-v3)
+
+`321_lensvmimic_head.py`: a logistic head on the 8 member pc scores (logit space), positives =
+lenses (storfer+inchausti), negatives = the mimic bank, evaluated **leakage-free** via 5-fold OOF
+prediction (recovery computed only on held-out lenses vs held-out mimics) + a full-fit applied to
+the OOD seed. The learned combiner **beats every A6 average-combiner roster at the φ=0.05 operating
+point**:
+
+| set / split | v2lean | v3_noR46 (avg) | head |
+|---|---|---|---|
+| DR10 @0.05 storfer / inchausti | 0.713 / 0.856 | 0.794 / 0.871 | **0.884 / 0.921** |
+| seed (OOD) @0.05 storfer / inch | 0.168 / 0.307 | 0.528 / 0.570 | **0.647 / 0.649** |
+
+The head **automatically recovers A6's manual insight optimally** — top weight `effnet_S2_b50`
+(+0.76), negative weights to `resnet46_C_hard` (−0.19) and `effnet_B` (−0.22): it down-weights the
+weak l18/B members for mimic separation. **Caveat:** at the extreme @0.01 OOD-seed tail the simpler
+`v3_noR46` average is more robust (head 0.15 vs noR46 0.44) — the head slightly overfits the DR10
+mimic distribution there; deploy the head at φ=0.05 (its strength), keep `v3_noR46` for strict-tail
+selection (or ensemble the two). **A3 head conclusion:** the best stage-2 survivor re-ranker — ~4× v2
+mimic-recovery on the OOD headline at φ=0.05, at zero stage-1 recall cost. Artifact
+`data/v3/a3_lensvmimic_head.json`. The **mimic-null conformal (`326`)** operates on re-sweep survivor
+scores and is implemented as part of **C-v3** selection.
