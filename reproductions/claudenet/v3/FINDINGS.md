@@ -351,3 +351,34 @@ lenses). The end-to-end pipeline — contaminant-aware finder + mimic metric + h
 — is validated where Euclid overlaps. The path to MORE confirmations is **D4** (a targeted
 EDF-F/S v3 sweep, every candidate Euclid-escalatable) and Euclid DR1's wider area.
 Artifacts: `data/v3/{euclid_overlap_summary.json,cv3_euclid_xmatch.csv}`, `v3/cv3_euclid_confirmed.csv`.
+
+## D4 — Targeted EDF-F/S region sweep (full Euclid escalation)  ✅
+
+Re-scored the FULL Euclid-overlap sky region-locally (no global 150k cap): **127,606 DR10 parent
+galaxies** in EDF-F (2°) ∪ EDF-S (3°) — only 1,166 had made the global survivor cut. All 8
+v3blend8 members scored (`315 --tag edf`, PM job, 5.5 min); `365_d4_edf_select.py` ranked +
+cross-matched the Euclid Q1 expert catalog; the top candidates with staged Euclid cutouts were
+escalate-graded at 0.1″.
+
+- **The resolution ceiling holds even uncapped:** of 66 Euclid grade-A lenses in the region,
+  v3blend8 ranks only **7 in its top-1000** (median percentile 0.88). Region-local ranking does
+  NOT rescue recall — most Euclid lenses are genuinely too faint/small for DESI to score high.
+- **Precision / what v3's top is:** v3's top-30 region candidates contain ~6 Euclid-catalog matches
+  (4 A/B); the other ~24 are NOT in Euclid's (deeper) catalog → almost certainly mimics Euclid
+  looked at and did not flag. v3's raw top is mimic-dominated at DECaLS resolution (consistent
+  with C-vet).
+- **The cross-validated catalog (the yield):** escalate shortlist = 60 v3-top candidates with
+  staged Euclid cutouts. Escalation **DESI→Euclid p_lens flip median 0.03 → 0.71**; our grader vs
+  Euclid experts **26/29 of grade-A kept A/B (90%)**, 47/60 A/B overall. → **41 NEW-to-DESI-catalogs
+  cross-validated A/B lens candidates** (`v3/cv3_edf_confirmed.csv`), up from D1's 9.
+
+**HONEST framing (load-bearing):** these 41 are NEW to the DESI lens-finder catalogs
+(Storfer/Inchausti/Huang) but they ARE in the published Euclid Q1 discovery-engine catalog — so D4
+is v3 **independently recovering real Euclid lenses from DESI imaging** (a cross-validation of both
+pipelines + the escalation), **NOT** v3 discovering lenses nobody knew. The v3-unique top
+candidates (the ~24/30 NOT in Euclid) are the likely mimics. So D4 confirms the end-to-end pipeline
+works where Euclid overlaps and yields a real cross-validated candidate list, while re-confirming
+that net-new discovery beyond Euclid is resolution-bounded. The path to genuinely-new confirmations
+is Euclid DR1's wider area (where v3 can pre-screen DESI before Euclid grades), not deeper DECaLS.
+Artifacts: `data/v3/{cv3_edf_candidates.csv,cv3_edf_select_summary.json,manifests_d4_edf.csv}`,
+`v3/cv3_edf_confirmed.csv`. LensJudge spend ~$42/$100.
