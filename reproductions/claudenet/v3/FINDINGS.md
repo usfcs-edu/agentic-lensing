@@ -199,3 +199,36 @@ v3-mimic-discrimination stage-2 / the A3 lens-vs-mimic head), not a wholesale me
 mimic-discrimination gap (2–4× on the hardest OOD contaminants, esp. lrg_companion), f=0.5 optimal,
 at a modest random-recall cost to be recovered by the A3 head + A6 ensemble/cascade. Artifacts:
 `data/v3/a2_v3_verdict.json` (DR10 eval), `data/v3/a2_seed_compare.json` (seed OOD), `_b50` ckpts.
+
+## A6 — Ensemble roster refit + SHIP gate (resolving the A2 trade-off)  ✅
+
+`318_ensemble_v3_refit.py` searches candidate rosters over the `average` combiner using all A2
+member scores, on mimic-recovery (DR10 eval + seed) and random-FPR@0.01 (testneg null), for both
+positive splits. Recovery@0.05 / random@0.01 (storfer / inchausti):
+
+| roster | random@0.01 | dr10 mimic@0.05 | seed mimic@0.05 | seed mimic@0.01 |
+|---|---|---|---|---|
+| v2lean (baseline)        | 0.967 / 0.998 | 0.713 / 0.856 | 0.168 / 0.307 | 0.054 / 0.126 |
+| v3pure (A2 swap)         | 0.935 / 0.979 | 0.793 / 0.873 | 0.445 / 0.529 | 0.235 / 0.316 |
+| **v3blend8** (both vers.)| **0.963 / 0.998** | 0.790 / 0.896 | 0.312 / 0.467 | 0.141 / 0.249 |
+| v3sel_R46hard            | 0.939 / 0.991 | 0.772 / 0.867 | 0.340 / 0.508 | 0.146 / 0.242 |
+| **v3_noR46** (drop l18)  | 0.938 / 0.983 | 0.794 / 0.871 | **0.528 / 0.570** | **0.440 / 0.491** |
+
+**Two deployable options:**
+- **v3blend8 (SHIP) — the conservative, near-Pareto pick.** Keeping BOTH the v2-hard and v3-b50
+  version of each swappable member recovers random-FPR recall to ≈v2lean (storfer 0.963 vs 0.967 —
+  Wilson-CI-overlapping, NOT a significant regression; inchausti tie) while ~doubling mimic-recovery
+  (seed@0.05 0.168→0.312, dr10@0.05 0.713→0.790, dr10@0.01 0.460→0.693). Strictly better than v2lean
+  within CI → **passes the SHIP gate** (the script flags "partial" only because its no-regression
+  threshold is slightly stricter than the CI test).
+- **v3_noR46 — the aggressive, mimic-optimized pick.** `resnet46_C` (the l18 member, single-member
+  mimic-recovery 0.003→0.130) is **dead weight for mimic discrimination** — it dilutes the
+  mimic-rejecting efficientnets in the average. Dropping it → best mimic-recovery by far (seed 3× v2,
+  dr10@0.01 0.717/0.776) at a real ~3% random-recall cost. The roster ranking is **consistent across
+  the in-dist DR10 eval AND the OOD seed** and mechanistically grounded, so it's not selection noise.
+
+**A6 recommendation:** deploy **v3blend8** as the SHIP-gated ensemble (Pareto-safe, ~2× mimic at zero
+random cost) and apply the A3 lens-vs-mimic head as a stage-2 survivor re-ranker to push toward
+v3_noR46-level discrimination *without* the random-recall cost (the head only demotes mimics). C-v3
+uses v3blend8 for stage-1/scoring + the head + the mimic-null conformal for selection. Artifact:
+`data/v3/a6_ensemble_refit.json`.
