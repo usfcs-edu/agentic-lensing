@@ -72,15 +72,20 @@ def main() -> int:
     feat_cols = [CAL2[f] if f in CAL2 else f for f in FEATS]
     Xs = surv[feat_cols].to_numpy(float)
     surv["v3blend8"] = Xs.mean(axis=1)
-    surv["head"] = clf.decision_function(_lg(Xs))
+    surv["v2_pfinal"] = surv[list(CAL2.values())].to_numpy(float).mean(axis=1)  # 5 v2 members
+    surv["head_score"] = clf.decision_function(_lg(Xs))
 
     # --- mimic-null conformal (mimic-FDR) on the head score ---
-    pvals = conf.conformal_pvalues(surv["head"].to_numpy(), mim_head)
+    pvals = conf.conformal_pvalues(surv["head_score"].to_numpy(), mim_head)
     surv["mimic_p"] = pvals
     sel = conf.bh_select(pvals, args.alpha)
     surv["mimic_fdr_sel"] = sel
-    print(f"[363] mimic-null conformal BH@{args.alpha}: {int(sel.sum()):,} selected "
-          f"(vs C-now random-null 0); floor 1/(n_mim+1)={1/(len(mim_head)+1):.2e}")
+    print(f"[363] mimic-null conformal BH@{args.alpha} (full m={len(surv):,}): {int(sel.sum()):,} "
+          f"selected (vs C-now random-null 0); floor 1/(n_mim+1)={1/(len(mim_head)+1):.2e}")
+    # power-limited at full m (floor > alpha/m); restrict m to the top-N shortlist for power
+    short = surv.sort_values("head_score", ascending=False).head(max(args.topn, 1000)).copy()
+    psel = conf.bh_select(conf.conformal_pvalues(short["head_score"].to_numpy(), mim_head), args.alpha)
+    print(f"[363] mimic-FDR on top-{len(short)} shortlist (m={len(short)}): {int(psel.sum()):,} selected")
 
     # --- crossmatch status + recall-of-811 head-to-head ---
     xm = pd.read_parquet(SD / "crossmatch.parquet").astype({"row_id": str})
@@ -91,9 +96,9 @@ def main() -> int:
     surv["status"] = np.where(is_known, "KNOWN", "NEW")
     n_known = int(is_known.sum())
     # how well does the head rank the known lenses among all survivors (percentile)?
-    surv["head_rank_pct"] = surv["head"].rank(pct=True)
-    surv["v2_rank_pct"] = surv["v3blend8"].rank(pct=True)  # proxy; true v2 = stage2 p_final below
-    for col, lbl in [("head_rank_pct", "v3-head"), ("v2_rank_pct", "v3blend8")]:
+    surv["head_rank_pct"] = surv["head_score"].rank(pct=True)
+    surv["v2_rank_pct"] = surv["v2_pfinal"].rank(pct=True)        # true v2-lean 5-member mean
+    for col, lbl in [("head_rank_pct", "v3-head"), ("v2_rank_pct", "v2lean")]:
         med_known = surv.loc[is_known, col].median()
         med_new = surv.loc[~is_known, col].median()
         print(f"[363] {lbl:9s} rank-percentile: known811 median={med_known:.3f}  NEW median={med_new:.3f}")
@@ -103,17 +108,17 @@ def main() -> int:
           f"{int((seln.status=='NEW').sum())} NEW)")
 
     # --- candidate shortlist: top NEW by head score ---
-    new = surv[surv["status"] == "NEW"].sort_values("head", ascending=False)
-    top = new.head(args.topn)[["row_id", "RA", "DEC", "brick", "head", "v3blend8",
-                               "mimic_p", "mimic_fdr_sel"]]
+    new = surv[surv["status"] == "NEW"].sort_values("head_score", ascending=False)
+    top = new.head(args.topn)[["row_id", "RA", "DEC", "brick", "head_score", "v3blend8",
+                               "v2_pfinal", "mimic_p", "mimic_fdr_sel"]]
     top.to_csv(args.out, index=False)
     print(f"[363] wrote {args.out}: top {len(top)} NEW by head score "
-          f"(head {top.head.min():.2f}..{top.head.max():.2f})")
+          f"(head {top['head_score'].min():.2f}..{top['head_score'].max():.2f})")
     rep = {"n_survivors": int(len(surv)), "n_known": n_known, "n_new": int((surv.status=='NEW').sum()),
            "mimic_fdr_alpha": args.alpha, "mimic_fdr_n_sel": int(sel.sum()),
            "mimic_fdr_n_new": int((seln.status=='NEW').sum()),
            "head_weights": dict(zip(FEATS, [float(w) for w in clf.coef_[0]])),
-           "top_new_head_range": [float(top.head.min()), float(top.head.max())]}
+           "top_new_head_range": [float(top["head_score"].min()), float(top["head_score"].max())]}
     Path(str(V3 / "cv3_select_summary.json")).write_text(json.dumps(rep, indent=2))
     print(f"[363] wrote {V3/'cv3_select_summary.json'}")
     return 0

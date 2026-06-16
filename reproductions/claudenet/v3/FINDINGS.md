@@ -255,3 +255,27 @@ selection (or ensemble the two). **A3 head conclusion:** the best stage-2 surviv
 mimic-recovery on the OOD headline at φ=0.05, at zero stage-1 recall cost. Artifact
 `data/v3/a3_lensvmimic_head.json`. The **mimic-null conformal (`326`)** operates on re-sweep survivor
 scores and is implemented as part of **C-v3** selection.
+
+## C-v3 — DR10 re-sweep selection with the v3 model  🟡 (selection done; C-vet next)
+
+Pragmatic re-sweep: reuse the 150k C-now survivor pool (stage-1 recall ≈ v2), score the 3 `_b50`
+members on it (`315 --tag survdr10`, PM job — segfaulted at teardown but wrote all 3 complete 150k
+parquets, 0 NaN), then select with the v3 model (`363_cv3_select.py`): v3blend8 p_final + the A3
+head re-rank + mimic-null conformal.
+
+- **Recall-of-811 preserved:** the known-811 lenses (in survivors) rank at the **96th percentile**
+  by the v3-head (0.959) — essentially identical to v2lean (0.966), NEW median ~0.49. v3 does NOT
+  bury known lenses; the head's job is demoting *mimics*, not promoting known lenses (which both
+  models already score high). **G-recall PASS.**
+- **mimic-null conformal is power-limited at DR10 scale (full-m = 0)** — exactly like C-now's random
+  null: the 29.6k mimic calibration cannot certify 150k tests at α=0.1 (floor 1/(n+1)=3.4e-5 >
+  α/m). The shortlist-restricted variant is anti-conservative (conditions on the score), so it is a
+  DIAGNOSTIC only, NOT an FDR guarantee. → the candidate list comes from **top-by-head ranking**
+  (the v3 re-ranking is the value), vetted agentically — as the campaign did.
+- **The head re-ranking changes the candidate list by 86%:** the v3-head top-300 NEW overlaps only
+  **42/300** with C-now's v2-p_final top-300. The head demotes mimic-like NEW survivors (high v2
+  p_final) and promotes lens-like ones (some with v2 p_final as low as 0.19, by member *pattern*,
+  esp. effnet_S2_b50). It retains 2/5 of the v2-qualified candidates. Artifact
+  `data/v3/cv3_candidates_top.csv` (+ `cv3_select_summary.json`). **Whether this re-ranked list is
+  cleaner (higher A/B yield, fewer mimics) than v2's is the C-vet test** — the payoff comparison
+  vs C-now's v2 top-30 (2 A / 6 B / 11 C / 11 D).
