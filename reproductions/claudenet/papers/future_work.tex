@@ -1,0 +1,48 @@
+\section{Future directions}
+\label{sec:future}
+The campaign localises two distinct limits with concrete, separable levers. The discovery frontier
+is bounded by \emph{vetting resolution} (model improvements saturate at DECaLS $0.262''$/px), and
+the footprint is bounded by \emph{training instrument} (v3 is DECam-specific). The priorities follow
+directly.
+
+\paragraph{1. Euclid pre-screening (the decisive discovery lever).} The cross-validation
+(\S\ref{sec:v3}) shows the productive mode: v3 pre-screens the DESI imaging, Euclid confirms at
+$0.1''$. Q1's $\sim$63\,deg$^2$ over three Deep Fields overlaps only $\sim$0.5\% of a DESI-south
+sweep, which is why net-new yield there is bounded; \emph{Euclid DR1} (wide-area) inverts this. The
+ready action now is a targeted sweep restricted to the Euclid-overlap sky, where \emph{every}
+candidate is escalatable --- the one configuration in which v3's separation and the resolution-
+breaking vet both apply to every object.
+
+\paragraph{2. BASS/MzLS-north retraining.} v3 does not transfer to the northern third of the sky
+(D3). Mining a BASS/MzLS-native lens-mimic bank and retraining the members (the v3 recipe is
+instrument-agnostic; only the negatives change) would unlock DR9/DR11-north and roughly triple the
+addressable footprint.
+
+\paragraph{3. \emph{i}-band / foundation-model revival for small-$\theta_E$.} DR10/DR11-south are
+native \emph{griz}. The deferred \aion{}/$i$-band lever (A4) targets the red-lens/red-companion
+degeneracy and the small-$\theta_E$ bin specifically; it is worth re-testing under the narrower
+lens-vs-mimic task (rather than the random-FPR task where it failed in v2) on the native-$i$ rows
+the bank already carries.
+
+\paragraph{4. A pixel-level lens-vs-mimic head.} The learned logistic head on member scores beats
+the average at $\phi{=}0.05$ but overfits the strict tail and does not generalise to the independent
+Euclid ranking. A small CNN head trained directly on pixels with positives$=$lenses,
+negatives$=$the typed mimic bank (rather than on the eight member scores) is the natural next step,
+used as a post-conformal re-ranker.
+
+\paragraph{5. The active-learning loop.} The \texttt{lensjudge} harness can export confident-D
+rejections (true mimics, \emph{not} objects that flipped to A/B at higher resolution) as fresh,
+typed hard negatives for the next-generation bank --- closing a mine$\to$grade$\to$retrain loop that
+continually sharpens the dominant contaminant classes.
+
+\paragraph{6. A full DR11-south candidate catalogue.} v3blend8 runs on DR11-south with essentially
+no adaptation (the pipeline is release-parametrised; only a DR10$\to$DR11 threshold recalibration is
+needed). A full-footprint scan would yield a real DR11-south candidate catalogue with v3's cleaner-
+bulk advantage over the published finders --- a useful deliverable, with the honest caveat that the
+net-new yield is resolution-bounded ($\approx$ the published-baseline level at the hardest frontier).
+
+\paragraph{Deployment recommendation.} Ship \textbf{v3blend8} (not the learned head, which does not
+generalise past $\phi{=}0.05$) as the stage-1/scoring ensemble, with the LensJudge v2 cascade
+(direct triage $+$ agentic mimic adjudication $+$ Euclid escalation by coverage) for vetting. This
+keeps v2-lean's lens recall, adds the contaminant-rejection edge on the bulk candidate list, and
+routes the resolution-breaking confirmation to exactly the candidates that have higher-res coverage.

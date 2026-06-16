@@ -1,0 +1,15 @@
+\begin{table}[t]\centering
+\caption{Candidate quality across model generations (D6). recovery@matched-mimic-FPR(0.05) and the \emph{independent} Euclid grade-A-vs-C AUC. The seed column is selection-biased (the seed bank is what the v2/v3 ensemble scored high), so orig-vs-v3 there is invalid; the trustworthy comparison is the Euclid AUC, where all models sit within $\sim$1\,SE ($\approx$0.06, $n_A{=}66$).}
+\label{tab:progression}\small
+\begin{tabular}{lcccc}
+\toprule
+model & seed mimic@0.05 & DR10-eval@0.05 & DR10-eval@0.05 & Euclid A-vs-C\\
+ & (Storfer) & (Storfer) & (Inchausti) & AUC (indep.)\\
+\midrule
+orig (random-neg CNN) & 0.592 & 0.598 & 0.640 & 0.613\\
+v2-lean & 0.168 & 0.713 & 0.856 & 0.647\\
+v3blend8 & 0.312 & 0.790 & 0.896 & 0.660\\
+v3-head & 0.647 & 0.885 & 0.922 & 0.615\\
+\bottomrule
+\end{tabular}
+\end{table}
