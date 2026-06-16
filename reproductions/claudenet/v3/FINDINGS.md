@@ -420,6 +420,28 @@ DECam-south. (No escalation run: the EDF-N Euclid lenses score low on v3, so the
 candidates — grading them would redundantly re-confirm Euclid at no gain.) Artifacts
 `data/v3/{cv3_dr11edfn_candidates.csv,cv3_dr11edfn_select_summary.json}`. LensJudge unchanged ~$44/$100.
 
+## D5 — Targeted DR11-south EDF-F/S scan: v3 works on DR11, slightly better than DR10  ✅
+
+The user-chosen net-new path: D4 re-run on DR11-south (newer DECam reductions). Pipeline ran
+end-to-end (`360/111/315/365 --release dr11 --footprint south`): EDF-F/S parent 1.96M box →
+**129,721 field galaxies** (100% extraction) → 8 members → select + Euclid cross-match + escalate.
+
+- **DR11 ≥ DR10 recall (same fields, DECam):** Euclid grade-A in v3 top-100 **5** (DR10: 4), top-1000
+  **10** (DR10: 7); precision@30 **5** Euclid-A/B (DR10: 4). The deeper DR11 reductions give v3 a
+  consistent, if modest, edge — the OPPOSITE of D3's north (where v3 broke). v3 transfers cleanly
+  within DECam across releases.
+- **Escalation (60-candidate shortlist, 54 NEW):** DESI→Euclid p_lens flip **median 0.03 → 0.65**;
+  our grader vs Euclid experts **25/30 grade-A kept A/B**, 46/60 A/B overall; **41 NEW cross-validated
+  A/B confirmed** (`v3/cv3_dr11edffs_confirmed.csv`).
+- **Cross-release (by Euclid id):** of the 41 DR11 NEW-confirmed, **33 overlap D4's DR10 set, 8 are
+  DR11-unique** — Euclid lenses v3 recovered only on DR11's deeper processing. Combined DECam-south
+  cross-validated catalog **D4 ∪ D5 ≈ 49 unique lenses**.
+
+**D5 answer to "is v3 useful for DR11":** YES for DR11-**south** — it runs as-is and performs ≥ DR10,
+producing a cross-validated catalog in the Euclid-confirmable zone (+8 net-new vs DR10). A full
+DR11-south scan would work but stays resolution-limited (≈v2-level net-new); DR11-**north** still
+needs BASS/MzLS retraining (D3). LensJudge ~$53/$100.
+
 ## CAMPAIGN CLOSE (A–D)
 
 v3 MODEL (A): contaminant-aware finder, 2–4× mimic separation on OOD, SHIP-gated v3blend8 + learned
