@@ -442,6 +442,36 @@ producing a cross-validated catalog in the Euclid-confirmable zone (+8 net-new v
 DR11-south scan would work but stays resolution-limited (≈v2-level net-new); DR11-**north** still
 needs BASS/MzLS retraining (D3). LensJudge ~$53/$100.
 
+## D6 — v3 vs the ORIGINAL models + a selection-bias CORRECTION  ✅ (important)
+
+`367_model_progression.py`: original-class single CNN (effnet_B, random-neg) → v2lean → v3blend8
+→ v3head, on the SAME held-out positives + mimic sets + the independent Euclid A-vs-C AUC.
+
+| model | seed recovery@0.05 | DR10-eval recovery@0.05 | **Euclid A-vs-C AUC** |
+|---|---|---|---|
+| orig (effnet_B, random-neg) | 0.592/0.634 | 0.60/0.64 | **0.613** |
+| v2lean (5) | 0.168/0.307 | 0.71/0.86 | **0.647** |
+| v3blend8 (8) | 0.312/0.467 | 0.79/0.90 | **0.660** |
+| v3head (learned) | 0.647/0.649 | 0.89/0.92 | **0.615** |
+
+**CORRECTION (load-bearing):** the SEED recovery@mimic-FPR metric is **selection-biased** — the seed
+bank IS the set the v2/v3 ensemble scored high (CNN-high DR9 rejects), so v2/v3's threshold is
+saturated and their seed-recovery is artificially LOW, while a less-central model (effnet_B alone)
+looks artificially HIGH (0.592 > v2lean 0.168). So **orig-vs-v3 comparisons on the seed are
+invalid**; the "2–4× over original" framing from the seed metric is RETRACTED. (v3-vs-v2 on the seed
+is still fine — both equally biased — so A2/A3's v3>v2 result stands.)
+
+**The trustworthy read (independent Euclid AUC, full field, Euclid truth labels):** all four models
+sit at **0.61–0.66, within ~1 SE** (SE≈0.06, n_A=66) — statistically INDISTINGUISHABLE at the
+hardest distinction (real lens vs ambiguous), i.e. the discovery frontier is **resolution-bounded
+for every model**. v3blend8 is nominally best (+0.05 over orig, within noise); the learned **head
+does NOT generalize** (0.615 ≈ orig 0.613, despite topping the confounded mimic-FPR metric — confirms
+the A3 overfit caveat). On the BROAD mimic population (DR10-eval) v3 IS clearly better (0.60→0.79–0.92)
+— it rejects COMMON contaminants far better. **Net: v3 yields a meaningfully cleaner candidate list
+for the bulk (fewer easy mimics to vet) but NO significant edge at the hardest/most-valuable frontier
+(resolution-bounded).** Consistent with C-vet (v3≈v2 at top) + D5 (small DR11 edge). Deploy v3blend8,
+not the head. Artifact `data/v3/model_progression.json`.
+
 ## CAMPAIGN CLOSE (A–D)
 
 v3 MODEL (A): contaminant-aware finder, 2–4× mimic separation on OOD, SHIP-gated v3blend8 + learned

@@ -1,0 +1,30 @@
+{
+  "orig (effnet_B, random-neg)": {
+    "seed_storfer": 0.5920844327176781,
+    "seed_inchausti": 0.6337854500616523,
+    "dr10_storfer": 0.5984168865435356,
+    "dr10_inchausti": 0.6399506781750924,
+    "euclid_AvsC_auc": 0.6126559714795009
+  },
+  "v2lean (hard-mined, 5)": {
+    "seed_storfer": 0.16781002638522427,
+    "seed_inchausti": 0.3070283600493218,
+    "dr10_storfer": 0.7134564643799473,
+    "dr10_inchausti": 0.8557336621454994,
+    "euclid_AvsC_auc": 0.646524064171123
+  },
+  "v3blend8 (8)": {
+    "seed_storfer": 0.31240105540897095,
+    "seed_inchausti": 0.46732429099876693,
+    "dr10_storfer": 0.7899736147757256,
+    "dr10_inchausti": 0.8964241676942046,
+    "euclid_AvsC_auc": 0.6598395721925133
+  },
+  "v3head (learned)": {
+    "seed_storfer": 0.6474934036939314,
+    "seed_inchausti": 0.6485819975339088,
+    "dr10_storfer": 0.8849604221635884,
+    "dr10_inchausti": 0.9223181257706535,
+    "euclid_AvsC_auc": 0.6154188948306596
+  }
+}
