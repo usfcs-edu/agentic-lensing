@@ -74,6 +74,11 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--scorelist", required=True)
     ap.add_argument("--bank-eval", default=str(C.DATA / "v3" / "mimic_bank_eval.parquet"))
+    ap.add_argument("--row-ids", default=None,
+                    help="parquet with a row_id column to score instead of bank-eval "
+                         "(e.g. the C-v3 survivor pool)")
+    ap.add_argument("--tag", default="mimiceval",
+                    help="output suffix: scores_member_<art>_<tag>.parquet + <tag>_ids.parquet")
     ap.add_argument("--parts-glob", default=None)
     ap.add_argument("--out-dir", default=str(C.DATA / "v3"))
     ap.add_argument("--batch", type=int, default=512)
@@ -82,11 +87,14 @@ def main() -> int:
         Path(os.environ.get("SCRATCH", ".")) / "claudenet" / "cutouts" / "dr10" / "part*")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    ev = pd.read_parquet(args.bank_eval)
-    ev = ev[ev["source"] == "dr10_sweep"]
-    ids, x = gather_array(ev["row_id"].tolist(), parts_glob)
-    # persist the gathered id order once (so all members align + 316 can join)
-    pd.DataFrame({"row_id": ids}).to_parquet(Path(args.out_dir) / "mimic_eval_ids.parquet",
+    if args.row_ids:
+        rids = pd.read_parquet(args.row_ids)["row_id"].astype(str).tolist()
+    else:
+        ev = pd.read_parquet(args.bank_eval)
+        rids = ev[ev["source"] == "dr10_sweep"]["row_id"].tolist()
+    ids, x = gather_array(rids, parts_glob)
+    # persist the gathered id order once (so all members align + downstream can join)
+    pd.DataFrame({"row_id": ids}).to_parquet(Path(args.out_dir) / f"{args.tag}_ids.parquet",
                                              index=False)
 
     scorelist = json.load(open(args.scorelist))
@@ -105,7 +113,7 @@ def main() -> int:
         v = v[v["split"] == "val"]
         cal = E.IsotonicCalibrator().fit(v["p"].to_numpy(float), v["label"].to_numpy(int))
         pc = cal.transform(p.astype(float))
-        out = Path(args.out_dir) / f"scores_member_{art}_mimiceval.parquet"
+        out = Path(args.out_dir) / f"scores_member_{art}_{args.tag}.parquet"
         pd.DataFrame({"row_id": ids, "p": p, "pc": pc.astype(np.float32)}).to_parquet(out, index=False)
         print(f"[315] {art:22s} p[{p.min():.3f},{p.max():.3f}] "
               f"pc_mean={pc.mean():.3f} -> {out.name}")

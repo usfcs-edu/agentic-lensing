@@ -1,0 +1,5 @@
+[
+  {"art":"effnet_S2_b50","member":"effnet_S2","ckpt":"data/v2/ckpt/member_effnet_S2_b50.pt","val_scores":"data/v2/scores_member_effnet_S2_b50.parquet"},
+  {"art":"effnet_B3_b50","member":"effnet_B3","ckpt":"data/v2/ckpt/member_effnet_B3_b50.pt","val_scores":"data/v2/scores_member_effnet_B3_b50.parquet"},
+  {"art":"resnet46_C_b50","member":"resnet46_C","ckpt":"data/v2/ckpt/member_resnet46_C_b50.pt","val_scores":"data/v2/scores_member_resnet46_C_b50.parquet"}
+]
