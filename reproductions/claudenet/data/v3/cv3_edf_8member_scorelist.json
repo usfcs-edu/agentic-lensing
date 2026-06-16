@@ -1,0 +1,10 @@
+[
+  {"art":"effnet_B","member":"effnet_B","ckpt":"data/v2/ckpt_lean/member_effnet_B.pt","val_scores":"data/scores_member_effnet_B.parquet"},
+  {"art":"zoobot_N","member":"zoobot_N","ckpt":"data/v2/ckpt_lean/member_zoobot_N.pt","val_scores":"data/v2/scores_member_zoobot_N.parquet"},
+  {"art":"effnet_S2_hard","member":"effnet_S2","ckpt":"data/v2/ckpt_lean/member_effnet_S2_hard.pt","val_scores":"data/v2/scores_member_effnet_S2_hard.parquet"},
+  {"art":"effnet_B3_hard","member":"effnet_B3","ckpt":"data/v2/ckpt_lean/member_effnet_B3_hard.pt","val_scores":"data/v2/scores_member_effnet_B3_hard.parquet"},
+  {"art":"resnet46_C_hard","member":"resnet46_C","ckpt":"data/v2/ckpt_lean/member_resnet46_C_hard.pt","val_scores":"data/v2/scores_member_resnet46_C_hard.parquet"},
+  {"art":"effnet_S2_b50","member":"effnet_S2","ckpt":"data/v2/ckpt/member_effnet_S2_b50.pt","val_scores":"data/v2/scores_member_effnet_S2_b50.parquet"},
+  {"art":"effnet_B3_b50","member":"effnet_B3","ckpt":"data/v2/ckpt/member_effnet_B3_b50.pt","val_scores":"data/v2/scores_member_effnet_B3_b50.parquet"},
+  {"art":"resnet46_C_b50","member":"resnet46_C","ckpt":"data/v2/ckpt/member_resnet46_C_b50.pt","val_scores":"data/v2/scores_member_resnet46_C_b50.parquet"}
+]
