@@ -279,3 +279,40 @@ head re-rank + mimic-null conformal.
   `data/v3/cv3_candidates_top.csv` (+ `cv3_select_summary.json`). **Whether this re-ranked list is
   cleaner (higher A/B yield, fewer mimics) than v2's is the C-vet test** — the payoff comparison
   vs C-now's v2 top-30 (2 A / 6 B / 11 C / 11 D).
+
+### C-vet (DR10 v3) — agentic grading of the v3 top-30  ✅ (the honest discovery result)
+
+Graded the v3 top-30 NEW with the SAME harness as C-now (`--mode escalate`, `rubric_imaging_v2`,
+sonnet, ~$2.8 each, parse_ok 30/30). Head-to-head A/B yield:
+
+| top-30 NEW list | A | B | C | D | A/B | D = lrg_companion |
+|---|---|---|---|---|---|---|
+| v2 p_final (C-now)            | 2 | 6 | 11 | 11 | **8** | dominant |
+| v3-head (φ=0.05 re-ranker)    | 2 | 3 | 11 | 14 | **5** | 12/14 |
+| v3blend8 (SHIP ensemble)      | 2 | 5 |  9 | 11 | **7** | 10/11 |
+
+**The honest conclusion — v3 is a validated better MODEL, but does NOT improve the agentic
+discovery yield:** v3blend8 (7 A/B) ≈ v2 (8); the head (5) is worse, exactly as A3 pre-registered
+(the head overfits the strict tail — deploy it at φ=0.05, use v3blend8 for top-N). **The D's stay
+lrg_companion-dominated in ALL three lists** — so the discovery frontier (the top of the NEW pool)
+is intrinsically mimic-dominated and **resolution-limited**: at DECaLS 1″ seeing, lrg_companion ≈
+lens even for the improved separator AND the vision grader. The A2/A3 metric gains (2–4×) are real
+but measured on KNOWN lenses vs mimics — they mean v3 *ranks the few real lenses among NEW higher*,
+not that it manufactures new ones. **This reinforces the B-series thesis: the lever for MORE
+discoveries is higher-res VETTING (Euclid/HSC), not a better DECaLS separator.**
+
+**Genuine v3 wins:** (1) v3blend8 recovered 2 of the 5 v2-qualified lenses (s_102952_9916 A,
+s_137557_3031 B — consistency check passes); (2) v3 surfaced **3 NEW grade-A candidates** not in
+v2's vetted set — `s_310364_6649` (0.87), `s_441355_1111` (0.74) [head], `s_124958_10481` (0.82)
+[v3blend8] — pending dual-grader + skeptic + higher-res qualification. Artifacts
+`data/v3/cv3{,b8}_vet_top30.parquet` (+ manifests). LensJudge spend ~$34/$100.
+
+## v3 PROGRAM CONCLUSION
+
+**Ship the v3 model** (`v3blend8` ensemble + the head as a φ=0.05 re-ranker + the mimic metric):
+contaminant-aware training closes the lens-vs-mimic separation gap (2–4× on the hardest OOD
+contaminants, recall-preserving, SHIP-gated). **But the DR10 discovery yield is resolution-limited,
+not separation-limited** — v3 ≈ v2 on agentic A/B yield because the NEW-survivor frontier is
+lrg_companion-dominated at DECaLS resolution. The decisive next lever is **higher-res vetting**
+(the B-series Euclid/HSC escalation), applied to the 3 NEW v3 grade-A + the broader candidate pool.
+DR11 sweep remains available (embargo-aware) but inherits the same resolution ceiling for vetting.
