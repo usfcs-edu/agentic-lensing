@@ -108,11 +108,14 @@ def main() -> int:
     ap.add_argument("--workers", type=int, default=min(64, os.cpu_count() or 8))
     ap.add_argument("--limit", type=int, default=0, help="debug: first N sweep files")
     ap.add_argument("--out", required=True)
+    ap.add_argument("--name-glob", default="sweep-*.fits",
+                    help="restrict to sweep files matching this glob (e.g. a region box; "
+                         "default = whole footprint)")
     args = ap.parse_args()
 
     ver = args.sweep_version or SWEEP_VERSION[args.release]
     sweep_dir = f"{LS_ROOT}/{args.release}/{args.footprint}/sweep/{ver}"
-    files = sorted(glob.glob(f"{sweep_dir}/sweep-*.fits"))
+    files = sorted(glob.glob(f"{sweep_dir}/{args.name_glob}"))
     if args.limit:
         files = files[:args.limit]
     if not files:

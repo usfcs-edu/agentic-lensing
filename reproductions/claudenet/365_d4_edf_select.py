@@ -46,8 +46,14 @@ def main() -> int:
     from sklearn.linear_model import LogisticRegression
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--topn", type=int, default=60, help="escalate shortlist size")
-    ap.add_argument("--out", default=str(V3 / "cv3_edf_candidates.csv"))
+    ap.add_argument("--ids", default=str(V3 / "cv3_edf_parent_ids.parquet"),
+                    help="region galaxies parquet (row_id,RA,DEC)")
+    ap.add_argument("--tag", default="edf", help="member score suffix scores_member_<m>_<tag>.parquet")
+    ap.add_argument("--label", default="edf", help="output naming label")
+    ap.add_argument("--out", default=None)
     args = ap.parse_args()
+    if args.out is None:
+        args.out = str(V3 / f"cv3_{args.label}_candidates.csv")
 
     # --- fit the A3 head (lenses vs DR10 mimic bank) ---
     Xpos = np.vstack([h321.lens_feats(sp) for sp in h321.POS]); Xm = h321.dr10_feats()
@@ -55,10 +61,10 @@ def main() -> int:
         _lg(np.vstack([Xpos, Xm])), np.r_[np.ones(len(Xpos)), np.zeros(len(Xm))])
 
     # --- 8-member edf scores -> v3blend8 + head ---
-    base = pd.read_parquet(V3 / "cv3_edf_parent_ids.parquet").astype({"row_id": str})
+    base = pd.read_parquet(args.ids).astype({"row_id": str})
     df = base[["row_id", "RA", "DEC"]].copy()
     for m in FEATS:
-        s = pd.read_parquet(V3 / f"scores_member_{m}_edf.parquet")[["row_id", "pc"]]
+        s = pd.read_parquet(V3 / f"scores_member_{m}_{args.tag}.parquet")[["row_id", "pc"]]
         df = df.merge(s.rename(columns={"pc": m}).astype({"row_id": str}), on="row_id", how="inner")
     X = df[FEATS].to_numpy(float)
     df["v3blend8"] = X.mean(axis=1)
@@ -109,14 +115,14 @@ def main() -> int:
     short["grade_truth"] = short.euclid_id.map(qg)
     man = short.rename(columns={"RA": "ra", "DEC": "dec"})[["row_id", "ra", "dec", "grade_truth", "euclid_id", "known"]]
     man.insert(0, "name", man.pop("row_id")); man["catalog"] = "d4_edf"; man["region"] = "edf_fs"
-    man.to_csv(V3 / "manifests_d4_edf.csv", index=False)
+    man.to_csv(V3 / f"manifests_{args.label}.csv", index=False)
     cand.head(300)[["row_id", "RA", "DEC", "v3blend8", "head", "euclid_grade", "euclid_fits", "known"]].to_csv(args.out, index=False)
     rep["escalate_shortlist"] = {"n": len(man), "euclid_AB": int(short.grade_truth.isin(["A", "B"]).sum()),
                                  "new": int((~short.known).sum())}
     print(f"\n[365] escalate shortlist: {len(man)} v3-top candidates with Euclid cutouts "
           f"({int(short.grade_truth.isin(['A','B']).sum())} Euclid-A/B, {int((~short.known).sum())} NEW) "
-          f"-> manifests_d4_edf.csv")
-    (V3 / "cv3_edf_select_summary.json").write_text(json.dumps(rep, indent=2, default=str))
+          f"-> manifests_<label>.csv")
+    (V3 / f"cv3_{args.label}_select_summary.json").write_text(json.dumps(rep, indent=2, default=str))
     print(f"[365] wrote {args.out} + cv3_edf_select_summary.json")
     return 0
 
