@@ -396,3 +396,38 @@ mimic-aware grade-A hold up to adversarial vetting; 2 are **dual-A** (C-vet A AN
 DESI-resolution `lrg_companion` ≈ lens — so surviving the panel = **DESI-qualified candidates, not
 confirmations**; these positions have no Euclid coverage, so higher-res confirmation isn't available
 (unlike the D1/D4 cross-matches). Artifact `lensjudge/outputs/d2_newA_panel.parquet`. LensJudge ~$44/$100.
+
+## D3 — DR11 EDF-N sweep: v3 is DECam-specific (cross-instrument negative)  ✅
+
+Swept the DR11-NORTH EDF-N field (the Euclid field DR10-south never reached; a DECam→BASS/MzLS
+generalization test). Pipeline: `360 --release dr11 --footprint north --name-glob` (8 region sweep
+files → 312,579-galaxy box → 55,812 within 3° of center) → `111 --release dr11` extract (55,812/
+55,812 ok, 100%, 6.2 min) → `315 --tag dr11edfn` (8 members) → `365 --label dr11edfn`.
+
+**Result — v3 does NOT transfer to BASS/MzLS north:**
+- **Systematic under-scoring:** v3blend8 **max 0.557 / median 0.252** on EDF-N vs **0.825 / 0.418**
+  on the DECam south fields (D4). The DECam-trained CNNs see BASS/MzLS pixels (different
+  zeropoints/PSF/noise/telescopes — 90prime g,r + MzLS z) as off-distribution and compress all
+  scores low.
+- **Top-K precision collapses:** v3's top-30 EDF-N candidates contain **0 Euclid-A/B** (vs 4 in the
+  DECam south); the top-10 are all non-Euclid. Relative ranking keeps *some* signal (Euclid grade-A
+  median percentile 0.93; 9/40 in top-1000) but the absolute top is mimic/artifact-dominated.
+
+**D3 conclusion:** v3 generalizes WITHIN DECam (DR9→DR10, recoverable by retraining) but NOT across
+instruments (DECam→BASS/MzLS) — it is **DECam-specific**. North-footprint deployment (DR9/DR11
+north, ~1/3 of the sky) requires BASS/MzLS-native retraining; the D1/D4 cross-validated catalog is
+DECam-south. (No escalation run: the EDF-N Euclid lenses score low on v3, so they are not v3
+candidates — grading them would redundantly re-confirm Euclid at no gain.) Artifacts
+`data/v3/{cv3_dr11edfn_candidates.csv,cv3_dr11edfn_select_summary.json}`. LensJudge unchanged ~$44/$100.
+
+## CAMPAIGN CLOSE (A–D)
+
+v3 MODEL (A): contaminant-aware finder, 2–4× mimic separation on OOD, SHIP-gated v3blend8 + learned
+head. SWEEP (C): DR10 recall preserved, discovery resolution-limited. EUCLID (D1/D4): v3 grade-
+selective vs the independent Euclid sample (8.6× A-over-C), the resolution lever CONVERTS the
+overlap (DESI p_lens ~0.1→Euclid ~0.7–0.85), **41 cross-validated A/B candidates** (DECam south).
+QUALIFICATION (D2): the NEW grade-A survive the adversarial panel (cleaner than v2). LIMITS (D3):
+v3 is DECam-specific (no BASS/MzLS transfer). **Bottom line:** v3 is a validated better lens-vs-mimic
+*model* and a working DESI×Euclid cross-validation engine on the DECam footprint; net-new discovery
+is bounded by DESI resolution (lever = Euclid DR1's wider area) and by the DECam-only training (lever
+= north retraining). ~25 commits this session; LensJudge ~$44/$100; GPU on cosmo_g.
