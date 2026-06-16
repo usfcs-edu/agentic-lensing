@@ -107,8 +107,10 @@ def build_swapped_table(member: str, spec: dict, mined: pd.DataFrame,
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--member", required=True, choices=MEMBERS)
-    ap.add_argument("--variant", required=True, choices=("hard", "random", "hard2"),
-                    help="which mined set replaces the bootstrap negatives")
+    ap.add_argument("--variant", required=True,
+                    choices=("hard", "random", "hard2", "b30", "b50", "b70"),
+                    help="which mined set replaces the bootstrap negatives "
+                         "(b30/b50/b70 = v3 mimic-blend, manifest via --mined-manifest)")
     ap.add_argument("--mined-manifest", default=None,
                     help="120b manifest parquet (default "
                          "data/v2/mined_<variant>_fits_manifest.parquet)")

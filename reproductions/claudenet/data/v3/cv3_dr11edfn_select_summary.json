@@ -1,0 +1,45 @@
+{
+  "n_region": 55812,
+  "recall": {
+    "A": {
+      "n_in_region": 40,
+      "top100": 0,
+      "top500": 6,
+      "top1000": 9,
+      "median_pct": 0.9264226331254928
+    },
+    "B": {
+      "n_in_region": 23,
+      "top100": 0,
+      "top500": 0,
+      "top1000": 1,
+      "median_pct": 0.8628610334695047
+    },
+    "C": {
+      "n_in_region": 164,
+      "top100": 2,
+      "top500": 5,
+      "top1000": 8,
+      "median_pct": 0.6873611409732674
+    }
+  },
+  "precision": {
+    "30": {
+      "euclid_AB": 0,
+      "euclid_any": 0
+    },
+    "60": {
+      "euclid_AB": 0,
+      "euclid_any": 1
+    },
+    "100": {
+      "euclid_AB": 0,
+      "euclid_any": 2
+    }
+  },
+  "escalate_shortlist": {
+    "n": 60,
+    "euclid_AB": 60,
+    "new": 60
+  }
+}

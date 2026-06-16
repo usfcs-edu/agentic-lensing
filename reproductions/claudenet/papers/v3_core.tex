@@ -1,0 +1,27 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  ClaudeNet v3 -- standalone paper-core (lifts \input{v3_section} out of the
+%%  unified report). Cross-references to sibling sections (campaign, v2, future)
+%%  resolve to `??' when built alone; this wrapper exists to prove the v3 core +
+%%  its tables/figures are self-contained. Build: pdflatex v3_core; bibtex
+%%  v3_core; pdflatex v3_core x2  (or copy into a fresh paper dir).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[11pt,letterpaper]{article}
+\usepackage{../../tech-report}
+\usepackage{longtable}
+\newcommand{\cnet}{\textsc{ClaudeNet}}
+\newcommand{\aion}{\textsc{AION-1}}
+\newcommand{\fpr}[1]{@#1\,\%\,FPR}
+
+\title{\cnet{} v3: Contaminant-Aware Strong-Lens Finding\\ and Euclid Cross-Validation}
+\author{Greg Benson \and Xiaosheng Huang}
+\date{June 2026}
+
+\begin{document}
+\maketitle
+\subtitle{Liftable paper-core (standalone build of the v3 section)}
+\input{v3_section}
+\input{future_work}
+\input{appendix_catalog}
+\bibliographystyle{plainnat}
+\bibliography{references}
+\end{document}

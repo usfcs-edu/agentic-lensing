@@ -1,0 +1,43 @@
+{
+  "n_q1_dr10south": 1715,
+  "by_grade": {
+    "A": {
+      "n": 210,
+      "in_parent": 132,
+      "in_parent_frac": 0.6285714285714286,
+      "in_survivors": 15,
+      "in_survivors_frac": 0.07142857142857142
+    },
+    "B": {
+      "n": 180,
+      "in_parent": 104,
+      "in_parent_frac": 0.5777777777777777,
+      "in_survivors": 9,
+      "in_survivors_frac": 0.05
+    },
+    "C": {
+      "n": 1325,
+      "in_parent": 561,
+      "in_parent_frac": 0.42339622641509433,
+      "in_survivors": 11,
+      "in_survivors_frac": 0.00830188679245283
+    }
+  },
+  "AB": {
+    "n": 390,
+    "in_parent_frac": 0.6051282051282051,
+    "in_survivors_frac": 0.06153846153846154,
+    "A_over_C_enrichment": 8.603896103896103
+  },
+  "xmatch": {
+    "n": 35,
+    "grade": {
+      "A": 15,
+      "C": 11,
+      "B": 9
+    },
+    "new": 25,
+    "with_euclid_fits": 14,
+    "AB_new_with_fits": 10
+  }
+}

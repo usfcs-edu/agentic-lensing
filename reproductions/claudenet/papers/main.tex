@@ -5,13 +5,15 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \documentclass[11pt,letterpaper]{article}
 \usepackage{../../tech-report}
+\usepackage{longtable}
 
 \newcommand{\cnet}{\textsc{ClaudeNet}}
 \newcommand{\aion}{\textsc{AION-1}}
 \newcommand{\fpr}[1]{@#1\,\%\,FPR}
 
-\title{\cnet{}: Improving ML Strong-Lens Finding Beyond ResNet/EfficientNet\\
-       via Engineered Ensemble Diversity}
+\title{\cnet{}: From Engineered Ensemble Diversity to Contaminant-Aware\\
+       Strong-Lens Finding and Euclid Cross-Validation in the\\
+       DESI Legacy Surveys}
 \author{Greg Benson\thanks{\texttt{benson@cs.usfca.edu}; Department of Computer
         Science, University of San Francisco, CA 94117, USA} \and
         Xiaosheng Huang\thanks{Department of Physics \& Astronomy, University of
@@ -24,27 +26,29 @@
 \subtitle{Internal Research Report}
 
 \begin{abstract}
-The Huang-group strong-lens-finding lineage reproduced in this repository
-established a hard negative result: at the deployment operating point,
-\emph{architecture is not the bottleneck}. A 194\,K-parameter shielded ResNet
-matches a 20.5\,M-parameter EfficientNetV2-S to within $\pm0.003$ AUC, and the
-\citet{inchausti2025} feature-weighted meta-learner collapses to a simple average
-because its two base models are trained on byte-identical data and so make
-correlated errors. \cnet{} attacks the axes the lineage left unused. We replace
-the collapsed meta-learner with an ensemble of deliberately \emph{decorrelated}
-members --- three EfficientNet-family backbones, an \citet{parker2025aion}
-frozen-embedding probe, and two ResNets --- and show it beats the published
-meta-learner at \emph{every} matched-false-positive-rate operating point
-($+0.030$ Storfer\fpr{1}, $+0.090$\fpr{0.1}; $+0.012$/$+0.090$ Inchausti),
-because real member diversity (Spearman $\sim$0.45 vs the lineage's $\sim$1.0)
-gives a combiner signal to exploit. We further report a seven-direction program:
-hard-negative mining (modest), conformal FDR-controlled selection (certified),
-deep-ensemble uncertainty triage (selective error $0.022\!\to\!0.0002$ at 50\,\%
-coverage), test-time equivariance ($+0.04$), foundation-model label efficiency
-(only below $\sim$150 labels), and an honest negative result for naive
-domain-adaptation. All experiments run on seven NVIDIA TITAN RTX GPUs; metrics
-reuse the reproduced \texttt{22\_fpr\_operating\_point} arithmetic verbatim so
-every number is directly comparable to the baseline.
+This report consolidates three generations of \cnet{}, an ML strong-lens finder for the DESI
+Legacy Surveys, and the lessons each taught. \textbf{v1} establishes that \emph{architecture is not
+the bottleneck} --- a 194\,K shielded ResNet matches a 20.5\,M EfficientNetV2-S to $\pm0.003$ AUC
+and the \citet{inchausti2025} meta-learner collapses to a simple average on correlated bases --- and
+beats the published meta-learner at every matched-FPR operating point by engineering
+\emph{decorrelated} ensemble members (Spearman $\sim$0.45 vs $\sim$1.0). \textbf{v2} rebuilds the
+measuring stick at deployment scale (a $10^6$-negative held-out pool), widens the gains to the
+strict $0.01\%$-FPR regime, and runs a $17.3$\,M-galaxy DR9 sweep yielding 737 FDR-controlled
+candidates --- but a qualification campaign grades \emph{zero} of the 601 genuinely-new ones as
+A/B, while correctly re-discovering catalogued lenses. That decisive negative diagnoses the real
+constraint: \emph{lens-vs-mimic separation} (the candidates are luminous-red galaxies with
+companions, rings, blends) and \emph{vetting resolution}, not architecture. \textbf{v3} builds a
+contaminant-aware finder --- a typed lens-mimic bank, mimic-blended hard-negative retraining, a new
+recovery@matched-mimic-FPR metric, and a lens-vs-mimic head --- and sweeps DR10/DR11. v3 cleanly
+rejects \emph{common} contaminants (broad-population mimic-recovery $0.60\!\to\!0.89$), but on an
+\emph{independent} Euclid-graded sample it is statistically tied with the original models at the
+hardest real-vs-mimic distinction: the discovery frontier is \emph{resolution-bounded} at DECaLS
+$0.262''$/px. Cross-validating the DESI$\cap$Euclid-Q1 overlap shows the productive mode --- v3
+pre-screens DESI, Euclid confirms at $0.1''$ (median $p_{\rm lens}\,0.03\!\to\!0.70$), yielding 49
+cross-validated candidates --- and that v3 is DECam-specific (no BASS/MzLS transfer). The honest
+takeaway: the model lever is real but modest, and the decisive levers are higher-resolution vetting
+and instrument-native training. All metrics reuse the reproduced matched-FPR arithmetic verbatim so
+every v1/v2/v3 number is directly comparable.
 \end{abstract}
 
 \section{Premise and method}
@@ -65,6 +69,13 @@ transformer/SSL/equivariant method cleanly beats a tuned EfficientNet at matched
 FPR for DECaLS \emph{grz} lens finding \citep{parlange2025gravit}; the demonstrated
 wins are in ensemble \emph{diversity} \citep{des2025ensemble,rezaei2025kids},
 negative quality, and label efficiency. \cnet{} targets those.
+
+We present three generations in chronological order: \textbf{v1} (the engineered-diversity ensemble
+and its seven-direction supporting program; this and the next two sections), \textbf{v2}
+(Perlmutter-scale validation and the DR9 sky sweep, \S\ref{sec:v2}), the qualification campaign that
+motivated the next generation (\S\ref{sec:campaign}), and the contaminant-aware \textbf{v3} with its
+Euclid cross-validation (\S\ref{sec:v3}) and future directions (\S\ref{sec:future}). All earlier
+results are retained; each generation is additive.
 
 \section{Phase~1: engineered-diversity ensemble (flagship)}
 We train five members as independent per-GPU jobs: EfficientNetV2-S ($\times2$) and
@@ -257,21 +268,27 @@ claim is: at the same inspection budget, $\sim$9--10 points more real lenses at 
 operating point that matters, plus a certifiable purity statement --- a meaningful,
 not transformational, lift.
 
-\section{Discussion}
-Across seven directions, the single decisive lever is member \emph{diversity}: the
-published lineage diagnosed the meta-learner collapse but never engineered diverse
-members, and doing so yields a clean, controlled improvement over the published
-method at every operating point. The remaining directions are honestly mixed ---
-hard-negative quality and equivariance help modestly, conformal selection and
-ensemble-uncertainty triage are robust operational wins, foundation features help
-only in the cold-start regime, and naive domain adaptation fails. All experiments
-fit on seven Turing-class GPUs; the natural scale-ups (native-griz \aion{} member,
-deployment-scale mining, full equivariant training, full-sky deployment with
-conformal control) are deferred to NERSC. The honest takeaway reinforces the
-repository's thesis: for DECaLS lens finding the returns are in data, calibration,
-and \emph{diversity}, not in the backbone.
-
 \input{v2_section}
+\input{campaign_section}
+\input{v3_section}
+\input{future_work}
+
+\section{Conclusion}
+Across three generations the lesson sharpened. v1 showed the lever the lineage left unused is member
+\emph{diversity}, not the backbone, and won cleanly at every matched-FPR operating point. v2
+confirmed this at deployment scale and produced the first FDR-controlled sky sweep --- whose
+qualification campaign then delivered the most informative result of the program: the binding
+constraint is \emph{lens-vs-mimic separation} and \emph{vetting resolution}, not architecture. v3
+answers the first half with a contaminant-aware finder that rejects common mimics far better than any
+prior \cnet{} model; the Euclid cross-validation answers the second --- at DECaLS resolution every
+model, old and new, is statistically tied at the hardest real-vs-mimic distinction, and the only
+operation that converts candidates to confirmations is higher-resolution imaging. The honest,
+repository-consistent takeaway is that for DECaLS lens finding the returns are in data, calibration,
+and contaminant-aware negatives --- a meaningful but not transformational model lift --- while the
+decisive levers for net-new discovery are \emph{resolution} (Euclid pre-screening) and
+\emph{footprint} (instrument-native retraining), the directions of \S\ref{sec:future}.
+
+\input{appendix_catalog}
 
 \bibliographystyle{plainnat}
 \bibliography{references}

@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -A deepsrch
+#SBATCH -A cosmo
 #SBATCH -C cpu
 #SBATCH -q shared
 #SBATCH --ntasks=1

@@ -1,0 +1,22 @@
+{
+  "n_survivors": 150000,
+  "n_known": 1702,
+  "n_new": 148298,
+  "mimic_fdr_alpha": 0.1,
+  "mimic_fdr_n_sel": 0,
+  "mimic_fdr_n_new": 0,
+  "head_weights": {
+    "effnet_B": -0.2178770803212926,
+    "zoobot_N": 0.26905630215929177,
+    "effnet_S2_hard": 0.1571586291216004,
+    "effnet_S2_b50": 0.7561123794833868,
+    "effnet_B3_hard": -0.04813870968500931,
+    "effnet_B3_b50": -0.02642081141244658,
+    "resnet46_C_hard": -0.19398684037148078,
+    "resnet46_C_b50": 0.16335141872813289
+  },
+  "top_new_head_range": [
+    3.6058533773784376,
+    14.45684491960109
+  ]
+}
