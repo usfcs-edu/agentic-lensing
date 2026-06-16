@@ -151,3 +151,51 @@ candidates, and carves a frozen held-out.
 **A1 remaining → A2:** stage the bank's cutouts on Perlmutter (survivor shards exist) for member
 retraining (`hard3`). **A2 is the first point v3 moves the A0 mimic-recovery number** (Storfer
 0.168 / Inchausti 0.307 @ mimic-FPR 0.05 — the headline to beat).
+
+## A2 — Contaminant-aware member retraining (the mimic-blend)  ✅ THE THESIS VALIDATED
+
+**Recipe (byte-identical to v2's `hard` except the negative content):** displace the SAME
+n_mine=10,000 bootstrap negatives (same per-member seed) with a blend of f·10k typed lens-mimics
+(313 train-pool: 8,000 stratified-hardest DR10 survivors, extended_lrg capped) + (1−f)·10k v2
+hard negatives (314). Retrain the 3 swappable members (effnet_S2/B3 + resnet46_C) at f∈{0.3,0.5,
+0.7}; keep effnet_B + zoobot_N frozen. Scripts `313`–`317`, slurm DAG `nersc/a2_run_offline.sh`.
+**Infra gotcha (cost 2 rounds):** `build_model('efficientnet')` → `EfficientNetV2Lens(pretrained=
+True)` hangs forever downloading ImageNet weights on internet-less compute nodes; fix = pre-cache
+on a login node + `HF_HUB_OFFLINE=1`. Real training is fast (~30–60 min/25-epoch effnet).
+
+**Result 1 — DR10 held-out eval (29,604; in-distribution for v3):** v3/b50 beats v2-lean at every
+operating point. Storfer @0.05 **0.713→0.793**, @0.01 **0.460→0.699**; Inchausti @0.05 0.856→0.873,
+@0.01 0.684→0.769. Integrity: recomputed-v2 vs stored bank p_final corr 0.99986 (max|d| 0.074).
+
+**Result 2 — Seed bank (601 hand-confirmed DR9 contaminants; OOD for BOTH — excluded from v3's
+train pool) — the headline:** v3 **more than doubles** mimic-recovery on the hardest test.
+
+| positives | v2 @0.05 → v3 | v2 @0.01 → v3 |
+|---|---|---|
+| Storfer   | 0.168 → **0.445** (2.6×) | 0.054 → **0.235** (4.4×) |
+| Inchausti | 0.307 → **0.529** (1.7×) | 0.126 → **0.316** (2.5×) |
+
+Per contaminant type (v3, Storfer/Inchausti @0.05): **lrg_companion (n=278, the 46% dominant)
+0.167→0.404/0.488**, blend 0.314/0.406, merger 0.465/0.543, spiral 0.451/0.531. v3 improves on
+EVERY contaminant type — contaminant-aware training **generalizes** to mimics it never saw.
+
+**Result 3 — fraction sweep (effnet_S2 single-member @0.05):** b30 0.836/0.864, **b50 0.851/0.885
+(optimal)**, b70 0.766/0.785. f=0.5 is the sweet spot; f=0.7 over-specializes (too few random negs
+left → loses general discrimination). Validates the plan's 50/50 default.
+
+**Result 4 — per-member G2 (admission):** all 3 retrained members improve single-member mimic-
+recovery (Storfer→Inchausti @0.05): effnet_S2 0.744→0.851 / 0.776→0.885; effnet_B3 0.606→0.714 /
+0.711→0.735; resnet46_C 0.003→0.130 / 0.007→0.210 (the l18 resnet was catastrophic on mimics —
+now 40× better, still the weak member). **G2 PASS for all 3.**
+
+**Result 5 — the trade-off (honest):** recovery@random-FPR(0.01) [testneg null] REGRESSES slightly:
+Storfer 0.967→0.935 (−0.032, Wilson-CI-significant), Inchausti 0.998→0.979 (−0.019). v3 trades a
+small, real random-galaxy-recall loss for a large mimic-recall gain — exactly the staf327 trade
+(they accepted 2.3% TP loss for 11× FP reduction). **Implication for A6:** v3 is not a pure Pareto
+win, so the deployment ensemble should likely be a v2/v3 BLEND or cascade (v2-recall stage-1 +
+v3-mimic-discrimination stage-2 / the A3 lens-vs-mimic head), not a wholesale member swap.
+
+**A2 conclusion:** the v3 thesis is validated — contaminant-aware hard-negative training closes the
+mimic-discrimination gap (2–4× on the hardest OOD contaminants, esp. lrg_companion), f=0.5 optimal,
+at a modest random-recall cost to be recovered by the A3 head + A6 ensemble/cascade. Artifacts:
+`data/v3/a2_v3_verdict.json` (DR10 eval), `data/v3/a2_seed_compare.json` (seed OOD), `_b50` ckpts.
