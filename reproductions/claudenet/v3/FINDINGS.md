@@ -316,3 +316,38 @@ not separation-limited** — v3 ≈ v2 on agentic A/B yield because the NEW-surv
 lrg_companion-dominated at DECaLS resolution. The decisive next lever is **higher-res vetting**
 (the B-series Euclid/HSC escalation), applied to the 3 NEW v3 grade-A + the broader candidate pool.
 DR11 sweep remains available (embargo-aware) but inherits the same resolution ceiling for vetting.
+
+## D1 — Euclid Q1 re-vet of the overlap: the resolution lever WORKS  ✅ (the campaign's payoff)
+
+`364_euclid_overlap.py` + escalate grading of the cross-validated set. Euclid Q1 = 3 deep fields
+~63 deg² @0.1″; DR10-south overlaps EDF-F + EDF-S (~40 deg², EDF-N is north). Against the
+expert-graded Q1 lens catalog (an INDEPENDENT lens sample — stronger than held-out
+Storfer/Inchausti):
+
+**(1) v3 is grade-selective for real lenses (independent confirmation it works).** v3 recovers
+Euclid grade-A lenses into survivors at **7.1%** vs grade-C at **0.8%** — **8.6× A-over-C
+enrichment**. **(2) The resolution ceiling, quantified independently:** absolute recall is only ~6%
+of Euclid A/B because **~40% of Euclid A/B lenses aren't even DESI-detectable** (too faint/small at
+1″) — Euclid finds lenses DESI fundamentally cannot.
+
+**(3) The conversion — escalating the overlap to Euclid 0.1″ flips DESI-ambiguous → confirmed.**
+The 35 v3-survivor ∩ Euclid-lens cross-matches (25 NEW; 14 with staged Euclid cutouts) graded with
+`--mode escalate` (tier-1 DESI grz + tier-2 Euclid 0.1″, Euclid-expert grade as truth):
+- **DESI→Euclid p_lens flip: median 0.10 → 0.85** — the resolution wall broken on REAL objects
+  (e.g. 0.03→0.92, 0.06→0.97), exactly the B-series thesis (README 0.05→0.90).
+- **Our grader vs Euclid experts at 0.1″: 12/14 A/B agreement** (all 7 Euclid-A kept A/B; 5/7
+  Euclid-B; the 2 demoted were the weakest B's, tier-2 p_lens 0.10/0.18) — the escalation pipeline
+  validated against an independent expert ground truth.
+- **9 of 10 NEW cross-matches confirm as grade-A/B at Euclid resolution** → **9 quadruple-validated
+  NEW strong-lens candidates** (v3 DESI CNN ∩ Euclid discovery engine ∩ Euclid expert A/B ∩
+  LensJudge-Euclid A/B): `v3/cv3_euclid_confirmed.csv` (s_79373_7769, s_83157_8409, s_84136_4630,
+  s_169188_5518, s_170452_17399 [A]; s_80314_12621, s_88997_602, s_88007_7987, s_170452_14504 [B]).
+
+**D1 conclusion — the program's thesis, fully closed:** the v3 *model* finds real lenses
+(grade-selective recall vs an independent sample), the DR10 *discovery* frontier is resolution-
+limited (40% of Euclid lenses undetectable + DESI-ambiguous), and **higher-res vetting converts
+the overlap candidates to confirmations** (median p_lens 0.10→0.85, 9 NEW quadruple-validated
+lenses). The end-to-end pipeline — contaminant-aware finder + mimic metric + higher-res escalation
+— is validated where Euclid overlaps. The path to MORE confirmations is **D4** (a targeted
+EDF-F/S v3 sweep, every candidate Euclid-escalatable) and Euclid DR1's wider area.
+Artifacts: `data/v3/{euclid_overlap_summary.json,cv3_euclid_xmatch.csv}`, `v3/cv3_euclid_confirmed.csv`.
