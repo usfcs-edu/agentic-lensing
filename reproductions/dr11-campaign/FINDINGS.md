@@ -57,10 +57,47 @@ the canary — run it after every Perlmutter script sync.
   `$SCRATCH/claudenet/sweep_dr11/parent_dr11_south.parquet`. Larger than DR10's 43.7 M (deeper
   DR11). Full extraction ≈ 6.6 TB → peak ~13.7/20 TB; extract all 32 parts, delete each after
   stage-1 scoring.
-- **160 manifest** (JID 54620826, --chunk 32) RUNNING. Watcher armed.
-- Next: 111 extract array (dr11_extract.slurm, FOOT=south NPARTS=32) → 161 stage-1 (5 lean) →
-  370 recalibrate (DR11 ops + 8M NegEval) → 162 survivors → 111 survivors → 112+315 score 8 →
-  363/365 select → 163/164 crossmatch+list.
+- **160 manifest DONE**: 32 footprint-pure parts (~1.68M each).
+- **111 extraction DONE** (array 54621016): 32/32, **100% ok-fraction** (part00 1,681,558/1,681,559),
+  **6.0 TB** cutouts, ~10 min/part, zero errors.
+- **161 stage-1 scoring DONE** (array 54621139, aftercorr-pipelined): 32/32, 5 v2-lean members,
+  ~54 min/part, no errors. 32 score parquets (`scores/sweep_dr11_south/stage1_part*_lean_*.parquet`).
+- **370 DR11 recalibration RUNNING** (JID 54626515): applies isotonic cals to all 53.8M, draws 8M
+  NegEval → DR11-native 1e-4 thresholds → recalibrated union survivors (budget 150k) +
+  `negeval_dr10_combined.parquet` (for Phase F 165) + recall-of-811. Sweep-dir
+  `$SCRATCH/claudenet/sweep_dr11/south` (stage1+manifest symlinks). Watcher armed.
+- **370 recalibration DONE** (6 min): DR11-native 1e-4 thresholds are **TIGHTER** than DR9
+  (effnet_S2_hard 0.962→0.977, effnet_B3_hard 0.972→0.980, **resnet46_C_hard 0.810→1.000**
+  = saturates on DR11 randoms → effectively a 4-member union; zoobot looser). **95,104 survivors**
+  (1.77e-3 pass, under the 150k budget). 8M NegEval written (`negeval_dr10_combined.parquet`) for
+  Phase F. **Recall-of-811 (G6): grade-A 41% (37/90), B 31%, all 30%** — vs DR10's 62% recal.
+  *Finding:* genuine DR9→DR11 domain shift — deeper DR11 → fatter random high-score tails → tighter
+  1e-4 thresholds → lower known-lens recall at the operating point (denominator includes north +
+  parent-cut lenses, so a conservative floor). Principled high-purity pool; v3blend8 re-ranks +
+  vetting work on these 95k. May revisit (loosen FPR within budget) if candidate yield is thin.
+- **315 survivor scoring RUNNING** (JID 54628241): 8 v3blend8 members on the 95,104 survivors via
+  `--row-ids` (reads existing part cutouts, no re-extract). Watcher armed.
+- **315 survivor scoring DONE** (after fixing a `$SCRATCH`-in-glob quoting bug via dedicated
+  `nersc/dr11_survscore.slurm`): 8 v3blend8 members on 95,104 survivors, 5 min.
+- **365 select DONE → DR11-south candidate list**: top-300 by v3blend8 (0.812–0.939) = **102 known +
+  198 NEW**; v3blend8 ranks 102 known lenses into the top-300 (consistency ✓). Broader pool: 1,071
+  survivors >0.7, 356 >0.8. Artifacts `data/v3/cv3_dr11south_candidates.csv`. **Euclid Q1 overlap of
+  the GLOBAL survivor set is sparse** (only 4 grade-A + 2 grade-C in all 95k, 0 in top-100) — the
+  global 1e-4 cut is too strict to retain EDF-region Euclid lenses (D1 finding); the Euclid-confirmable
+  DR11-south set is D5's region-local 41. **For the full-south list, HSC-SSP Wide (~1300 deg²) is the
+  main confirmation lever (Phase V).**
+
+## Phase F — certified-FDR NegEval  🟢 DONE (honest power-floor result)
+
+165 group-conformal on the 8M DR11-south NegEval (4M conformal split) + 95,104 survivors, m=53.8M:
+**full-m BH selects 0 at α=0.05/0.10/0.25.** Power-limited (floor 1/(n_cal+1)≈2.5e-7 is ~50× short of
+certifying k=1 at m=53.8M) — NOT a null; the rigorous full-m FDR needs infeasibly large calibration,
+so the candidate list is the v3blend8 ranking (science list), reported separately. Gotcha hit+fixed:
+`--calibration`/`--cal-manifest` share `footprint` → collision; split NegEval into
+`negeval_cal[row_id,v2lean_average]` + `negeval_manifest[row_id,footprint]`. Artifacts
+`$SCRATCH/.../south/{conformal.parquet,conformal_summary.json}`.
+
+Next: Phase V (HSC tier-2 vetting of the 198 NEW south candidates) + Phase N (north sweep + retrain).
 
 ## Phase F — certified-FDR NegEval  ⚪ pending
 ## Phase N — DR11-north retrain + sweep  🟡 prep (north positive pool locked)
