@@ -90,6 +90,39 @@
 \newcommand{\rojasQWK}{0.8}          % Rojas+2023 intra-rater QWK (upper bound)
 \newcommand{\euclidDecisive}{38}     % Euclid Q1 10-expert panels that are decisive (37.7%)
 
+% ===========================================================================
+% --- v2 RESULTS MACROS (Part II) -------------------------------------------
+% From outputs/agency_ablation.json + eval_{v1lean,v2}.json + the escalation
+% parquets {d1_xmatch,d4_edf,d5_dr11edffs,euclid_south_val}_vet.parquet; the
+% three Part-II figures are written by eval/make_v2_figures.py.
+% B2 gated comparison (120-row evidence: 50 A/B/C + 40 mimics + 30 random; sonnet)
+\newcommand{\vAbenchOne}{0.593}      % Benchmark-A (lens-vs-random) AUC, v1-lean
+\newcommand{\vAbenchTwo}{0.668}      % Benchmark-A AUC, v2
+\newcommand{\vAgain}{0.075}          % Benchmark-A lift
+\newcommand{\vBbenchOne}{0.518}      % Benchmark-B (lens-vs-mimic) AUC, v1-lean
+\newcommand{\vBbenchTwo}{0.714}      % Benchmark-B AUC, v2
+\newcommand{\vBgain}{0.196}          % Benchmark-B lift (the v2 headline)
+\newcommand{\vEvidenceCost}{16.6}    % total $ for the v1-lean + v2 pair (8.1+8.5)
+\newcommand{\vDDvOne}{47}\newcommand{\vDDvTwo}{53}    % mimics graded D->D (v1/v2)
+\newcommand{\vPnlOne}{0.12}\newcommand{\vPnlTwo}{0.07}% mean p_lens on non-lenses (v1/v2)
+% B7 agency ablation (2x2 rubric x loop + thinking arm; same 120 rows, sonnet)
+\newcommand{\abLeanA}{0.593}\newcommand{\abLeanB}{0.518}
+\newcommand{\abLeanCost}{0.068}\newcommand{\abLeanTurns}{3.75}
+\newcommand{\abDirA}{0.669}\newcommand{\abDirB}{0.384}\newcommand{\abDirCost}{0.012}
+\newcommand{\abVtwoA}{0.668}\newcommand{\abVtwoB}{0.714}
+\newcommand{\abVtwoCost}{0.071}\newcommand{\abVtwoTurns}{4.42}
+\newcommand{\abInlineB}{0.407}\newcommand{\abThinkB}{0.548} % v2-inline / +thinking, Bench-B
+\newcommand{\abLlmEsc}{100}          % LLM grade-gate escalation rate (%), degenerate
+\newcommand{\abJac}{0.017}           % Jaccard(LLM gate, free CNN p_meta threshold)
+% cascade cost per 5k survivors (AGENCY_ABLATION.md)
+\newcommand{\cascDirect}{60}\newcommand{\cascCascade}{170}
+\newcommand{\cascAllvtwo}{355}\newcommand{\cascMulti}{1{,}575}
+% B1 two-tier escalation flip (140 escalated: D1 14 + D4 60 + D5 60 + south-val 6)
+\newcommand{\escN}{140}
+\newcommand{\escMedOne}{0.03}\newcommand{\escMedTwo}{0.70} % median p_lens, tier-1 -> tier-2
+\newcommand{\escExpertAgree}{90}     % ~% agreement with Euclid experts on grade-A
+% ===========================================================================
+
 \title{LensJudge: An Agentic Visual-Inspection Grader for\\
        Strong-Lens Candidates on the Claude Agent SDK}
 \author{Greg Benson \and Xiaosheng Huang}
@@ -97,33 +130,37 @@
 
 \begin{document}
 \maketitle
-\subtitle{Internal Prototype + LensBench-VI Evaluation}
+\subtitle{From the Visual-Inspection Wall (v1) to Contaminant-Aware Escalation (v2)}
 
 \begin{abstract}
-The Huang group's ResNet/EfficientNet finders emit thousands of above-threshold
-cutouts per data release; turning them into graded candidates (A/B/C/D) is a human
-visual-inspection (VI) bottleneck. We build \textbf{LensJudge} --- the system the
-group's onboarding report calls ``LensAgent''/``VI Pre-grading Agent'', renamed to
-avoid a name clash with an existing arXiv paper --- on the \emph{Claude Agent SDK for
-Python}, and ask whether the data on hand can \emph{test} such a system. The answer is
-yes for imaging: $\sim$2{,}706 human-graded A/B/C cutouts, $\sim$2{,}345 Grade-D
-human-\emph{rejected} hard negatives, $\sim$65K random-galaxy negatives, and a
-Foundry-II confirmed/non-lens gold tier are all in hand. We implement three graders ---
-a lean single multimodal call, a perspective-diverse judge panel, and a
-factor-decomposition multi-agent design --- plus a spectroscopic pre-grader for
-discordant-redshift pairs, and score them in a shared harness (LensBench-VI) on a frozen
-held-out set of \Nheldout{} imaging systems. Because every label is a single 2-author
-consensus (no per-rater data), all agreement numbers are \emph{consensus-referenced with no
-human ceiling}. Two results stand out. (1) On the \emph{spectroscopic} task --- clean
-physical features, spectroscopically confirmed gold --- the agent is strong: \spectroHsu{}
-Hsu Table-2 Grade-A pairs re-graded plausible, \spectroNon{} Foundry-II non-lenses rejected.
-(2) On \emph{imaging} grading of the CNN's hard high-score pool, no configuration --- lean
-Sonnet, lean Opus, a judge panel, or the \S9.1 multi-agent design --- reproduces the
-single-consensus A/B/C grades: all four are near-chance (AUC $0.32$--$0.51$) and uniformly
-skeptical, and paying $2$--$4\times$ more per candidate buys nothing. We argue this is less
-a model failure than a measurement problem --- A/B/C are mostly \emph{unconfirmed}
-candidates and the C/D boundary is one rater's subjective call --- which turns the missing
-multi-grader ceiling from a caveat into the central finding.
+The Huang group's ResNet/EfficientNet finders emit thousands of above-threshold cutouts per
+data release; turning them into graded candidates (A/B/C/D) is a human visual-inspection (VI)
+bottleneck. We build \textbf{LensJudge} --- the system the group's onboarding report calls
+``LensAgent''/``VI Pre-grading Agent'', renamed to avoid a name clash with an existing arXiv
+paper --- on the \emph{Claude Agent SDK for Python}, and report two generations.
+\textbf{Part~I (v1)} asks whether the data on hand can \emph{test} such a grader, and returns a
+sharp, load-bearing negative. The agent is strong where the task has clean physical features
+and confirmed labels --- the \emph{spectroscopic} discordant-redshift channel (\spectroHsu{}
+Hsu Table-2 Grade-A pairs plausible, \spectroNon{} Foundry-II non-lenses rejected) --- but on
+\emph{imaging} grading of the CNN's hard high-score pool \emph{no} configuration (lean Sonnet,
+lean Opus, a judge panel, the \S\ref{sec:arch} multi-agent design, a GIGA-Lens model fit, or
+hand-engineered representations) beats chance against the single-consensus A/B/C labels (AUC
+$0.32$--$0.51$); a crossmatch shows why, with $53\%$ of DESI grade-C candidates re-graded A/B by
+Euclid at $0.1\arcsec$. The wall is \emph{resolution} and \emph{soft single-consensus labels},
+not the grader --- so the recommendation is to deploy as a high-recall \emph{detect/escalate}
+pre-filter and reserve fine grading for high-resolution or confirmed data.
+\textbf{Part~II (v2)} builds exactly that. A failure-mode rubric targeting the dominant
+LRG+companion/ring/spiral/blend mimics lifts lens-vs-\emph{mimic} ranking from chance to
+$\vBbenchTwo$ AUC ($+\vBgain$ over v1) while detection barely moves; a two-tier DESI$\to$Euclid
+$0.1\arcsec$ escalation, live-validated, flips $\escN$ ambiguous cross-matches from
+DESI-undecided to Euclid-confirmed (median \plens{} $\escMedOne\!\to\!\escMedTwo$, ${\sim}\escExpertAgree\%$
+agreement with the Euclid experts on grade-A); and an agency ablation shows the agentic loop is
+\emph{unnecessary} for detection (a loop-free grader matches it ${\sim}6\times$ cheaper) but
+\emph{essential} for mimic adjudication --- motivating a cascade deploy (${\sim}\$\cascCascade$ per
+5k survivors). We are explicit about what stays unsolved: the gains are in ranking, not
+tight-FPR recovery; the fine A/B/C grade remains irreducibly soft even at $0.1\arcsec$; and the
+escalated objects are independently re-graded catalogue lenses (a cross-validation), not new
+discoveries.
 \end{abstract}
 
 \section{Motivation}
@@ -135,7 +172,20 @@ will only worsen at Rubin scale. LensJudge automates the structured judgment of 
 with a tool-using LLM agent, pre-grading candidates and escalating the genuinely ambiguous
 ones to a human --- it is a triage assistant, not an autonomous arbiter.
 
+\paragraph{Two generations.} This report has two parts. \textbf{Part~I} ($\S\S$\ref{sec:arch}--%
+\ref{sec:ceiling}) builds the grader and \emph{tests} it, and returns a load-bearing negative:
+imaging grading of the CNN's hard pool is near-chance and stays there under every backbone,
+deliberation design, and physical check we try --- the binding constraint is ground-based
+\emph{resolution} and \emph{soft single-consensus labels}, not the agent. The actionable reading
+is to deploy as a high-recall \emph{detect/escalate} pre-filter and reserve fine grading for
+high-resolution or confirmed data. \textbf{Part~II} ($\S$\ref{sec:v2})\ builds precisely that
+prescription --- a contaminant-aware rubric, a two-tier high-resolution escalation, and an agency
+ablation that fixes the deploy cascade --- and measures what each buys. The two parts share the
+data ($\S$\ref{sec:data}), the architecture ($\S$\ref{sec:arch}), and the LensBench-VI harness
+($\S$\ref{sec:bench}).
+
 \section{Do we have enough data to test it?}
+\label{sec:data}
 \textbf{Imaging: yes, today.} From the group's reproductions we assemble (all public /
 on-disk): \emph{positives} --- 2{,}706 graded A/B/C candidates as $101\times101\times3$
 $grz$ FITS (Storfer DR9 + Inchausti DR10) with per-candidate CNN probabilities;
@@ -179,7 +229,10 @@ Contaminant-hunter --- fused by ordinal quorum + skeptic-veto + a 2-of-N A-rule)
 contaminant specialists $\rightarrow$ GradeArbitrator). A \textbf{spectro} grader classifies
 discordant-redshift pairs lens/dimple/not\_lens.
 
+\part{Part~I --- v1: the visual-inspection wall}
+
 \section{LensBench-VI methodology}
+\label{sec:bench}
 The held-out set is a frozen, hash-pinned manifest of \Nheldout{} systems: graded A/B/C
 positives + Grade-D hard negatives + random-galaxy negatives + Foundry-II gold, stratified
 by grade and region, negatives kept as separate strata. The LLM grader never trained on any
@@ -517,6 +570,8 @@ cutout and on the Euclid VIS$+$NIR cutout (\texttt{fetch\_euclid\_cutout}, a $0.
 The objects the agent rejected as flat blobs at $1.3\arcsec$ it grades as clear rings at
 $0.1\arcsec$ (Fig.~\ref{fig:flip}), agreeing with the Euclid experts. This is the within-object
 proof that the hard-pool wall was resolution- (and label-) limited, not algorithm-limited.
+Part~II ($\S$\ref{sec:v2esc}) turns this paragraph into a deployable two-tier grader and scales
+it from these 10 hand-matched objects to \escN{} escalated cross-matches.
 
 \paragraph{But the fine A/B/C grade stays soft even at $0.1\arcsec$.} Ranking 95 Euclid candidates
 by \plens{} against the 10-expert grade gives Spearman $\rho=\eucRankRho$ (n.s.) and A-vs-C
@@ -563,7 +618,7 @@ is barely reproducible by anyone ($\kappa\sim0.3$ between expert teams, $\rojasI
 reading, now quantified: deploy LensJudge as a high-recall detect/escalate pre-filter and reserve
 the ``grade'' for confirmed or high-resolution data, rather than treating it as a target to reproduce.
 
-\section{Caveats and what is not done}
+\section{Caveats and what is not done (Part~I)}
 (1) \textbf{No per-rater human ceiling} --- all DESI labels are single consensus. We now anchor a
 subset against external \emph{multi-grader} grades (Euclid Q1 ${\sim}10$ votes; SuGOHI committee)
 and HST/Keck confirmation for \xmUnion{} candidates, but a per-rater $\kappa$ still needs either
@@ -576,39 +631,201 @@ here because the eval set is by construction the high-\pmeta{} ambiguous middle 
 \texttt{AgentDefinition} subagents, for reliability. (5) Spectroscopic raw-flux streaming is
 a documented enhancement.
 
-\section{Conclusions}
-LensJudge shows an agentic VI grader can be \emph{built} on the Claude Agent SDK and, more
-importantly, \emph{tested} on data already in hand. The test returns a nuanced answer. The
-agent is strong where the task has hard labels and clean evidence --- spectroscopic
-discordant-redshift pairs (\spectroHsu{} Grade-A plausible, \spectroNon{} non-lenses
-rejected). On imaging grading of the CNN's hard high-score pool it is near-chance against
-the single-consensus A/B/C labels, and --- the load-bearing result --- \emph{no} stronger
-backbone or multi-agent design changes that. Because those labels are single-consensus over
-mostly-unconfirmed candidates, we cannot say whether the agent or the consensus is closer to
-truth: the multi-grader ceiling is the thing that decides the question --- and we now estimate it
-(\S\ref{sec:ceiling}). Independent expert teams agree only at $\kappa\sim\ceilSugohi$ on the A/B/C
-grade (the literature concurs: $\rojasIntra\%$ intra-rater), so the grade is intrinsically soft;
-at ground resolution the agent sits \emph{below} even that low ceiling, while high-resolution
-data closes the gap for the binary detection question. Two concrete next steps follow directly: (i) collect a $\sim$250-cutout,
-$\ge$2-grader study to establish the human-vs-human $\kappa$ and re-anchor every imaging
-number; (ii) push agentic effort toward the \emph{spectroscopic} channel and toward
-candidates with confirmation, where the evidence is decisive and the agent already performs.
-A pre-filter that confidently clears obvious non-lenses while escalating the genuinely
-ambiguous --- which is what LensJudge does --- remains useful even at chance agreement on the
-subjective middle, but its accuracy cannot be claimed until the ceiling exists.
+\part{Part~II --- v2: contaminant-aware rubric, escalation, and the agency ablation}
 
-Crucially, both next steps are now \emph{actionable with data we located}. \xmUnion{} candidates
-(including \xmCgrade{} of the soft grade-C ones) have external high-resolution imaging,
-multi-grader grades, or spectroscopic confirmation --- from Euclid Q1 ($0.1\arcsec$, ${\sim}10$
-votes), SuGOHI/HSC, archival HST, and AGEL. Re-grading the same objects on Euclid pixels settles
-the question for \emph{detection}: \plens{} on the hard-pool grade-C candidates rises from
-\eucCdesi{} at $1.3\arcsec$ to \eucCeuc{} at $0.1\arcsec$, where the agent and 10 experts agree
-they are clear lenses. The wall the rest of this report documents is therefore the joint product
-of ground-based resolution and soft single-consensus labels --- not a ceiling on the agent. What
-high resolution does \emph{not} fix is the fine A/B/C confidence grade (A-vs-C AUC $\eucRankAUC$ at
-$0.1\arcsec$), confirming that the residual ``grade'' is a subjective human quantity best replaced,
-for the agent's purposes, by a binary detect/escalate decision anchored to confirmed or
-high-resolution truth.
+Part~I localised the imaging wall to ground-based resolution and soft single-consensus labels and
+prescribed a deployment: a high-recall \emph{detect/escalate} pre-filter, fine grading reserved for
+high-resolution or confirmed data. Part~II builds that prescription as four concrete changes and
+measures what each one buys --- a failure-mode rubric ($\S$\ref{sec:v2}), an honest
+detection-vs-grading benchmark ($\S$\ref{sec:v2bench}), a two-tier high-resolution escalation
+($\S$\ref{sec:v2esc}), and an agency ablation that fixes the deploy cascade ($\S$\ref{sec:v2agency}).
+Throughout, v2 is a workstream of the sibling ClaudeNet contaminant-aware finder program
+(\texttt{reproductions/\allowbreak claudenet}); the lens-mimic negatives and the Euclid-overlap candidate lists
+below come from that program, and every number is read from a tracked artifact under
+\texttt{outputs/}.
+
+\section{The dominant failure mode and the contaminant-aware rubric}
+\label{sec:v2}
+Part~I's wall is about the \emph{soft} grade-C/D middle, where no label is decisive. But a large and
+\emph{nameable} slice of the imaging false positives is not soft at all: the \textbf{LRG+companion}
+(a luminous red galaxy with a nearby blob) is ${\sim}$half of the CNN's high-score contaminants in
+the ClaudeNet sweeps, and the v1 rubric --- the five Huang-2020 \emph{positive} criteria --- never
+told the agent to rule it out. \code{prompts/\allowbreak rubric\_imaging\_v2.md} adds a ``rule these out''
+section for the dominant mimics (LRG+companion, ring galaxy, spiral, blend, merger) keyed on two
+physically-grounded discriminators: \emph{colour} (a real lensed source is \emph{bluer} than the
+lens, a companion matches its colour) and \emph{radial geometry} (a real arc is tangentially curved
+at fixed radius with a counter-image, a companion is round and one-sided). Aperture photometry is
+promoted from optional to often-decisive (the annulus-bluer-than-core test), and the contaminant
+enum gains \texttt{lrg\_companion}/\texttt{blend}. This targets \emph{lens-vs-mimic separation} --- a
+different axis from Part~I's lens-vs-consensus grading --- so it needs its own benchmark, with the
+v1 rubric kept as the controlled baseline.
+
+\section{An honest detection-vs-grading benchmark}
+\label{sec:v2bench}
+To score the rubric without conflating the two failure modes, the calibration harness
+(\code{eval/\allowbreak run\_lensjudge\_eval.py}) partitions a frozen 120-row evidence manifest (50 graded
+A/B/C $+$ 40 lens-mimics $+$ 30 random galaxies) into two benchmarks: \textbf{Benchmark~A
+(detection)} --- lens vs random galaxy --- and \textbf{Benchmark~B (separation)} --- lens vs
+\emph{mimic}, whose negatives are the ClaudeNet-v3 601-row mimic seed (CNN-high, agent-confirmed
+non-lenses), a \emph{cleanly-labelled} contaminant class, unlike Part~I's soft single-consensus
+Grade-D pool. A \$100 evidence gate requires a v2 change to beat the pinned v1-lean baseline on the
+benchmark before any bulk grading is paid for.
+
+\begin{table}[h]\centering
+\caption{Gated comparison, v1-lean vs v2 (rubric$_{v2}$ $+$ escalate), on the frozen 120-row
+evidence manifest (sonnet; the pair cost \$\vEvidenceCost{} total, parse 120/120). The v2 rubric
+lifts lens-vs-\emph{mimic} ranking by $+\vBgain$ AUC while detection barely moves; it also rejects
+more mimics (D$\to$D) and assigns lower \plens{} to non-lenses.}
+\label{tab:v2bench}
+\small
+\begin{tabular}{lccccc}
+\toprule
+config & Bench-A AUC & Bench-B AUC & mimics D$\to$D & \plens{} (non-lens) & \$/cand\\
+ & (lens-vs-random) & (lens-vs-mimic) & (/40) & mean & \\
+\midrule
+v1-lean                  & \vAbenchOne & \vBbenchOne & \vDDvOne & \vPnlOne & \abLeanCost\\
+v2 (rubric$_{v2}$+esc.)  & \textbf{\vAbenchTwo} & \textbf{\vBbenchTwo} & \vDDvTwo & \vPnlTwo & \abVtwoCost\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[h]\centering
+\includegraphics[width=0.74\linewidth]{figures/v2_benchmark.png}
+\caption{The v2 headline. Detection (lens-vs-random) barely moves ($+\vAgain$), but the
+failure-mode rubric lifts lens-vs-\emph{mimic} ranking from chance to \vBbenchTwo{} AUC
+($+\vBgain$). Source: \code{outputs/agency\_ablation.json}.}
+\label{fig:v2bench}
+\end{figure}
+
+\textbf{What this does and does not say.} It does \emph{not} overturn Part~I's wall. Part~I's
+near-chance result is on the \emph{soft} single-consensus Grade-D pool, where the label itself is a
+subjective call; Benchmark~B's negatives are the \emph{cleanly-labelled} v3 mimics, and the v2 gain
+is a \emph{ranking} (AUC) effect --- recovery at the group's tight 1\%/0.1\% FPR operating points
+stays ${\approx}0$ for \emph{both} configs because the agent's \plens{} remains uniformly low (the
+documented over-skepticism at $1.3\arcsec$; \S\ref{sec:ceiling}). What v2 fixes is \emph{which mimics
+rank above which lenses}, the quantity the downstream finder cares about --- not absolute
+calibration, and not Part~I's irreducibly soft A/B/C grade.
+
+\section{Two-tier high-resolution escalation, live-validated}
+\label{sec:v2esc}
+Part~I (\S\ref{sec:external}) showed the \emph{detection} wall opens at $0.1\arcsec$ but proved it on
+10 hand-matched objects. v2 productizes it. \code{imaging/grader\_escalate.py} grades tier-1 on DESI
+$grz$; when \code{common/highres.py:\allowbreak resolve\_highres} finds Euclid (or, in future, HSC) coverage, it
+re-grades the \emph{same object} at tier-2 $0.1\arcsec$. The trigger is anything \emph{not} a
+confident tier-1 ``A'' --- so the over-skeptical grader's buried lenses get the second look they need
+--- and the real cost gate is \emph{coverage} (a cheap local catalogue lookup), so on a full sweep
+only the rare Euclid-overlapping survivors ever pay for a tier-2 grade.
+
+\textbf{Live validation.} On 6 Euclid-covered south objects (\$0.71 total): the 3 grade-A lenses the
+DESI grader \emph{missed} (tier-1 \plens{} $0.02/0.03/0.40$, mean $0.15$) all flip to ``A''
+(mean $0.96$); critically it \emph{discriminates} --- the one true non-lens C correctly \emph{stays}
+D ($0.02$), not inflated. \textbf{At scale}, across the v3 Euclid-overlap runs (D1 $+$ D4 $+$ D5 $+$
+the south validation $= \escN{}$ escalated cross-matches), the median \plens{} flips
+$\escMedOne\!\to\!\escMedTwo{}$ from tier-1 to tier-2 (Fig.~\ref{fig:v2flip}), and our tier-2 grades
+agree with the Euclid experts on ${\sim}\escExpertAgree\%$ of the grade-A.
+
+\begin{figure}[h]\centering
+\includegraphics[width=0.72\linewidth]{figures/v2_escalation_flip.png}
+\caption{The escalation flip on \escN{} escalated cross-matches (the productized, quantitative
+successor to the 3-object montage of Fig.~\ref{fig:flip}). Nearly every object is DESI-ambiguous
+(tier-1 \plens{}~$\lesssim0.2$) yet Euclid-confirmed (tier-2~$\gtrsim0.5$); the star marks the median
+flip $\escMedOne\!\to\!\escMedTwo$. Source: the four \code{*\_vet.parquet} escalation runs.}
+\label{fig:v2flip}
+\end{figure}
+
+\textbf{What it is, precisely.} These are independently re-graded objects from the published Euclid
+Q1 catalogue --- a \emph{cross-validation} of the DESI finder against Euclid, not net-new discoveries
+(the sibling ClaudeNet report makes the same statement about the same objects). And escalation breaks
+\emph{detection}, not grading: the fine A/B/C grade stays soft even at $0.1\arcsec$ (Part~I's A-vs-C
+AUC $\eucRankAUC$), so tier-2 converts ``unresolved blob'' into ``clear lens'', not ``C'' into a
+reproducible ``A''.
+
+\section{Does the agentic loop contribute?}
+\label{sec:v2agency}
+LensJudge's ``agentic'' surface is nearly a fixed pipeline: a \code{ToolSearch}, one
+\code{fetch\_cutout}, a \code{get\_photometry} call ${\sim}38\%$ of the time, then a grade. Does the
+tool-call \emph{loop} earn its cost over invoking the same tools programmatically?
+\code{imaging/grader\_direct.py} removes the loop entirely --- it renders the same views $+$
+photometry in Python and makes \emph{one} base Messages-API call with the images inline (no tools, 1
+turn). The $2\times2$ (rubric $\times$ loop) plus a thinking arm, on the same 120 rows:
+
+\begin{table}[h]\centering
+\caption{Agency ablation (same 120-row evidence set, sonnet). The agentic loop is \emph{free to
+skip} for detection but is the \emph{only} arm that reaches the lens-vs-mimic gain --- which
+therefore lives in the multi-turn loop, not the rubric text or a thinking scratchpad. Values from
+\code{outputs/agency\_ablation.json}.}
+\label{tab:v2ablation}
+\small
+\begin{tabular}{llccccc}
+\toprule
+arm & rubric & loop & Bench-A AUC & Bench-B AUC & \$/cand & turns\\
+\midrule
+lean             & v1        & yes & 0.593 & 0.518          & 0.068 & 3.75\\
+direct           & v1        & no  & \textbf{0.669} & 0.384 & 0.012 & 1\\
+\textbf{v2}      & v2        & yes & 0.668 & \textbf{0.714} & 0.071 & 4.42\\
+direct           & v2-tool   & no  & 0.585 & 0.401          & 0.013 & 1\\
+direct           & v2-inline & no  & 0.659 & 0.407          & 0.012 & 1\\
+direct$+$think   & v2-inline & no  & 0.531 & 0.548          & 0.030 & 1\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[h]\centering
+\includegraphics[width=0.96\linewidth]{figures/v2_agency_ablation.png}
+\caption{The two findings, by panel. \emph{Left (detection):} every arm clusters near
+$0.5$--$0.67$ --- the loop adds nothing, and the loop-free \code{direct} grader matches it at
+${\sim}1/6$ the cost. \emph{Right (mimic rejection):} only the two loop arms clear chance, and only
+the v2-rubric loop reaches \vBbenchTwo. Hatched bars are loop-free.}
+\label{fig:v2agency}
+\end{figure}
+
+\textbf{(1) Detection: the loop adds nothing.} Loop-free \code{direct} matches/beats \code{lean} on
+lens-vs-random AUC ($0.669$ vs $0.593$) at ${\sim}1/6$ the cost (\$\abDirCost{} vs \$\abLeanCost,
+1 turn vs \abLeanTurns) --- the tools are invokable programmatically with no detection loss.
+\textbf{(2) Lens-vs-mimic: the loop matters, and it is not the rubric text.} The mimic gain
+($\vBbenchOne\!\to\!\vBbenchTwo$) lives in the \emph{loop} arm only: feeding the identical v2 content
+inline does not transfer it (\abInlineB), and a thinking scratchpad recovers only half (\abThinkB)
+while \emph{hurting} detection. The multi-turn structure --- inspect the cutout, then the photometry,
+reason across turns --- is what does the hard mimic discrimination. \textbf{(3) Routing is
+degenerate.} The LLM grade-gate fires on ${\sim}\abLlmEsc\%$ of candidates (over-skeptical), carrying
+no selectivity a free CNN \pmeta{} threshold cannot reproduce (Jaccard \abJac); \emph{coverage}, not
+the LLM, bounds tier-2 cost.
+
+\textbf{Deploy as a cascade.} The ablation prescribes the stage-2 survivor-vetting pipeline directly:
+cheap \code{direct} triage for detection on the bulk, the agentic \emph{v2} grader for mimic
+adjudication on the survivors that pass, and Euclid escalation gated by \emph{coverage} (not the
+LLM grade). Per 5{,}000 survivors that is ${\sim}\$\cascDirect$ (all-direct) $/$
+\textbf{${\sim}\$\cascCascade$ (cascade)} $/$ ${\sim}\$\cascAllvtwo$ (all agentic-v2) $/$
+${\sim}\$\cascMulti$ (all-multiagent) --- the cascade buys the mimic-adjudication gain for ${\sim}2\times$
+the cheapest option and ${\sim}9\times$ less than naive multiagent.
+
+\paragraph{Caveats (v2).} The evidence set is $n{=}120$, so the AUCs are directional
+(CIs ${\approx}\pm0.06$--$0.08$) and the headline finding~(2) is softer in magnitude than in
+direction; single seed, one model (sonnet), one manifest. \code{grader\_direct} always computes
+photometry (a deliberate stance, not a bug; \code{lean} called it ${\sim}38\%$ of the time). The
+routing gate is degenerate, and the fine A/B/C grade is unmoved --- Part~I stands. Finally, B7 is a
+v2 \emph{ablation}, not ``LensJudge v3'': that label denotes the sibling ClaudeNet program, and the
+cascade is the natural v3 milestone only \emph{if} adopted as the deploy default.
+
+\section{Conclusion}
+LensJudge can be \emph{built} on the Claude Agent SDK and, more importantly, \emph{tested} on data in
+hand --- and across two generations the test sharpened into a usable answer. \textbf{Part~I} returned
+the load-bearing negative: imaging grading of the CNN's hard pool is near-chance against the
+single-consensus A/B/C labels, and \emph{no} backbone, deliberation design, lens-model fit, or
+hand-engineered representation moves it --- the binding constraint is ground-based \emph{resolution}
+and \emph{soft labels}, not the agent, with the actionable prescription to detect/escalate.
+\textbf{Part~II} built that prescription and measured it. A failure-mode rubric plus the agentic loop
+recover lens-vs-\emph{mimic} \emph{ranking} from chance to \vBbenchTwo{} AUC ($+\vBgain$) on the
+cleanly-labelled mimic bank --- the discrimination Part~I found unbeatable on \emph{soft} labels ---
+and a two-tier escalation converts \escN{} resolution-limited cross-matches from DESI-undecided to
+Euclid-confirmed (median \plens{} $\escMedOne\!\to\!\escMedTwo$), agreeing with the experts. What is
+now \emph{solved}: detection (via escalation) and mimic ranking (via the rubric $+$ loop). What
+\emph{remains}: the fine A/B/C grade is irreducibly soft even at $0.1\arcsec$; the v2 gains are in
+ranking, not tight-FPR recovery; the escalation routing gate is degenerate; and the evidence $n$ is
+modest. The deployment is the cascade --- loop-free triage for detection, the agentic loop reserved
+for mimic adjudication, high-resolution escalation gated by coverage --- and the open frontier is the
+one Part~I named: a per-rater human ceiling (the ${\sim}250$-cutout, $\ge2$-grader study) that would
+turn ``ranking'' into a claim about truth.
 
 % =============================================================================
 \appendix
