@@ -41,16 +41,26 @@ vetting budget **~$250** (LensJudge). venvs `/home2/benson/.venvs/{claudenet,len
 - **G0 PASS** — `365` reproduces D5 EDF-F/S exactly (n=129721; grade-A top100/500/1000 =
   5/8/10; precision@30 = 5 Euclid-A/B; shortlist 60/59/54). Select toolchain intact.
 - **G0b PASS** — `165 --synthetic-check` 14/14 (FDR arithmetic).
-- G0c (112 --self-test on A100) — pending (fold into first GPU job).
+- G0c (112 --self-test on A100) — caught a real sync bug (below), re-running after fix.
+
+**GOTCHA (sync):** 6 claudenet `.py` are symlinks into `../inchausti-2025/` (`_scorelib`,
+`_trainlib`, `02_efficientnet`, `01_lanusse_resnet`, `01b_shielded_resnet`, `03_meta_learner`).
+Perlmutter's flat `$HOME/claudenet` has no sibling `inchausti-2025/`, so **always sync with
+`rsync -L`** (dereference → real files). `rsync -a`/`-az` copies them as dangling symlinks and
+silently breaks all scoring/training (`ModuleNotFoundError: _scorelib`). The G0c self-test is
+the canary — run it after every Perlmutter script sync.
 
 ## Phase S — DR11-south full sweep  🟡 in progress
 
-- **360 parent** (JID 54619948, cosmo CPU) RUNNING: at 300/1600 files = 12.4 M gal (~1.7 s/file
-  → ~46 min; full parent projected **~50–66 M**, larger than DR10's 43.7 M as expected for the
-  deeper DR11 reduction). Watcher armed (re-invokes on terminal/anomaly).
-- Next: 160 manifest (--chunk 32) → 111 extract array (dr11_extract.slurm, FOOT=south NPARTS=32,
-  delete-after-score) → 370 recalibrate → 161 stage-1 (5 lean) → 162 survivors (DR11 ops) →
-  111 survivors → 112+315 score 8 → 363/365 select → 163/164 crossmatch+list.
+- **360 parent DONE** (JID 54619948, 42 min): **53,809,040 galaxies** (51.4 M native-i;
+  TYPE SER 24.5M/REX 12.0M/DEV 11.0M/EXP 6.2M; mag_z median 19.36). 2.38 GB parquet at
+  `$SCRATCH/claudenet/sweep_dr11/parent_dr11_south.parquet`. Larger than DR10's 43.7 M (deeper
+  DR11). Full extraction ≈ 6.6 TB → peak ~13.7/20 TB; extract all 32 parts, delete each after
+  stage-1 scoring.
+- **160 manifest** (JID 54620826, --chunk 32) RUNNING. Watcher armed.
+- Next: 111 extract array (dr11_extract.slurm, FOOT=south NPARTS=32) → 161 stage-1 (5 lean) →
+  370 recalibrate (DR11 ops + 8M NegEval) → 162 survivors → 111 survivors → 112+315 score 8 →
+  363/365 select → 163/164 crossmatch+list.
 
 ## Phase F — certified-FDR NegEval  ⚪ pending
 ## Phase N — DR11-north retrain + sweep  🟡 prep (north positive pool locked)
