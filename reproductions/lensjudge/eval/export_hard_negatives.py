@@ -65,7 +65,8 @@ def build_hard_negatives(preds: pd.DataFrame, coords: pd.DataFrame, p_max: float
     conf = conf.merge(coords, on="name", how="left")
     placed = conf.dropna(subset=["ra", "dec"]).drop_duplicates("name", keep="first")
 
-    p_meta = pd.to_numeric(placed.get("p_meta"), errors="coerce")
+    p_meta = (pd.to_numeric(placed["p_meta"], errors="coerce") if "p_meta" in placed
+              else pd.Series(np.nan, index=placed.index))
     if "p_meta_m" in placed:
         p_meta = p_meta.fillna(placed["p_meta_m"])
     p_final = p_meta.where((p_meta >= 0) & (p_meta <= 1), 1.0).fillna(1.0)

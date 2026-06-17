@@ -47,10 +47,14 @@ MEMBERS = ("effnet_S2", "effnet_B3", "resnet46_C")
 
 
 def build_swapped_table(member: str, spec: dict, mined: pd.DataFrame,
-                        n_mine: int) -> tuple[pd.DataFrame, dict]:
+                        n_mine: int, base_table: str | None = None) -> tuple[pd.DataFrame, dict]:
     """v1 member table with n_mine bootstrap-negative train rows displaced
-    (seed 2026+boot_seed, positions without replacement) by the mined rows."""
-    df = pd.read_parquet(C.DATA / f"member_{member}_train.parquet")
+    (seed 2026+boot_seed, positions without replacement) by the mined rows.
+
+    base_table overrides the default v1 table (e.g. a north-native positives +
+    bootstrap-negatives base for cross-instrument BASS/MzLS retraining); the
+    displacement/positives-untouched discipline is identical."""
+    df = pd.read_parquet(base_table if base_table else C.DATA / f"member_{member}_train.parquet")
     # host-portable: v1 tables carry absolute local paths; remap to THIS host's
     # C.DATA by basename (19's convention) so the same table runs on Perlmutter
     from pathlib import Path as _P
@@ -123,8 +127,16 @@ def main() -> int:
     ap.add_argument("--score-only", action="store_true",
                     help="skip training: load the saved checkpoint and (re)run "
                          "only the eval-split scoring (crash recovery)")
+    ap.add_argument("--base-table", default=None,
+                    help="override the v1 member train table (e.g. a north-native "
+                         "positives+negatives base for BASS/MzLS retraining)")
+    ap.add_argument("--init-ckpt", default=None,
+                    help="warm-start: load this checkpoint's weights before training "
+                         "(fine-tune from e.g. the south _b50 ckpt instead of from scratch)")
+    ap.add_argument("--out-suffix", default="",
+                    help="append to ALL artifact names (table/ckpt/scores), e.g. _north")
     args = ap.parse_args()
-    name = f"{args.member}_{args.variant}"
+    name = f"{args.member}_{args.variant}{args.out_suffix}"
     # smoke runs (--epochs override) get '_smoke' artifact names so they can
     # never overwrite/alias the production table/checkpoint/scores
     art = name + ("_smoke" if args.epochs is not None else "")
@@ -142,7 +154,7 @@ def main() -> int:
                else V2 / f"mined_{args.variant}_fits_manifest.parquet")
     mined = pd.read_parquet(mined_f)
     mined["row_id"] = mined["row_id"].astype(str)
-    dfm, info = build_swapped_table(args.member, spec, mined, args.n_mine)
+    dfm, info = build_swapped_table(args.member, spec, mined, args.n_mine, args.base_table)
     print(f"[swap] {name}: displaced {info['n_displaced']:,}/{info['n_train_neg']:,} "
           f"bootstrap neg rows (seed {info['displacement_seed']}) with "
           f"{args.variant.upper()} mined negs from {mined_f}; "
@@ -177,6 +189,11 @@ def main() -> int:
         return 0
 
     model = M20.build_model(arch, spec.get("variant"))
+    if args.init_ckpt:
+        ick = torch.load(str(args.init_ckpt), map_location="cpu", weights_only=False)
+        model.load_state_dict(ick["state_dict"])
+        print(f"[121] warm-start (fine-tune) from {args.init_ckpt} "
+              f"(val_auc={ick.get('val_auc', 0):.4f})")
     n_params = sum(p.numel() for p in model.parameters())
     batch, accum = {"efficientnet": (128, 2), "dihedral": (32, 4)}.get(arch, (128, 1))
     print(f"[train] {name} arch={arch} params={n_params:,} epochs={epochs} "

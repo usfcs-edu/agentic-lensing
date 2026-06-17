@@ -32,6 +32,10 @@ CUTOUT_DIRS = {
     # {row_id}.fits (grz cube, byte-identical to the v1 cutouts) — fetch resolves
     # these locally so lensjudge grades the exact CNN-seen pixels (no refetch).
     "claudenet": REPRO / "claudenet" / "data" / "v2" / "campaign" / "fits",
+    # DR11 campaign: candidate grz cubes staged from Perlmutter as {row_id}.fits so
+    # lensjudge tier-1 grades the exact DR11 CNN-seen pixels (legacysurvey viewer has
+    # no public DR11 layer + is unreachable from this host -> on-disk staging required).
+    "dr11": REPRO / "dr11-campaign" / "data" / "cutouts_dr11",
 }
 SCORE_CSV = {
     "storfer": INCH_DATA / "candidate_scores_storfer.csv",
