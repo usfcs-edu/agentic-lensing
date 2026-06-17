@@ -40,6 +40,9 @@ def _lazy(name):
         if name == "fetch_euclid_cutout":
             from lensjudge.tools.euclid_cutout import fetch_euclid_cutout
             return fetch_euclid_cutout
+        if name == "fetch_hsc_cutout":
+            from lensjudge.tools.hsc_cutout import fetch_hsc_cutout
+            return fetch_hsc_cutout
     except Exception:
         return None
     return None

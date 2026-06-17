@@ -50,9 +50,11 @@ def _user_message(cand: dict) -> str:
     radec = ""
     if cand.get("ra") is not None and cand.get("dec") is not None:
         radec = f" RA={cand['ra']:.6f}, Dec={cand['dec']:.6f}"
+    # candidates not staged on local disk are fetched by RA/Dec, so pass them when known
+    arg_hint = "that name, survey, ra, and dec" if radec else "that name and survey"
     return (f"Grade this strong-lens candidate. {loc}.{radec}\n"
             f"Tractor type: {cand.get('tractor_type', '?')}, region: {cand.get('region', '?')}.\n"
-            f"{ml}\n\nCall fetch_cutout with that name and survey, inspect the views, "
+            f"{ml}\n\nCall fetch_cutout with {arg_hint}, inspect the views, "
             f"then respond with ONLY the JSON object.")
 
 

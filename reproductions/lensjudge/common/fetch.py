@@ -10,6 +10,7 @@ and cache the result under cache/cubes/.
 """
 from __future__ import annotations
 
+import re
 import time
 from pathlib import Path
 
@@ -20,6 +21,27 @@ from astropy.io import fits
 from lensjudge import config
 
 BASE = "https://www.legacysurvey.org/viewer"
+
+# DESI candidate names encode the coordinates: DESI-<RA>{+|-}<Dec> in degrees
+# (e.g. DESI-029.0755-01.1297 -> RA=29.0755, Dec=-1.1297). When a candidate is not on
+# local disk and no RA/Dec were supplied, we recover them from the name so the cutout can
+# still be fetched (a fallback for callers/tools that omit the optional coordinates).
+_DESI_RADEC_RE = re.compile(r"(\d{1,3}\.\d+)\s*([+-]\d{1,2}\.\d+)")
+
+
+def parse_radec_from_name(name: str | None) -> tuple[float | None, float | None]:
+    if not name:
+        return None, None
+    m = _DESI_RADEC_RE.search(str(name))
+    if not m:
+        return None, None
+    try:
+        ra, dec = float(m.group(1)), float(m.group(2))
+    except ValueError:
+        return None, None
+    if 0.0 <= ra <= 360.0 and -90.0 <= dec <= 90.0:
+        return ra, dec
+    return None, None
 TIMEOUT, RETRIES, RETRY_BACKOFF, RATELIMIT_BACKOFF = 60, 5, 4.0, 30.0
 MAX_FETCH_WALL = 120.0   # total wall-clock cap per candidate across retries (graceful give-up)
 _CUBE_CACHE = config.CACHE / "cubes"
@@ -106,6 +128,12 @@ def get_cube(name: str | None = None, ra: float | None = None, dec: float | None
             cube = _read_fits_cube(p)
             if cube is not None:
                 return cube
+    # fallback: recover RA/Dec from a DESI-coordinate name when not supplied (e.g. a tool call
+    # that omitted the optional ra/dec for an off-disk candidate).
+    if ra is None or dec is None:
+        pra, pdec = parse_radec_from_name(name)
+        ra = ra if ra is not None else pra
+        dec = dec if dec is not None else pdec
     if ra is not None and dec is not None:
         layer = config.SURVEY_LAYER.get(survey, survey if survey.startswith("ls-") else "ls-dr10")
         return fetch_endpoint(float(ra), float(dec), layer=layer, cache_key=name)

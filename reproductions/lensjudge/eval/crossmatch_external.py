@@ -2,14 +2,16 @@
 """Crossmatch the LensJudge / Huang-group lens candidates against external high-res
 and multi-grader archives, to find the subset re-gradable at better resolution today.
 
-Stage 1 (this file): build the master candidate coordinate table (union of Storfer,
-Inchausti, Huang-2020, Huang-2021, dedup by position) and crossmatch it against the
-*local* Euclid Q1 strong-lens catalog (0.1" VIS, ~10 expert votes/object).
+Build the master candidate coordinate table (union of Storfer, Inchausti, Huang-2020/2021,
+dedup by position) and crossmatch it against external high-res / multi-grader archives:
+  - Euclid Q1 (local catalog; 0.1" VIS, ~10 expert votes) — always.
+  - SuGOHI/HOLISMOKES (local aion-1 HSC catalog; 0.6", committee grades + spec-z) — always.
+  - HST/MAST, AGEL (VizieR) — best-effort under --online (graceful skip if astroquery/network absent).
+A merged `external_overlap.csv` flags, per candidate, which archives cover it (the B3 deliverable +
+the known-lens anchor set for HSC tier-2 validation).
 
-External archive crossmatches (HST/MAST, HSC-SSP/SuGOHI) live in sibling scripts
-(crossmatch_mast.py, crossmatch_sugohi.py) so each can be developed/run independently.
-
-  python lensjudge/eval/crossmatch_external.py --match-radius 5
+  python lensjudge/eval/crossmatch_external.py --match-radius 5            # local (Euclid+SuGOHI)
+  python lensjudge/eval/crossmatch_external.py --match-radius 5 --online   # + HST/MAST, AGEL
 """
 from __future__ import annotations
 
@@ -24,6 +26,8 @@ import astropy.units as u
 REPRO = Path(__file__).resolve().parents[2]
 OUT = REPRO / "lensjudge" / "outputs"
 EUCLID_CAT = REPRO / "euclid-q1" / "data" / "raw" / "q1_discovery_engine_lens_catalog.csv"
+# SuGOHI/HOLISMOKES HSC lens catalog (staged for the AION-1 reproduction): grade/type/spec-z/theta_E.
+SUGOHI_CAT = REPRO / "aion-1" / "data" / "raw" / "sugohi" / "lens_radec.parquet"
 
 # (path, ra_col, dec_col, name_col, grade_col, score_col, source_tag)
 SOURCES = [
@@ -97,13 +101,65 @@ def crossmatch(master: pd.DataFrame, cat: pd.DataFrame, ra2: str, dec2: str,
     return m, hit.sum()
 
 
+def _xmatch_sugohi(master, radius, overlap):
+    """SuGOHI/HOLISMOKES (local HSC catalog): committee grade + spec-z + theta_E."""
+    if not SUGOHI_CAT.exists():
+        print("  [skip] SuGOHI catalog not staged"); return
+    su = pd.read_parquet(SUGOHI_CAT)
+    su = su.dropna(subset=["ra", "dec"])
+    print(f"  SuGOHI: {len(su)} HSC lenses, "
+          f"RA [{su.ra.min():.1f},{su.ra.max():.1f}]  Dec [{su.dec.min():.1f},{su.dec.max():.1f}]")
+    m, n = crossmatch(master, su, "ra", "dec", radius, "sugohi")
+    print(f"  r<{radius:.1f}\": {n} candidate(s) coincide with a SuGOHI HSC lens")
+    if n:
+        si = m["sugohi_idx"].values
+        m = m.assign(sugohi_name=su.name.values[si], sugohi_grade=su.grade.values[si],
+                     sugohi_type=su["type"].values[si], sugohi_reference=su.reference.values[si],
+                     sugohi_theta_E=su.theta_E.values[si])
+        m.to_csv(OUT / "xmatch_sugohi.csv", index=False)
+        print(f"  saved {OUT/'xmatch_sugohi.csv'}")
+        overlap["sugohi"] = set(m["name"].astype(str))
+
+
+def _xmatch_online(master, radius, overlap):
+    """Best-effort VizieR/MAST crossmatches (HST archival, AGEL). Graceful skip if astroquery /
+    network are unavailable — SuGOHI + Euclid are the guaranteed-local core."""
+    try:
+        from astroquery.vizier import Vizier
+        from astropy.coordinates import SkyCoord
+        import astropy.units as u
+    except Exception as e:
+        print(f"  [skip] --online: astroquery unavailable ({type(e).__name__}); "
+              f"install with `pip install astroquery`")
+        return
+    # AGEL DR2 Keck-confirmed lenses (VizieR table). Best-effort: any failure -> skip cleanly.
+    for tag, viz_id, racol, deccol in [("agel", "J/AJ/167/236/table2", "RAJ2000", "DEJ2000")]:
+        try:
+            Vizier.ROW_LIMIT = -1
+            tabs = Vizier.get_catalogs(viz_id)
+            if not len(tabs):
+                print(f"  [skip] {tag}: VizieR returned no table"); continue
+            cat = tabs[0].to_pandas()
+            cat = cat.rename(columns={racol: "ra", deccol: "dec"}).dropna(subset=["ra", "dec"])
+            m, n = crossmatch(master, cat, "ra", "dec", radius, tag)
+            print(f"  {tag}: r<{radius:.1f}\" -> {n} candidate(s)")
+            if n:
+                m.to_csv(OUT / f"xmatch_{tag}.csv", index=False)
+                overlap[tag] = set(m["name"].astype(str))
+        except Exception as e:
+            print(f"  [skip] {tag}: {type(e).__name__}: {e}")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--match-radius", type=float, default=5.0,
                     help="crossmatch radius in arcsec (Euclid astrometry is sub-arcsec; "
                          "DESI candidate centroids ~1\")")
+    ap.add_argument("--online", action="store_true",
+                    help="also attempt VizieR/MAST sources (HST, AGEL); best-effort, graceful skip")
     args = ap.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
+    overlap: dict[str, set] = {}   # survey_tag -> set of matched candidate names
 
     print("=== building master candidate table ===")
     master = build_master()
@@ -119,7 +175,7 @@ def main():
           f"RA [{euc.right_ascension.min():.1f},{euc.right_ascension.max():.1f}]  "
           f"Dec [{euc.declination.min():.1f},{euc.declination.max():.1f}]")
     for radius in (3.0, 5.0, 10.0, 30.0):
-        m, n = crossmatch(master, euc, "right_ascension", "declination", radius, "euclid")
+        _, n = crossmatch(master, euc, "right_ascension", "declination", radius, "euclid")
         print(f"  r<{radius:5.1f}\": {n:3d} candidate(s) fall in Euclid Q1")
     m, n = crossmatch(master, euc, "right_ascension", "declination", args.match_radius, "euclid")
     if n:
@@ -129,12 +185,31 @@ def main():
                      euclid_votes=euc.expert_total_votes.values[ei],
                      euclid_id=euc.id_str.values[ei])
         m.to_csv(OUT / "xmatch_euclid_q1.csv", index=False)
-        print(f"\n  matched candidates (r<{args.match_radius}\"):")
-        print(m[["name", "source", "grade", "euclid_grade", "euclid_score",
-                 "euclid_votes", "euclid_sep_arcsec"]].to_string(index=False))
         print(f"  saved {OUT/'xmatch_euclid_q1.csv'}")
+        overlap["euclid"] = set(m["name"].astype(str))
     else:
         print("  no candidates fall in the Euclid Q1 footprint at this radius.")
+
+    print("\n=== crossmatch vs SuGOHI/HOLISMOKES (local HSC) ===")
+    _xmatch_sugohi(master, args.match_radius, overlap)
+
+    if args.online:
+        print("\n=== best-effort online crossmatches (VizieR/MAST) ===")
+        _xmatch_online(master, args.match_radius, overlap)
+
+    # merged overlap table: one row per candidate covered by >=1 external archive
+    print("\n=== merged external overlap ===")
+    covered = sorted(set().union(*overlap.values())) if overlap else []
+    if covered:
+        mt = master[master["name"].astype(str).isin(covered)].copy()
+        for tag, names in overlap.items():
+            mt[f"in_{tag}"] = mt["name"].astype(str).isin(names)
+        mt.to_csv(OUT / "external_overlap.csv", index=False)
+        per = {t: len(s) for t, s in overlap.items()}
+        print(f"  {len(covered)} unique candidates with external coverage {per}")
+        print(f"  saved {OUT/'external_overlap.csv'}")
+    else:
+        print("  no external overlap found at this radius.")
 
 
 if __name__ == "__main__":

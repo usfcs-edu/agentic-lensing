@@ -19,6 +19,7 @@ from lensjudge.imaging import grader_lean
 from lensjudge.imaging.grader_lean import GradeResult
 
 ESCALATE_GRADES = ("B", "C")
+_HIRES_PXSCALE = {"euclid": "0.1\"", "hsc": "0.168\""}   # for the tier-2 rationale tag
 
 
 async def grade_candidate(cand: dict, *, model: Optional[str] = None,
@@ -46,10 +47,16 @@ async def grade_candidate(cand: dict, *, model: Optional[str] = None,
     if not hit:
         return g1
 
-    # Tier-2: re-grade the same object at high resolution (reuse the Euclid grader).
-    from lensjudge.eval import run_euclid
+    # Tier-2: re-grade the same object at high resolution, dispatching by the resolved survey
+    # (Euclid Q1 by id_str, or HSC PDR3 by ra/dec).
     try:
-        res = await run_euclid.grade_euclid({"id_str": hit["id_str"]}, model=model)
+        if hit["survey"] == "hsc":
+            from lensjudge.eval import run_hsc
+            res = await run_hsc.grade_hsc(
+                {"ra": hit["ra"], "dec": hit["dec"], "name": cand.get("name")}, model=model)
+        else:
+            from lensjudge.eval import run_euclid
+            res = await run_euclid.grade_euclid({"id_str": hit["id_str"]}, model=model)
     except Exception as e:  # missing data / network -> keep tier-1, record why
         g1.meta["escalate_error"] = f"{type(e).__name__}: {e}"
         return g1
@@ -62,7 +69,8 @@ async def grade_candidate(cand: dict, *, model: Optional[str] = None,
         "grade": res["agent_grade"], "p_lens": float(res.get("p_lens") or 0.0),
         "confidence": float(res.get("confidence") or g1.grade.confidence),
         "contaminant": res.get("contaminant"),
-        "rationale": f"[tier2 {hit['survey']} 0.1\"] " + str(res.get("rationale", ""))[:280]})
+        "rationale": f"[tier2 {hit['survey']} {_HIRES_PXSCALE.get(hit['survey'], '')}] "
+                     + str(res.get("rationale", ""))[:280]})
     g1.meta.update({"tier": 2, "escalated": True, "highres_survey": hit["survey"],
                     "highres_id": hit["id_str"], "p_lens_tier2": g2.p_lens})
     return GradeResult(grade=g2, raw=g1.raw, parse_ok=True,

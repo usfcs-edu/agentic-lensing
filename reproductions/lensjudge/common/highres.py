@@ -6,11 +6,14 @@ grader (imaging/grader_escalate.py) re-grades ambiguous tier-1 candidates at hig
 resolution WHEN coverage exists. This resolver maps a DESI candidate (name / ra / dec) to an
 available high-res object.
 
-Currently wired: Euclid Q1 (local "Strong Lensing Discovery Engine" cutouts). HSC PDR3 and
-the Euclid SAS network cutout service are future sources (plan B1). **Degrades gracefully**:
-returns None when the Euclid catalog/cutouts are not staged (they are not, in this checkout)
-or the position has no coverage — so escalate mode is a safe no-op on the DECaLS-south
-footprint, which has ~no Euclid Q1 overlap.
+Wired sources, tried in priority order (default ``("euclid", "hsc")``):
+  1. **Euclid Q1** (local "Strong Lensing Discovery Engine" cutouts, 0.1") — a local catalog lookup.
+  2. **HSC-SSP PDR3** (0.168", ~0.6" seeing) — the public das_cutout service; a successful cutout
+     fetch IS the coverage check (no local catalog), gated on HSC_USER/HSC_PASSWORD being set.
+
+**Degrades gracefully**: returns None when neither source covers the position (Euclid cutouts not
+staged, no HSC credentials, or out of footprint) — so escalate mode is a safe no-op (e.g. on the
+DECaLS-south footprint, which has ~no Euclid Q1 overlap and partial HSC coverage).
 """
 from __future__ import annotations
 
@@ -34,11 +37,7 @@ def _euclid_catalog() -> Optional[pd.DataFrame]:
     return df
 
 
-def resolve_highres(name, ra, dec, radius_arcsec: float = 2.0) -> Optional[dict]:
-    """Return {survey, id_str[, sep_arcsec]} for an available high-res cutout, or None.
-
-    Order: (1) the candidate name IS a local Euclid id; (2) positional match to the Euclid Q1
-    catalog AND the matched object's FITS are on disk. Anything else -> None (no coverage)."""
+def _resolve_euclid(name, ra, dec, radius_arcsec: float) -> Optional[dict]:
     if name and euclid.obj_dir(str(name)) is not None:
         return {"survey": "euclid", "id_str": str(name), "sep_arcsec": 0.0}
     if ra is None or dec is None:
@@ -54,4 +53,37 @@ def resolve_highres(name, ra, dec, radius_arcsec: float = 2.0) -> Optional[dict]
         idd = str(df.iloc[i]["id_str"])
         if euclid.obj_dir(idd) is not None:
             return {"survey": "euclid", "id_str": idd, "sep_arcsec": float(sep[i])}
+    return None
+
+
+def _resolve_hsc(name, ra, dec) -> Optional[dict]:
+    """HSC PDR3 coverage probe: gated on credentials; a successful (cached) cutout fetch == coverage.
+    Carries ra/dec so the HSC tier-2 grader (position-based) can re-render the same object."""
+    if ra is None or dec is None:
+        return None
+    from lensjudge.common import hsc_fetch
+    if not hsc_fetch.have_credentials():
+        return None
+    try:
+        bands = hsc_fetch.fetch_hsc_cutout(float(ra), float(dec))
+    except Exception:
+        return None
+    if not bands:
+        return None
+    return {"survey": "hsc", "id_str": f"{float(ra):.6f}_{float(dec):+.6f}",
+            "ra": float(ra), "dec": float(dec), "sep_arcsec": 0.0}
+
+
+def resolve_highres(name, ra, dec, radius_arcsec: float = 2.0,
+                    surveys=("euclid", "hsc")) -> Optional[dict]:
+    """Return {survey, id_str[, ra, dec, sep_arcsec]} for an available high-res cutout, or None.
+
+    Tries each source in ``surveys`` order and returns the first hit: Euclid Q1 (local catalog +
+    FITS on disk) then HSC PDR3 (live coverage probe via the cutout service, creds-gated). Anything
+    else -> None (no coverage), keeping escalate mode a safe no-op."""
+    for s in surveys:
+        hit = _resolve_euclid(name, ra, dec, radius_arcsec) if s == "euclid" \
+            else _resolve_hsc(name, ra, dec) if s == "hsc" else None
+        if hit:
+            return hit
     return None

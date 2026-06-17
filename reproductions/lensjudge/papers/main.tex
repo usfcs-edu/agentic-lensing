@@ -122,6 +122,19 @@
 \newcommand{\escMedOne}{0.03}\newcommand{\escMedTwo}{0.70} % median p_lens, tier-1 -> tier-2
 \newcommand{\escExpertAgree}{90}     % ~% agreement with Euclid experts on grade-A
 % ===========================================================================
+% --- v3 RESULTS MACROS (Part III) ------------------------------------------
+% HSC PDR3 tier-2 validation (eval/run_hsc_validation.py; 26 SuGOHI-matched known lenses)
+\newcommand{\hscCov}{25}\newcommand{\hscNcov}{26}     % in the PDR3 footprint / total matched
+\newcommand{\hscRecov}{92}           % % recovered as A/B at HSC tier-2 (23/25)
+\newcommand{\hscMedOne}{0.04}\newcommand{\hscMedTwo}{0.62}  % median p_lens DESI->HSC
+\newcommand{\hscAgree}{92}           % % agreement with the SuGOHI committee
+% cascade recall sweep (eval/run_cascade_recall.py; 120 labelled rows)
+\newcommand{\cascAUC}{0.605}         % stage-1 detection AUC (lens vs random)
+\newcommand{\cascRecHalf}{66}\newcommand{\cascRandHalf}{27}  % @ pass_frac 0.5 (% lens recall / random esc)
+% B3 crossmatch / B6 export
+\newcommand{\xmEuclidN}{24}\newcommand{\xmSugohiN}{76}\newcommand{\xmTotalN}{100}
+\newcommand{\hardnegN}{129}
+% ===========================================================================
 
 \title{LensJudge: An Agentic Visual-Inspection Grader for\\
        Strong-Lens Candidates on the Claude Agent SDK}
@@ -807,6 +820,89 @@ routing gate is degenerate, and the fine A/B/C grade is unmoved --- Part~I stand
 v2 \emph{ablation}, not ``LensJudge v3'': that label denotes the sibling ClaudeNet program, and the
 cascade is the natural v3 milestone only \emph{if} adopted as the deploy default.
 
+\part{Part~III --- v3: deeper resolution, the deployed cascade, and the active-learning loop}
+
+Part~II ended with a prescription it had not yet built: deploy the grader as a \emph{cascade} (cheap
+detection triage, agentic mimic adjudication, high-resolution escalation by coverage), and reach for
+more resolution than Euclid Q1's tiny DESI overlap supplies. Part~III builds both, and feeds the
+result back to the finder. (Implemented on branch \code{lensjudge-v3}; every number below is read from
+a tracked artifact under \texttt{outputs/}.)
+
+\section{HSC PDR3 tier-2: widening the resolution lever}
+\label{sec:v3hsc}
+Euclid Q1 ($0.1\arcsec$) is the sharpest tier-2 source but overlaps only ${\sim}\xmEuclidN$ DESI
+candidates (\S\ref{sec:v2esc}). \textbf{HSC-SSP Wide} ($0.168\arcsec$/px, ${\sim}0.6\arcsec$ seeing)
+covers far more equatorial sky --- an intermediate rung between DESI's $1.3\arcsec$ and Euclid's
+$0.1\arcsec$. We add it as a second tier-2 source: \code{common/hsc\_fetch.py} pulls grizy coadd
+cutouts from the public PDR3 \texttt{das\_cutout} service (HTTP Basic auth, cached; a $404$ = out of
+footprint = a clean no-op), and \code{resolve\_highres} now tries \code{(euclid, hsc)} in priority,
+the escalate grader dispatching tier-2 by survey.
+
+\textbf{Validation (the Euclid-B1 analog).} We grade the \hscNcov{} \emph{known} HSC lenses that
+cross-match our DESI candidates (SuGOHI/HOLISMOKES committee grades) through the escalate grader;
+$\hscCov/\hscNcov$ fall in the PDR3 footprint. The over-skeptical DESI grader buries them --- tier-1
+grades D:16 / C:8 / B:1, median \plens{} \hscMedOne{} --- and \textbf{HSC tier-2 recovers
+$23/25={\hscRecov}\%$ as A/B}, median \plens{} $\hscMedOne\!\to\!\hscMedTwo$ (rose on $24/25$),
+agreeing with the committee on $\hscAgree\%$ (Fig.~\ref{fig:v3hscflip}). The $0.6\arcsec$ flip is
+shallower than Euclid's $0.1\arcsec$ ($\hscMedTwo$ vs the ${\sim}0.70$ of \S\ref{sec:v2esc}), exactly
+as the coarser rung predicts; the $2/25$ that stay D are subtle/blended even at HSC. Appendix
+\ref{app:v3examples} (B.1) shows one such recovery end-to-end. (Footprint-bounded --- HSC Wide
+overlaps DESI only partially --- and these are \emph{known} lenses, a recovery test, not new
+discoveries.)
+
+\begin{figure}[t]\centering
+\includegraphics[width=0.64\linewidth]{figures/v3_hsc_flip.png}
+\caption{HSC PDR3 tier-2 on the \hscCov{} SuGOHI-matched known lenses with HSC coverage: the
+over-skeptical DESI grader buries them (tier-1 \plens{} ${\sim}\hscMedOne$); HSC $0.168\arcsec$
+recovers $\hscRecov\%$ as A/B (median flip $\hscMedOne\!\to\!\hscMedTwo$). The HSC analog of
+Fig.~\ref{fig:v2flip}, one resolution rung coarser than Euclid.}
+\label{fig:v3hscflip}
+\end{figure}
+
+\section{The deployed cascade}
+\label{sec:v3cascade}
+\code{eval/run\_cascade.py} productizes the B7 recommendation. Stage~1 runs the cheap loop-free
+\code{direct} grader on every survivor; stage~2 escalates the top \code{pass\_frac} \emph{by the
+stage-1 rank} to the agentic v2 grader (plus tier-2 by coverage). We route by \emph{rank}, not the
+direct grader's absolute grade, because that grade is over-skeptical and over-confidently names
+contaminants --- in Appendix~\ref{app:v3examples} (B.1) stage~1 grades a \emph{real} lens
+``D / lrg\_companion'' with $0.72$ confidence --- so its trustworthy signal is \emph{ranking}.
+
+\textbf{Does rank-routing keep the lenses?} On a $120$-row labelled set ($50$ lens / $40$ mimic /
+$30$ random) the cheap stage-1 score has detection AUC \cascAUC{}, and rank-routing behaves as
+designed (Fig.~\ref{fig:v3recall}): \textbf{lens recall exceeds the escalated fraction} at every
+operating point ($\cascRecHalf\%$ at \code{pass\_frac}${=}0.5$) and \textbf{randoms drop well below
+it} ($\cascRandHalf\%$) --- the cheap stage enriches lenses and discards obvious non-lenses. It does
+\emph{not} separate lenses from \emph{mimics} (mimic escalation ${\approx}$ base rate), which is
+exactly what the agentic stage~2 is for (the B7 division of labour). The cost is the measured B7
+ladder: ${\sim}\$\cascDirect$ (all-direct) / ${\sim}\$\cascCascade$ (cascade) / ${\sim}\$\cascAllvtwo$
+(all-v2) / ${\sim}\$\cascMulti$ (all-multiagent) per 5k survivors. Honest cost: ${\sim}34\%$ of real
+lenses are dropped at stage-1 at \code{pass\_frac}${=}0.5$, so a high-recall deployment raises it.
+
+\begin{figure}[t]\centering
+\includegraphics[width=0.64\linewidth]{figures/v3_cascade_recall.png}
+\caption{Cascade rank-routing on the $120$-row labelled set: real-lens recall (green) sits above the
+no-signal diagonal, random-galaxy escalation (grey) below it, while mimic escalation tracks the
+baseline --- the cheap stage-1 enriches lenses and drops randoms; lens-vs-mimic adjudication is left
+to the agentic stage-2.}
+\label{fig:v3recall}
+\end{figure}
+
+\section{Closing the loop: crossmatch and hard-negative export}
+\label{sec:v3loop}
+\begin{sloppypar}
+Two smaller pieces complete the v3 increment. \textbf{Expanded crossmatch}
+(\code{eval/\allowbreak crossmatch\_external.py}) adds SuGOHI (local) and best-effort HST/AGEL (VizieR) to the
+Euclid Q1 match, yielding \xmTotalN{} candidates with external high-resolution coverage
+($\xmEuclidN$ Euclid $+$ $\xmSugohiN$ SuGOHI) --- the anchor set for the HSC validation above.
+\textbf{Hard-negative export} (\code{eval/\allowbreak export\_hard\_negatives.py}) writes the agent-confirmed
+non-lenses (grade D $+$ a named contaminant; e.g.\ Appendix~\ref{app:v3examples} B.2) into the
+ClaudeNet-v3 mimic-bank schema --- \hardnegN{} rows tagged \code{source{=}\allowbreak lensjudge\_v2} ---
+closing the LensJudge\,$\to$\,finder active-learning loop (folded in by the v3 bank assembler; we do not retrain
+here). A no-API test suite (\code{tests/test\_v3.py}, $8/8$) guards the graceful-fail, schema, and
+rank-routing logic.
+\end{sloppypar}
+
 \section{Conclusion}
 LensJudge can be \emph{built} on the Claude Agent SDK and, more importantly, \emph{tested} on data in
 hand --- and across two generations the test sharpened into a usable answer. \textbf{Part~I} returned
@@ -822,10 +918,13 @@ Euclid-confirmed (median \plens{} $\escMedOne\!\to\!\escMedTwo$), agreeing with 
 now \emph{solved}: detection (via escalation) and mimic ranking (via the rubric $+$ loop). What
 \emph{remains}: the fine A/B/C grade is irreducibly soft even at $0.1\arcsec$; the v2 gains are in
 ranking, not tight-FPR recovery; the escalation routing gate is degenerate; and the evidence $n$ is
-modest. The deployment is the cascade --- loop-free triage for detection, the agentic loop reserved
-for mimic adjudication, high-resolution escalation gated by coverage --- and the open frontier is the
-one Part~I named: a per-rater human ceiling (the ${\sim}250$-cutout, $\ge2$-grader study) that would
-turn ``ranking'' into a claim about truth.
+modest. \textbf{Part~III} builds the deployment: a rank-routed cascade (cheap triage enriches lenses,
+the agentic loop adjudicates mimics) plus an HSC $0.6\arcsec$ tier-2 that --- validated on \hscCov{}
+known lenses --- recovers $\hscRecov\%$ of the lenses DESI buries, widening the resolution lever
+beyond Euclid's sparse overlap, and it exports the agent's confirmed mimics back to the finder
+(closing the active-learning loop). The open frontier is the one Part~I named: a per-rater human
+ceiling (the ${\sim}250$-cutout, $\ge2$-grader study) that would turn ``ranking'' into a claim about
+truth.
 
 % =============================================================================
 \appendix
@@ -1081,6 +1180,227 @@ false positive --- red galaxy pairs can easily trigger the model'' --- and the a
 declines to escalate. A second recording reproduced D/$\plens=0.05$ exactly. The
 confident rejection with a named contaminant is the pre-filter behavior the report
 argues is the agent's useful role on ground-based imaging.
+
+% =============================================================================
+\section{The cascade in action: two v3 worked examples}
+\label{app:v3examples}
+% =============================================================================
+
+This appendix traces the \textbf{v3 cascade} (\S\ref{sec:v3cascade}) on two candidates to make its
+two kinds of step visible. \emph{Stage~1} is \textbf{deterministic}: \code{grader\_direct} renders
+the $grz$ views and computes aperture photometry \emph{in Python}, then makes a \emph{single} base
+Messages-API call with the images inline --- one turn, no tools, no planning. \emph{Stages~2--3} are
+\textbf{agentic}: the Claude Agent SDK loop, where the model plans its own tool calls
+(\texttt{fetch\_cutout}, \texttt{get\_photometry}, \texttt{fetch\_hsc\_cutout}) across turns. Both
+were recorded with full message-stream capture (\code{eval/run\_appendix\_v3.py}; \code{claude-sonnet-4-6},
+adaptive thinking, the v2 rubric). The three editing rules of Appendix~\ref{app:examples} apply:
+elision-only (\code{[...]}), the harness \code{ToolSearch} tool-discovery call and the
+\code{mcp\_\_lens\_\_} namespace prefix elided, and the tool's PNG views reproduced as figure strips.
+
+% -----------------------------------------------------------------------------
+\subsection*{B.1\quad The full cascade: a DESI-buried lens recovered at HSC}
+\texttt{DESI-029.0755$-$01.1297} --- CNN $\pmeta=0.951$, a SuGOHI committee grade-A lens. Both DESI
+stages ($1.3\arcsec$) grade it \emph{D}; only the HSC tier-2 ($0.168\arcsec$) flips it to \emph{B}.
+
+\paragraph{Stage 1 --- deterministic triage (\code{direct}: render $+$ photometry $+$ one inline
+call; 1 turn, no tools, \$0.049).} The Python pipeline assembles the evidence; the model is called
+exactly once.
+
+\begin{toolio}{deterministic pipeline (Python; no model) --- evidence for one inline call (Figure~\ref{fig:v3ep-desi})}
+name='DESI-029.0755-01.1297', survey='storfer', RA=29.075515, Dec=-1.129749.  CNN p_meta=0.951.
+render grz views        -> [full, zoom, residual]   (inlined as image blocks)
+aperture photometry     -> {"core":    {"g_minus_r": 1.418, "r_minus_z": 1.181},
+                            "annulus": {"g_minus_r": 1.268, "r_minus_z": 1.042},
+                            "annulus_bluer_than_core": true}
+\end{toolio}
+
+\begin{figure}[ht]
+\centering
+\begin{minipage}[b]{0.31\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/appendix_v3_desi__full.png}\\[2pt]{\scriptsize full}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.31\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/appendix_v3_desi__zoom.png}\\[2pt]{\scriptsize zoom}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.31\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/appendix_v3_desi__residual.png}\\[2pt]{\scriptsize residual}
+\end{minipage}
+\caption{\textbf{DESI $grz$ views} ($1.3\arcsec$ seeing) rendered for
+\texttt{DESI-029.0755$-$01.1297}: a red core with a red companion that both DESI stages read as an
+LRG$+$companion (grade D). The blue arc is blended into the lens light at this resolution.}
+\label{fig:v3ep-desi}
+\end{figure}
+
+\begin{toolio}{thinking (summarized)}
+Full/zoom: a central red/orange elliptical with a reddish companion to its left; no obvious blue arc.
+Residual: two compact red sources remain, with some blue/teal diffuse emission around them -- possibly
+a faint arc, or a subtraction artifact. Photometry: the core is extremely red (g-r=1.418); the annulus
+is only marginally bluer (g-r=1.268) -- far too red for a lensed blue source (which needs g-r below
+~0.5). [...] The blue residual is genuinely puzzling, but the red annulus and the lack of tangential
+curvature or counter-images win out -- a red LRG with a companion. Grade D.
+\end{toolio}
+
+\begin{toolio}{single inline judgment --- final grade (JSON)}
+{"grade": "D", "p_lens": 0.08, "confidence": 0.72, "contaminant": "lrg_companion",
+ "escalate_to_human": false,
+ "rationale": "The companion to the upper-left of the central red elliptical is clearly orange/red,
+ not blue. Photometry confirms it: annulus g-r=1.268, r-z=1.042 are both very red, only marginally
+ bluer than the core (g-r=1.418), with no genuinely blue lensed source (which would need g-r below
+ ~0.5). The residual shows some blue/teal diffuse emission, but with the annulus dominated by red flux
+ this is most plausibly a lens-subtraction artifact, not an arc. No tangential arc, no curvature, no
+ blue counter-images -- consistent with a projected red LRG companion."}
+\end{toolio}
+
+\paragraph{Stage 2 --- agentic adjudication on DESI (the SDK loop; 4 turns, \$0.129).} Now the model
+plans its own tools: it fetches the cutout (passing the candidate's ra/dec) and the photometry,
+inspects the three views, and --- seeing the same red core with a red companion and no blue arc ---
+independently concludes D.
+
+\begin{toolio}{tool call --- fetch\_cutout}
+{"name": "DESI-029.0755-01.1297", "survey": "storfer", "ra": 29.075515, "dec": -1.129749, "views": ["full", "zoom", "residual"]}
+\end{toolio}
+\begin{toolio}{tool result --- fetch\_cutout (3 images; Figure~\ref{fig:v3ep-desi})}
+Candidate DESI-029.0755-01.1297 -- grz cutout, 26.5" field. Views follow:
+[full]     whole cutout, 26.5" across, Lupton-RGB (z=R, r=G, g=B).
+[zoom]     2.5x center crop -- the 1-5" arc / counter-image region.
+[residual] lens-light removed -- low-surface-brightness arcs stand out against a flat background.
+\end{toolio}
+\begin{toolio}{tool call --- get\_photometry}
+{"name": "DESI-029.0755-01.1297", "survey": "storfer", "ra": 29.075515, "dec": -1.129749}
+\end{toolio}
+\begin{toolio}{tool result --- get\_photometry}
+{"core": {"g_minus_r": 1.418, "r_minus_z": 1.181}, "annulus": {"g_minus_r": 1.268, "r_minus_z": 1.042}, "annulus_bluer_than_core": true}
+\end{toolio}
+
+\begin{toolio}{thinking (summarized)}
+Zoom: the central red elliptical with a compact orange/yellowish companion to its west -- a separate
+galaxy, not an arc, with no tangential curvature. Residual: a faint bluish smear around the centre,
+but the companion is orange/red. Photometry: annulus g-r=1.268 is still red-galaxy color; a lensed
+blue arc would be g-r below ~0.5. The faint blue residual is most likely imperfect lens subtraction.
+No tangential arc, no counter-image on the opposite side -- one-sided geometry. Grade D, lrg_companion.
+\end{toolio}
+
+\begin{toolio}{agent --- final grade (JSON)}
+{"grade": "D", "p_lens": 0.05, "confidence": 0.82, "contaminant": "lrg_companion",
+ "escalate_to_human": false,
+ "rationale": "All three views show a red/orange elliptical with a compact orange-red companion ~3\"
+ to its west -- the companion is clearly not blue. Photometry is decisive: annulus g-r=1.268,
+ r-z=1.042 are red-galaxy colors (only ~0.15 bluer than the core); a lensed star-forming arc would
+ need g-r below ~0.5-0.7. The residual shows no tangential arc, no curvature wrapping the lens, and no
+ counter-image on the opposite side -- entirely one-sided. A textbook LRG+companion false positive."}
+\end{toolio}
+
+\paragraph{Stage 3 --- agentic tier-2 at HSC $0.168\arcsec$ (the SDK loop; 3 turns, \$0.074).}
+Coverage resolves to HSC; the agent fetches the grizy cutout and re-grades the same sky position.
+
+\begin{toolio}{tool call --- fetch\_hsc\_cutout}
+{"ra": 29.075515, "dec": -1.129749, "views": ["full", "lum", "zoom", "lum_zoom", "lum_sub"]}
+\end{toolio}
+\begin{toolio}{tool result --- fetch\_hsc\_cutout (5 images; Figure~\ref{fig:v3ep-hsc})}
+HSC-SSP PDR3 ra=29.075515, dec=-1.129749 -- 0.168"/px grizy (bands present: giryz). Views follow:
+[full]    16" HSC color (R=i, G=r, B=g), ~8x sharper than DESI grz.
+[zoom]    6" center crop -- the arc / counter-image region.
+[lum_sub] i-band with the smooth lens light subtracted -- a ring/arc residual stands out.
+\end{toolio}
+
+\begin{figure}[ht]
+\centering
+\begin{minipage}[b]{0.31\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/appendix_v3_hsc__full.png}\\[2pt]{\scriptsize full (color)}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.31\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/appendix_v3_hsc__zoom.png}\\[2pt]{\scriptsize zoom (color)}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.31\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/appendix_v3_hsc__lum_sub.png}\\[2pt]{\scriptsize $i$-band, lens-subtracted}
+\end{minipage}
+\caption{\textbf{HSC PDR3 grizy views} ($0.168\arcsec$) for the same sky position: the $6\arcsec$ zoom
+resolves blue emission wrapping tangentially around the red core, and the lens-subtracted $i$-band
+shows the lensed-image residual blobs --- invisible at DESI's $1.3\arcsec$. The agent grades this B.}
+\label{fig:v3ep-hsc}
+\end{figure}
+
+\begin{toolio}{thinking (summarized) --- after inspecting the HSC views}
+Full/zoom color: the central red/orange elliptical now shows distinctly blue features wrapping
+tangentially around it at ~1-3" separation -- a partial Einstein ring or arc pair, clearly bluer than
+the red core. lum_sub residual: multiple compact bright blobs at roughly consistent radii on more than
+one side -- consistent with arc + counter-arc. The blue wrap rules out an LRG+companion (same color)
+and a ring galaxy (color would match). Curvature and arc morphology both met; the counter-image
+geometry is not textbook-clean, so B not A. [...]
+\end{toolio}
+
+\begin{toolio}{agent --- final grade (JSON)}
+{"grade": "B",
+ "criteria": {"blue_source": 8, "low_surface_brightness": 6, "curvature": 7,
+              "counter_images": 6, "arc_morphology": 7},
+ "p_lens": 0.70, "confidence": 0.72, "contaminant": null, "escalate_to_human": true,
+ "rationale": "The zoom color view shows distinctly blue emission wrapping tangentially around the
+ central red/orange elliptical at ~1-3\" separation, the color contrast ruling out an LRG+companion
+ blend. The lum_sub residual reveals multiple compact blobs at roughly consistent radii across at
+ least two azimuths, consistent with arc+counter-arc or a partial Einstein ring; curvature and
+ arc_morphology are met. The counter-image geometry is not cleanly resolved, so the grade stops at B
+ rather than A. Escalation recommended for confirmation."}
+\end{toolio}
+
+\noindent The two DESI stages independently agree (D, $\plens=0.08$ then $0.05$); only the
+$0.168\arcsec$ tier-2 resolves the blue tangential arc the $1.3\arcsec$ pixels had blended into the
+lens light, flipping the verdict to B ($\plens=0.70$). This is the resolution lever of
+\S\ref{sec:v3hsc} in a single candidate --- and the $23/25$ recovery of Fig.~\ref{fig:v3hscflip} is
+this episode, $25$ times over.
+
+% -----------------------------------------------------------------------------
+\subsection*{B.2\quad A confident mimic the cheap stage rejects}
+\texttt{s\_358314\_2329} --- a ClaudeNet-v3 seed mimic (CNN $\pmeta=0.711$; an agent-confirmed
+non-lens). The deterministic stage~1 alone settles it; no agentic spend is incurred.
+
+\begin{toolio}{deterministic pipeline (Python; no model) --- evidence for one inline call (Figure~\ref{fig:v3ep-mimic})}
+name='s_358314_2329', survey='claudenet', RA=150.518, Dec=4.738.  CNN p_meta=0.711.
+render grz views        -> [full, zoom, residual]   (inlined as image blocks)
+aperture photometry     -> {"core":    {"g_minus_r": 1.604, "r_minus_z": 1.374},
+                            "annulus": {"g_minus_r": 1.323, "r_minus_z": 1.002},
+                            "annulus_bluer_than_core": true}
+\end{toolio}
+
+\begin{figure}[ht]
+\centering
+\begin{minipage}[b]{0.31\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/appendix_v3_mimic__full.png}\\[2pt]{\scriptsize full}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.31\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/appendix_v3_mimic__zoom.png}\\[2pt]{\scriptsize zoom}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.31\linewidth}\centering
+  \includegraphics[width=\linewidth]{figures/appendix_v3_mimic__residual.png}\\[2pt]{\scriptsize residual}
+\end{minipage}
+\caption{\textbf{DESI $grz$ views} for the seed mimic \texttt{s\_358314\_2329}: a red elliptical
+flanked by two red companions, no blue arc at any contrast --- the deterministic stage grades D /
+\code{lrg\_companion} with confidence $0.88$.}
+\label{fig:v3ep-mimic}
+\end{figure}
+
+\begin{toolio}{thinking (summarized)}
+Full: a central red galaxy with two red companions (upper-left, lower-right); all red. Residual: red
+point-like residuals, not a blue arc. Photometry: core g-r=1.60, annulus g-r=1.32 -- both far too red
+for a lensed source (which would be g-r below 0.5). Consistent with red companions, not a blue lensed
+source. A classic LRG+companion false positive that triggered the CNN via the flanking red
+companions. Grade D.
+\end{toolio}
+
+\begin{toolio}{single inline judgment --- final grade (JSON)}
+{"grade": "D", "p_lens": 0.03, "confidence": 0.88, "contaminant": "lrg_companion",
+ "escalate_to_human": false,
+ "rationale": "All three views show a red elliptical with two nearby red compact sources; no blue
+ features. Photometry confirms both core (g-r=1.60) and annulus (g-r=1.32) are extremely red [...]
+ the residual shows only red point-like residuals, not a tangential blue arc. Classic LRG+companion
+ false positive."}
+\end{toolio}
+
+\noindent One deterministic turn, \$0.021, no agentic spend. In the rank-routed cascade
+(\S\ref{sec:v3cascade}) this $\plens{=}0.03$ ranks the candidate near the bottom of the survivor pool,
+below the escalation cut --- so it is dropped without ever paying for the agentic loop or a tier-2
+fetch. The cheap stage cannot tell the hardest mimics from lenses (that is stage~2's job), but it
+discards the confident ones --- and this agent-confirmed mimic is exactly what the hard-negative
+export of \S\ref{sec:v3loop} feeds back to the finder.
 
 \bibliographystyle{plainnat}
 \bibliography{references}
