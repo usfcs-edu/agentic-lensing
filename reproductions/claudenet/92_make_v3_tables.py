@@ -209,26 +209,37 @@ def tab_qualified():
     if not p.exists():
         return
     df = pd.read_csv(p).astype({"name": str})
-    # join panel verdict if present
-    panel = LJ / "d2_newA_panel.parquet"
-    pg = {}
-    if panel.exists():
-        pp = pd.read_parquet(panel).astype({"name": str})
-        pg = dict(zip(pp["name"], pp["grade_pred"]))
+    # join the literature crossmatch (94_external_xmatch.py): each lineage-NEW
+    # survivor turns out to be a previously-published lens from another survey.
+    xm = V3FIND / "external_lens_catalog.csv"
+    ext = {}
+    if xm.exists():
+        xdf = pd.read_csv(xm).astype({"desi_candidate": str})
+        for _, r in xdf.iterrows():
+            ext[str(r["desi_candidate"])] = (str(r["name"]), str(r["survey"]),
+                                             r.get("sep_arcsec"))
     rows = []
     for _, r in df.iterrows():
-        rows.append(f"{esc(r['name'])} & {r.get('p_lens','--')} & {r.get('list','--')} & "
-                    f"{pg.get(str(r['name']),'--')}\\\\")
+        nm = str(r["name"])
+        kn, sv, sep = ext.get(nm, ("", "", None))
+        known = f"{esc(kn)} ({sv})" if sv else "(none --- genuinely new?)"
+        try:
+            sep_s = "%.1f$''$" % float(sep)
+        except (TypeError, ValueError):
+            sep_s = "--"
+        rows.append(f"{esc(nm)} & {r.get('p_lens','--')} & {r.get('list','--')} & "
+                    f"{known} & {sep_s}\\\\")
     body = (
         "\\begin{table}[t]\\centering\n"
-        "\\caption{Three NEW v3 grade-A candidates from C-vet and their qualification panel verdict (D2; "
-        "advocate/skeptic/morphology/contaminant, 2-of-$N$ A-rule). DESI-resolution only (no Euclid "
-        "coverage at these positions): DESI-qualified candidates, not confirmations. A fourth C-vet "
-        "survivor (\\texttt{s\\_310364\\_6649}) was found to be the already-published Huang+2020 grade-A "
-        "lens \\texttt{DESI-038.2078-03.3906} ($0.2''$ match) and is excluded here as a recovery, not a "
-        "new candidate.}\n"
-        "\\label{tab:qualified}\\small\n\\begin{tabular}{lccc}\n\\toprule\n"
-        "DESI id & C-vet $p_{\\rm lens}$ & ranking & panel grade\\\\\n\\midrule\n"
+        "\\caption{v3 grade-A C-vet survivors that are \\emph{absent} from the "
+        "Huang/Storfer/Inchausti lineage catalogues, with their literature-wide NED/SIMBAD "
+        "crossmatch (\\texttt{94\\_external\\_xmatch.py}). All three are previously-published "
+        "lenses from other surveys --- v3 \\emph{rediscoveries}, not net-new. (A fourth C-vet "
+        "survivor, \\texttt{s\\_310364\\_6649}, is the Huang+2020 lens "
+        "\\texttt{DESI-038.2078-03.3906}.) Net-new lenses: zero; the result is independent "
+        "external validation of the v3 finder.}\n"
+        "\\label{tab:qualified}\\small\n\\begin{tabular}{lcclc}\n\\toprule\n"
+        "DESI id & C-vet $p_{\\rm lens}$ & ranking & known lens (survey) & sep\\\\\n\\midrule\n"
         + "\n".join(rows) +
         "\n\\bottomrule\n\\end{tabular}\n\\end{table}\n")
     write("tab_qualified", body)
