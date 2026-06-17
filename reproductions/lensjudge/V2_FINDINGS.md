@@ -118,3 +118,48 @@ on the frozen evidence manifest (same model/rubric, 2×2 rubric×loop + a thinki
 the bulk, then agentic **v2** for mimic adjudication on the survivors; escalate by coverage, not
 the grade. ~$170 vs ~$355 (all-v2) vs ~$1,575 (all-multiagent) per 5k survivors. Caveat: modest
 n, compressed p_lens → findings (1)/(3) robust, (2) directional.
+
+## lensjudge-v3 — the remaining B items (B3 / B6 / HSC tier-2 / cascade)  ✅  (branch `lensjudge-v3`)
+
+The four deferred B extensions, implemented and live-validated.
+
+**B3 — expanded crossmatch.** `eval/crossmatch_external.py` now crossmatches the 4,354 unique
+candidates against **SuGOHI/HOLISMOKES** (local HSC catalog, committee grade + spec-z + θ_E) in
+addition to Euclid Q1, and against **HST/MAST + AGEL** under `--online` (best-effort VizieR; graceful
+skip if astroquery/network absent). Emits `outputs/external_overlap.csv`. Result: **24 in Euclid Q1
++ 76 in SuGOHI = 100 unique candidates with external high-res coverage** (the Euclid count matches
+the §10 manual finding exactly).
+
+**HSC PDR3 tier-2 escalation** (the resolution lever beyond Euclid's tiny overlap). New
+`common/hsc_fetch.py` (PDR3 `das_cutout` service via `requests` + HTTP Basic Auth, `HSC_USER`/
+`HSC_PASSWORD` env, cached under `cache/hsc/`, graceful `None` out-of-footprint), `common/hsc.py`
+(grizy render mirroring `euclid.py`, 0.168"/px), `tools/hsc_cutout.py` (`fetch_hsc_cutout` tool),
+`eval/run_hsc.py` (`grade_hsc`, v2 rubric). `common/highres.resolve_highres` now tries
+`("euclid", "hsc")` in priority (HSC coverage = a successful cutout fetch); `imaging/grader_escalate`
+dispatches tier-2 by survey. **Live end-to-end:** the SuGOHI-matched DESI candidate
+`DESI-029.0755-01.1297` (storfer) graded **D (p_lens 0.03) at DESI 1.3"** → escalated to HSC 0.168"
+→ **B (0.65)**, the agent resolving "a blue/cyan feature wrapping a red/orange core" (a real SuGOHI
+grade-A lens, recovered). Footprint-bounded: HSC-SSP Wide overlaps DESI only partially.
+
+**B6 — export hard negatives → v3 mimic bank** (closes the LensJudge→finder active-learning loop).
+New `eval/export_hard_negatives.py`: filters agent-confirmed non-lenses (grade D / low p_lens + a
+named contaminant) from the vetting preds, joins RA/DEC from the run manifests, maps to the canonical
+`[row_id, RA, DEC, mimic_type, p_final, source]` schema (`p_final` clamped to [0,1]; CNN-high
+head-logit survivors → 1.0), `source="lensjudge_v2"` →
+`claudenet/data/v3/hard_negatives_from_lensjudge.parquet`. **129 hard negatives** exported
+(lrg_companion-dominated, 88). Folds into the next bank via `claudenet/312_assemble_mimic_bank.py`;
+no retrain here (GPU, separate program).
+
+**Cascade deploy runner** (productizes the B7 stage-2 pipeline). New `eval/run_cascade.py`:
+two-phase — cheap `direct` triage on ALL survivors, then escalate the top `--pass-frac` **by the
+stage-1 rank** (the direct grader's real signal is ranking/AUC 0.66, not its over-confident absolute
+grade — so rank-routing, not a p_lens/contaminant threshold) to the agentic v2 grader (+ tier-2 by
+coverage). `--max-usd` gate. **Live smoke:** 4 candidates, 2 escalated, stage-1 $0.012/cand on all,
+total $0.235; one row flipped D→C under agentic v2. Per-stage cost matches B7
+(~$60/$170/$355/$1,575 per 5k at pass_frac 0.3/cascade/all-v2/all-multiagent).
+
+**Caveats.** HSC tier-2 is footprint-bounded (partial DESI overlap) and one rung coarser than Euclid
+(0.6" vs 0.1"); B3 network sources are best-effort (SuGOHI+Euclid are the guaranteed-local core); B6
+exports agent-confirmed non-lenses but does not retrain; the cascade's stage-1 routing is rank-based
+because the direct grader's absolute grade is over-skeptical/over-confident (B7). HSC credentials are
+env-only (never committed); `cache/hsc/` is gitignored.
