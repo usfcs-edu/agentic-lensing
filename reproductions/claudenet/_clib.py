@@ -101,10 +101,27 @@ def gpu_env(gpu_id: int) -> dict:
 
 def known_lens_catalogs() -> list[Path]:
     """CSV catalogs of known/published lenses, for the PU-learning guard
-    (exclude negatives within a few arcsec of any of these)."""
+    (exclude negatives within a few arcsec of any of these) and the NEW-vs-KNOWN
+    crossmatch (163). Includes Huang+2020 (DECaLS DR7), the foundational
+    catalogue, so a Huang+2020-only lens is never misclassified as NEW."""
     d = DATA
-    return [p for p in (
+    out = [p for p in (
         d / "storfer2024_published_catalog.csv",
         d / "inchausti2025_published_catalog.csv",
         d / "huang2021_published_catalog.csv",
+        d / "huang2020_published_catalog.csv",
     ) if p.exists()]
+    # Huang+2020 may not be staged in claudenet/data; fall back to the huang-2020
+    # reproduction's tracked copy so it is always part of the crossmatch.
+    if not any(p.name == "huang2020_published_catalog.csv" for p in out):
+        h20 = REPRO / "huang-2020" / "data" / "huang2020_published_catalog.csv"
+        if h20.exists():
+            out.append(h20)
+    # Literature (non-lineage) lenses -- CASSOWARY/DES/AGEL/... -- found by the
+    # NED/SIMBAD pass (94_external_xmatch.py). The lineage catalogues above are not
+    # the whole literature; without this a lens already published by another survey
+    # is miscounted NEW. Regenerate the CSV whenever a new candidate set is vetted.
+    ext = ROOT / "v3" / "external_lens_catalog.csv"
+    if ext.exists():
+        out.append(ext)
+    return out
