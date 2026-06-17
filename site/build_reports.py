@@ -45,6 +45,7 @@ APPLE_SILICON_SLUGS = ["huang-2020", "huang-2021", "redshifty"]
 # (section, source slug, tex basename, output slug).
 EXTRA_REPORTS = [
     ("reproductions", "foundry-i", "evolution", "foundry-i-evolution"),
+    ("current", "claudenet", "new_candidates", "claudenet-new-candidates"),
 ]
 
 MARKERS = ("TITLE", "AUTHORS", "DATE", "ABSTRACT", "BODY")
