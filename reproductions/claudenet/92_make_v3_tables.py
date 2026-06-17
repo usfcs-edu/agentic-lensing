@@ -221,9 +221,12 @@ def tab_qualified():
                     f"{pg.get(str(r['name']),'--')}\\\\")
     body = (
         "\\begin{table}[t]\\centering\n"
-        "\\caption{NEW v3 grade-A candidates from C-vet and their qualification panel verdict (D2; "
+        "\\caption{Three NEW v3 grade-A candidates from C-vet and their qualification panel verdict (D2; "
         "advocate/skeptic/morphology/contaminant, 2-of-$N$ A-rule). DESI-resolution only (no Euclid "
-        "coverage at these positions): DESI-qualified candidates, not confirmations.}\n"
+        "coverage at these positions): DESI-qualified candidates, not confirmations. A fourth C-vet "
+        "survivor (\\texttt{s\\_310364\\_6649}) was found to be the already-published Huang+2020 grade-A "
+        "lens \\texttt{DESI-038.2078-03.3906} ($0.2''$ match) and is excluded here as a recovery, not a "
+        "new candidate.}\n"
         "\\label{tab:qualified}\\small\n\\begin{tabular}{lccc}\n\\toprule\n"
         "DESI id & C-vet $p_{\\rm lens}$ & ranking & panel grade\\\\\n\\midrule\n"
         + "\n".join(rows) +
