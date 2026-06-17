@@ -41,7 +41,7 @@ for _, r in new.iterrows():
         if nm == "s_345385_1515" else ""
     nm_tex = nm.replace("_", "\\_")
     tex.append(
-        f"\\begin{{figure}}[p]\\centering\n"
+        f"\\begin{{figure}}[ht]\\centering\n"
         f"\\begin{{minipage}}[b]{{0.32\\linewidth}}\\centering\\includegraphics[width=\\linewidth]"
         f"{{figures/cand_{nm}_desi.png}}\\\\[2pt]{{\\scriptsize DESI \\emph{{grz}} (0.262\\arcsec/px)}}\\end{{minipage}}\\hfill\n"
         f"\\begin{{minipage}}[b]{{0.32\\linewidth}}\\centering\\includegraphics[width=\\linewidth]"

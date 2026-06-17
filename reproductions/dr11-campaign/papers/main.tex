@@ -7,6 +7,14 @@
 \usepackage{../../tech-report}
 \usepackage{longtable}
 
+% Pack the appendix candidate gallery densely (avoid float-only pages / whitespace).
+\renewcommand{\topfraction}{0.95}
+\renewcommand{\bottomfraction}{0.95}
+\renewcommand{\textfraction}{0.05}
+\renewcommand{\floatpagefraction}{0.85}
+\setcounter{topnumber}{3}
+\setcounter{totalnumber}{4}
+
 \newcommand{\cnet}{\textsc{ClaudeNet}}
 \newcommand{\lj}{\textsc{LensJudge}}
 \newcommand{\vb}{\texttt{v3blend8}}
