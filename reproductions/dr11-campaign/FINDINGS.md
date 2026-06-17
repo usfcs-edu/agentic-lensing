@@ -134,7 +134,26 @@ gates G1–G5 → north select. (Phase A model re-iteration also deferred — Pe
   (median v3blend8 2.7× the survivor median; 27 in top-500) — independent evidence v3 ranks real lenses
   high. **Campaign LLM spend $43.12 / $250.**
 
-Next: active-learning export (local) → report. (Phase A model re-iteration + north = Perlmutter, deferred.)
+## Phase A — active-learning  🟡 export done, retrain deferred
+**291 hard negatives** exported (`data/v3/hard_negatives_from_lensjudge_dr11s.parquet`, lrg_companion
+243-dominant) in the mimic-bank schema (fixed a p_meta-scalar bug in `export_hard_negatives.py`). Fold
+(`312`) + model re-iteration = Perlmutter GPU → deferred to post-maintenance.
+
+## Phase R — report  🟢 DONE
+`papers/main.tex` (5 pp, builds clean, 0 undefined refs) + DESI→HSC-flip & SuGOHI-enrichment figures
+(`make_dr11_figures.py`). **Adversarially fact-checked** by a 4-agent verification workflow (42 claims,
+1 numeric typo fixed; honesty critique applied — removed "HSC-confirmed lenses" overclaiming throughout
+→ "HSC tier-2 grade-A/B, automated grader, follow-up pending"; added the "no net-new lens from DECaLS
+alone" corollary + recall-incompleteness caveat; clarified 726/1071 split + SuGOHI as a sensitivity
+check). Result catalogs tracked in-repo: `data/dr11s_confirmed_AB.csv`, `data/dr11s_sugohi_recovered.csv`.
+
+## CAMPAIGN SUMMARY (session 2026-06-17)
+**SOUTH complete.** 53.8M parent → 95,104 survivors → 500 NEW candidates → LensJudge v3 HSC cascade →
+**24 HSC tier-2 grade-A/B (automated): 15 SuGOHI cross-matches + 9 new (8 systems)**; 79 SuGOHI lenses
+recovered (2.7× enrichment); certified-FDR power-limited (0); 291 hard-negs exported. LLM spend
+**$43/$250**. Honest ceiling: no net-new lens established from DECaLS alone; the HSC resolution lever
+*converts* overlap candidates. **NORTH deferred** by the 7-day Perlmutter maintenance (all prep staged;
+resume recipe above). 6 commits on `claudenet-v3-dr11-campaign`.
 
 ## Phase F — certified-FDR NegEval  ⚪ pending
 ## Phase N — DR11-north retrain + sweep  🟡 prep (north positive pool locked)
