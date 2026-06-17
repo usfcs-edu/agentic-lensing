@@ -143,14 +143,14 @@
 
 \begin{document}
 \maketitle
-\subtitle{From the Visual-Inspection Wall (v1) to Contaminant-Aware Escalation (v2)}
+\subtitle{From the Visual-Inspection Wall (v1) through Contaminant-Aware Escalation (v2) to the Deployed Cascade (v3)}
 
 \begin{abstract}
 The Huang group's ResNet/EfficientNet finders emit thousands of above-threshold cutouts per
 data release; turning them into graded candidates (A/B/C/D) is a human visual-inspection (VI)
 bottleneck. We build \textbf{LensJudge} --- the system the group's onboarding report calls
 ``LensAgent''/``VI Pre-grading Agent'', renamed to avoid a name clash with an existing arXiv
-paper --- on the \emph{Claude Agent SDK for Python}, and report two generations.
+paper --- on the \emph{Claude Agent SDK for Python}, and report three generations.
 \textbf{Part~I (v1)} asks whether the data on hand can \emph{test} such a grader, and returns a
 sharp, load-bearing negative. The agent is strong where the task has clean physical features
 and confirmed labels --- the \emph{spectroscopic} discordant-redshift channel (\spectroHsu{}
@@ -170,7 +170,13 @@ DESI-undecided to Euclid-confirmed (median \plens{} $\escMedOne\!\to\!\escMedTwo
 agreement with the Euclid experts on grade-A); and an agency ablation shows the agentic loop is
 \emph{unnecessary} for detection (a loop-free grader matches it ${\sim}6\times$ cheaper) but
 \emph{essential} for mimic adjudication --- motivating a cascade deploy (${\sim}\$\cascCascade$ per
-5k survivors). We are explicit about what stays unsolved: the gains are in ranking, not
+5k survivors).
+\textbf{Part~III (v3)} builds that deployment and widens the lever: a rank-routed cascade (cheap
+triage enriches lenses, the agentic loop adjudicates only the survivors; stage-1 detection AUC
+$\cascAUC$), an HSC PDR3 $0.6\arcsec$ tier-2 that recovers $\hscRecov\%$ of the SuGOHI lenses DESI
+buries (median \plens{} $\hscMedOne\!\to\!\hscMedTwo$), and an active-learning loop that exports the
+agent's confirmed mimics back to the finder as hard negatives.
+We are explicit about what stays unsolved: the gains are in ranking, not
 tight-FPR recovery; the fine A/B/C grade remains irreducibly soft even at $0.1\arcsec$; and the
 escalated objects are independently re-graded catalogue lenses (a cross-validation), not new
 discoveries.
@@ -185,7 +191,7 @@ will only worsen at Rubin scale. LensJudge automates the structured judgment of 
 with a tool-using LLM agent, pre-grading candidates and escalating the genuinely ambiguous
 ones to a human --- it is a triage assistant, not an autonomous arbiter.
 
-\paragraph{Two generations.} This report has two parts. \textbf{Part~I} ($\S\S$\ref{sec:arch}--%
+\paragraph{Three generations.} This report has three parts. \textbf{Part~I} ($\S\S$\ref{sec:arch}--%
 \ref{sec:ceiling}) builds the grader and \emph{tests} it, and returns a load-bearing negative:
 imaging grading of the CNN's hard pool is near-chance and stays there under every backbone,
 deliberation design, and physical check we try --- the binding constraint is ground-based
@@ -193,7 +199,10 @@ deliberation design, and physical check we try --- the binding constraint is gro
 is to deploy as a high-recall \emph{detect/escalate} pre-filter and reserve fine grading for
 high-resolution or confirmed data. \textbf{Part~II} ($\S$\ref{sec:v2})\ builds precisely that
 prescription --- a contaminant-aware rubric, a two-tier high-resolution escalation, and an agency
-ablation that fixes the deploy cascade --- and measures what each buys. The two parts share the
+ablation that fixes the deploy cascade --- and measures what each buys. \textbf{Part~III}
+($\S$\ref{sec:v3hsc}) deploys it: a rank-routed cascade, a deeper HSC $0.6\arcsec$ tier-2 that
+widens the resolution lever beyond Euclid's sparse overlap, and an active-learning loop that feeds
+the agent's confirmed mimics back to the finder. The three parts share the
 data ($\S$\ref{sec:data}), the architecture ($\S$\ref{sec:arch}), and the LensBench-VI harness
 ($\S$\ref{sec:bench}).
 
@@ -905,7 +914,7 @@ rank-routing logic.
 
 \section{Conclusion}
 LensJudge can be \emph{built} on the Claude Agent SDK and, more importantly, \emph{tested} on data in
-hand --- and across two generations the test sharpened into a usable answer. \textbf{Part~I} returned
+hand --- and across three generations the test sharpened into a usable answer. \textbf{Part~I} returned
 the load-bearing negative: imaging grading of the CNN's hard pool is near-chance against the
 single-consensus A/B/C labels, and \emph{no} backbone, deliberation design, lens-model fit, or
 hand-engineered representation moves it --- the binding constraint is ground-based \emph{resolution}
