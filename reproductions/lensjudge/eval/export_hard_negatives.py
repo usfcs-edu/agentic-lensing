@@ -42,6 +42,43 @@ DEFAULT_MANIFESTS = (sorted(glob.glob(str(OUT / "lensbench_*.csv")))
 BANK_TYPES = {"cnn_high_other", "extended_lrg", "compact_rex", "exp_disk", "lrg_companion",
               "merger", "other", "blend", "noise", "star_halo", "unknown", "ring_galaxy",
               "spiral", "satellite_trail"}
+BANK_COLS = ["row_id", "RA", "DEC", "mimic_type", "p_final", "source"]
+
+
+def build_hard_negatives(preds: pd.DataFrame, coords: pd.DataFrame, p_max: float) -> pd.DataFrame:
+    """Pure core (unit-tested): preds + a name->(ra,dec[,p_meta_m]) coord table -> bank-schema rows.
+
+    Confirmed non-lens = parse_ok AND a named contaminant AND (grade_pred=='D' OR p_lens<=p_max).
+    p_final = the CNN lens-probability in [0,1] (head-logit survivors, p_meta>1, are CNN-high -> 1.0);
+    mimic_type = the contaminant clamped to the bank enum ('other' otherwise)."""
+    preds = preds.copy()
+    preds["name"] = preds["name"].astype(str)
+    has_cont = preds["contaminant"].notna() & (preds["contaminant"].astype(str).str.len() > 0) \
+        & (preds["contaminant"].astype(str).str.lower() != "none")
+    is_d = (preds["grade_pred"].astype(str).str.upper().eq("D")
+            if "grade_pred" in preds else pd.Series(False, index=preds.index))
+    low_p = pd.to_numeric(preds.get("p_lens"), errors="coerce") <= p_max
+    ok = (preds["parse_ok"].fillna(False) if "parse_ok" in preds
+          else pd.Series(True, index=preds.index))
+    conf = preds[has_cont & (is_d | low_p) & ok].copy()
+
+    conf = conf.merge(coords, on="name", how="left")
+    placed = conf.dropna(subset=["ra", "dec"]).drop_duplicates("name", keep="first")
+
+    p_meta = pd.to_numeric(placed.get("p_meta"), errors="coerce")
+    if "p_meta_m" in placed:
+        p_meta = p_meta.fillna(placed["p_meta_m"])
+    p_final = p_meta.where((p_meta >= 0) & (p_meta <= 1), 1.0).fillna(1.0)
+    cont_lc = placed["contaminant"].astype(str).str.lower()
+    mtype = cont_lc.where(cont_lc.isin(BANK_TYPES), "other")
+    return pd.DataFrame({
+        "row_id": placed["name"].astype(str),
+        "RA": placed["ra"].astype(float),
+        "DEC": placed["dec"].astype(float),
+        "mimic_type": mtype.values,
+        "p_final": p_final.astype(float).values,
+        "source": "lensjudge_v2",
+    }, columns=BANK_COLS)
 
 
 def _coord_lookup(manifests) -> pd.DataFrame:
@@ -89,41 +126,11 @@ def main():
     preds = pd.concat(frames, ignore_index=True)
     preds["name"] = preds["name"].astype(str)
 
-    # 2) filter to agent-confirmed non-lenses with a named contaminant
-    has_cont = preds["contaminant"].notna() & (preds["contaminant"].astype(str).str.len() > 0) \
-        & (preds["contaminant"].astype(str).str.lower() != "none")
-    is_d = preds.get("grade_pred").astype(str).str.upper().eq("D") if "grade_pred" in preds else False
-    low_p = pd.to_numeric(preds.get("p_lens"), errors="coerce") <= args.p_max
-    ok = preds.get("parse_ok", True).fillna(False) if "parse_ok" in preds else True
-    conf = preds[has_cont & (is_d | low_p) & ok].copy()
-    print(f"  confirmed non-lenses (contaminant + D/low-p): {len(conf)} "
-          f"({conf['contaminant'].value_counts().to_dict()})")
-
-    # 3) join coordinates from the manifests
+    # 2-4) coord lookup + the pure build (filter -> join -> bank schema)
     coords = _coord_lookup(args.manifests)
     print(f"  coord lookup: {len(coords)} name->(ra,dec) from {len(args.manifests)} manifest(s)")
-    conf = conf.merge(coords, on="name", how="left")
-    placed = conf.dropna(subset=["ra", "dec"]).drop_duplicates("name", keep="first")
-    dropped = len(conf.drop_duplicates("name")) - len(placed)
-    if dropped:
-        print(f"  [warn] {dropped} confirmed non-lens(es) had no manifest coords -> dropped")
-
-    # 4) map to the mimic-bank schema. p_final = the stage-1 finder's lens-probability in [0,1]
-    # (high = CNN-high, a hard mimic — same semantic as the bank). Some vetting runs store the
-    # v3-head *logit* in p_meta (>1); those rows are top-ranked survivors by construction, so they
-    # are CNN-high -> 1.0. Keep only genuine [0,1] probabilities as-is.
-    p_meta = pd.to_numeric(placed.get("p_meta"), errors="coerce").fillna(placed["p_meta_m"])
-    p_final = p_meta.where((p_meta >= 0) & (p_meta <= 1), 1.0).fillna(1.0)
-    mtype = placed["contaminant"].astype(str).str.lower().where(
-        placed["contaminant"].astype(str).str.lower().isin(BANK_TYPES), "other")
-    bank = pd.DataFrame({
-        "row_id": placed["name"].astype(str),
-        "RA": placed["ra"].astype(float),
-        "DEC": placed["dec"].astype(float),
-        "mimic_type": mtype.values,
-        "p_final": p_final.astype(float).values,
-        "source": "lensjudge_v2",
-    })
+    bank = build_hard_negatives(preds, coords, args.p_max)
+    print(f"  -> {len(bank)} hard negatives after filter + coord join")
 
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)

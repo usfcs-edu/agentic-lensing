@@ -163,3 +163,29 @@ total $0.235; one row flipped D→C under agentic v2. Per-stage cost matches B7
 exports agent-confirmed non-lenses but does not retrain; the cascade's stage-1 routing is rank-based
 because the direct grader's absolute grade is over-skeptical/over-confident (B7). HSC credentials are
 env-only (never committed); `cache/hsc/` is gitignored.
+
+### Testing & validation (lensjudge-v3)
+
+**Unit tests** — `tests/test_v3.py` (no API; runs under the lensjudge venv with or without pytest):
+**8/8 pass**. HSC fetch graceful-None (no creds / 404 out-of-footprint / success-mock),
+`resolve_highres` euclid→hsc priority + no-op, the B6 export mapping (schema / enum clamp / `p_final`
+clamp to [0,1]), the cascade rank-routing gate (`top_frac_indices`), and the `crossmatch()` matcher.
+(Pure cores `build_hard_negatives` and `top_frac_indices` were extracted for testability.)
+
+**HSC tier-2 validation** — `eval/run_hsc_validation.py`, the Euclid-B1 analog on the **26
+SuGOHI-matched known lenses** ($3.5). **25/26 fall in the HSC PDR3 footprint.** The over-skeptical
+DESI grader buries them (tier-1 grade D:16 / C:8 / B:1, median p_lens 0.04); **HSC tier-2 recovers
+23/25 = 92% as A/B**, median p_lens **0.04 → 0.62** (rose on 24/25), **92% agreement with the SuGOHI
+committee**. The HSC 0.6" flip is slightly shallower than the Euclid 0.1" flip (median 0.62 vs ~0.70),
+as expected for the coarser rung; 2/25 stayed D (subtle/blended even at 0.6"). This turns the single
+live anecdote into a measured result: HSC tier-2 *systematically* recovers DESI-buried lenses.
+
+**Cascade rank-routing recall** — `eval/run_cascade_recall.py`, stage-1 `direct` on **120 labeled
+rows** (50 lens / 40 mimic / 30 random; $1.5; stage-1 only, since the recall question depends only on
+the ranking). Stage-1 detection AUC **0.605**. Rank-routing behaves as designed: **lens recall
+exceeds the escalated fraction at every operating point** (pass_frac 0.3 → 40% recall, 0.5 → 66%) and
+**randoms drop well below base rate** (27% escalated at pass_frac 0.5) — the cheap stage-1 enriches
+lenses and discards obvious non-lenses. It does *not* separate lenses from mimics (mimic escalation
+≈ base rate, 48% at 0.5) — exactly stage-2's job (the B7 division of labor). Honest cost: ~34% of
+real lenses are dropped at stage-1 at pass_frac 0.5, so high-recall deployments raise pass_frac (0.7
+→ 72% recall).

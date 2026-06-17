@@ -46,6 +46,17 @@ def _cands(manifest: str, limit: int) -> list[dict]:
     return df.to_dict("records")
 
 
+def top_frac_indices(scores, pass_frac: float) -> set:
+    """Indices of the top ``pass_frac`` of ``scores`` (ties broken by original order). Pure /
+    unit-tested: this is the cascade's rank-routing gate. >=1 always escalates when there is data."""
+    n = len(scores)
+    if n == 0:
+        return set()
+    n_pass = max(1, int(round(pass_frac * n)))
+    order = sorted(range(n), key=lambda i: scores[i], reverse=True)
+    return set(order[:n_pass])
+
+
 def _s1_row(c, g1) -> dict:
     return {"name": c["name"], "grade_truth": c.get("grade"),
             "stage1_grade": (g1.grade.grade if g1.grade else None),
@@ -69,13 +80,9 @@ async def run(cands, out: Path, model, pass_frac: float, concurrency: int) -> pd
             return c, await grader_direct.grade_candidate(c, model=model, system_prompt=sysd)
     s1 = await asyncio.gather(*(triage(c) for c in cands))
 
-    # rank by stage-1 p_lens (parse failures sort last but still escalate as ambiguous) and
-    # select the top pass_frac to escalate
-    def _score(g):
-        return (g.grade.p_lens if (g.parse_ok and g.grade) else -1.0)
-    order = sorted(range(len(s1)), key=lambda i: _score(s1[i][1]), reverse=True)
-    n_pass = max(1, int(round(pass_frac * len(s1))))
-    passers = set(order[:n_pass])
+    # rank by stage-1 p_lens (parse failures score -1, sort last) and escalate the top pass_frac
+    scores = [(g.grade.p_lens if (g.parse_ok and g.grade) else -1.0) for _, g in s1]
+    passers = top_frac_indices(scores, pass_frac)
 
     # --- phase 2: agentic v2 mimic adjudication (+ tier-2) on the passers ---
     async def adjudicate(i):
