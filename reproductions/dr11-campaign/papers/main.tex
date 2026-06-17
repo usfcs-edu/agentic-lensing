@@ -52,10 +52,13 @@ independent SuGOHI cross-match calibrates the engine: \vb{} recovers \textbf{79}
 lenses into the survivors at $2.7\times$ the survivor-median score, and \textbf{15 of the 24} graded
 A/B are SuGOHI lenses (a sensitivity check --- the automated tier-2 grader's precision on the
 genuinely-new candidates is not established here). The remaining \textbf{9} (8 distinct systems) are
-new to both the DESI lens-finder catalogs and SuGOHI --- candidate detections, pending human-expert and
-spectroscopic follow-up. The honest frame is unchanged from the v3 program: the model recovers known
-lenses and ranks new candidates the higher-resolution HSC grader rates highly, but \emph{no net-new
-lens is established from DECaLS pixels alone} (all 9 depend on HSC resolution and remain unconfirmed),
+new to the DESI lens-finder catalogs and SuGOHI; a post-hoc literature crosscheck (Huang+2020, omitted
+from the campaign crossmatch, $+$ NED/SIMBAD; App.~\ref{app:gallery}) then shows \textbf{five of these
+eight systems are previously-published lenses} (mostly Huang+2020; one also SOGRAS), leaving \textbf{3}
+genuinely new --- automated-grader candidates pending follow-up. The honest frame is unchanged from the
+v3 program: the model recovers known lenses and ranks new candidates the higher-resolution HSC grader
+rates highly, but \emph{no net-new lens is established from DECaLS pixels alone} (the new candidates
+depend on HSC resolution and remain unconfirmed),
 and net-new discovery beyond existing high-resolution catalogs is resolution-bounded --- the value of
 the \emph{resolution lever} (now HSC over $\sim$1{,}300\,deg$^{2}$, far wider than Euclid Q1) is to
 \emph{convert} overlap candidates, not to manufacture discoveries. The \textbf{DR11-north} (BASS/MzLS) arm --- which needs instrument-native
@@ -162,30 +165,36 @@ so the false-positive rate of the new set is unquantified.
 
 \paragraph{The candidate catalog.} Of the 24 tier-2 grade-A/B candidates, \textbf{0} are in the DESI
 lens-finder catalogs (by construction --- the 500 were the new set after removing the 102 known), 15 are
-SuGOHI cross-matches, and \textbf{9} (8 distinct systems) are new to both the DESI finders and SuGOHI
-(Table~\ref{tab:confirmed}) --- the campaign's candidate detections. The honest caveats: \lj{}'s HSC
-grading is automated (a single Claude grader, not a human committee, no spectroscopy), and ``new'' means
-new to the DESI finders and SuGOHI, not to every HSC lens search. They are candidates warranting
-human-expert and spectroscopic follow-up, not confirmed lenses.
+SuGOHI cross-matches, and \textbf{9} (8 distinct systems) are new to the DESI finders and SuGOHI
+(Table~\ref{tab:confirmed}). A post-hoc literature crosscheck --- Huang+2020 (omitted from the
+campaign's lineage crossmatch) plus a NED/SIMBAD cone search (App.~\ref{app:gallery}) --- then shows
+\textbf{five of these eight systems are previously-published lenses} (mostly Huang+2020; one also in the
+SOAR Gravitational Arc Survey), leaving \textbf{3} genuinely new (\texttt{s\_327526\_9059},
+\texttt{s\_340971\_2860}, \texttt{s\_325163\_2981}); the recoveries are an external validation of the
+finder. The honest caveats: \lj{}'s HSC grading is automated (a single Claude grader, not a human
+committee, no spectroscopy), and ``new'' here means new to the DESI finders, SuGOHI, \emph{and} the
+NED/SIMBAD literature. They are candidates warranting human-expert and spectroscopic follow-up, not
+confirmed lenses.
 
 \begin{table}[t]\centering
-\caption{The 9 genuinely-new HSC tier-2 grade-A/B candidate detections (8 distinct systems; new to DESI
-lens-finders \emph{and} SuGOHI; automated grader, follow-up pending). $p_1,p_2$ = \lj{} tier-1 (DESI) /
-tier-2 (HSC) lens probability.}
+\caption{The 9 HSC tier-2 grade-A/B candidate detections (8 distinct systems). A literature crosscheck
+(Huang+2020 $+$ NED/SIMBAD; App.~\ref{app:gallery}) finds \textbf{5 systems are previously-published}
+(\emph{known}: H20 $=$ Huang+2020; one also SOGRAS) and \textbf{3} genuinely new. $p_1,p_2$ = \lj{}
+tier-1 (DESI) / tier-2 (HSC) lens probability.}
 \label{tab:confirmed}
-\begin{tabular}{lccccc}
+\begin{tabular}{lcccccl}
 \toprule
-name & RA & Dec & grade & $p_1\!\to\!p_2$ & \vb{}\\
+name & RA & Dec & grade & $p_1\!\to\!p_2$ & \vb{} & known\\
 \midrule
-s\_340513\_3688 & 16.332 & $+1.749$  & A & $0.22\to0.97$ & 0.77\\
-s\_327526\_9059 & 9.722  & $-0.409$  & A & $0.04\to0.92$ & 0.74\\
-s\_351303\_461  & 194.534& $+3.536$  & A & $0.62\to0.92$ & 0.89\\
-s\_345385\_1515$^{\dagger}$ & 154.312 & $+2.489$ & A & $0.10\to0.92$ & 0.81\\
-s\_340971\_2860 & 130.857& $+1.784$  & A & $0.12\to0.91$ & 0.76\\
-s\_345385\_1514$^{\dagger}$ & 154.312 & $+2.488$ & A & $0.05\to0.87$ & 0.86\\
-s\_326089\_1785 & 10.288 & $-0.730$  & A & $0.03\to0.82$ & 0.83\\
-s\_325163\_2981 & 138.848& $-0.923$  & A & $0.18\to0.82$ & 0.74\\
-s\_318043\_1037 & 158.789& $-2.304$  & B & $0.04\to0.45$ & 0.86\\
+s\_340513\_3688 & 16.332 & $+1.749$  & A & $0.22\to0.97$ & 0.77 & Huang+2020\\
+s\_327526\_9059 & 9.722  & $-0.409$  & A & $0.04\to0.92$ & 0.74 & \textbf{new}\\
+s\_351303\_461  & 194.534& $+3.536$  & A & $0.62\to0.92$ & 0.89 & Huang+2020\\
+s\_345385\_1515$^{\dagger}$ & 154.312 & $+2.489$ & A & $0.10\to0.92$ & 0.81 & Huang+2020\\
+s\_340971\_2860 & 130.857& $+1.784$  & A & $0.12\to0.91$ & 0.76 & \textbf{new}\\
+s\_345385\_1514$^{\dagger}$ & 154.312 & $+2.488$ & A & $0.05\to0.87$ & 0.86 & Huang+2020\\
+s\_326089\_1785 & 10.288 & $-0.730$  & A & $0.03\to0.82$ & 0.83 & H20$+$SOGRAS\\
+s\_325163\_2981 & 138.848& $-0.923$  & A & $0.18\to0.82$ & 0.74 & \textbf{new}\\
+s\_318043\_1037 & 158.789& $-2.304$  & B & $0.04\to0.45$ & 0.86 & Huang+2020\\
 \bottomrule
 \end{tabular}
 
@@ -219,11 +228,13 @@ $5.4\times10^{7}$ galaxies, recalibrates honestly to the DR11 domain shift (with
 relative grade-A recall loss vs DR10 --- the survivor list is incomplete), and --- through the new
 HSC tier-2 over a 20$\times$-wider footprint than Euclid Q1 --- moves 24 DESI-ambiguous candidates to
 HSC tier-2 grade-A/B under \lj{}'s automated grader, of which 15 are SuGOHI committee lenses (a
-sensitivity check) and 9 (8 systems) are new to the DESI finders and SuGOHI. The certified-FDR is
-power-limited (zero) at full-population scale, the tier-2 grader is automated (no human committee or
-spectroscopy, precision on the new set unquantified), and \emph{no net-new lens is established from
-DECaLS pixels alone} --- all 9 candidate detections depend on HSC resolution and remain unconfirmed
-pending follow-up. This is the same honest ceiling the v3 program established --- the resolution lever
+sensitivity check) and 9 (8 systems) are new to the DESI finders and SuGOHI --- though a literature
+crosscheck (Huang+2020 $+$ NED/SIMBAD; App.~\ref{app:gallery}) then shows 5 of those 8 systems are
+previously-published lenses, leaving \textbf{3} genuinely new. The certified-FDR is power-limited
+(zero) at full-population scale, the tier-2 grader is automated (no human committee or spectroscopy,
+precision on the new set unquantified), and \emph{no net-new lens is established from DECaLS pixels
+alone} --- the new candidate detections depend on HSC resolution and remain unconfirmed pending
+follow-up. This is the same honest ceiling the v3 program established --- the resolution lever
 \emph{converts} overlap candidates rather than manufacturing discoveries --- now measured on DR11 with a
 much wider confirmable overlap. The north footprint, requiring instrument-native retraining, is staged
 for completion after the Perlmutter maintenance window.
@@ -235,8 +246,10 @@ for completion after the Perlmutter maintenance window.
 \appendix
 \section{The new candidate systems at DESI and HSC resolution}
 \label{app:gallery}
-The figures below show the \textbf{8 distinct new candidate systems} (the 9 detections of
-Table~\ref{tab:confirmed}; the \texttt{s\_345385} pair is one system). Each is rendered as: the
+The figures below show the \textbf{8 distinct candidate systems} (the 9 detections of
+Table~\ref{tab:confirmed}; the \texttt{s\_345385} pair is one system). A post-hoc literature crosscheck
+(below) finds \textbf{5 of the 8 are previously-published lenses} (Huang+2020; one also SOGRAS) and
+\textbf{3} are genuinely new. Each is rendered as: the
 \cnet{}-seen DESI \emph{grz} cutout (0.262\arcsec/px, Lupton RGB --- what the finder scored, ambiguous
 at DECaLS resolution); the HSC PDR3 \emph{grizy} cutout (0.168\arcsec/px --- the same view \lj{}'s
 tier-2 grader inspected); and the HSC lens-light-subtracted view. The DESI$\to$HSC contrast is the
@@ -253,7 +266,12 @@ Only $\sim$7\% of the DR11-south candidates fall in HSC-SSP (\S\ref{sec:vet}); t
 validated beyond DECaLS resolution with current high-res data. Table~\ref{tab:resolution} lists all
 \textbf{78} candidates graded A/B at DECaLS $1\arcsec$ by the LensJudge cascade that are \emph{not} in
 HSC-SSP \emph{or} Euclid~Q1 (8~A, 70~B), ranked by tier-1 $p_{\rm lens}$, with DESI \emph{grz} cutouts
-in Figs.~\ref{fig:resgal1}--\ref{fig:resgal2}. At $1\arcsec$ a genuine lens and an lrg+companion mimic
+in Figs.~\ref{fig:resgal1}--\ref{fig:resgal2}. A literature crosscheck (\texttt{crosscheck\_candidates.py};
+Huang/Storfer/Inchausti $+$ NED/SIMBAD) finds \textbf{53 of the 78 are previously-published lenses} ---
+38 from the Dark Energy Survey lens searches, 8 Huang+2020, 6 AGEL, 1 CASSOWARY (the \emph{known} column
+of Table~\ref{tab:resolution}) --- because this DECaLS-south footprint heavily overlaps DES, which the
+campaign crossmatch omitted; the \textbf{25 genuinely new} are all grade~B (the 8 grade-A are all known
+lenses). At $1\arcsec$ a genuine lens and an lrg+companion mimic
 are not separable (the resolution ceiling of \S\ref{sec:vet}), so these are \emph{candidates}, an
 unknown and likely large fraction of which are mimics --- the contact sheets show both clear arc/ring
 morphologies and ambiguous lrg+companion configurations. They are listed in full for completeness and
