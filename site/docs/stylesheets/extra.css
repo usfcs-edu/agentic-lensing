@@ -146,6 +146,39 @@ figcaption {
   max-width: 90%;
 }
 
+/* Multi-panel report figures built from LaTeX minipages (e.g. the DR11 candidate
+   triptychs: DESI | HSC | HSC-subtracted). pandoc emits each panel as a
+   <div class="minipage"> child of <figure>, and Material renders <figure> as a
+   vertical flex column, so the panels stack. Lay them out in a horizontal row (as
+   in the PDF) with the caption wrapping full-width below. */
+.md-typeset figure:has(> .minipage) {
+  display: flex;
+  flex-flow: row wrap;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.md-typeset figure:has(> .minipage) > .minipage {
+  flex: 0 1 31%;
+  margin: 0;
+  overflow: visible;          /* override the div[markdown] overflow-x:auto above */
+}
+
+.md-typeset figure:has(> .minipage) > .minipage img {
+  width: 100%;
+  height: auto;
+}
+
+.md-typeset figure:has(> .minipage) > .minipage > p {
+  margin: 0;
+}
+
+.md-typeset figure:has(> .minipage) > figcaption {
+  flex-basis: 100%;           /* caption drops below the row, spanning full width */
+  margin-top: 0.4rem;
+}
+
 /* Visible thin rule (Material's default hr is nearly invisible) */
 .md-typeset hr {
   border: none;
