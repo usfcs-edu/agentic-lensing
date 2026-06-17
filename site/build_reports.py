@@ -30,7 +30,7 @@ TARGET = "gfm+tex_math_dollars-tex_math_gfm"
 MIN_PANDOC = (3, 1, 7)  # first release with the tex_math_gfm extension
 
 SLUGS = {
-    "current": ["lensjudge", "claudenet", "redshifty"],
+    "current": ["lensjudge", "claudenet", "redshifty", "dr11-campaign"],
     "reproductions": [
         "aion-1", "cikota-2023", "dawes-2022", "foundry-i", "foundry-ii",
         "foundry-iii", "foundry-iv", "gu-2022", "hsu-2025", "huang-2020",

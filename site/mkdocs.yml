@@ -89,6 +89,7 @@ nav:
       - LensJudge: current/lensjudge/index.md
       - ClaudeNet: current/claudenet/index.md
       - ClaudeNet DR10 Lens Rediscoveries: current/claudenet-new-candidates/index.md
+      - DR11 Lens Search: current/dr11-campaign/index.md
       - Redshifty: current/redshifty/index.md
   - Reproductions:
       - AION-1: reproductions/aion-1/index.md
