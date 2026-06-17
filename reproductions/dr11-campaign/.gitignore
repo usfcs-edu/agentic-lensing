@@ -1,0 +1,17 @@
+# Regeneratable campaign artifacts (data/ is also covered by the repo-root .gitignore)
+data/
+outputs/
+cache/
+*.parquet
+*.npy
+*.npz
+# LaTeX build products
+papers/*.aux
+papers/*.bbl
+papers/*.blg
+papers/*.log
+papers/*.out
+papers/*.fdb_latexmk
+papers/*.fls
+papers/*.toc
+papers/*.synctex.gz
