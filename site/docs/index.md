@@ -22,22 +22,45 @@ offers a **PDF download** and a link to the code and artifacts on **GitHub**.
 ## Current work — headline results
 
 **[LensJudge](current/lensjudge/index.md)** — an agentic visual-inspection (VI)
-grader for strong-lens candidates on the Claude Agent SDK. On the spectroscopic
-task it is strong: 20/20 Hsu Table-2 Grade-A pairs re-graded plausible and 4/4
-Foundry-II non-lenses rejected. On imaging grading of the CNN's hard high-score
-pool, every configuration (lean Sonnet, lean Opus, judge panel, multi-agent)
-lands near chance (AUC 0.32–0.51) against single-grader consensus A/B/C labels —
-and paying 2–4× more per candidate buys nothing. The central finding is a
-measurement problem: the missing multi-grader human ceiling, not the model.
+grader for strong-lens candidates on the Claude Agent SDK, now a unified
+v1→v2→v3 report. **v1** maps the wall: on the CNN's hard high-score pool every
+configuration (lean Sonnet, lean Opus, judge panel, multi-agent, even a
+GIGA-Lens fit) lands near chance (AUC 0.32–0.51) against single-consensus A/B/C
+labels — the binding constraint is ground-based *resolution* and soft labels,
+not the agent (the spectroscopic channel stays strong: 20/20 Hsu Table-2
+Grade-A pairs plausible, 4/4 Foundry-II non-lenses rejected). **v2** builds the
+prescribed detect/escalate pipeline: a contaminant-aware rubric lifts
+lens-vs-*mimic* ranking from chance to AUC 0.71 (+0.20), a two-tier DESI→Euclid
+0.1″ escalation flips 140 ambiguous cross-matches to confirmed (median p_lens
+0.03→0.70, ~90% agreement with the Euclid experts), and an agency ablation shows
+the loop is unnecessary for detection but essential for mimic adjudication.
+**v3** validates an HSC PDR3 0.6″ tier-2 (92% A/B recovery on SuGOHI lenses,
+median p_lens 0.04→0.62) and deploys the cost-aware cascade (~$170 per 5k
+survivors). Honest throughout: the escalated objects are cross-validated
+catalogue lenses, not new discoveries.
 
-**[ClaudeNet](current/claudenet/index.md)** — replaces the lineage's collapsed
-meta-learner with a deliberately decorrelated ensemble (EfficientNet-family
-backbones, an AION-1 frozen-embedding probe, two ResNets; member Spearman ~0.45
-vs the lineage's ~1.0). It beats the published meta-learner at **all four
-matched-FPR operating points** (+0.030 and +0.090 recovery vs Storfer at 1% and
-0.1% FPR; +0.012 and +0.090 vs Inchausti), and adds certified conformal FDR
-selection, uncertainty triage (selective error 0.022 → 0.0002 at 50% coverage),
-and test-time equivariance (+0.04).
+**[ClaudeNet](current/claudenet/index.md)** — an ML strong-lens finder for the
+DESI Legacy Surveys, consolidated across three generations. **v1** shows
+architecture is not the bottleneck — a 194K shielded ResNet ties a 20.5M
+EfficientNetV2-S to ±0.003 AUC and the Inchausti meta-learner collapses to a
+simple average on correlated bases — so a deliberately decorrelated ensemble
+(member Spearman ~0.45 vs the lineage's ~1.0) beats the published meta-learner
+at **all four matched-FPR operating points** (+0.030/+0.090 vs Storfer at
+1%/0.1% FPR; +0.012/+0.090 vs Inchausti), adding certified conformal FDR
+selection, uncertainty triage (selective error 0.022→0.0002 at 50% coverage),
+and test-time equivariance (+0.04). **v2** rebuilds the measuring stick at
+deployment scale (a 10⁶-negative held-out pool) and runs a 17.3M-galaxy DR9
+sweep yielding 737 FDR-controlled candidates — but a qualification campaign
+grades **zero** of the 601 genuinely-new ones as A/B while correctly
+re-discovering catalogued lenses, diagnosing the real constraint: lens-vs-mimic
+separation and vetting resolution, not architecture. **v3** answers with a
+contaminant-aware finder (typed lens-mimic bank, mimic-blended hard negatives, a
+recovery@matched-mimic-FPR metric, a lens-vs-mimic head): it cleanly rejects
+common mimics (0.60→0.89) but on an independent Euclid-graded sample ties the
+originals at the hardest real-vs-mimic distinction — the discovery frontier is
+**resolution-bounded** at DECaLS 0.262″/px. Cross-validating the DESI∩Euclid-Q1
+overlap yields 49 cross-validated candidates (median p_lens 0.03→0.70); the
+decisive levers are higher-resolution vetting and instrument-native training.
 
 **[Redshifty](current/redshifty/index.md)** — reproduces the Approach-A
 "redshift ignition" NERSC result on a single commodity GPU: sustained
