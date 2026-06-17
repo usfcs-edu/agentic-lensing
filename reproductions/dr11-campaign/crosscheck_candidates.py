@@ -1,21 +1,24 @@
 #!/usr/bin/env python3
 """crosscheck_candidates.py -- is each campaign candidate already a published lens?
 
-Two-stage literature crosscheck (the same one applied to the v3 DR10 set):
+Literature crosscheck (the same one applied to the v3 DR10 set):
   1. LINEAGE + external: nearest neighbour (haversine, 5") in the
      Huang+2020/2021, Storfer 2024, Inchausti 2025 catalogues + claudenet's
      external_lens_catalog.csv (CASSOWARY/DES literature matches). Mirrors
      claudenet/_clib.known_lens_catalogs but reads the sibling-reproduction copies
      that exist off-Perlmutter (claudenet/data is staged only on the cluster).
-  2. LITERATURE: SIMBAD cone search (15"); a lens-typed object within 6" marks the
+  2. LITERATURE (SIMBAD): cone search (15"); a lens-typed object within 6" marks the
      candidate KNOWN, with the survey inferred from the catalogue id.
+  3. LITERATURE (NED), opt-in via --ned: for candidates still unmatched after SIMBAD,
+     a NED cone search (15"); a NED object whose type contains "lens" within 6" marks
+     it KNOWN. NED is slower/flakier than SIMBAD, so it is off by default.
 
 This is the step the DR11 campaign's lineage-only crossmatch skipped (it also
 omitted Huang+2020), which is why many already-published DES/AGEL/Huang lenses
 were listed as new. Writes <out> with per-candidate status + the matched lens.
-Requires astroquery + network for stage 2.
+Requires astroquery + network for stages 2--3.
 
-    python crosscheck_candidates.py \
+    python crosscheck_candidates.py --ned \
         --candidates data/dr11s_desi_resolution_AB.csv \
         --out data/dr11s_resolution_xmatch.csv
 """
@@ -91,6 +94,10 @@ def main():
     ap.add_argument("--lineage-radius", type=float, default=5.0)
     ap.add_argument("--simbad-radius", type=float, default=15.0)
     ap.add_argument("--simbad-match", type=float, default=6.0)
+    ap.add_argument("--ned", action="store_true",
+                    help="stage 3: also query NED for candidates still unmatched after SIMBAD")
+    ap.add_argument("--ned-radius", type=float, default=15.0)
+    ap.add_argument("--ned-match", type=float, default=6.0)
     args = ap.parse_args()
 
     cats = [(tag, load(p)) for tag, p in LINEAGE]
@@ -135,9 +142,12 @@ def main():
                 sim.add_votable_fields(f)
             except Exception:
                 pass
+        if args.ned:
+            from astroquery.ipac.ned import Ned
+            Ned.TIMEOUT = 120
         for rec, ra, dec in unmatched:
             ctr = SkyCoord(ra * u.deg, dec * u.deg)
-            hit = None
+            hit, src = None, None
             try:
                 t = sim.query_region(ctr, radius=args.simbad_radius * u.arcsec)
                 if t is not None and len(t):
@@ -148,12 +158,31 @@ def main():
                             continue
                         s = ctr.separation(SkyCoord(float(row[rcc]) * u.deg, float(row[dcc]) * u.deg)).arcsec
                         if s < args.simbad_match and (hit is None or s < hit[0]):
-                            hit = (s, str(row[mc]).strip(), str(row[oc]))
+                            hit, src = (s, str(row[mc]).strip(), str(row[oc])), "SIMBAD"
             except Exception as e:
                 print(f"[xc] SIMBAD {rec['name']}: {type(e).__name__}", file=sys.stderr)
+            # stage 3: NED for candidates still unmatched after SIMBAD (opt-in via --ned)
+            if args.ned and hit is None:
+                try:
+                    nt = Ned.query_region(ctr, radius=args.ned_radius * u.arcsec)
+                    if nt is not None and len(nt):
+                        ncn, ntc, nrc, ndc = (_col(nt.colnames, "object name"), _col(nt.colnames, "type"),
+                                              _col(nt.colnames, "ra"), _col(nt.colnames, "dec"))
+                        for row in nt:
+                            ty = row[ntc]
+                            ty = ty.decode() if isinstance(ty, bytes) else str(ty)
+                            if "lens" not in ty.lower():
+                                continue
+                            s = ctr.separation(SkyCoord(float(row[nrc]) * u.deg, float(row[ndc]) * u.deg)).arcsec
+                            if s < args.ned_match and (hit is None or s < hit[0]):
+                                nm = row[ncn]
+                                nm = nm.decode() if isinstance(nm, bytes) else str(nm)
+                                hit, src = (s, nm.strip(), ty), "NED"
+                except Exception as e:
+                    print(f"[xc] NED {rec['name']}: {type(e).__name__}", file=sys.stderr)
             if hit:
                 rec.update(status="known", counterpart=hit[1], survey=survey_of(hit[1]),
-                           sep_arcsec=f"{hit[0]:.2f}", source="SIMBAD")
+                           sep_arcsec=f"{hit[0]:.2f}", source=src)
             else:
                 rec.update(status="new", counterpart="", survey="", sep_arcsec="", source="")
             results.append(rec)
