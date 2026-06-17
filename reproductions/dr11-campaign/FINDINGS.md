@@ -97,7 +97,31 @@ so the candidate list is the v3blend8 ranking (science list), reported separatel
 `negeval_cal[row_id,v2lean_average]` + `negeval_manifest[row_id,footprint]`. Artifacts
 `$SCRATCH/.../south/{conformal.parquet,conformal_summary.json}`.
 
-Next: Phase V (HSC tier-2 vetting of the 198 NEW south candidates) + Phase N (north sweep + retrain).
+## ⚠️ Perlmutter 7-day maintenance (2026-06-17 06:00 → 06-24 06:00)
+
+Discovered mid-campaign (`maintenance_20260617`, full-system). The SOUTH sweep finished all its
+Perlmutter work BEFORE the window (parent/extract/score/survivor-score/candidate-FITS all done);
+**south vetting + report run locally (Anthropic API + HSC), maintenance-immune → completable now.**
+The NORTH workstream (extract→score→retrain→sweep, multi-hour GPU+CPU) **cannot fit before 06:00**
+(north jobs hit `ReqNodeNotAvail`; cancelled). **North is DEFERRED to post-maintenance** — all prep
+staged for a clean resume (below).
+
+**North resume recipe (post-2026-06-24):** parent `$SCRATCH/claudenet/sweep_dr11/parent_dr11_north.parquet`
+(11.6M) + 8-part manifest `manifest_north/` + 523 positives (`cutouts/north_pos_dr11` + FITS via 120b)
+all staged. Resume: `dr11_extract.slurm FOOT=north NPARTS=8 MANDIR=manifest_north` → `dr11_score.slurm
+FOOT=north` (aftercorr) → mine north mimics/negatives from north scores → `19b` base tables + `314`
+north blend → patched `121 --base-table --init-ckpt _b50 --out-suffix _north` (3 members) → validate
+gates G1–G5 → north select. (Phase A model re-iteration also deferred — Perlmutter GPU.)
+
+## Phase V — LensJudge v3 cascade vetting (south)  🟡 in progress
+
+- 500 NEW candidate FITS staged (`dr11-campaign/data/cutouts_dr11`, FORK-3); cutout resolution +
+  v3 unit tests (9/9) pass; HSC + Anthropic API reachable (legacysurvey NOT → on-disk staging).
+- **Pilot (40, pass_frac 0.5, $2.74) ✅**: full path works — 20 escalated, **3 reached HSC tier-2,
+  all 3 flipped to grade A** (s_336801_4965 0.80, s_351303_461 0.88, s_318982_1451 0.95) + a DESI-only
+  A (s_292418_3907 0.80) + several B; mimics → D (p≈0.04). HSC `das_cutout` tier-2 confirmed working.
+- **Full south cascade RUNNING** (500, pass_frac 0.7, HSC tier-2, ~$40–50 est). Next: SuGOHI/HSC
+  anchor + qualify confirmed; active-learning export (local).
 
 ## Phase F — certified-FDR NegEval  ⚪ pending
 ## Phase N — DR11-north retrain + sweep  🟡 prep (north positive pool locked)

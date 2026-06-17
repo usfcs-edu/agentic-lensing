@@ -21,8 +21,10 @@ module load "${PYTORCH_MODULE:-pytorch/2.8.0}"
 P=$(printf %02d "$SLURM_ARRAY_TASK_ID")
 FOOT="${FOOT:-south}"
 NPARTS="${NPARTS:-32}"
-echo "[dr11extract] foot=$FOOT part=$P/$NPARTS host=$(hostname) cpus=${SLURM_CPUS_PER_TASK:-?}"
+NP=$(printf %02d "$NPARTS")
+MANDIR="${MANDIR:-manifest}"
+echo "[dr11extract] foot=$FOOT part=$P/$NP mandir=$MANDIR host=$(hostname) cpus=${SLURM_CPUS_PER_TASK:-?}"
 python 111_extract_cutouts_cfs.py \
-    --manifest "$SCRATCH/claudenet/sweep_dr11/manifest/sweep_manifest_part${P}of${NPARTS}.parquet" \
+    --manifest "$SCRATCH/claudenet/sweep_dr11/${MANDIR}/sweep_manifest_part${P}of${NP}.parquet" \
     --out-root "$SCRATCH/claudenet/cutouts/sweep_dr11_${FOOT}/part${P}" \
     --size 101 --bands grz --release dr11 --workers 64 --shard-size 50000
