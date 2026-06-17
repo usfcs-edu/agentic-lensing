@@ -120,8 +120,21 @@ gates G1–G5 → north select. (Phase A model re-iteration also deferred — Pe
 - **Pilot (40, pass_frac 0.5, $2.74) ✅**: full path works — 20 escalated, **3 reached HSC tier-2,
   all 3 flipped to grade A** (s_336801_4965 0.80, s_351303_461 0.88, s_318982_1451 0.95) + a DESI-only
   A (s_292418_3907 0.80) + several B; mimics → D (p≈0.04). HSC `das_cutout` tier-2 confirmed working.
-- **Full south cascade RUNNING** (500, pass_frac 0.7, HSC tier-2, ~$40–50 est). Next: SuGOHI/HSC
-  anchor + qualify confirmed; active-learning export (local).
+- **Full south cascade DONE** (500, pass_frac 0.7, $40.38): 350 escalated, **26 reached HSC tier-2
+  → 24 confirmed grade-A/B (19 A + 5 B)**. Grade dist 272 D / 125 C / 76 B / 27 A; 103 DESI-grade A/B
+  overall. DESI→HSC p_lens flips dramatic (e.g. 0.03→0.95, 0.04→0.92) — the resolution lever converts.
+- **Confirmed catalog (`data/dr11s_confirmed_AB.csv`):** of the 24 HSC-confirmed A/B —
+  **15 cross-validated with SuGOHI** (v3blend8 ∩ LensJudge-HSC-A/B ∩ SuGOHI committee; = the
+  independent validation anchor: the HSC grader recovers 15 known HSC lenses), **0 in DESI catalogs**
+  (all new to storfer/inch/huang), **9 genuinely NEW** (new to DESI lens-finders AND SuGOHI; 8 A + 1 B):
+  s_340513_3688, s_327526_9059, s_351303_461, s_345385_1515, s_340971_2860, s_345385_1514,
+  s_326089_1785, s_325163_2981 (A) + s_318043_1037 (B). These 9 are the discovery payoff — pending
+  human-expert + spectroscopic follow-up (LensJudge HSC grading is automated; single-grader caveat).
+- **SuGOHI independent recovery:** v3blend8 pulls **79 SuGOHI HSC lenses** into the 95k survivors
+  (median v3blend8 2.7× the survivor median; 27 in top-500) — independent evidence v3 ranks real lenses
+  high. **Campaign LLM spend $43.12 / $250.**
+
+Next: active-learning export (local) → report. (Phase A model re-iteration + north = Perlmutter, deferred.)
 
 ## Phase F — certified-FDR NegEval  ⚪ pending
 ## Phase N — DR11-north retrain + sweep  🟡 prep (north positive pool locked)
