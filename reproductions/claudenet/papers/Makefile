@@ -12,6 +12,7 @@
 # =============================================================================
 PAPER       := main
 CORE        := v3_core
+NEWCAND     := new_candidates
 TEX_DEPS    := $(wildcard *.tex) $(wildcard tables/*.tex)
 FIG_DEPS    := $(wildcard figures/*.png)
 BIB_SOURCE  := references.bib
@@ -20,11 +21,12 @@ DEPS        := $(TEX_DEPS) $(FIG_DEPS) $(BIB_SOURCE) $(SHARED_STY)
 PDFLATEX    := pdflatex -interaction=nonstopmode -halt-on-error
 BIBTEX      := bibtex
 
-.PHONY: pdf core all clean distclean help
+.PHONY: pdf core new_candidates all clean distclean help
 
 pdf: $(PAPER).pdf
 core: $(CORE).pdf
-all: pdf core
+new_candidates: $(NEWCAND).pdf
+all: pdf core new_candidates
 
 # 3x pdflatex + bibtex resolves \ref/\cite across the modular \input's.
 $(PAPER).pdf: $(DEPS)
@@ -40,11 +42,16 @@ $(CORE).pdf: $(DEPS)
 	$(PDFLATEX) $(CORE)
 	$(PDFLATEX) $(CORE)
 
+# Standalone image atlas of the Table 11 NEW grade-A candidates (no citations).
+$(NEWCAND).pdf: $(DEPS)
+	$(PDFLATEX) $(NEWCAND)
+	$(PDFLATEX) $(NEWCAND)
+
 clean:
 	rm -f *.aux *.bbl *.blg *.log *.out *.fdb_latexmk *.fls *.toc *.synctex.gz
 
 distclean: clean
-	rm -f $(PAPER).pdf $(CORE).pdf
+	rm -f $(PAPER).pdf $(CORE).pdf $(NEWCAND).pdf
 
 help:
-	@echo "Targets: pdf (main) | core (v3_core) | all | clean | distclean"
+	@echo "Targets: pdf (main) | core (v3_core) | new_candidates | all | clean | distclean"

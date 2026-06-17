@@ -1,0 +1,93 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  ClaudeNet v3 -- image atlas of the Table 11 NEW grade-A candidates.
+%%  Standalone report (sibling of main.tex / v3_core.tex). Builds with vanilla
+%%  TeX Live (>= 2022). Figures are produced by ../93_make_gallery.py.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[11pt,letterpaper]{article}
+\usepackage{../../tech-report}
+\usepackage{graphicx}
+
+\newcommand{\cnet}{\textsc{ClaudeNet}}
+\newcommand{\plens}{\ensuremath{p_{\rm lens}}}
+
+\title{\cnet{} v3: An Image Atlas of the New Strong-Lens\\
+       Candidates from DR10}
+\author{Greg Benson\thanks{\texttt{benson@cs.usfca.edu}; Department of Computer
+        Science, University of San Francisco, CA 94117, USA} \and
+        Xiaosheng Huang\thanks{Department of Physics \& Astronomy, University of
+        San Francisco; and Physics Division, Lawrence Berkeley National Laboratory}}
+\date{June 2026}
+
+\begin{document}
+\maketitle
+\subtitle{DESI-resolution cutout panels for the three panel-qualified NEW v3 grade-A candidates of Table~11}
+
+\section{The candidates}
+This atlas shows the imaging for the three \emph{new} strong-lens candidates that
+\cnet{}~v3 surfaced in the DR10 vetting and that survived the campaign
+qualification panel (advocate/\allowbreak skeptic/\allowbreak morphology/\allowbreak contaminant, skeptic veto,
+2-of-$N$ A-rule) --- i.e.\ Table~11 of the \cnet{} report (\texttt{papers/main.pdf}).
+The object ids and grades are read from \texttt{v3/cv3\_new\_gradeA.csv}; the
+sky positions are joined from \texttt{v3/manifests\_d2\_newA.csv} (whose ranking
+score equals the table's C-vet \plens{}). Each cutout is a grz \texttt{ls-dr10}
+image at the finder's native geometry ($101$\,px, $0.262\arcsec$/px), fetched and
+rendered with the group's inspection-viewer renderer (Lupton $Q{=}8$, vertical
+flip, $400$\,px upsample), so these are exactly the pixels the v3 model and the
+panel saw. For each object we show three panels: the \emph{full} $101$-px cutout,
+a $2.5\times$ center \emph{zoom}, and a lens-light-subtracted \emph{residual} that
+exposes the low-surface-brightness arc/ring hiding under the lens-galaxy light.
+
+\paragraph{Honest framing.} Table~11 as first produced listed \emph{four}
+candidates; we exclude \texttt{s\_310364\_6649}, which a crossmatch against the
+Huang+2020 DECaLS catalogue identified as the already-published grade-A lens
+\texttt{DESI-038.2078-03.3906} ($0.2''$ match) --- a recovery, not a new
+candidate. The remaining three positions have \emph{no} Euclid coverage, so
+they are DESI-resolution-\emph{qualified candidates, not confirmations}. At the
+DECaLS $\sim$$1.3\arcsec$ seeing the ring-vs-partial-arc distinction is
+genuinely uncertain at $0.262\arcsec$/px; higher-resolution imaging (Euclid/HSC,
+HST, or Keck AO) is required to confirm them and measure an Einstein radius.
+
+\begin{table}[h]\centering
+\caption{The three NEW v3 grade-A candidates of Table~11, with the sky positions
+used to render the cutouts below.}
+\label{tab:newcand}\small
+\begin{tabular}{lccccc}
+\toprule
+DESI id & RA (deg) & Dec (deg) & C-vet \plens{} & ranking & panel grade\\
+\midrule
+s\_441355\_1111  & $177.1381$ & $+19.5009$ & 0.74 & head     & A\\
+s\_124958\_10481 & $58.1768$  & $-38.4292$ & 0.82 & v3blend8 & B\\
+s\_102952\_9916  & $334.8017$ & $-43.8098$ & 0.76 & v3blend8 & B\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Cutout panels}
+
+\begin{figure}[!ht]\centering
+\includegraphics[width=0.95\linewidth]{figures/newcand_s_441355_1111.png}
+\caption{\textbf{s\_441355\_1111} --- RA $177.1381\degr$, Dec $+19.5009\degr$;
+C-vet \plens{}$=0.74$ (head list), panel grade~A. Panels: full / zoom
+($2.5\times$) / lens-light residual.}
+\label{fig:c2}
+\end{figure}
+
+\begin{figure}[!ht]\centering
+\includegraphics[width=0.95\linewidth]{figures/newcand_s_124958_10481.png}
+\caption{\textbf{s\_124958\_10481} --- RA $58.1768\degr$, Dec $-38.4292\degr$;
+C-vet \plens{}$=0.82$ (v3blend8 list), panel grade~B. Panels: full / zoom
+($2.5\times$) / lens-light residual.}
+\label{fig:c3}
+\end{figure}
+
+\begin{figure}[!ht]\centering
+\includegraphics[width=0.95\linewidth]{figures/newcand_s_102952_9916.png}
+\caption{\textbf{s\_102952\_9916} --- RA $334.8017\degr$, Dec $-43.8098\degr$;
+C-vet \plens{}$=0.76$ (v3blend8 list), panel grade~B. The residual panel surfaces
+a near-complete blue/teal ring encircling the red elliptical core (annulus
+$\sim$$0.7$\,mag bluer in $g{-}r$ than the core), the morphology that drove the
+panel grade. Panels: full / zoom ($2.5\times$) / lens-light residual.}
+\label{fig:c4}
+\end{figure}
+
+\end{document}
