@@ -159,6 +159,19 @@ def test_crossmatch_matcher():
     assert float(m["t_sep_arcsec"].iloc[0]) < 2.0
 
 
+# -------------------------------------------------- DESI name -> RA/Dec fallback
+def test_parse_radec_from_name():
+    from lensjudge.common.fetch import parse_radec_from_name
+    ra, dec = parse_radec_from_name("DESI-029.0755-01.1297")
+    assert abs(ra - 29.0755) < 1e-4 and abs(dec + 1.1297) < 1e-4
+    ra2, dec2 = parse_radec_from_name("DESI-091.7214-58.9787")
+    assert abs(ra2 - 91.7214) < 1e-4 and abs(dec2 + 58.9787) < 1e-4
+    ra3, dec3 = parse_radec_from_name("DESI-150.5180+04.7380")
+    assert abs(ra3 - 150.5180) < 1e-4 and abs(dec3 - 4.7380) < 1e-4
+    assert parse_radec_from_name("s_358314_2329") == (None, None)   # non-coord name
+    assert parse_radec_from_name(None) == (None, None)
+
+
 if __name__ == "__main__":
     tests = [v for k, v in sorted(globals().items())
              if k.startswith("test_") and callable(v)]

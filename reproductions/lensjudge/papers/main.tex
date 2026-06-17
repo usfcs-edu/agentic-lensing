@@ -866,7 +866,7 @@ Fig.~\ref{fig:v2flip}, one resolution rung coarser than Euclid.}
 stage-1 rank} to the agentic v2 grader (plus tier-2 by coverage). We route by \emph{rank}, not the
 direct grader's absolute grade, because that grade is over-skeptical and over-confidently names
 contaminants --- in Appendix~\ref{app:v3examples} (B.1) stage~1 grades a \emph{real} lens
-``D / lrg\_companion'' with $0.88$ confidence --- so its trustworthy signal is \emph{ranking}.
+``D / lrg\_companion'' with $0.72$ confidence --- so its trustworthy signal is \emph{ranking}.
 
 \textbf{Does rank-routing keep the lenses?} On a $120$-row labelled set ($50$ lens / $40$ mimic /
 $30$ random) the cheap stage-1 score has detection AUC \cascAUC{}, and rank-routing behaves as
@@ -1203,7 +1203,7 @@ elision-only (\code{[...]}), the harness \code{ToolSearch} tool-discovery call a
 stages ($1.3\arcsec$) grade it \emph{D}; only the HSC tier-2 ($0.168\arcsec$) flips it to \emph{B}.
 
 \paragraph{Stage 1 --- deterministic triage (\code{direct}: render $+$ photometry $+$ one inline
-call; 1 turn, no tools, \$0.024).} The Python pipeline assembles the evidence; the model is called
+call; 1 turn, no tools, \$0.049).} The Python pipeline assembles the evidence; the model is called
 exactly once.
 
 \begin{toolio}{deterministic pipeline (Python; no model) --- evidence for one inline call (Figure~\ref{fig:v3ep-desi})}
@@ -1232,31 +1232,38 @@ LRG$+$companion (grade D). The blue arc is blended into the lens light at this r
 \end{figure}
 
 \begin{toolio}{thinking (summarized)}
-Full/zoom: a central red/orange elliptical with a companion to its left, also reddish. [...]
-Photometry: the core is extremely red (g-r=1.418); the annulus is only marginally bluer (g-r=1.268)
--- still far too red to be a lensed blue source. Contaminant: a classic LRG with a red companion --
-round, compact, no arc, no counter-image, no tangential elongation. Despite the high CNN score, a
-textbook false positive.
+Full/zoom: a central red/orange elliptical with a reddish companion to its left; no obvious blue arc.
+Residual: two compact red sources remain, with some blue/teal diffuse emission around them -- possibly
+a faint arc, or a subtraction artifact. Photometry: the core is extremely red (g-r=1.418); the annulus
+is only marginally bluer (g-r=1.268) -- far too red for a lensed blue source (which needs g-r below
+~0.5). [...] The blue residual is genuinely puzzling, but the red annulus and the lack of tangential
+curvature or counter-images win out -- a red LRG with a companion. Grade D.
 \end{toolio}
 
 \begin{toolio}{single inline judgment --- final grade (JSON)}
-{"grade": "D", "p_lens": 0.04, "confidence": 0.88, "contaminant": "lrg_companion",
+{"grade": "D", "p_lens": 0.08, "confidence": 0.72, "contaminant": "lrg_companion",
  "escalate_to_human": false,
- "rationale": "[...] both core (g-r=1.42) and annulus (g-r=1.27) are extremely red; the annulus is
- only marginally 'bluer' by ~0.14 mag, consistent with a less massive red companion rather than a
- lensed blue source. [...] Classic LRG+companion false positive despite the high CNN score."}
+ "rationale": "The companion to the upper-left of the central red elliptical is clearly orange/red,
+ not blue. Photometry confirms it: annulus g-r=1.268, r-z=1.042 are both very red, only marginally
+ bluer than the core (g-r=1.418), with no genuinely blue lensed source (which would need g-r below
+ ~0.5). The residual shows some blue/teal diffuse emission, but with the annulus dominated by red flux
+ this is most plausibly a lens-subtraction artifact, not an arc. No tangential arc, no curvature, no
+ blue counter-images -- consistent with a projected red LRG companion."}
 \end{toolio}
 
-\paragraph{Stage 2 --- agentic adjudication on DESI (the SDK loop; 4 turns, \$0.134).} Now the model
-plans its own tools. Here \texttt{fetch\_cutout} failed to load this candidate's cutout, so the agent
-fell back to photometry and still concluded D --- consistent with stage~1, whose deterministic render
-(strip above) already supplies the image-based verdict.
+\paragraph{Stage 2 --- agentic adjudication on DESI (the SDK loop; 4 turns, \$0.129).} Now the model
+plans its own tools: it fetches the cutout (passing the candidate's ra/dec) and the photometry,
+inspects the three views, and --- seeing the same red core with a red companion and no blue arc ---
+independently concludes D.
 
 \begin{toolio}{tool call --- fetch\_cutout}
-{"name": "DESI-029.0755-01.1297", "survey": "storfer", "views": ["full", "zoom", "residual"]}
+{"name": "DESI-029.0755-01.1297", "survey": "storfer", "ra": 29.075515, "dec": -1.129749, "views": ["full", "zoom", "residual"]}
 \end{toolio}
-\begin{toolio}{tool result --- fetch\_cutout (ERROR)}
-ERROR: could not load a cutout for DESI-029.0755-01.1297 (survey=storfer).
+\begin{toolio}{tool result --- fetch\_cutout (3 images; Figure~\ref{fig:v3ep-desi})}
+Candidate DESI-029.0755-01.1297 -- grz cutout, 26.5" field. Views follow:
+[full]     whole cutout, 26.5" across, Lupton-RGB (z=R, r=G, g=B).
+[zoom]     2.5x center crop -- the 1-5" arc / counter-image region.
+[residual] lens-light removed -- low-surface-brightness arcs stand out against a flat background.
 \end{toolio}
 \begin{toolio}{tool call --- get\_photometry}
 {"name": "DESI-029.0755-01.1297", "survey": "storfer", "ra": 29.075515, "dec": -1.129749}
@@ -1266,22 +1273,24 @@ ERROR: could not load a cutout for DESI-029.0755-01.1297 (survey=storfer).
 \end{toolio}
 
 \begin{toolio}{thinking (summarized)}
-Cutout failed to load -- I cannot inspect morphology, so photometry is the sole diagnostic. Both core
-(g-r=1.42) and annulus (g-r=1.27) sit firmly in red-galaxy color space; a genuine lensed blue arc
-would drive the annulus to g-r below ~0.7, not 1.27. The ~0.15 mag offset is the outward color
-gradient of a red elliptical or a red companion. [...] Grade D, lrg_companion, escalate for human
-review since the image failed.
+Zoom: the central red elliptical with a compact orange/yellowish companion to its west -- a separate
+galaxy, not an arc, with no tangential curvature. Residual: a faint bluish smear around the centre,
+but the companion is orange/red. Photometry: annulus g-r=1.268 is still red-galaxy color; a lensed
+blue arc would be g-r below ~0.5. The faint blue residual is most likely imperfect lens subtraction.
+No tangential arc, no counter-image on the opposite side -- one-sided geometry. Grade D, lrg_companion.
 \end{toolio}
 
 \begin{toolio}{agent --- final grade (JSON)}
-{"grade": "D", "p_lens": 0.05, "confidence": 0.52, "contaminant": "lrg_companion",
- "escalate_to_human": true,
- "rationale": "Cutout retrieval failed [...] both core AND annulus sit firmly in red-galaxy color
- space -- a genuine lensed blue arc would drive the annulus to g-r below ~0.7, not 1.27. [...]
- LRG+companion strongly favored by the photometry; human review with working image access required."}
+{"grade": "D", "p_lens": 0.05, "confidence": 0.82, "contaminant": "lrg_companion",
+ "escalate_to_human": false,
+ "rationale": "All three views show a red/orange elliptical with a compact orange-red companion ~3\"
+ to its west -- the companion is clearly not blue. Photometry is decisive: annulus g-r=1.268,
+ r-z=1.042 are red-galaxy colors (only ~0.15 bluer than the core); a lensed star-forming arc would
+ need g-r below ~0.5-0.7. The residual shows no tangential arc, no curvature wrapping the lens, and no
+ counter-image on the opposite side -- entirely one-sided. A textbook LRG+companion false positive."}
 \end{toolio}
 
-\paragraph{Stage 3 --- agentic tier-2 at HSC $0.168\arcsec$ (the SDK loop; 3 turns, \$0.081).}
+\paragraph{Stage 3 --- agentic tier-2 at HSC $0.168\arcsec$ (the SDK loop; 3 turns, \$0.074).}
 Coverage resolves to HSC; the agent fetches the grizy cutout and re-grades the same sky position.
 
 \begin{toolio}{tool call --- fetch\_hsc\_cutout}
@@ -1306,35 +1315,38 @@ HSC-SSP PDR3 ra=29.075515, dec=-1.129749 -- 0.168"/px grizy (bands present: giry
   \includegraphics[width=\linewidth]{figures/appendix_v3_hsc__lum_sub.png}\\[2pt]{\scriptsize $i$-band, lens-subtracted}
 \end{minipage}
 \caption{\textbf{HSC PDR3 grizy views} ($0.168\arcsec$) for the same sky position: the $6\arcsec$ zoom
-resolves blue emission wrapping ${\sim}200$--$270^\circ$ around the red core, and the lens-subtracted
-$i$-band shows the lensed-image residual blobs --- invisible at DESI's $1.3\arcsec$. The agent grades
-this B.}
+resolves blue emission wrapping tangentially around the red core, and the lens-subtracted $i$-band
+shows the lensed-image residual blobs --- invisible at DESI's $1.3\arcsec$. The agent grades this B.}
 \label{fig:v3ep-hsc}
 \end{figure}
 
 \begin{toolio}{thinking (summarized) --- after inspecting the HSC views}
-Zoom color (6"): clear blue emission wrapping ~200-270 deg around the red core -- distinctly bluer
-than the lens, compelling. lum_sub residual: 2-3 distinct bright blobs at different azimuths after
-lens subtraction -- consistent with multiple images or a broken Einstein ring. The blue wrap rules
-out an LRG+companion (same color) and a ring galaxy (color would match). Two of three A-criteria met;
-counter-images not fully resolved at ~0.6" seeing, so B. [...]
+Full/zoom color: the central red/orange elliptical now shows distinctly blue features wrapping
+tangentially around it at ~1-3" separation -- a partial Einstein ring or arc pair, clearly bluer than
+the red core. lum_sub residual: multiple compact bright blobs at roughly consistent radii on more than
+one side -- consistent with arc + counter-arc. The blue wrap rules out an LRG+companion (same color)
+and a ring galaxy (color would match). Curvature and arc morphology both met; the counter-image
+geometry is not textbook-clean, so B not A. [...]
 \end{toolio}
 
 \begin{toolio}{agent --- final grade (JSON)}
 {"grade": "B",
  "criteria": {"blue_source": 8, "low_surface_brightness": 6, "curvature": 7,
               "counter_images": 6, "arc_morphology": 7},
- "p_lens": 0.62, "confidence": 0.65, "contaminant": null, "escalate_to_human": true,
- "rationale": "The 6\" zoom shows blue emission wrapping ~200-270 deg around the red core, clearly
- bluer than the lens [...] the lum_sub reveals 2-3 distinct blobs consistent with multiple lensed
- images or a broken Einstein ring. Two of three A-criteria met; the blobs are not fully resolved into
- clean arcs at HSC ~0.6\" seeing, keeping the grade at B."}
+ "p_lens": 0.70, "confidence": 0.72, "contaminant": null, "escalate_to_human": true,
+ "rationale": "The zoom color view shows distinctly blue emission wrapping tangentially around the
+ central red/orange elliptical at ~1-3\" separation, the color contrast ruling out an LRG+companion
+ blend. The lum_sub residual reveals multiple compact blobs at roughly consistent radii across at
+ least two azimuths, consistent with arc+counter-arc or a partial Einstein ring; curvature and
+ arc_morphology are met. The counter-image geometry is not cleanly resolved, so the grade stops at B
+ rather than A. Escalation recommended for confirmation."}
 \end{toolio}
 
-\noindent The two DESI stages agree (D, $\plens{\approx}0.04$); only the $0.168\arcsec$ tier-2
-resolves the blue tangential arc the $1.3\arcsec$ pixels had blended into the lens light, flipping the
-verdict to B. This is the resolution lever of \S\ref{sec:v3hsc} in a single candidate --- and the
-$23/25$ recovery of Fig.~\ref{fig:v3hscflip} is this episode, $25$ times over.
+\noindent The two DESI stages independently agree (D, $\plens=0.08$ then $0.05$); only the
+$0.168\arcsec$ tier-2 resolves the blue tangential arc the $1.3\arcsec$ pixels had blended into the
+lens light, flipping the verdict to B ($\plens=0.70$). This is the resolution lever of
+\S\ref{sec:v3hsc} in a single candidate --- and the $23/25$ recovery of Fig.~\ref{fig:v3hscflip} is
+this episode, $25$ times over.
 
 % -----------------------------------------------------------------------------
 \subsection*{B.2\quad A confident mimic the cheap stage rejects}
