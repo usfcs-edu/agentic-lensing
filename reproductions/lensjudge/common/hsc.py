@@ -12,6 +12,7 @@ from __future__ import annotations
 from typing import Optional
 
 import numpy as np
+from PIL import Image
 
 # scale-independent render helpers (reused verbatim from the Euclid renderer)
 from lensjudge.common.euclid import _azimuthal_median_model, _stretch, _to_img
@@ -48,14 +49,15 @@ def lum_view(bands: dict, arcsec: float = 10.0, a_soft: float = 0.07, px: int = 
     return _to_img(_stretch(_crop(_lum(bands), arcsec), a_soft), px)
 
 
-def lum_sub_view(bands: dict, arcsec: float = 8.0, a_soft: float = 0.2, px: int = 400):
-    """i-band with the smooth (azimuthally-symmetric) lens galaxy subtracted -> rings/arcs pop."""
-    from scipy.ndimage import gaussian_filter
+def lum_sub_view(bands: dict, arcsec: float = 10.0, px: int = 400, lim: float = 5.0, **kw):
+    """i-band SIGNED lens-light residual: chi=(i-band - azimuthal-median model)/noise on a
+    diverging RdBu scale (red = unmodelled excess / arc / counter-image, blue = over-subtraction,
+    fixed +/-5 sigma). Sign is preserved (no positive-only clip), so over-subtraction stays visible."""
+    from lensjudge.common import render
     base = _crop(_lum(bands), arcsec).astype(float)
     res = base - _azimuthal_median_model(base)
-    res = gaussian_filter(res, sigma=0.8)
-    res = np.clip(res - np.nanpercentile(res, 75.0), 0, None)
-    return _to_img(_stretch(res, a_soft, lo=0.0, hi=99.3), px)
+    chi = res / render._robust_sigma(res)
+    return Image.fromarray(render._diverging_rgb(chi, lim)).resize((px, px), Image.NEAREST)
 
 
 _RENDERERS = {
@@ -63,7 +65,7 @@ _RENDERERS = {
     "zoom": lambda b, px: rgb_view(b, arcsec=6.0, a_soft=0.12, px=px),
     "lum": lambda b, px: lum_view(b, arcsec=10.0, a_soft=0.07, px=px),
     "lum_zoom": lambda b, px: lum_view(b, arcsec=5.0, a_soft=0.04, px=px),
-    "lum_sub": lambda b, px: lum_sub_view(b, arcsec=10.0, a_soft=0.08, px=px),
+    "lum_sub": lambda b, px: lum_sub_view(b, arcsec=10.0, px=px),
 }
 VIEWS = ("full", "lum", "zoom", "lum_zoom", "lum_sub")
 

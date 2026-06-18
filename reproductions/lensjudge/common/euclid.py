@@ -95,18 +95,15 @@ def _azimuthal_median_model(img: np.ndarray) -> np.ndarray:
     return model
 
 
-def vis_sub_view(bands: dict, arcsec: float = 8.0, a_soft: float = 0.2, px: int = 400) -> Image.Image:
-    """VIS with the smooth (azimuthally-symmetric) lens galaxy subtracted -> rings/arcs pop.
-
-    Light Gaussian smoothing + a high clip floor suppress per-pixel noise so the residual
-    arc/ring (a coherent multi-pixel feature) dominates over background speckle.
-    """
-    from scipy.ndimage import gaussian_filter
+def vis_sub_view(bands: dict, arcsec: float = 8.0, px: int = 400, lim: float = 5.0, **kw) -> Image.Image:
+    """VIS SIGNED lens-light residual: chi=(VIS - azimuthal-median model)/noise on a diverging
+    RdBu scale (red = unmodelled excess / arc, blue = over-subtraction, fixed +/-5 sigma).
+    Sign is preserved (no positive-only clip), so over-subtraction stays visible."""
+    from lensjudge.common import render
     vis = _crop(bands["VIS_FLUX"], arcsec).astype(float)
     res = vis - _azimuthal_median_model(vis)
-    res = gaussian_filter(res, sigma=0.8)
-    res = np.clip(res - np.nanpercentile(res, 75.0), 0, None)  # keep only positive residual
-    return _to_img(_stretch(res, a_soft, lo=0.0, hi=99.3), px)
+    chi = res / render._robust_sigma(res)
+    return Image.fromarray(render._diverging_rgb(chi, lim)).resize((px, px), Image.NEAREST)
 
 
 _RENDERERS = {
@@ -114,7 +111,7 @@ _RENDERERS = {
     "zoom": lambda b, px: rgb_view(b, arcsec=6.0, a_soft=0.12, px=px),
     "vis": lambda b, px: vis_view(b, arcsec=10.0, a_soft=0.07, px=px),
     "vis_zoom": lambda b, px: vis_view(b, arcsec=5.0, a_soft=0.04, px=px),
-    "vis_sub": lambda b, px: vis_sub_view(b, arcsec=10.0, a_soft=0.08, px=px),
+    "vis_sub": lambda b, px: vis_sub_view(b, arcsec=10.0, px=px),
 }
 VIEWS = ("full", "vis", "zoom", "vis_zoom", "vis_sub")
 

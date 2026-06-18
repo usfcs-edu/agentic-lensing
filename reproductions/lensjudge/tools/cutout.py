@@ -17,8 +17,16 @@ VIEW_DESC = {
     "full": f"whole cutout, {_FOV:.1f}\" across (~0.26\"/px), Lupton-RGB (z=R, r=G, g=B). "
             "Lens galaxies are red/orange; lensed sources are typically blue.",
     "zoom": "2.5x center crop — the 1-5\" region where arcs/counter-images appear.",
-    "residual": "lens-light removed (per-band minus a smoothed model): low-surface-"
-                "brightness arcs and counter-images stand out against a flat background.",
+    "residual": "SIGNED lens-light residual, shown as a g | r | z montage. Each panel is "
+                "chi=(data - smooth elliptical-galaxy model)/noise on a diverging scale: "
+                "RED = unmodelled EXCESS flux (a candidate arc/ring/counter-image), BLUE = "
+                "over-subtraction, white = consistent with the model + noise (fixed +/-5 sigma). "
+                "A REAL lensed arc is RED and spatially coherent across BOTH g and r (the source "
+                "is blue, so it is strong in g/r, weak in z) — cross-band coherence is the key "
+                "real-vs-artifact test. Known FALSE positives to discount: a BLUE core or a "
+                "central blue/red dipole (over-subtraction of the bright galaxy nucleus); a thin "
+                "red/blue ring tightly concentric with the galaxy at one radius (lens color "
+                "gradient or model mismatch); and features in only ONE band.",
     "highcontrast": "hard stretch (Q=20, stretch=0.1) to boost faint features.",
 }
 

@@ -19,8 +19,10 @@ VIEW_DESC = {
     "lum": "i-band only (the sharp 0.168\" luminance band), 10\" field, asinh stretch — thin "
            "tangential arcs and Einstein rings are clearest here.",
     "lum_zoom": "i-band only, 5\" hard stretch — faint thin arcs / counter-images.",
-    "lum_sub": "i-band with the smooth lens-galaxy light subtracted (azimuthal-median model) "
-               "— a ring/arc residual stands out against a flat background.",
+    "lum_sub": "SIGNED i-band lens-light residual: chi=(data - smooth model)/noise on a "
+               "diverging scale (RED = unmodelled excess / arc / counter-image, BLUE = "
+               "over-subtraction, fixed +/-5 sigma). A blue core or a thin ring concentric with "
+               "the galaxy is a known artifact (over-subtraction / color gradient), not a lens.",
 }
 
 _SCHEMA = {

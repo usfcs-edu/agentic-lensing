@@ -270,9 +270,12 @@ validated beyond DECaLS resolution with current high-res data. Table~\ref{tab:re
 HSC-SSP \emph{or} Euclid~Q1 (8~A, 70~B), ranked by tier-1 $p_{\rm lens}$. Each is then shown below as an
 expanded DESI \emph{grz} triptych --- \emph{full} (the whole $101$\,px,
 $0.262\arcsec$/px cutout the finder scored), \emph{zoom} ($2.5\times$ center crop), and \emph{residual}
-(a per-band Gaussian lens-light subtraction that surfaces low-surface-brightness arcs) --- all at DECaLS
-resolution, carrying its full metadata and a \textsc{known}/\textsc{new} tag (\textsc{known} naming the
-previously-published lens it recovers). The panels are grouped into a \textsc{known} sub-section
+(the signed $\chi=(\mathrm{data}-\mathrm{model})/\sigma$ of the $r{+}z$ luminance after subtracting a
+robust elliptical-galaxy model, on a red--blue diverging scale at fixed $\pm5\sigma$: red marks
+unmodelled excess such as an arc/ring, blue marks over-subtraction; the noise $\sigma$ is estimated
+per band, so the residual is honest about significance rather than re-floored to hide its sign) --- all
+at DECaLS resolution, carrying its full metadata and a \textsc{known}/\textsc{new} tag (\textsc{known}
+naming the previously-published lens it recovers). The panels are grouped into a \textsc{known} sub-section
 (previously-published lenses recovered) followed by a \textsc{new} sub-section (candidates new to the
 literature), ranked by tier-1 $p_{\rm lens}$ within each. A literature crosscheck (\texttt{crosscheck\_candidates.py};
 Huang/Storfer/Inchausti $+$ NED/SIMBAD) finds \textbf{53 of the 78 are previously-published lenses} ---

@@ -110,7 +110,11 @@ for _, r in res.iterrows():
         missing.append(nm)
         print(f"  WARNING: no/invalid cube for {nm} ({p})")
         continue
-    views = render.render_views(cube, views=VIEWS)
+    # honest residual: signed chi=(data - elliptical model)/noise of the r+z luminance
+    # (single square tile; red=unmodelled excess/arc, blue=over-subtraction). The full g|r|z
+    # chi montage is render.residual(); the luminance tile keeps the full|zoom|residual triptych.
+    views = render.render_views(cube, views=("full", "zoom"))
+    views["residual"] = render.residual_chi_luminance(cube)
     if any(v not in views for v in VIEWS):
         missing.append(nm)
         print(f"  WARNING: incomplete render for {nm}: {sorted(views)}")
