@@ -87,6 +87,7 @@ nav:
   - Home: index.md
   - Current:
       - LensJudge: current/lensjudge/index.md
+      - LensJudge — Honest Residuals: current/lensjudge-residual/index.md
       - ClaudeNet: current/claudenet/index.md
       - ClaudeNet DR10 Lens Rediscoveries: current/claudenet-new-candidates/index.md
       - DR11 Lens Search: current/dr11-campaign/index.md

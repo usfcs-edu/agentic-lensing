@@ -1,35 +1,44 @@
 # =============================================================================
-# Makefile — build the LensJudge tech report (4-pass pdflatex/bibtex).
-# Same skeleton as reproductions/hsu-2025/papers/Makefile.
+# Makefile — build the LensJudge tech reports (4-pass pdflatex/bibtex).
+#   main     : the main LensJudge report (main.tex)
+#   residual : the residual-image transformation report (residual.tex)
+# Same skeleton as reproductions/claudenet/papers/Makefile (multi-target).
 # =============================================================================
 PAPER       := main
-TEX_SOURCE  := $(PAPER).tex
+RESIDUAL    := residual
 BIB_SOURCE  := references.bib
 SHARED_STY  := ../../tech-report.sty
-# The PDF \includegraphics the figures/*.png (v1 appendix + the 3 v2 figures from
-# eval/make_v2_figures.py) and the loose euclid_flip.png, so regenerating a figure
-# correctly triggers a rebuild.
+# The PDFs \includegraphics the figures/*.png (v1/v2/v3 figures from eval/make_*_figures.py
+# and the residual figures from eval/make_residual_figures.py) and the loose euclid_flip.png,
+# so regenerating a figure correctly triggers a rebuild.
 FIG_DEPS    := $(wildcard figures/*.png) euclid_flip.png
+DEPS        := $(BIB_SOURCE) $(SHARED_STY) $(FIG_DEPS)
 PDFLATEX    := pdflatex -interaction=nonstopmode -halt-on-error
 BIBTEX      := bibtex
 
-.PHONY: pdf clean distclean help
+.PHONY: pdf residual all clean distclean help
 
 pdf: $(PAPER).pdf
+residual: $(RESIDUAL).pdf
+all: pdf residual
 
-$(PAPER).pdf: $(TEX_SOURCE) $(BIB_SOURCE) $(SHARED_STY) $(FIG_DEPS)
+$(PAPER).pdf: $(PAPER).tex $(DEPS)
 	$(PDFLATEX) $(PAPER)
 	$(BIBTEX)   $(PAPER)
 	$(PDFLATEX) $(PAPER)
 	$(PDFLATEX) $(PAPER)
 
+$(RESIDUAL).pdf: $(RESIDUAL).tex $(DEPS)
+	$(PDFLATEX) $(RESIDUAL)
+	$(BIBTEX)   $(RESIDUAL)
+	$(PDFLATEX) $(RESIDUAL)
+	$(PDFLATEX) $(RESIDUAL)
+
 clean:
-	rm -f $(PAPER).aux $(PAPER).bbl $(PAPER).blg \
-	      $(PAPER).log $(PAPER).out $(PAPER).fdb_latexmk \
-	      $(PAPER).fls $(PAPER).toc $(PAPER).synctex.gz
+	rm -f *.aux *.bbl *.blg *.log *.out *.fdb_latexmk *.fls *.toc *.synctex.gz
 
 distclean: clean
-	rm -f $(PAPER).pdf
+	rm -f $(PAPER).pdf $(RESIDUAL).pdf
 
 help:
-	@echo "Targets: pdf | clean | distclean"
+	@echo "Targets: pdf (main) | residual | all | clean | distclean"

@@ -46,6 +46,7 @@ APPLE_SILICON_SLUGS = ["huang-2020", "huang-2021", "redshifty"]
 EXTRA_REPORTS = [
     ("reproductions", "foundry-i", "evolution", "foundry-i-evolution"),
     ("current", "claudenet", "new_candidates", "claudenet-new-candidates"),
+    ("current", "lensjudge", "residual", "lensjudge-residual"),
 ]
 
 MARKERS = ("TITLE", "AUTHORS", "DATE", "ABSTRACT", "BODY")
