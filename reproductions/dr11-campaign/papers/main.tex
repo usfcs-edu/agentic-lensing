@@ -6,6 +6,8 @@
 \documentclass[11pt,letterpaper]{article}
 \usepackage{../../tech-report}
 \usepackage{longtable}
+\usepackage{float}   % [H] = place the 78 per-candidate gallery figures exactly here
+                     % (inline, no float queue) so they never overflow LaTeX's float limit.
 
 % Pack the appendix candidate gallery densely (avoid float-only pages / whitespace).
 \renewcommand{\topfraction}{0.95}
@@ -265,8 +267,14 @@ lenses} --- they warrant human-expert and spectroscopic follow-up.
 Only $\sim$7\% of the DR11-south candidates fall in HSC-SSP (\S\ref{sec:vet}); the rest cannot be
 validated beyond DECaLS resolution with current high-res data. Table~\ref{tab:resolution} lists all
 \textbf{78} candidates graded A/B at DECaLS $1\arcsec$ by the LensJudge cascade that are \emph{not} in
-HSC-SSP \emph{or} Euclid~Q1 (8~A, 70~B), ranked by tier-1 $p_{\rm lens}$, with DESI \emph{grz} cutouts
-in Figs.~\ref{fig:resgal1}--\ref{fig:resgal2}. A literature crosscheck (\texttt{crosscheck\_candidates.py};
+HSC-SSP \emph{or} Euclid~Q1 (8~A, 70~B), ranked by tier-1 $p_{\rm lens}$. Each is then shown below as an
+expanded DESI \emph{grz} triptych --- \emph{full} (the whole $101$\,px,
+$0.262\arcsec$/px cutout the finder scored), \emph{zoom} ($2.5\times$ center crop), and \emph{residual}
+(a per-band Gaussian lens-light subtraction that surfaces low-surface-brightness arcs) --- all at DECaLS
+resolution, carrying its full metadata and a \textsc{known}/\textsc{new} tag (\textsc{known} naming the
+previously-published lens it recovers). The panels are grouped into a \textsc{known} sub-section
+(previously-published lenses recovered) followed by a \textsc{new} sub-section (candidates new to the
+literature), ranked by tier-1 $p_{\rm lens}$ within each. A literature crosscheck (\texttt{crosscheck\_candidates.py};
 Huang/Storfer/Inchausti $+$ NED/SIMBAD) finds \textbf{53 of the 78 are previously-published lenses} ---
 38 from the Dark Energy Survey lens searches, 8 Huang+2020, 6 AGEL, 1 CASSOWARY (the \emph{known} column
 of Table~\ref{tab:resolution}) --- because this DECaLS-south footprint heavily overlaps DES, which the
@@ -274,7 +282,7 @@ campaign crossmatch omitted; the \textbf{25 genuinely new} are all grade~B (the 
 lenses). A follow-up NED cone search corroborates the new set (no NED lens match; 24/25 returned, one
 NED timeout). At $1\arcsec$ a genuine lens and an lrg+companion mimic
 are not separable (the resolution ceiling of \S\ref{sec:vet}), so these are \emph{candidates}, an
-unknown and likely large fraction of which are mimics --- the contact sheets show both clear arc/ring
+unknown and likely large fraction of which are mimics --- the per-candidate panels show both clear arc/ring
 morphologies and ambiguous lrg+companion configurations. They are listed in full for completeness and
 as a follow-up target set, awaiting Euclid~DR1 / Rubin / Roman or targeted high-resolution and
 spectroscopic follow-up.

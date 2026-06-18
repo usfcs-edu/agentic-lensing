@@ -1,71 +1,128 @@
 #!/usr/bin/env python3
 """Appendix B assets: the 78 DESI-resolution grade-A/B candidates that have NO high-resolution
-coverage (not in HSC-SSP, not in Euclid Q1) and so cannot be validated beyond DECaLS 1" --- a ranked
-longtable + DESI grz contact sheets. Run with the claudenet venv (matplotlib + lensjudge.render):
-  /home2/benson/.venvs/claudenet/bin/python dr11-campaign/make_resolution_gallery.py
+coverage (not in HSC-SSP, not in Euclid Q1) and so cannot be validated beyond DECaLS 1".
+
+Emits a ranked longtable index (kept) PLUS an *expanded per-candidate gallery*: one
+full | zoom | residual DESI grz triptych per candidate (the all-DESI three-view layout of
+claudenet/papers/new_candidates.tex -- the right model here precisely because these positions
+have no high-resolution data), with full metadata and a colored KNOWN/NEW + source tag.
+
+The DESI grz cubes come from the staged-on-disk FITS in config.CUTOUT_DIRS["dr11"]
+(unpack dr11s_cand500.npz with claudenet/120b_unpack_npz_to_fits.py first). Run with the
+Mac lensjudge venv (astropy + scipy + PIL + numpy + pandas):
+
+  ~/.venvs/lensjudge/bin/python dr11-campaign/make_resolution_gallery.py
 """
 import sys
 from pathlib import Path
-D = Path("/home2/benson/git/agentic-lensing/reproductions")
-sys.path.insert(0, str(D))
-import numpy as np
-import pandas as pd
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-from lensjudge.common import render, fetch
 
-PAP = D / "dr11-campaign" / "papers"
+REPRO = Path(__file__).resolve().parent.parent          # reproductions/
+sys.path.insert(0, str(REPRO))
+import numpy as np  # noqa: E402
+import pandas as pd  # noqa: E402
+from PIL import Image, ImageDraw, ImageFont  # noqa: E402
+
+from lensjudge import config  # noqa: E402  (CUTOUT_DIRS, RENDER_PX, Lupton params)
+from lensjudge.common import render  # noqa: E402  (load_cube, render_views, residual sigma=3)
+
+PAP = REPRO / "dr11-campaign" / "papers"
 FIG = PAP / "figures"
-res = pd.read_csv(D / "dr11-campaign" / "data" / "dr11s_desi_resolution_AB.csv").astype({"name": str})
+CDIR = config.CUTOUT_DIRS["dr11"]                        # data/cutouts_dr11/{name}.fits
+VIEWS = ("full", "zoom", "residual")
+TILE = config.RENDER_PX                                  # 400 px upsample per panel
+
+res = pd.read_csv(REPRO / "dr11-campaign" / "data" / "dr11s_desi_resolution_AB.csv").astype({"name": str})
 print(f"{len(res)} DESI-resolution A/B candidates")
 
-# literature crosscheck (crosscheck_candidates.py) -> per-candidate NEW/KNOWN + survey,
-# so each thumbnail and the longtable `known` column carry the identification.
+# literature crosscheck (crosscheck_candidates.py) -> per-candidate NEW/KNOWN + survey +
+# counterpart + separation + source, so the longtable `known` column AND the per-candidate
+# caption both carry the identification.
 SVC = {"DES": "DES", "Huang+2020": "H20", "AGEL": "AGEL", "CASSOWARY": "CSWA"}
 XM = {}
-_xmp = D / "dr11-campaign" / "data" / "dr11s_resolution_xmatch.csv"
+_xmp = REPRO / "dr11-campaign" / "data" / "dr11s_resolution_xmatch.csv"
 if _xmp.exists():
-    for _, _x in pd.read_csv(_xmp).astype({"name": str}).iterrows():
-        XM[_x["name"]] = (_x["status"], SVC.get(str(_x.get("survey", "")), str(_x.get("survey", ""))))
+    for _, x in pd.read_csv(_xmp).astype({"name": str}).iterrows():
+        XM[x["name"]] = {
+            "status": str(x.get("status", "new")),
+            "survey": str(x.get("survey", "")),
+            "counterpart": str(x.get("counterpart", "")),
+            "sep": x.get("sep_arcsec"),
+            "source": str(x.get("source", "")),
+        }
 else:
     print("  WARNING: dr11s_resolution_xmatch.csv missing -> NEW/KNOWN tags blank")
 
-def xtag(nm):    # contact-sheet thumbnail label
-    st, sv = XM.get(nm, ("new", ""))
-    return f"KNOWN {sv}" if st == "known" else "NEW"
 
-def xcode(nm):   # longtable `known` column
-    st, sv = XM.get(nm, ("new", ""))
-    return sv if st == "known" else "\\,---"
+def _tex(s):
+    return str(s).replace("_", "\\_")
 
-def xcolor(nm):  # green = new, grey = known
-    return "#157f15" if XM.get(nm, ("new", ""))[0] != "known" else "#555555"
 
-# --- contact sheets: DESI grz Lupton-RGB thumbnails, 6 cols, <=42/sheet ---
-NCOL, PERSHEET = 6, 42
-sheets = []
-for s0 in range(0, len(res), PERSHEET):
-    chunk = res.iloc[s0:s0 + PERSHEET].reset_index(drop=True)
-    nrow = int(np.ceil(len(chunk) / NCOL))
-    fig, axes = plt.subplots(nrow, NCOL, figsize=(NCOL * 1.15, nrow * 1.32))
-    axes = np.atleast_2d(axes)
-    for ax in axes.flat:
-        ax.axis("off")
-    for i, r in chunk.iterrows():
-        ax = axes[i // NCOL, i % NCOL]
-        p = fetch.on_disk_path(str(r["name"]), "dr11")
-        cube = render.load_cube(p) if p is not None else None
-        if cube is not None:
-            ax.imshow(np.asarray(render.lupton(cube)), origin="upper")
-        ax.set_title(f"{int(r['rank'])}. {r['name']}\n{r['grade_pred']}  p={r['p_lens']:.2f}\n{xtag(str(r['name']))}",
-                     fontsize=4.4, pad=1.2, color=xcolor(str(r['name'])))
-    fig.subplots_adjust(left=0.005, right=0.995, top=0.96, bottom=0.005, wspace=0.06, hspace=0.46)
-    out = FIG / f"res_gallery_{len(sheets)+1}.png"
-    fig.savefig(out, dpi=200); plt.close(fig); sheets.append(out.name)
-    print(f"  wrote {out.name} ({len(chunk)} thumbnails, {nrow}x{NCOL})")
+def xcode(nm):   # longtable `known` column: survey code or em-dash
+    r = XM.get(nm)
+    if not r or r["status"] != "known":
+        return "\\,---"
+    return SVC.get(r["survey"], r["survey"])
 
-# --- ranked longtable ---
+
+def captag(nm):  # per-candidate caption KNOWN/NEW tag (xcolor: grey known, green new)
+    r = XM.get(nm, {"status": "new"})
+    if r["status"] == "known":
+        sep = r.get("sep")
+        sep = f"{float(sep):.2f}" if sep is not None and sep == sep else "?"
+        return (f"\\textcolor{{gray}}{{\\textbf{{KNOWN}}}} --- {r['survey']}: "
+                f"\\texttt{{{_tex(r['counterpart'])}}}, ${sep}\\arcsec$ ({r['source']}).")
+    return ("\\textcolor{forestgreen}{\\textbf{NEW}} --- new to the DESI lens-finders, the "
+            "DES/AGEL/CASSOWARY searches, and the NED/SIMBAD literature.")
+
+
+def _font(sz):
+    for p in ("/System/Library/Fonts/Supplemental/Arial.ttf",
+              "/Library/Fonts/Arial.ttf",
+              "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+              "/usr/share/fonts/dejavu/DejaVuSans.ttf"):
+        if Path(p).exists():
+            return ImageFont.truetype(p, sz)
+    return ImageFont.load_default()
+
+
+def composite(views: dict, out_path: Path) -> None:
+    """Stitch full|zoom|residual side-by-side (1200x400) with a small view label baked in;
+    id/coords/scores live in the LaTeX caption. Mirrors claudenet/93_make_gallery.composite."""
+    imgs = []
+    for v in VIEWS:
+        im = views[v].convert("RGB").resize((TILE, TILE), Image.NEAREST)
+        ImageDraw.Draw(im).text((8, 8), v, fill=(255, 255, 0), font=_font(22))
+        imgs.append(im)
+    canvas = Image.new("RGB", (TILE * len(imgs), TILE), (0, 0, 0))
+    for i, im in enumerate(imgs):
+        canvas.paste(im, (i * TILE, 0))
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    canvas.save(out_path)
+
+
+# --- per-candidate DESI grz triptychs (full | zoom | residual) ---------------
+n_ok, missing = 0, []
+for _, r in res.iterrows():
+    nm = str(r["name"])
+    p = CDIR / f"{nm}.fits"
+    cube = render.load_cube(p) if p.exists() else None
+    if cube is None:
+        missing.append(nm)
+        print(f"  WARNING: no/invalid cube for {nm} ({p})")
+        continue
+    views = render.render_views(cube, views=VIEWS)
+    if any(v not in views for v in VIEWS):
+        missing.append(nm)
+        print(f"  WARNING: incomplete render for {nm}: {sorted(views)}")
+        continue
+    composite(views, FIG / f"res_{nm}.png")
+    n_ok += 1
+print(f"  wrote {n_ok}/{len(res)} triptychs -> {FIG}/res_<name>.png")
+if missing:
+    raise SystemExit(f"ABORT: {len(missing)} candidates lack a renderable DESI cube "
+                     f"(stage them from Perlmutter first): {missing}")
+
+# --- ranked longtable index (kept) -------------------------------------------
 rows = []
 for _, r in res.iterrows():
     nm = str(r["name"]).replace("_", "\\_")
@@ -82,7 +139,8 @@ tbl = (
     "grade~B. The high known fraction is because this DECaLS-south footprint heavily overlaps the Dark "
     "Energy Survey lens searches, which the campaign crossmatch omitted. The 25 new ones cannot be "
     "validated beyond DECaLS resolution; at $1\\arcsec$ a genuine lens and an lrg+companion mimic are not "
-    "separable, so an unknown fraction are mimics. Images in Figs.~\\ref{fig:resgal1}--\\ref{fig:resgal2}.}\\\\\n"
+    "separable, so an unknown fraction are mimics. Per-candidate full/zoom/residual panels follow "
+    "(App.~\\ref{app:resolution}).}\\\\\n"
     "\\label{tab:resolution}\\\\\n\\toprule\n"
     "\\# & name & RA & Dec & grade & $p_{\\rm lens}$ & \\vb{} & known \\\\\n\\midrule\n\\endfirsthead\n"
     "\\multicolumn{8}{l}{\\footnotesize Table~\\ref{tab:resolution} continued}\\\\\n\\toprule\n"
@@ -92,17 +150,48 @@ tbl = (
 (PAP / "appendix_resolution_table.tex").write_text(tbl)
 print(f"  wrote appendix_resolution_table.tex ({len(res)} rows)")
 
-# --- the appendix figure blocks (contact sheets) ---
-figtex = []
-for i, nm in enumerate(sheets, 1):
-    figtex.append(
-        f"\\begin{{figure}}[p]\\centering\n\\includegraphics[width=\\linewidth]{{figures/{nm}}}\n"
-        f"\\caption{{DESI \\emph{{grz}} cutouts ($0.262\\arcsec$/px, Lupton RGB, $101$\\,px) of the "
-        f"DESI-resolution A/B candidates, ranks {1+(i-1)*PERSHEET}--{min(i*PERSHEET,len(res))} of "
-        f"Table~\\ref{{tab:resolution}}. Each thumbnail is labelled \\textsc{{new}} (green) or "
-        f"\\textsc{{known}} with its survey (grey: H20/DES/AGEL/CSWA), from the literature crosscheck. "
-        f"No high-resolution view exists for these positions.}}\n"
-        f"\\label{{fig:resgal{i}}}\n\\end{{figure}}\n")
-(PAP / "appendix_resolution_figs.tex").write_text("".join(figtex))
-print(f"  wrote appendix_resolution_figs.tex ({len(sheets)} sheets)")
+# --- expanded per-candidate gallery (replaces the contact sheets) ------------
+# Grouped KNOWN-first then NEW under their own sub-headings, ranked by tier-1 p_lens within
+# each group (`res` is already rank-sorted, so filtering preserves the order). See panel().
+def is_known(nm):
+    return XM.get(str(nm), {"status": "new"})["status"] == "known"
+
+
+def panel(r):
+    # figure[H]: placed exactly here (float package), so 78 of them never overflow LaTeX's
+    # float queue -- AND pandoc renders \caption as a real <figcaption> for the site (it drops
+    # a bare \captionof). One triptych per row, full text width; view labels baked into the PNG.
+    nm = str(r["name"])
+    return (
+        "\\begin{figure}[H]\\centering\n"
+        f"\\includegraphics[width=\\linewidth]{{figures/res_{nm}.png}}\n"
+        f"\\caption{{\\textbf{{\\#{int(r['rank'])}}}~\\texttt{{{_tex(nm)}}} --- "
+        f"RA {r['ra']:.4f}, Dec {r['dec']:+.4f}; grade \\textbf{{{r['grade_pred']}}}, "
+        f"tier-1 $p_{{\\rm lens}}$ {r['p_lens']:.2f}, \\vb{{}} {r['p_meta']:.2f}. {captag(nm)}}}\n"
+        "\\end{figure}\n")
+
+
+known = res[res["name"].map(is_known)]
+new = res[~res["name"].map(is_known)]
+# forestgreen: a valid CSS named color, so pandoc's `color: forestgreen` works on the site;
+# \definecolor sets the PDF shade to the darker #157f15 (gray already matches CSS exactly).
+blocks = ["\\definecolor{forestgreen}{HTML}{157f15}\n"]
+blocks.append(
+    f"\\subsection*{{\\textcolor{{gray}}{{\\textsc{{Known}}}} --- previously-published lenses "
+    f"recovered ({len(known)} of {len(res)})}}\n"
+    "These coincide ($\\le$few\\,\\arcsec) with a catalogued strong lens --- 38 DES, 8 Huang+2020, "
+    "6 AGEL, 1 CASSOWARY --- an external validation of the finder (the campaign crossmatch had "
+    "omitted these catalogues). Ranked by tier-1 $p_{\\rm lens}$.\\par\\smallskip\n")
+for _, r in known.iterrows():
+    blocks.append(panel(r))
+blocks.append(
+    f"\\clearpage\n\\subsection*{{\\textcolor{{forestgreen}}{{\\textsc{{New}}}} --- candidates new to "
+    f"the literature ({len(new)} of {len(res)})}}\n"
+    "These are absent from the DESI lens-finders, the DES/AGEL/CASSOWARY searches, and the "
+    "NED/SIMBAD literature; all are grade~B, and at DECaLS $1\\arcsec$ an unknown (likely large) "
+    "fraction are lrg+companion mimics. Ranked by tier-1 $p_{\\rm lens}$.\\par\\smallskip\n")
+for _, r in new.iterrows():
+    blocks.append(panel(r))
+(PAP / "appendix_resolution_figs.tex").write_text("".join(blocks))
+print(f"  wrote appendix_resolution_figs.tex ({len(known)} known + {len(new)} new panels)")
 print("done")
