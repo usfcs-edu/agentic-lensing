@@ -170,3 +170,26 @@ North trainable positive pool (analyzed 2026-06-16, local):
 ## Phase V — LensJudge v3 cascade vetting  ⚪ pending
 ## Phase A — active-learning loop  ⚪ pending
 ## Phase R — DR11 campaign report  ⚪ pending
+
+## Residual robustness A/B (post-vetting, 2026-06-19) ✅
+LensJudge's residual view (1 of 3 grader images) was rewritten after vetting: legacy Gaussian high-pass
+(sign-discarding, 4-lobe butterfly artifact on ellipticals that mimics arcs) → signed noise-normalized
+elliptical-model χ=(data−model)/σ, fixed ±5σ red/blue, per band. To test catalogue dependence we re-ran
+the FULL 500-candidate cascade in a PAIRED design vs the stored legacy run (`compare_residual_ab.py`):
+- PRIOR (legacy, Jun-17): tier2 26, tier2-A/B **24**, rawA/B 103, $40.38
+- LEG-now (legacy control): tier2 28, tier2-A/B **24**, rawA/B 90, $40.69
+- NEW (χ residual): tier2 31, tier2-A/B **27**, rawA/B 135, $48.55
+Result: **9/9 NEW-class discoveries survive A/B** under the honest residual; 13/15 SuGOHI survive (2
+demote — `s_351084_1943` A→C, `s_346996_4322` B→C; both known committee lenses = conservative grading,
+and `s_346996_4322` was already D in the control). New residual ~2× hotter at DESI tier-1 (rawA/B
+90→135) but the HSC tier-2 gate absorbs it (tier2-A/B stable). Paired control decisive: 4/5 apparent
+PRIOR→NEW promotions are run-to-run nondeterminism (also A/B in LEG; ~18% of raw grades move between
+identical reruns), only `s_332711_1951` (B) genuinely new; the honest residual also *recovered* 2 known
+systems (`s_323786_3896`, `s_326089_1785`) that nondeterminism had dropped to D in the legacy rerun.
+Independently re-derived (adversarial verifier, 5/5 claims CONFIRMED). Conclusion: **catalogue robust;
+residual rewrite is a scientific-integrity improvement, discrimination-neutral** — matches the author's
+own 525-candidate benchmark A/B. Wired into the report: §3 "Residual robustness" + Table tab:residab +
+Fig fig:residrobust + App. tab:residtrack. Assets: `compare_residual_ab.py`,
+`make_residual_robustness_assets.py`, `data/residual_ab_confirmed_tracking.csv`; runs
+`lensjudge/outputs/dr11s_cascade_full_{legacy_now,resid2}.parquet` (gitignored). Session LLM ~$92;
+campaign LLM ~$135 of the $250 cap. NOT resumable; cost gate is up-front (cap $60/arm, actual $40.7/$48.6).

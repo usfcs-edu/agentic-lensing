@@ -57,7 +57,14 @@ genuinely-new candidates is not established here). The remaining \textbf{9} (8 d
 new to the DESI lens-finder catalogs and SuGOHI; a post-hoc literature crosscheck (Huang+2020, omitted
 from the campaign crossmatch, $+$ NED/SIMBAD; App.~\ref{app:gallery}) then shows \textbf{five of these
 eight systems are previously-published lenses} (mostly Huang+2020; one also SOGRAS), leaving \textbf{3}
-genuinely new --- automated-grader candidates pending follow-up. The honest frame is unchanged from the
+genuinely new --- automated-grader candidates pending follow-up. Beyond the HSC-overlap set, the
+honest-residual cascade also grades \textbf{108} candidates A/B at DESI resolution \emph{alone} --- with
+no HSC-SSP or Euclid~Q1 coverage (App.~\ref{app:resolution}); a literature crosscheck finds \textbf{69
+are previously-published lenses} (mostly DES, whose footprint this DECaLS-south region heavily overlaps)
+and \textbf{39 are new} (36 grade~B and 3 grade~A). These cannot be validated beyond DECaLS $1\arcsec$
+--- an unknown and likely large fraction are lrg+companion mimics --- and the set is residual- and
+nondeterminism-sensitive (larger under the honest residual, but hotter rather than more complete), so it
+is a follow-up target list, not a catalogue. The honest frame is unchanged from the
 v3 program: the model recovers known lenses and ranks new candidates the higher-resolution HSC grader
 rates highly, but \emph{no net-new lens is established from DECaLS pixels alone} (the new candidates
 depend on HSC resolution and remain unconfirmed),
@@ -212,6 +219,44 @@ export to \textbf{291} hard negatives in the \cnet{} mimic-bank schema --- \text
 resolution (exactly the population the HSC tier-2 rejects). Folding these into the bank and a model
 re-iteration are Perlmutter GPU work, deferred (below).
 
+\paragraph{Residual robustness (honest signed-$\chi$ residual).} After this vetting was complete,
+\lj{}'s lens-light \emph{residual} view --- one of the three images the grader sees per candidate ---
+was replaced: the legacy Gaussian high-pass (which discards the sign and imprints a four-lobe
+``butterfly'' artifact on bright ellipticals that can mimic an arc) gave way to a signed,
+noise-normalised elliptical-model residual $\chi=(\mathrm{data}-\mathrm{model})/\sigma$, displayed per
+band on a fixed $\pm5\sigma$ red--blue scale so a real arc must appear as red excess coherent across
+$g$ and $r$ (Fig.~\ref{fig:residrobust}; full anatomy in the companion \lj{} residual report). To test
+whether the DR11 catalogue \emph{depends} on the old residual, we re-ran the \emph{entire} 500-candidate
+cascade twice in a paired design --- a legacy-residual rerun (an LLM-nondeterminism control) and the new
+$\chi$ residual --- against the stored vetting run (Table~\ref{tab:residab}). The new residual runs
+$\sim$2$\times$ hotter at the DESI tier-1 grade (raw A/B $90\!\to\!135$), but the HSC tier-2 gate absorbs
+the inflation, so the confirmed catalogue is stable (tier-2 A/B $24\!\to\!27$). Crucially, \textbf{all 9
+new-class candidate systems survive as grade A/B under the honest residual} (9/9; 13/15 SuGOHI
+cross-matches likewise; App.~\ref{app:residtrack}, Table~\ref{tab:residtrack}). The paired control is
+decisive: of five apparent new tier-2 promotions relative to the stored run, \emph{four also appear in
+the legacy-now rerun} (run-to-run nondeterminism, which moves $\sim$18\% of raw grades), leaving only one
+genuinely new borderline-B candidate; conversely the honest residual \emph{recovers} two known catalogue
+systems that nondeterminism had dropped. The two SuGOHI lenses that fall below A/B under the new residual
+are independently-confirmed committee lenses scored conservatively (one already lost in the control), not
+lost discoveries. The rewrite is therefore a scientific-integrity improvement that leaves the DR11
+catalogue intact --- consistent with the discrimination-neutral result the residual report measures on
+its own benchmark.
+
+\begin{figure}[t]\centering
+\includegraphics[width=\linewidth]{figures/residual_robustness.png}
+\caption{Legacy vs.\ honest residual for three confirmed \textsc{new}-class candidates.
+\emph{Left:} the DESI \emph{grz} cutout the finder scored (ambiguous at DECaLS $1\arcsec$).
+\emph{Centre:} the legacy Gaussian-high-pass residual --- sign discarded, with a central
+dipole/butterfly on the bright lens that can read as structure. \emph{Right:} the new signed
+$\chi=(\mathrm{data}-\mathrm{model})/\sigma$ residual as a $g\,|\,r\,|\,z$ montage on a fixed $\pm5\sigma$
+red--blue scale; the candidate arc shows as red excess \emph{coherent across all three bands}, the
+real-vs-artifact discriminant. All three survive as grade A/B under the honest residual
+(Table~\ref{tab:residtrack}).}
+\label{fig:residrobust}
+\end{figure}
+
+\input{residual_summary_table}
+
 \section{DR11-north: staged, maintenance-deferred}
 \label{sec:north}
 v3 is DECam-specific --- it systematically under-scores BASS/MzLS north imaging --- so the north arm
@@ -265,9 +310,15 @@ lenses} --- they warrant human-expert and spectroscopic follow-up.
 \section{DESI-resolution candidates without high-resolution coverage}
 \label{app:resolution}
 Only $\sim$7\% of the DR11-south candidates fall in HSC-SSP (\S\ref{sec:vet}); the rest cannot be
-validated beyond DECaLS resolution with current high-res data. Table~\ref{tab:resolution} lists all
-\textbf{78} candidates graded A/B at DECaLS $1\arcsec$ by the LensJudge cascade that are \emph{not} in
-HSC-SSP \emph{or} Euclid~Q1 (8~A, 70~B), ranked by tier-1 $p_{\rm lens}$. Each is then shown below as an
+validated beyond DECaLS resolution with current high-res data. \textbf{This appendix is regenerated from
+the honest-$\chi$-residual cascade run} (\S\ref{sec:vet}, ``Residual robustness''):
+Table~\ref{tab:resolution} lists all \textbf{108} candidates graded A/B at DECaLS $1\arcsec$ by the
+LensJudge cascade that are \emph{not} in HSC-SSP \emph{or} Euclid~Q1 (17~A, 91~B), ranked by tier-1
+$p_{\rm lens}$ --- versus 78 under the legacy residual. This DESI-resolution-only set is the
+\emph{least stable} part of the pipeline: with no high-resolution anchor its membership is sensitive both
+to the residual (the honest one runs $\sim$2$\times$ hotter at tier-1) and to LLM nondeterminism (a
+legacy-residual rerun alone gives 66), so the larger list is hotter, not more complete, and its exact
+membership is not load-bearing. Each is then shown below as an
 expanded DESI \emph{grz} triptych --- \emph{full} (the whole $101$\,px,
 $0.262\arcsec$/px cutout the finder scored), \emph{zoom} ($2.5\times$ center crop), and \emph{residual}
 (the signed $\chi=(\mathrm{data}-\mathrm{model})/\sigma$ of the $r{+}z$ luminance after subtracting a
@@ -278,12 +329,13 @@ at DECaLS resolution, carrying its full metadata and a \textsc{known}/\textsc{ne
 naming the previously-published lens it recovers). The panels are grouped into a \textsc{known} sub-section
 (previously-published lenses recovered) followed by a \textsc{new} sub-section (candidates new to the
 literature), ranked by tier-1 $p_{\rm lens}$ within each. A literature crosscheck (\texttt{crosscheck\_candidates.py};
-Huang/Storfer/Inchausti $+$ NED/SIMBAD) finds \textbf{53 of the 78 are previously-published lenses} ---
-38 from the Dark Energy Survey lens searches, 8 Huang+2020, 6 AGEL, 1 CASSOWARY (the \emph{known} column
-of Table~\ref{tab:resolution}) --- because this DECaLS-south footprint heavily overlaps DES, which the
-campaign crossmatch omitted; the \textbf{25 genuinely new} are all grade~B (the 8 grade-A are all known
-lenses). A follow-up NED cone search corroborates the new set (no NED lens match; 24/25 returned, one
-NED timeout). At $1\arcsec$ a genuine lens and an lrg+companion mimic
+Huang/Storfer/Inchausti $+$ NED/SIMBAD) finds \textbf{69 of the 108 are previously-published lenses} ---
+48 from the Dark Energy Survey lens searches, 11 Huang+2020, 6 AGEL, 1 CASSOWARY, and 3 via SIMBAD (the
+\emph{known} column of Table~\ref{tab:resolution}) --- because this DECaLS-south footprint heavily overlaps
+DES, which the campaign crossmatch omitted; the \textbf{39 genuinely new} are mostly grade~B, with
+\textbf{3 grade~A} that the honest residual newly surfaces (\texttt{s\_230539\_4159},
+\texttt{s\_194300\_2796}, \texttt{s\_320069\_835}) --- still DESI-resolution-only and unvalidatable. A NED
+cone search corroborates the new set (no NED lens match; reached 105/108, with 3 timeouts). At $1\arcsec$ a genuine lens and an lrg+companion mimic
 are not separable (the resolution ceiling of \S\ref{sec:vet}), so these are \emph{candidates}, an
 unknown and likely large fraction of which are mimics --- the per-candidate panels show both clear arc/ring
 morphologies and ambiguous lrg+companion configurations. They are listed in full for completeness and
@@ -291,4 +343,15 @@ as a follow-up target set, awaiting Euclid~DR1 / Rubin / Roman or targeted high-
 spectroscopic follow-up.
 \input{appendix_resolution_table}
 \input{appendix_resolution_figs}
+
+\clearpage
+\section{Residual-robustness A/B: the confirmed catalogue across residual arms}
+\label{app:residtrack}
+Table~\ref{tab:residtrack} tracks all 24 confirmed tier-2 grade-A/B systems (\S\ref{sec:vet}: the 9
+new-class detections of Table~\ref{tab:confirmed} plus the 15 SuGOHI cross-matches) across the three
+arms of the paired residual re-run (\S\ref{sec:vet}, ``Residual robustness''): the stored legacy vetting
+run, a legacy-residual rerun (the LLM-nondeterminism control), and the new honest-$\chi$ run. All 9
+new-class campaign discoveries survive as A/B under the honest residual. Reproduced by
+\texttt{compare\_residual\_ab.py} from the three cascade parquets.
+\input{residual_tracking_table}
 \end{document}
