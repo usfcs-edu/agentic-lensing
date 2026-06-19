@@ -24,7 +24,7 @@
 
 \begin{document}
 \maketitle
-\subtitle{Why the old residual could both fabricate and hide arc flux, what replaced it, and how the replacement was validated}
+\subtitle{Why the old residual could both fabricate and hide arc flux, what replaced it, how it was validated, and what a controlled A/B shows it does (and does not) do to grading}
 
 \begin{abstract}
 The \lj{} vetting cascade shows a Claude grader a small set of rendered views of each candidate's DESI
@@ -48,7 +48,12 @@ synthetic galaxies: outside the inner $\sim$2\arcsec\ the residual is consistent
 injected arc is recovered at $0.63$ of its in-mask flux versus $0.08$ for the old high-pass, the smooth-galaxy
 residual is $7\times$ smaller, and deliberate over-subtraction is plainly visible. The honest cost is a central
 PSF-circularization residual confined to the inner $\sim$2\arcsec, shown faithfully as a blue core rather than
-hidden.
+hidden. A controlled grading A/B on $525$ candidates then measured the downstream effect: the new residual is
+\emph{discrimination-neutral} (lens-vs-random $\Delta\mathrm{AUC}=+0.021$, $95\%$ CI $[-0.04,+0.09]$); it exposed
+and let us fix a real regression in the grader's residual \emph{convention} (an early ``blue $=$ artifact'' wording
+made the grader reject real, blue arcs); and because the new image makes the grader score $\sim$$2\times$ hotter, it
+must be deployed through an operating-point calibration, not its raw grade. The gain is integrity and defensibility,
+not grading accuracy.
 \end{abstract}
 
 \section{The residual view, and why it must be honest}
@@ -140,8 +145,11 @@ negative, white at zero), arcsinh-compressed within the range, as a horizontal $
 re-floored or clipped, so over-subtraction remains visible as blue. The fixed limits make every object directly
 comparable. The bands are shown separately because \emph{cross-band coherence is the discriminant}: a real lensed
 arc is a connected feature present in $g$ and $r$ (the source is blue, so it is strong in $g/r$ and weak in $z$),
-whereas per-pixel noise and model-mismatch rings are not band-coherent. We never pass the residual through the
-Lupton transform, which cannot show negative values \citep{lupton2004}.
+whereas per-pixel noise and model-mismatch rings are not band-coherent. Crucially, the discriminant is \emph{shape
+and cross-band coherence, not the residual's sign}: because the source is blue and a single-elliptical subtraction
+can leave a real arc either red or blue, a viewer (or grader) must never equate ``blue'' with ``artifact'' --- a
+lesson \S\ref{sec:grading} learned the hard way. We never pass the residual through the Lupton transform, which
+cannot show negative values \citep{lupton2004}.
 
 \begin{figure}[t]\centering
 \includegraphics[width=0.98\linewidth]{figures/resid_anatomy.png}
@@ -228,20 +236,98 @@ core tracks $\mathcal{N}(0,1)$, so a pixel value reads directly as a significanc
 \label{fig:signnoise}
 \end{figure}
 
+\section{Does it change grading? A controlled A/B}
+\label{sec:grading}
+The honesty tests above measure the residual against the \emph{pixels}; they do not measure its effect on the
+downstream judgement. To do that we ran a controlled A/B that grades the \emph{same} candidates twice, swapping only
+the residual view (old vs new) through a single environment lever (\texttt{LENSJUDGE\_RESIDUAL\_VERSION}, read by
+\texttt{render.render\_views} and \texttt{residual\_view\_desc}); everything else --- the full/zoom views, the
+rubric, the model --- is held fixed. We graded $525$ candidates with the deployed direct grader: $240$
+expert-graded A/B/C lenses, $130$ Grade-D human-rejects (the hardest negatives), $130$ random galaxies, and $25$
+spectroscopically-confirmed ``gold'' systems; two replicates per arm. The primary endpoint is the threshold-free
+ROC-AUC with a paired bootstrap CI; because the residual's prompt wording shifts the grader's operating point (see
+below), we also compare at a \emph{matched} false-positive rate (Table~\ref{tab:ab}).
+
+\paragraph{It is discrimination-neutral.} On the core detection task (lens vs random galaxy) the new residual does
+not measurably improve the grader: $\Delta\mathrm{AUC}=+0.021$ with a $95\%$ CI of $[-0.043,+0.085]$ that straddles
+zero (Fig.~\ref{fig:abresults}a), and at a matched $\mathrm{FPR}=0.2$ the grade-A recall is \emph{identical}
+($0.256$ in both arms). The large uncalibrated recall ``gains'' are a uniform threshold shift, not better
+separation (below), and they vanish once the FPR is matched. On the hardest negatives (lens vs Grade-D) the new
+residual is significantly \emph{less bad} ($\Delta\mathrm{AUC}=+0.076$, CI $[+0.017,+0.140]$), but both arms sit
+\emph{below} $0.5$: the grader still ranks human-rejected look-alikes above real lenses, so this is ``less wrong,''
+not usable discrimination.
+
+\paragraph{A regression we caught, and the lesson.} The A/B exposed a real harm in the residual's \emph{prompt
+convention}, not its pixels. Our first deployed wording told the grader ``red $=$ arc, blue $=$ over-subtraction
+artifact.'' But a lensed source is blue, and after a single-elliptical subtraction a genuine arc often renders blue,
+so the grader --- conflating the residual's \emph{sign} with the source's \emph{colour} --- re-read real grade-A
+arcs as artifacts and rejected them (grade-A recall fell $0.259\!\to\!0.185$). Rewriting the description to be
+morphology-first (judge a \emph{tangential, cross-band-coherent} feature offset from the over-subtracted inner
+$\sim$2\arcsec\ core; never treat blue as an artifact) restored grade-A non-inferiority. The residual's prompt is
+load-bearing: it must key on shape and cross-band coherence, never on sign.
+
+\paragraph{Hotter scores demand calibration.} The new residual inflates \plens{} roughly $2\times$ across the board;
+used raw it floods false positives (random-galaxy FPR $0.12\!\to\!0.30$, Grade-D $0.27\!\to\!0.49$;
+Fig.~\ref{fig:abresults}b) while the ROC-AUC barely moves --- a pure operating-point shift. We therefore ship the
+new residual with an FPR-matched operating point (\texttt{eval/calibrate.py}: a \plens{} threshold fit to a target
+FPR on a labelled negative set, persisted as \texttt{residual\_op\_point\_*.json}). Calibrated, the flood is removed
+and both arms sit at one operating point, where their grade-A recall coincides (Fig.~\ref{fig:abresults}c). The
+decision must use the calibrated threshold, never the raw grade.
+
+\begin{table}[t]\centering
+\caption{The residual A/B (legacy old residual vs the new signed-$\chi$ residual; $525$ candidates, two replicates
+per arm). AUC is the threshold-free primary endpoint with a paired bootstrap $95\%$ CI; recall and FPR are at, or
+calibrated to, a matched operating point. The change is discrimination-neutral, preserves grade-A at a matched FPR,
+and needs calibration to control the false-positive flood.}
+\label{tab:ab}\small
+\begin{tabular}{lcc}
+\toprule
+quantity & legacy & new\\
+\midrule
+AUC, lens vs random                      & $0.650\,[0.59,0.70]$ & $0.671\,[0.61,0.72]$\\
+\quad$\Delta$AUC (new$-$legacy)          & \multicolumn{2}{c}{$+0.021\,[-0.043,+0.085]$ (n.s.)}\\
+AUC, lens vs Grade-D                     & $0.387$ & $0.463$ (both $<0.5$)\\
+grade-A recall @ matched FPR$=0.2$       & $0.256$ & $0.256$\\
+random-galaxy FPR (raw $\to$ calibrated) & $0.12\to0.12$ & $0.30\to0.12$\\
+Grade-D FPR (raw $\to$ calibrated)       & $0.27\to0.28$ & $0.49\to0.35$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]\centering
+\includegraphics[width=0.98\linewidth]{figures/resid_ab_results.png}
+\caption{The grading A/B. \emph{(a)} ROC-AUC with bootstrap $95\%$ CIs: the arms overlap on lens-vs-random (the
+$\Delta$AUC CI includes $0$), and both are below chance on lens-vs-Grade-D. \emph{(b)} Negative false-positive
+rate: the new residual's raw scores flood FPs; the FPR-matched calibration removes it. \emph{(c)} grade-A recall:
+the new arm runs hot (raw), but calibrated it equals legacy --- non-inferiority at the matched operating point.}
+\label{fig:abresults}
+\end{figure}
+
+\paragraph{What it is worth.} The honest bottom line: the new residual is a \emph{scientific-integrity} improvement
+that is \emph{grading-discrimination-neutral}. Its benefits are a defensible, sign-preserving, noise-normalized
+image; rationales that key on real morphology; and decisive upgrades of clean tangential arcs --- not a broad
+accuracy gain, and at $\sim$$37\%$ more cost per call. Caveats: only two replicates per arm; grade-A ($n{=}39$) and
+gold ($n{=}21$) are underpowered, and gold's matched-FPR recall trends down in a way the headline numbers hide; and
+the artifact-rejection failure was \emph{reshaped, not removed} --- faint, blobby, or close-pair real lenses are
+still sometimes dismissed as over-subtraction. These set the agenda for a larger, pre-registered follow-up.
+
 \section{Limitations}
 The honest residual is honest about its own limits. The cutouts carry \emph{no PSF and no inverse-variance map},
 so the model is only as PSF-matched as the blurred data (a faint central image inside the Einstein radius can
 still be partly absorbed), and the noise $\sigma$ is \emph{estimated}; because DESI coadds have spatially
 correlated (resampled) noise, $\chi$ slightly under-estimates the uncertainty of a multi-pixel arc and should be
 read as a display/triage significance, not a calibrated detection statistic. The single-ellipticity model leaves a
-central PSF-circularization residual confined to the inner $\sim$2\arcsec, shown faithfully as a blue core and
-flagged to the grader as a known false-positive mode (along with color-gradient rings and single-band features); a
-galaxy that is genuinely irregular or strongly isophote-twisted will leave honest but structured residuals that a
-validity flag (e.g.\ \texttt{statmorph} \citep{rodriguezgomez2019statmorph}) can gate. Finally, a near-complete
+central PSF-circularization residual confined to the inner $\sim$2\arcsec, shown faithfully as a blue core that the
+grader is told to \emph{ignore} rather than to read as an artifact verdict (the A/B of \S\ref{sec:grading} showed an
+earlier ``blue $=$ artifact'' instruction backfired); a galaxy that is genuinely irregular or strongly
+isophote-twisted will leave honest but structured residuals that a validity flag (e.g.\ \texttt{statmorph}
+\citep{rodriguezgomez2019statmorph}) can gate. Finally, a near-complete
 Einstein ring that fills most of an annulus is partly absorbed by \emph{any} azimuthal-median model and is the
 case to escalate to a masked or forward-model fit. The imaging used here is the DESI Legacy Surveys DECam coadds
 \citep{legacysurvey}; the same transformation is applied to the higher-resolution HSC and Euclid tier-2 residuals,
-where the isophote engine becomes viable.
+where the isophote engine becomes viable. Finally, the grader's raw \plens{} on the new residual is uncalibrated and
+runs hot (\S\ref{sec:grading}), so any deployed decision must pass through the FPR-matched operating point, not the
+raw grade.
 
 \bibliographystyle{plainnat}
 \bibliography{references}
