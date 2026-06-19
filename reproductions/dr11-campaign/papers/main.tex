@@ -212,6 +212,44 @@ export to \textbf{291} hard negatives in the \cnet{} mimic-bank schema --- \text
 resolution (exactly the population the HSC tier-2 rejects). Folding these into the bank and a model
 re-iteration are Perlmutter GPU work, deferred (below).
 
+\paragraph{Residual robustness (honest signed-$\chi$ residual).} After this vetting was complete,
+\lj{}'s lens-light \emph{residual} view --- one of the three images the grader sees per candidate ---
+was replaced: the legacy Gaussian high-pass (which discards the sign and imprints a four-lobe
+``butterfly'' artifact on bright ellipticals that can mimic an arc) gave way to a signed,
+noise-normalised elliptical-model residual $\chi=(\mathrm{data}-\mathrm{model})/\sigma$, displayed per
+band on a fixed $\pm5\sigma$ red--blue scale so a real arc must appear as red excess coherent across
+$g$ and $r$ (Fig.~\ref{fig:residrobust}; full anatomy in the companion \lj{} residual report). To test
+whether the DR11 catalogue \emph{depends} on the old residual, we re-ran the \emph{entire} 500-candidate
+cascade twice in a paired design --- a legacy-residual rerun (an LLM-nondeterminism control) and the new
+$\chi$ residual --- against the stored vetting run (Table~\ref{tab:residab}). The new residual runs
+$\sim$2$\times$ hotter at the DESI tier-1 grade (raw A/B $90\!\to\!135$), but the HSC tier-2 gate absorbs
+the inflation, so the confirmed catalogue is stable (tier-2 A/B $24\!\to\!27$). Crucially, \textbf{all 9
+new-class candidate systems survive as grade A/B under the honest residual} (9/9; 13/15 SuGOHI
+cross-matches likewise; App.~\ref{app:residtrack}, Table~\ref{tab:residtrack}). The paired control is
+decisive: of five apparent new tier-2 promotions relative to the stored run, \emph{four also appear in
+the legacy-now rerun} (run-to-run nondeterminism, which moves $\sim$18\% of raw grades), leaving only one
+genuinely new borderline-B candidate; conversely the honest residual \emph{recovers} two known catalogue
+systems that nondeterminism had dropped. The two SuGOHI lenses that fall below A/B under the new residual
+are independently-confirmed committee lenses scored conservatively (one already lost in the control), not
+lost discoveries. The rewrite is therefore a scientific-integrity improvement that leaves the DR11
+catalogue intact --- consistent with the discrimination-neutral result the residual report measures on
+its own benchmark.
+
+\begin{figure}[t]\centering
+\includegraphics[width=\linewidth]{figures/residual_robustness.png}
+\caption{Legacy vs.\ honest residual for three confirmed \textsc{new}-class candidates.
+\emph{Left:} the DESI \emph{grz} cutout the finder scored (ambiguous at DECaLS $1\arcsec$).
+\emph{Centre:} the legacy Gaussian-high-pass residual --- sign discarded, with a central
+dipole/butterfly on the bright lens that can read as structure. \emph{Right:} the new signed
+$\chi=(\mathrm{data}-\mathrm{model})/\sigma$ residual as a $g\,|\,r\,|\,z$ montage on a fixed $\pm5\sigma$
+red--blue scale; the candidate arc shows as red excess \emph{coherent across all three bands}, the
+real-vs-artifact discriminant. All three survive as grade A/B under the honest residual
+(Table~\ref{tab:residtrack}).}
+\label{fig:residrobust}
+\end{figure}
+
+\input{residual_summary_table}
+
 \section{DR11-north: staged, maintenance-deferred}
 \label{sec:north}
 v3 is DECam-specific --- it systematically under-scores BASS/MzLS north imaging --- so the north arm
@@ -291,4 +329,15 @@ as a follow-up target set, awaiting Euclid~DR1 / Rubin / Roman or targeted high-
 spectroscopic follow-up.
 \input{appendix_resolution_table}
 \input{appendix_resolution_figs}
+
+\clearpage
+\section{Residual-robustness A/B: the confirmed catalogue across residual arms}
+\label{app:residtrack}
+Table~\ref{tab:residtrack} tracks all 24 confirmed tier-2 grade-A/B systems (\S\ref{sec:vet}: the 9
+new-class detections of Table~\ref{tab:confirmed} plus the 15 SuGOHI cross-matches) across the three
+arms of the paired residual re-run (\S\ref{sec:vet}, ``Residual robustness''): the stored legacy vetting
+run, a legacy-residual rerun (the LLM-nondeterminism control), and the new honest-$\chi$ run. All 9
+new-class campaign discoveries survive as A/B under the honest residual. Reproduced by
+\texttt{compare\_residual\_ab.py} from the three cascade parquets.
+\input{residual_tracking_table}
 \end{document}
