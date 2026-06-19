@@ -52,6 +52,26 @@ if _xmp.exists():
 else:
     print("  WARNING: dr11s_resolution_xmatch.csv missing -> NEW/KNOWN tags blank")
 
+# --- dynamic composition for the captions (counts vary with the run/residual; never hardcode) ---
+from collections import Counter  # noqa: E402
+_grade = dict(zip(res["name"].astype(str), res["grade_pred"]))
+def _is_known(nm):
+    return XM.get(str(nm), {"status": "new"})["status"] == "known"
+_known_names = [str(n) for n in res["name"] if _is_known(n)]
+_new_names = [str(n) for n in res["name"] if not _is_known(n)]
+N_TOT, N_KNOWN, N_NEW = len(res), len(_known_names), len(_new_names)
+N_A = int((res["grade_pred"] == "A").sum()); N_B = int((res["grade_pred"] == "B").sum())
+_SVLABEL = {"DES": "DES", "Huang+2020": "Huang+2020", "Huang+2021": "Huang+2021", "AGEL": "AGEL",
+            "CASSOWARY": "CASSOWARY", "Inchausti+2025": "Inchausti+2025", "Storfer+2024": "Storfer+2024",
+            "DECaLS/Huang": "DECaLS/Huang", "SOGRAS": "SOGRAS", "SLACS": "SLACS",
+            "DESI lens-finders": "DESI lens-finders", "NED": "NED", "literature (SIMBAD)": "SIMBAD"}
+_svcount = Counter(XM[n]["survey"] for n in _known_names if n in XM)
+SURVEY_STR = ", ".join(f"{c}~{_SVLABEL.get(s, s)}" for s, c in _svcount.most_common()) or "various surveys"
+_newA = sum(1 for n in _new_names if _grade.get(n) == "A")
+_newB = N_NEW - _newA
+NEW_GRADE_STR = "all grade~B" if _newA == 0 else f"{_newA} grade~A and {_newB} grade~B"
+print(f"  composition: {N_TOT} total ({N_A} A, {N_B} B); {N_KNOWN} known [{SURVEY_STR}]; {N_NEW} new [{NEW_GRADE_STR}]")
+
 
 def _tex(s):
     return str(s).replace("_", "\\_")
@@ -134,17 +154,17 @@ for _, r in res.iterrows():
                 f"{r['grade_pred']} & {r['p_lens']:.2f} & {r['p_meta']:.2f} & {xcode(str(r['name']))} \\\\")
 tbl = (
     "\\begin{longtable}{rlcccccc}\n"
-    "\\caption{The 78 DESI-resolution grade-A/B candidates (LensJudge \\texttt{direct/escalate} grade at "
-    "DECaLS $0.262\\arcsec$) with \\emph{no} HSC-SSP or Euclid~Q1 coverage, ranked by tier-1 $p_{\\rm lens}$. "
-    "A literature crosscheck (\\texttt{crosscheck\\_candidates.py}: the Huang/Storfer/Inchausti catalogues "
-    "$+$ a NED/SIMBAD cone search) finds \\textbf{53 are previously-published lenses} --- 38 DES, 8 "
-    "Huang+2020, 6 AGEL, 1 CASSOWARY (\\emph{known} column: survey code; per-object matches in "
-    "\\texttt{data/dr11s\\_resolution\\_xmatch.csv}) --- and \\textbf{25 are genuinely new} (\\,---\\,), all "
-    "grade~B. The high known fraction is because this DECaLS-south footprint heavily overlaps the Dark "
-    "Energy Survey lens searches, which the campaign crossmatch omitted. The 25 new ones cannot be "
-    "validated beyond DECaLS resolution; at $1\\arcsec$ a genuine lens and an lrg+companion mimic are not "
-    "separable, so an unknown fraction are mimics. Per-candidate full/zoom/residual panels follow "
-    "(App.~\\ref{app:resolution}).}\\\\\n"
+    f"\\caption{{The {N_TOT} DESI-resolution grade-A/B candidates (LensJudge \\texttt{{direct/escalate}} grade at "
+    f"DECaLS $0.262\\arcsec$) with \\emph{{no}} HSC-SSP or Euclid~Q1 coverage, ranked by tier-1 $p_{{\\rm lens}}$. "
+    f"A literature crosscheck (\\texttt{{crosscheck\\_candidates.py}}: the Huang/Storfer/Inchausti catalogues "
+    f"$+$ a NED/SIMBAD cone search) finds \\textbf{{{N_KNOWN} are previously-published lenses}} --- {SURVEY_STR} "
+    f"(\\emph{{known}} column: survey code; per-object matches in "
+    f"\\texttt{{data/dr11s\\_resolution\\_xmatch.csv}}) --- and \\textbf{{{N_NEW} are genuinely new}} "
+    f"(\\,---\\,; {NEW_GRADE_STR}). The high known fraction is because this DECaLS-south footprint heavily "
+    f"overlaps the Dark Energy Survey lens searches, which the campaign crossmatch omitted. The new ones cannot "
+    f"be validated beyond DECaLS resolution; at $1\\arcsec$ a genuine lens and an lrg+companion mimic are not "
+    f"separable, so an unknown fraction are mimics. Per-candidate full/zoom/residual panels follow "
+    f"(App.~\\ref{{app:resolution}}).}}\\\\\n"
     "\\label{tab:resolution}\\\\\n\\toprule\n"
     "\\# & name & RA & Dec & grade & $p_{\\rm lens}$ & \\vb{} & known \\\\\n\\midrule\n\\endfirsthead\n"
     "\\multicolumn{8}{l}{\\footnotesize Table~\\ref{tab:resolution} continued}\\\\\n\\toprule\n"
@@ -183,17 +203,17 @@ blocks = ["\\definecolor{forestgreen}{HTML}{157f15}\n"]
 blocks.append(
     f"\\subsection*{{\\textcolor{{gray}}{{\\textsc{{Known}}}} --- previously-published lenses "
     f"recovered ({len(known)} of {len(res)})}}\n"
-    "These coincide ($\\le$few\\,\\arcsec) with a catalogued strong lens --- 38 DES, 8 Huang+2020, "
-    "6 AGEL, 1 CASSOWARY --- an external validation of the finder (the campaign crossmatch had "
-    "omitted these catalogues). Ranked by tier-1 $p_{\\rm lens}$.\\par\\smallskip\n")
+    f"These coincide ($\\le$few\\,\\arcsec) with a catalogued strong lens --- {SURVEY_STR} --- an "
+    f"external validation of the finder (the campaign crossmatch had omitted these catalogues). "
+    f"Ranked by tier-1 $p_{{\\rm lens}}$.\\par\\smallskip\n")
 for _, r in known.iterrows():
     blocks.append(panel(r))
 blocks.append(
     f"\\clearpage\n\\subsection*{{\\textcolor{{forestgreen}}{{\\textsc{{New}}}} --- candidates new to "
     f"the literature ({len(new)} of {len(res)})}}\n"
-    "These are absent from the DESI lens-finders, the DES/AGEL/CASSOWARY searches, and the "
-    "NED/SIMBAD literature; all are grade~B, and at DECaLS $1\\arcsec$ an unknown (likely large) "
-    "fraction are lrg+companion mimics. Ranked by tier-1 $p_{\\rm lens}$.\\par\\smallskip\n")
+    f"These are absent from the DESI lens-finders, the DES/AGEL/CASSOWARY searches, and the "
+    f"NED/SIMBAD literature ({NEW_GRADE_STR}); at DECaLS $1\\arcsec$ an unknown (likely large) "
+    f"fraction are lrg+companion mimics. Ranked by tier-1 $p_{{\\rm lens}}$.\\par\\smallskip\n")
 for _, r in new.iterrows():
     blocks.append(panel(r))
 (PAP / "appendix_resolution_figs.tex").write_text("".join(blocks))

@@ -303,9 +303,15 @@ lenses} --- they warrant human-expert and spectroscopic follow-up.
 \section{DESI-resolution candidates without high-resolution coverage}
 \label{app:resolution}
 Only $\sim$7\% of the DR11-south candidates fall in HSC-SSP (\S\ref{sec:vet}); the rest cannot be
-validated beyond DECaLS resolution with current high-res data. Table~\ref{tab:resolution} lists all
-\textbf{78} candidates graded A/B at DECaLS $1\arcsec$ by the LensJudge cascade that are \emph{not} in
-HSC-SSP \emph{or} Euclid~Q1 (8~A, 70~B), ranked by tier-1 $p_{\rm lens}$. Each is then shown below as an
+validated beyond DECaLS resolution with current high-res data. \textbf{This appendix is regenerated from
+the honest-$\chi$-residual cascade run} (\S\ref{sec:vet}, ``Residual robustness''):
+Table~\ref{tab:resolution} lists all \textbf{108} candidates graded A/B at DECaLS $1\arcsec$ by the
+LensJudge cascade that are \emph{not} in HSC-SSP \emph{or} Euclid~Q1 (17~A, 91~B), ranked by tier-1
+$p_{\rm lens}$ --- versus 78 under the legacy residual. This DESI-resolution-only set is the
+\emph{least stable} part of the pipeline: with no high-resolution anchor its membership is sensitive both
+to the residual (the honest one runs $\sim$2$\times$ hotter at tier-1) and to LLM nondeterminism (a
+legacy-residual rerun alone gives 66), so the larger list is hotter, not more complete, and its exact
+membership is not load-bearing. Each is then shown below as an
 expanded DESI \emph{grz} triptych --- \emph{full} (the whole $101$\,px,
 $0.262\arcsec$/px cutout the finder scored), \emph{zoom} ($2.5\times$ center crop), and \emph{residual}
 (the signed $\chi=(\mathrm{data}-\mathrm{model})/\sigma$ of the $r{+}z$ luminance after subtracting a
@@ -316,12 +322,13 @@ at DECaLS resolution, carrying its full metadata and a \textsc{known}/\textsc{ne
 naming the previously-published lens it recovers). The panels are grouped into a \textsc{known} sub-section
 (previously-published lenses recovered) followed by a \textsc{new} sub-section (candidates new to the
 literature), ranked by tier-1 $p_{\rm lens}$ within each. A literature crosscheck (\texttt{crosscheck\_candidates.py};
-Huang/Storfer/Inchausti $+$ NED/SIMBAD) finds \textbf{53 of the 78 are previously-published lenses} ---
-38 from the Dark Energy Survey lens searches, 8 Huang+2020, 6 AGEL, 1 CASSOWARY (the \emph{known} column
-of Table~\ref{tab:resolution}) --- because this DECaLS-south footprint heavily overlaps DES, which the
-campaign crossmatch omitted; the \textbf{25 genuinely new} are all grade~B (the 8 grade-A are all known
-lenses). A follow-up NED cone search corroborates the new set (no NED lens match; 24/25 returned, one
-NED timeout). At $1\arcsec$ a genuine lens and an lrg+companion mimic
+Huang/Storfer/Inchausti $+$ NED/SIMBAD) finds \textbf{69 of the 108 are previously-published lenses} ---
+48 from the Dark Energy Survey lens searches, 11 Huang+2020, 6 AGEL, 1 CASSOWARY, and 3 via SIMBAD (the
+\emph{known} column of Table~\ref{tab:resolution}) --- because this DECaLS-south footprint heavily overlaps
+DES, which the campaign crossmatch omitted; the \textbf{39 genuinely new} are mostly grade~B, with
+\textbf{3 grade~A} that the honest residual newly surfaces (\texttt{s\_230539\_4159},
+\texttt{s\_194300\_2796}, \texttt{s\_320069\_835}) --- still DESI-resolution-only and unvalidatable. A NED
+cone search corroborates the new set (no NED lens match; reached 105/108, with 3 timeouts). At $1\arcsec$ a genuine lens and an lrg+companion mimic
 are not separable (the resolution ceiling of \S\ref{sec:vet}), so these are \emph{candidates}, an
 unknown and likely large fraction of which are mimics --- the per-candidate panels show both clear arc/ring
 morphologies and ambiguous lrg+companion configurations. They are listed in full for completeness and
