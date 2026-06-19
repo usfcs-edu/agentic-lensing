@@ -15,3 +15,4 @@ scikit-learn>=1.4   # eval/score.py + eval/run_lensjudge_eval.py (recovery@FPR, 
 # CNN-score and GIGA-Lens VI tools subprocess into the existing envs:
 #   .venvs/lensfinder (torch)   — Stage-C meta-learner scoring (_scorelib.py)
 #   .venvs/gigalens   (JAX)     — quick_lensmodel VI fit
+anthropic>=0.40

@@ -63,6 +63,8 @@ async def fetch_cutout(args: dict) -> dict:
     content = [{"type": "text",
                 "text": f"Candidate {name} — grz cutout, {_FOV:.1f}\" field. Views follow:"}]
     for v, img in imgs.items():
-        content.append({"type": "text", "text": f"[{v}] {VIEW_DESC[v]}"})
+        # residual description tracks the active residual image (LENSJUDGE_RESIDUAL_VERSION)
+        desc = render.residual_view_desc() if v == "residual" else VIEW_DESC[v]
+        content.append({"type": "text", "text": f"[{v}] {desc}"})
         content.append({"type": "image", "data": render.png_b64(img), "mimeType": "image/png"})
     return {"content": content}

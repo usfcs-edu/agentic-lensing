@@ -105,7 +105,10 @@ def _build_content(cand: dict, views) -> Optional[list]:
                       f"\n\nRendered grz cutout views ({fov:.1f}\" field, ~0.26\"/px, "
                       "Lupton-RGB z=R/r=G/g=B; lens galaxies red, sources blue):"}]
     for v, img in imgs.items():
-        content.append({"type": "text", "text": f"[{v}]"})
+        # label the residual with a description MATCHING the active residual image
+        # (LENSJUDGE_RESIDUAL_VERSION) so the model isn't left to guess the new chi convention.
+        label = f"[{v}] {render.residual_view_desc()}" if v == "residual" else f"[{v}]"
+        content.append({"type": "text", "text": label})
         content.append({"type": "image", "source": {
             "type": "base64", "media_type": "image/png", "data": render.png_b64(img)}})
     # photometry: always provided (the programmatic stance)

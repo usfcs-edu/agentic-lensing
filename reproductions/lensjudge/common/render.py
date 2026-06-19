@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import base64
 import io as _io
+import os
 from pathlib import Path
 
 import numpy as np
@@ -256,14 +257,50 @@ def highcontrast(cube: np.ndarray, **kw) -> Image.Image:
     return lupton(cube, q=20.0, stretch=0.1, **kw)
 
 
+# --- residual A/B lever ------------------------------------------------------
+# LENSJUDGE_RESIDUAL_VERSION = "new" (default; the honest signed-chi residual) | "legacy"
+# (the deprecated Gaussian high-pass). Read at call time so one env var swaps the residual
+# IMAGE (render_views) and its DESCRIPTION (residual_view_desc, used by the graders) as a unit
+# -- the clean lever for the old-vs-new grading A/B. Each arm thus pairs its image with a
+# matching description, so the new convention (red/blue chi) is never left unexplained.
+RESIDUAL_DESC = {
+    "new": ("Lens-light residual as a g|r|z montage: chi=(data - smooth elliptical galaxy "
+            "model)/noise (red/blue = the SIGN of data-minus-model, NOT the source's color). "
+            "Judge by SHAPE and cross-band coherence, never by color: a real lensed arc is a "
+            "TANGENTIAL / curved feature OFFSET from the galaxy center and present in BOTH g and r "
+            "-- it may appear red OR blue here, and a genuine blue lensed source often shows blue, "
+            "so do NOT treat blue as 'artifact'. The bright nucleus is over-subtracted by the "
+            "simple model, so the inner ~2\" shows a saturated central red/blue dipole or blue "
+            "core: IGNORE that inner region, it is a known model artifact and is evidence neither "
+            "for nor against a lens. Genuine artifacts to discount are a thin ring EXACTLY "
+            "concentric with the core and any feature present in only one band."),
+    "legacy": ("lens-light removed (per-band minus a smoothed model): low-surface-brightness "
+               "arcs and counter-images stand out as bright features against a flat background."),
+}
+
+
+def residual_version() -> str:
+    v = os.environ.get("LENSJUDGE_RESIDUAL_VERSION", "new")
+    return v if v in ("new", "legacy") else "new"
+
+
+def residual_view_desc() -> str:
+    """Description of the 'residual' view MATCHING the currently-selected residual image."""
+    return RESIDUAL_DESC[residual_version()]
+
+
 _RENDERERS = {"full": lupton, "zoom": zoom, "residual": residual, "highcontrast": highcontrast}
 
 
 def render_views(cube: np.ndarray, views=VIEWS, px: int = config.RENDER_PX) -> dict[str, Image.Image]:
+    # swap residual <-> residual_legacy per LENSJUDGE_RESIDUAL_VERSION (the A/B lever)
+    renderers = dict(_RENDERERS)
+    if residual_version() == "legacy":
+        renderers["residual"] = residual_legacy
     out = {}
     for v in views:
         try:
-            out[v] = _RENDERERS[v](cube, px=px)
+            out[v] = renderers[v](cube, px=px)
         except Exception:
             continue
     return out
