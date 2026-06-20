@@ -278,3 +278,16 @@ and DECaLS resolution couldn't touch — biggest gains on the HARD sets, exactly
 `claudenet/data/v2/ckpt/member_{effnet_S2,effnet_B3,resnet46_C}_b50_dr11.pt`; gate
 `claudenet/data/v3/dr11_finetune_gate.json`. NEXT (gated decision): full 53.8M re-sweep with the DR11
 ensemble + mean selection → v4 candidate set, then re-vet. See memory `project_dr11s_finetune`.
+
+## DR11 fine-tune DEPLOY — re-score survivor pool (2026-06-20) ✅
+Deploy choice = re-score the survivor pool (fast; full 53.8M re-sweep deferred). Extracted top-30k
+DR11-south survivors by mean (`393`→`111`, 30k DR11 cutouts), scored with the DR11 fine-tuned ensemble
+[effnet_B, zoobot_N, *_b50_dr11] vs baseline 5-lean, re-ranked by the new mean (`394`). The fine-tune
+pulls more catalogued lenses into the top (top-500 known 250→**302**, top-1000 373→**505**) and reshuffles
+heavily (top-500 overlap 181/500). HONEST: the "more known up top" is partly genuine recovery, partly
+memorization of training positives (the fine-tune trained on the harvested pool, which overlaps the
+survivor pool) — deployment-appropriate but NOT a clean generalization metric; the held-out GATE is the
+unbiased evidence. Actionable output: refreshed NEW (not-in-any-catalog) shortlist, **198 in the top-500**,
+ranked by the better-validated discriminator → priority vetting list. Artifacts
+`claudenet/data/v3/cv3_dr11s_finetune_{candidates.csv,summary.json}`; scripts `393`/`394`. Full 53.8M
+re-sweep (out-of-pool recall) remains the optional definitive follow-on.
