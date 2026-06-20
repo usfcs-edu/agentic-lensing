@@ -255,7 +255,26 @@ all but 1 coincided with a confirmed lens and were absorbed). Held-out (Storfer/
 SuGOHI-HSC 1118, SIMBAD 828, DESI/SuGOHI 597, Euclid 373, lensed-QSO 114, SLACS/BELLS 55, CASTLES 36,
 DES 27, AGEL 23). vs the v1 deep-south ~242 that is a ~13× expansion of high-confidence positives (≫ if
 the candidate/bronze tiers are confidence-weighted in). Footprint filter dec≤+32.375 is a proxy; true
-DR11 coverage is enforced at cutout extraction (task D). Outputs:
+DR11 coverage is enforced at cutout extraction (task D — now done, below). Outputs:
 `claudenet/data/harvest/{<source>.parquet, expanded_positives_dr11s.parquet, expanded_positives_summary.json}`
 (gitignored) + harvest scripts in `claudenet/scripts/`. This is the fuel for
 the (now-optional) DR11-native fine-tune; held-out Storfer/Inchausti keep the recall metric honest.
+
+## DR11-native fine-tune (task D) — GATE PASSED, cracks the hard residual (2026-06-20) ✅
+Reframed by the recall diagnosis as a hard-residual optimization (the mean combiner already fixed bulk
+recall). DR11-native cutouts via `111 --release dr11` (shards→per-row FITS, `387`): **11,533 positives**
+(tier-subsampled gold1.0/silver0.7/bronze0.4/cand0.2 → 5,806) + **30k random** + **20k hard** negatives
+(hard = CNN-high mimics from the mean-150k survivors, PU-guarded + top-2000 candidate region skimmed).
+Warm-start fine-tune of the 3 swappable members from `_b50` (`390`, 12 ep, lr 3e-4); effnet_B + zoobot_N
+frozen anchors. Scripts `384`–`392`; local 7×TITAN RTX.
+
+**Gate (`392`, held-out Storfer/Inchausti @ DR11 resolution — never in training as pos OR neg; mean
+combiner, matched-FPR):** baseline 5-lean → fine-tuned, recall@95k-equiv-FPR:
+- Inchausti-A **0.724→0.816** (+0.09); Inchausti-B **0.515→0.812** (+0.30);
+  **Storfer-A (hard residual) 0.544→0.796 (+0.25)**. AUC up everywhere (≥0.996). PASS.
+
+So DR11-native training adds real lens-vs-mimic discrimination on the lrg+companion frontier the combiner
+and DECaLS resolution couldn't touch — biggest gains on the HARD sets, exactly as intended. Ckpts:
+`claudenet/data/v2/ckpt/member_{effnet_S2,effnet_B3,resnet46_C}_b50_dr11.pt`; gate
+`claudenet/data/v3/dr11_finetune_gate.json`. NEXT (gated decision): full 53.8M re-sweep with the DR11
+ensemble + mean selection → v4 candidate set, then re-vet. See memory `project_dr11s_finetune`.
