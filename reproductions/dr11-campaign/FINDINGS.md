@@ -193,3 +193,69 @@ Fig fig:residrobust + App. tab:residtrack. Assets: `compare_residual_ab.py`,
 `make_residual_robustness_assets.py`, `data/residual_ab_confirmed_tracking.csv`; runs
 `lensjudge/outputs/dr11s_cascade_full_{legacy_now,resid2}.parquet` (gitignored). Session LLM ~$92;
 campaign LLM ~$135 of the $250 cap. NOT resumable; cost gate is up-front (cap $60/arm, actual $40.7/$48.6).
+
+## Recall recoverability + mean combiner (2026-06-20) ✅
+The reported DR9→DR11 grade-A recall collapse (62%→41% on Inchausti-811 @1e-4) is **a stage-1
+operating-point/combiner artifact, NOT a feature-level domain shift**. Diagnosis (CPU only, no
+retrain): `380_dr11s_recall_diag_extract.py` (Perlmutter; streams the 53.8M parent, extracts per-member
+raw scores for every known lens + a 2M NegEval) → `381_dr11s_recall_diag_analyze.py` (local; calibrate
++ AUC + recall-FPR curves) → `382_dr11s_reselect_mean.py` (Perlmutter; direct mean re-selection +
+end-to-end recall). Three findings:
+1. **Denominator**: 21/90 Inchausti grade-A are out-of-parent (out of footprint or parent-cut), so the
+   searchable recall is **53.6%** (37/69), not 41%.
+2. **No feature collapse**: threshold-free AUC of in-parent held-out grade-A vs the 2M DR11 NegEval is
+   **0.9955** for the 5-lean calibrated mean (per-member 0.937–0.991). The model separates DR11 lenses
+   from random DR11 galaxies near-perfectly.
+3. **The union was the problem**: stage-1 used a per-member 1e-4 **union**; on deeper DR11 the thresholds
+   tighten and `resnet46_C_hard` saturates to 1.0 (dead member). Switching selection to the calibrated
+   **mean** at the SAME 95k budget recovers Inchausti grade-A **54%→75%** (80% @150k; held-out 88%
+   @150k); pooled all-A 41%→68%; reaches DR10's 62% at **<43k survivors** (<½ budget). Storfer-A (the
+   harder catalog) 25%→55% @95k = the genuinely-hard residual a DR11-native fine-tune would target.
+
+Verified end-to-end by direct re-selection (`382`): mean top-150k recovers Inchausti grade-A 55/69, B
+66/87, Storfer-A 63/103; the mean set retains 42,807 of the union 95k, **adds 107,193** consensus-ranked
+candidates, drops 52,297 single-member spikes (`data/v3/survivors_dr11s_mean.parquet`,
+`reselect_mean_summary.json`, `dr11s_recall_diag_summary.json` + `.png`).
+
+**Adopted as default**: `162_stage2_rescore.py` + `370_dr10_recalibrate.py` now take
+`--stage1-combiner {mean,union}`, **default mean** (union preserved for legacy reproduction; synthetic
+smoke-test passes — mean budget-selects by calibrated mean, union byte-identical). Mean selection also
+**obviates the per-release threshold recalibration** (Fork 1). Wired into the report §2: paragraph
+"Recall is recoverable: the union selector, not the model" + Fig `fig:recall`. **Implication**: the
+DR11-native fine-tune is demoted from critical fix to an optimization for the hard residual (Storfer-A
++ in-parent-cut tail). Apply the mean selector to DR11-north. See memory `project_dr11s_recall_recoverability`.
+
+## Broad confirmed-lens harvest → expanded DR11-south positive pool (2026-06-20) ✅
+The v1 training positives were capped at 1,961 (TARGET=1961), discarding a ~6,302-row staged literature
+pool; only ~242 fell in the deep south. We harvested broadly (two workflows, 8 parallel agents, honest
+provenance) and merged + 5"-deduped + tiered (`383_build_expanded_positives.py`). Sources (rows, south):
+- **local-reclaim** 9,155 (literature 5,993 + Euclid-Q1 1,715 + SuGOHI-HSC 1,444 + external 3)
+- **AGEL DR2** 128 (Barone+2025, spectroscopic; not in VizieR → web MRT)
+- **DES recent** 657 (Rojas+2022 405 + O'Donnell+2022 252, VizieR)
+- **DESI+SuGOHI** 3,865 (SuGOHI II/V/VI + Huang+2020/2021 + Dawes+2023, VizieR)
+- **CASTLES** 80 (118 systems)
+- **SLACS/BELLS** 179 (SDSS spectroscopic gold: Bolton+2008, Auger+2009, S4TM Shu+2017, BELLS-GALLERY)
+- **lensed quasars** 145 (GraL VI Stern+2021, Lemon+2023, SQLS Oguri+2006/Inada+2012)
+- **SIMBAD otype** 15,376 (all-sky TAP, lens otypes; **but ~8.7k are LeG/LeI image-level arcs, not
+  deflectors** — flagged tier "image", low value for a galaxy-galaxy DECam finder)
+
+**Source completeness (answer to "do we have all known sources"):** the major imaging surveys (DES,
+KiDS, HSC/SuGOHI, DESI/Legacy, Euclid, AGEL, CASTLES, HOLISMOKES, SL2S), the SDSS spectroscopic gold
+sets (SLACS/BELLS), lensed-quasar compilations, and a bulk SIMBAD pull are now all in. NED+SIMBAD are
+used in `163_crossmatch_known.py` (`--remote`) as position-wise *verifiers*, not bulk sources; SIMBAD is
+now harvested in bulk too. **SLED** (sled.amnh.org) is hard-blocked (Cloudflare CAPTCHA, HTTP 403 on
+every endpoint incl. `/api/`); **MasterLens** (675 systems) has no machine export (stateful JS/PHP,
+email-only) — both aggregate the catalogs we harvested directly, so the coverage loss is small.
+
+Merged 31,249 south rows → **21,025 unique systems** (5" dedup). Tiers: gold 2,702 / silver 1,694 /
+bronze 3,554 / candidate 4,351 / image 8,723 / nonlens 1 (SLACS/S4TM `*-X` graded non-lenses excluded;
+all but 1 coincided with a confirmed lens and were absorbed). Held-out (Storfer/Inchausti) **481**.
+**Training-eligible 20,543**, but the honest, deflector-level, confirmed/probable signal is the
+**HIGH-CONFIDENCE pool = 4,213 (gold+silver, non-image), of which 3,171 are NET-NEW** vs v1 (by source:
+SuGOHI-HSC 1118, SIMBAD 828, DESI/SuGOHI 597, Euclid 373, lensed-QSO 114, SLACS/BELLS 55, CASTLES 36,
+DES 27, AGEL 23). vs the v1 deep-south ~242 that is a ~13× expansion of high-confidence positives (≫ if
+the candidate/bronze tiers are confidence-weighted in). Footprint filter dec≤+32.375 is a proxy; true
+DR11 coverage is enforced at cutout extraction (task D). Outputs:
+`claudenet/data/harvest/{<source>.parquet, expanded_positives_dr11s.parquet, expanded_positives_summary.json}`
+(gitignored) + harvest scripts in `claudenet/scripts/`. This is the fuel for
+the (now-optional) DR11-native fine-tune; held-out Storfer/Inchausti keep the recall metric honest.
