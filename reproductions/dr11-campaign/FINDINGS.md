@@ -291,3 +291,22 @@ unbiased evidence. Actionable output: refreshed NEW (not-in-any-catalog) shortli
 ranked by the better-validated discriminator → priority vetting list. Artifacts
 `claudenet/data/v3/cv3_dr11s_finetune_{candidates.csv,summary.json}`; scripts `393`/`394`. Full 53.8M
 re-sweep (out-of-pool recall) remains the optional definitive follow-on.
+
+## DR11 full re-sweep with the fine-tuned ensemble — v4 candidate set (2026-06-21) ✅
+The fine-tune deploy was taken to a FULL 53.8M re-sweep (the original parent cutouts survived on scratch
+— 6 TB, 32 parts — so NO re-extraction; just scored the 3 _dr11 members, 32-task cosmo_g array
+`nersc/dr11_resweep_score.slurm`, ~stayed CHW/PyTorch-native, no Huang-format switch). Combine (`395`):
+v4 ensemble = mean of [effnet_B, zoobot_N (original stage-1) + effnet_S2/B3/resnet46_C _b50_dr11] over all
+53,809,040 rows → top-150k → `survivors_dr11s_v4.parquet`. Scripts 393–395.
+
+**Held-out recall (position-crossmatch to v4 survivors; Storfer/Inchausti excluded from training → genuine
+generalization):** Inchausti-A **0.87** (60/69), Inchausti-B **0.87** (76/87), **Storfer-A (hard) 0.825**
+(85/103). Progression on the held-out searchable set:
+- union-95k (orig op point): Inchausti-A 0.54, Storfer-A 0.32
+- mean-150k re-rank (old 5-lean, `382`): Inchausti-A 0.80, Storfer-A 0.61
+- **v4 full re-sweep (fine-tuned, 150k): Inchausti-A 0.87, Storfer-A 0.825**
+The full re-sweep captures out-of-pool recall the survivor re-score couldn't: v4 vs union-95k retains only
+15,922, **adds 134,078** (16k overlap); vs mean-150k retains 29,892 / 120k reshuffled. So the v4 candidate
+set is substantially new + recall-richer, with the biggest lift on the lrg+companion hard residual.
+Artifacts `claudenet/data/v3/{survivors_dr11s_v4.parquet, resweep_v4_summary.json}`. NEXT (optional): refresh
+the NEW (not-in-catalog) shortlist from v4 (394-style) + LensJudge vet ($). See memory project_dr11s_finetune.
