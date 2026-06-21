@@ -36,10 +36,14 @@ LOCALLY, CPU; the GPU work between them — survivors-only 111 extraction +
         threshold — applied in calibrated space when the student's calibrator
         exists, else in RAW space (recorded; the CSV's calibrated-space
         evt_thr cross-check is then inapplicable and disabled).
-      * --stage1-mode members : per-member 1e-4 thresholds thr_m from the same
-        CSV; survive iff ANY calibrated member pc_m >= thr_m (the recall-safe
-        UNION rule; nominal FPR <= n_members * fpr by the union bound,
-        recorded as such). p_stage1 = max_m pc_m; margin = max_m (pc_m - thr_m).
+      * --stage1-mode members : --stage1-combiner selects the survivors.
+        'mean' (DEFAULT) keeps the top --survivor-budget by the calibrated
+        member MEAN (the 381 recall fix: +~20pt grade-A recall vs union on the
+        deeper DR11, no per-release threshold recalibration needed). 'union' is
+        the legacy rule: per-member 1e-4 thresholds thr_m, survive iff ANY
+        calibrated member pc_m >= thr_m (nominal FPR <= n_members * fpr). Both
+        record p_stage1 = max_m pc_m, margin = max_m (pc_m - thr_m), and
+        stage1_mean = mean_m pc_m (the selector score under 'mean').
     --survivor-budget (150,000) is the operational guard: if more rows pass,
     only the top-budget by margin are kept (cutoff recorded; the PRE-budget
     pass count and rate are persisted as n_pass_prebudget /
@@ -409,29 +413,43 @@ def make_survivors(args) -> int:
     margin[fin] = (Pc[fin] - np.array([thrs[c] for c in cols])).max(axis=1)
     p_stage1 = np.full(len(scored), np.nan)
     p_stage1[fin] = Pc[fin].max(axis=1)
-    surv = margin >= 0.0
+    mean_c = np.full(len(scored), -np.inf)               # calibrated member MEAN combiner
+    mean_c[fin] = Pc[fin].mean(axis=1)
+    # SELECTOR (--stage1-combiner): 'mean' (default) keeps the top --survivor-budget by the
+    # calibrated member mean — the 381 recall fix: on the deeper DR11 the per-member 1e-4
+    # 'union' rule loses ~20pt grade-A recall (a member saturates and the union is dominated
+    # by single-member spikes), while the consensus mean separates lenses from randoms at
+    # AUC 0.9955 and needs no per-release threshold recalibration. 'union' = legacy rule.
+    use_mean = (args.stage1_combiner == "mean" and args.stage1_mode == "members")
+    if not use_mean:                                     # union / student: per-scorer threshold rule
+        surv = margin >= 0.0
+        rank_score = margin
+    else:
+        surv = fin.copy()                                # all finite are candidates; budget selects
+        rank_score = mean_c
     n_pass = int(surv.sum())
     rate = n_pass / max(n_swept, 1)
-    print(f"[162] stage-1 pass: {n_pass:,}/{n_swept:,} = {rate:.3e} "
-          f"(nominal fpr {nominal_fpr:g}; known lenses are IN the sweep, so "
+    print(f"[162] stage-1 pass ({args.stage1_combiner}): {n_pass:,}/{n_swept:,} = "
+          f"{rate:.3e} (nominal fpr {nominal_fpr:g}; known lenses are IN the sweep, so "
           f"the realized rate sits above a pure FPR — 164 checks consistency)")
 
     budget_applied, cutoff = False, None
     if n_pass > args.survivor_budget:
-        order = np.argsort(-margin, kind="stable")[:args.survivor_budget]
-        cutoff = float(margin[order[-1]])
+        order = np.argsort(-rank_score, kind="stable")[:args.survivor_budget]
+        cutoff = float(rank_score[order[-1]])
         surv = np.zeros(len(scored), bool)
         surv[order] = True
         budget_applied = True
         print(f"[162] --survivor-budget {args.survivor_budget:,} applied: "
-              f"margin cutoff {cutoff:+.6f} ({n_pass - args.survivor_budget:,} "
-              f"above-threshold rows dropped)")
+              f"{args.stage1_combiner} cutoff {cutoff:+.6f} "
+              f"({n_pass - args.survivor_budget:,} rows dropped)")
 
     out = scored.loc[surv, ["row_id", *cols]].reset_index(drop=True)
     out.insert(1, "p_stage1", p_stage1[surv])
     for j, cl in enumerate(cols):
         out[f"cal_{cl}"] = Pc[surv, j]              # the thresholded values
     out["stage1_margin"] = margin[surv]
+    out["stage1_mean"] = mean_c[surv]                  # calibrated member mean (selector score)
     # merge (not set_index().loc) — survivors are <=150k of a 17.3M-row frame
     sm = out[["row_id"]].merge(man, on="row_id", how="left")
     assert not sm["footprint"].isna().any(), "survivor row_id missing from manifests"
@@ -452,15 +470,20 @@ def make_survivors(args) -> int:
         "stage1_fpr": nominal_fpr,
         # -- extras ----------------------------------------------------------------
         "stage1_mode": args.stage1_mode, "stage1_cols": cols,
+        "stage1_combiner": args.stage1_combiner,
+        "budget_cutoff_score": ("calibrated_member_mean"
+                                if args.stage1_combiner == "mean" else "union_margin"),
         "per_member_fpr": args.stage1_fpr,
         "thresholds": thrs, "evt_thresholds": evts,
         "threshold_space": threshold_space,
         "calibration_fits": str(args.fits),
         "negeval_fpr_check": negeval_check,
-        "nominal_fpr_note": ("members mode: union rule over per-member "
-                             "thresholds, nominal fpr = n_members * per-member "
-                             "fpr (union bound)" if args.stage1_mode == "members"
-                             else "single-scorer threshold"),
+        "nominal_fpr_note": (
+            "members/mean: top --survivor-budget by calibrated member mean "
+            "(no union FPR; effective FPR = budget/n_swept)" if use_mean
+            else ("members/union: per-member thresholds, nominal fpr = "
+                  "n_members * per-member fpr (union bound)"
+                  if args.stage1_mode == "members" else "single-scorer threshold")),
         "n_rows_total": int(len(scored)), "n_nonfinite": int(len(scored)) - n_swept,
         "n_manifest_rows": int(len(man)), "n_manifest_unscored": n_missing,
         "n_stage1_files": n_files, "stage1_scores_glob": args.stage1_scores,
@@ -596,7 +619,15 @@ def main() -> int:
                     help="proceed without the NegEval FPR reproduction check "
                          "(only when the pool parquet is unavailable)")
     ap.add_argument("--survivor-budget", type=int, default=150_000,
-                    help="operational cap on survivors (top by margin kept)")
+                    help="operational cap on survivors (top by the --stage1-combiner "
+                         "score kept)")
+    ap.add_argument("--stage1-combiner", choices=("mean", "union"), default="mean",
+                    help="survivor selector (members mode): 'mean' (DEFAULT) keeps the "
+                         "top --survivor-budget by the calibrated member MEAN — the 381 "
+                         "recall fix, +~20pt grade-A recall vs union on deeper releases, "
+                         "no per-release threshold recalibration needed; 'union' = legacy "
+                         "per-member 1e-4 margin>=0 rule (recall-fragile when a member "
+                         "saturates). Student mode always uses the single-scorer threshold.")
     ap.add_argument("--native-griz", action="store_true",
                     help="also print the optional native-AION 160px-griz "
                          "extraction/embedding block (132 gate shipped native)")

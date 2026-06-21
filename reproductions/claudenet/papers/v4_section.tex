@@ -1,0 +1,77 @@
+\section{\cnet{} v4: mean-combiner selection and release-native fine-tuning}
+\label{sec:v4}
+Deploying \texttt{v3blend8} on the final release (DR11-south, \S\ref{sec:v3}) surfaced an apparent
+collapse: known-lens grade-A recall at the per-member $10^{-4}$ operating point fell $62\%\!\to\!41\%$
+relative to DR10. v4 diagnoses this as an \emph{operating-point} artifact --- not a model failure ---
+and fixes it with two stacking, release-portable levers: a combiner change (free) and a release-native
+fine-tune (one short GPU pass). v4 is additive --- it keeps the v3 contaminant-aware members and adds
+(i)~a selection rule and (ii)~DR11-native weights.
+
+\paragraph{The recall collapse is the combiner, not the model.} The stage-1 selector was a per-member
+$10^{-4}$ \emph{union}; on the deeper DR11 imaging the per-member thresholds tighten and the
+\texttt{resnet46\_C} member saturates, so the union is dominated by single-member spikes. Three facts
+show the model is intact: (i)~$21/90$ of the grade-A lenses lie outside the searched footprint or are
+cut by the parent selection, so the \emph{searchable} recall is already $54\%$, not $41\%$;
+(ii)~the threshold-free AUC of in-parent held-out grade-A versus a $2$M random DR11 negative sample is
+\textbf{0.9955} for the five-member calibrated mean --- the DR9-trained members still rank DR11 lenses
+far above random DR11 galaxies; (iii)~replacing the union with the calibrated five-member \emph{mean}
+at the \emph{same} survivor budget recovers grade-A recall $54\%\!\to\!75\%$ ($88\%$ at $150$k) and
+reaches DR10's in-domain $62\%$ at fewer than $43$k survivors. The calibrated mean is therefore the
+default stage-1 selector going forward (\texttt{162}/\texttt{370 -{}-stage1-combiner mean}); it carries
+no per-release threshold recalibration, removing the DR9$\to$DR11 drift entirely.
+
+\paragraph{A release-native training pool.} The v1--v3 positive set was capped at $1{,}961$ DR9-pixel
+lenses. We broadly re-harvested the confirmed-lens literature for the DR11-south footprint --- reclaimed
+VizieR/DES/KiDS/HSC catalogs, SLACS/BELLS spectroscopic lenses, lensed-quasar compilations, a bulk
+SIMBAD object-type pull, and the Euclid-Q1 grade-A/B set --- deduplicated at $5''$ and tiered by
+confidence, yielding \textbf{$3{,}171$ net-new high-confidence (gold$+$silver) positives}, a
+$\sim$13$\times$ expansion of the DR11-south pool. Storfer and Inchausti are held out for the recall
+metric throughout (excluded as both positives \emph{and} negatives), so the gate below measures genuine
+generalisation, not memorisation.
+
+\paragraph{Release-native warm-start fine-tune.} All positive cutouts are re-extracted DR11-south-native
+(\texttt{griz}, $101$\,px), tier-subsampled to $5{,}806$, and paired with $30$k random $+$ $20$k
+\emph{hard} DR11 negatives (CNN-high mimics drawn from the mean-ranked survivor pool, PU-guarded and
+candidate-region-skimmed). The three swappable members (\texttt{effnet\_S2}, \texttt{effnet\_B3},
+\texttt{resnet46\_C}) are warm-started from their \texttt{\_b50} checkpoints and fine-tuned for $12$
+epochs at $\mathrm{lr}{=}3\times10^{-4}$; \texttt{effnet\_B} and \texttt{zoobot\_N} stay frozen as the
+random-FPR / diversity anchors. The gate on held-out Storfer/Inchausti at DR11 resolution
+(mean combiner, matched-FPR) passes decisively, with the largest gain on the lrg$+$companion hard
+residual that the combiner alone cannot touch (Table~\ref{tab:v4gate}); AUC does not regress
+(Inchausti-A $0.996\!\to\!0.998$).
+
+\begin{table}[t]\centering
+\caption{v4 fine-tune gate: held-out (training-excluded) Storfer/Inchausti recall at the matched-FPR
+$95$k-survivor operating point, calibrated-mean combiner. Baseline is the v3 five-lean ensemble; v4
+swaps the three members for their DR11-native fine-tuned versions. The release-native fine-tune cracks
+the hard residual the resolution-limited v3 model could not.}
+\label{tab:v4gate}
+\begin{tabular}{lccc}
+\toprule
+held-out set & v3 baseline & v4 fine-tuned & $\Delta$ \\
+\midrule
+Inchausti grade-A & 0.724 & \textbf{0.816} & $+0.09$ \\
+Inchausti grade-B & 0.515 & \textbf{0.812} & $+0.30$ \\
+Storfer grade-A (hard) & 0.544 & \textbf{0.796} & $+0.25$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Full re-sweep and the v4 candidate set.} We re-scored all $5.38\times10^{7}$ DR11-south
+galaxies with the fine-tuned ensemble --- reusing the original parent cutouts (no re-extraction) and
+combining the mean of [\,\texttt{effnet\_B}, \texttt{zoobot\_N}, the three \texttt{\_b50\_dr11} members\,]
+--- and selected the top $150$k by mean. Held-out recall (position-crossmatch; Storfer/Inchausti
+training-excluded) is the best of any configuration: Inchausti grade-A \textbf{0.87} ($60/69$),
+grade-B \textbf{0.87} ($76/87$), Storfer grade-A \textbf{0.825} ($85/103$), versus $0.54/0.32$ for the
+original union-$95$k operating point. The full re-sweep recovers the out-of-pool lenses a survivor-only
+re-rank cannot: the v4 top-$150$k retains only $15{,}922$ of the union-$95$k survivors and \textbf{adds
+$134{,}078$} --- a substantially new, recall-richer candidate pool.
+
+\paragraph{Honest scope.} v4 \emph{stacks} domain adaptation on v3's mimic rejection; both levers are
+release-portable --- the recipe (re-harvest the native-resolution positive pool, mine native hard
+negatives, warm-start fine-tune, select by mean) is precisely what transfers to the higher-resolution
+surveys that are the program's endpoint. v4 remains DECam-specific (the northern footprint needs
+BASS/MzLS-native retraining, \S\ref{sec:future}), the DECaLS $0.262''$/px resolution ceiling is
+unchanged (higher-resolution vetting remains the decisive net-new-discovery lever), and the v4 candidate
+set is recall-richer but \emph{pending} vetting --- the completed as-run DR11-south vetting used
+\texttt{v3blend8}.

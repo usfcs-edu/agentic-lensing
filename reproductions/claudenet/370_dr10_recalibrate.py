@@ -46,6 +46,10 @@ def main() -> int:
     ap.add_argument("--negeval", type=int, default=6_000_000, help="NegEval sample size")
     ap.add_argument("--fpr", type=float, default=1e-4)
     ap.add_argument("--budget", type=int, default=150_000)
+    ap.add_argument("--combiner", choices=("mean", "union"), default="mean",
+                    help="survivor selector: 'mean' (DEFAULT) = top --budget by the "
+                         "calibrated v2lean mean (381 recall fix, no threshold "
+                         "recalibration needed); 'union' = legacy per-member 1e-4 union")
     ap.add_argument("--seed", type=int, default=C.SEED)
     args = ap.parse_args()
     sd = Path(args.sweep_dir)
@@ -82,22 +86,31 @@ def main() -> int:
                         "thr": thr_dr10[m], "thr_lo": np.nan, "thr_hi": np.nan})
     pd.DataFrame(rows_op).to_csv(sd / "operating_points_dr10.csv", index=False)
 
-    # 3. re-threshold the full population (union: any calibrated member >= its DR10 thr)
-    passed = np.zeros(len(df), bool)
+    # 3. select survivors. --combiner 'mean' (DEFAULT, the 381 recall fix) ranks by the
+    #    calibrated v2lean MEAN (df_avg) and keeps the top --budget — the per-member union
+    #    loses ~20pt grade-A recall on the deeper DR11 (a member saturates) and the mean
+    #    needs no per-release threshold recalibration at all. 'union' = legacy rule.
     margin = np.full(len(df), -np.inf)
     for j, m in enumerate(members):
-        d = cal[:, j] - thr_dr10[m]
-        passed |= cal[:, j] >= thr_dr10[m]
-        margin = np.maximum(margin, d)
-    n_pass = int(passed.sum())
-    print(f"\n[370] DR10-recalibrated stage-1 pass: {n_pass:,}/{len(df):,} = {n_pass/len(df):.3e}")
-    surv = df.loc[passed, ["row_id"]].copy()
-    surv["p_final"] = df_avg[passed]
-    surv["stage1_margin"] = margin[passed]
-    # budget cap by margin
-    if len(surv) > args.budget:
-        surv = surv.sort_values("stage1_margin", ascending=False).head(args.budget)
-    print(f"[370] survivors after budget {args.budget:,}: {len(surv):,}")
+        margin = np.maximum(margin, cal[:, j] - thr_dr10[m])
+    union_pass = (cal >= np.array([thr_dr10[m] for m in members])).any(axis=1)
+    n_pass = int(union_pass.sum())              # union pass count (informational under 'mean')
+    if args.combiner == "union":
+        sel = np.flatnonzero(union_pass)
+        print(f"\n[370] DR10-recalibrated stage-1 pass (union): "
+              f"{n_pass:,}/{len(df):,} = {n_pass/len(df):.3e}")
+        if len(sel) > args.budget:
+            sel = sel[np.argsort(-margin[sel], kind="stable")[:args.budget]]
+    else:                                       # mean: top-budget by calibrated mean
+        sel = np.argsort(-df_avg, kind="stable")[:args.budget]
+        print(f"\n[370] mean selector: top-{min(args.budget, len(df)):,} by calibrated "
+              f"mean (cutoff {df_avg[sel[-1]]:.6f}); the per-member union would pass "
+              f"{int(union_pass.sum()):,}")
+    surv = df.iloc[sel][["row_id"]].copy()
+    surv["p_final"] = df_avg[sel]
+    surv["stage1_margin"] = margin[sel]
+    surv["stage1_mean"] = df_avg[sel]
+    print(f"[370] survivors ({args.combiner}, budget {args.budget:,}): {len(surv):,}")
 
     # join RA/DEC from manifests for recall + downstream
     man = pd.concat([pd.read_parquet(p, columns=["row_id", "RA", "DEC", "footprint", "brick"])
@@ -124,7 +137,8 @@ def main() -> int:
         print(f"   grade {g}: {int(s.rec.sum())}/{len(s)} ({s.rec.mean():.2f})")
     print(f"   ALL: {int(cat.rec.sum())}/{len(cat)} ({cat.rec.mean():.2f})")
 
-    json.dump({"n_pass": n_pass, "n_survivors": int(len(surv)),
+    json.dump({"combiner": args.combiner, "n_union_pass": n_pass,
+               "n_survivors": int(len(surv)),
                "thr_dr10": {m.replace('member_', ''): thr_dr10[m] for m in members},
                "recall_811_by_grade": rec, "recall_811_all": [int(cat.rec.sum()), len(cat)]},
               open(sd / "recalibrate_dr10_summary.json", "w"), indent=2)

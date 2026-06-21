@@ -47,8 +47,12 @@ $0.262''$/px. Cross-validating the DESI$\cap$Euclid-Q1 overlap shows the product
 pre-screens DESI, Euclid confirms at $0.1''$ (median $p_{\rm lens}\,0.03\!\to\!0.70$), yielding 49
 cross-validated candidates --- and that v3 is DECam-specific (no BASS/MzLS transfer). The honest
 takeaway: the model lever is real but modest, and the decisive levers are higher-resolution vetting
-and instrument-native training. All metrics reuse the reproduced matched-FPR arithmetic verbatim so
-every v1/v2/v3 number is directly comparable.
+and instrument-native training. \textbf{v4} pursues the data/calibration lever to its DR11 limit: a
+calibrated-mean stage-1 selector erases the apparent DR9$\to$DR11 recall collapse at no cost, and a
+release-native warm-start fine-tune (on a $\sim$13$\times$-expanded native positive pool) lifts
+held-out grade-A recall to $0.87$ and --- for the first time --- cracks the lrg$+$companion hard
+residual ($0.54\!\to\!0.83$) at the same resolution ceiling. All metrics reuse the reproduced
+matched-FPR arithmetic verbatim so every v1--v4 number is directly comparable.
 \end{abstract}
 
 \section{Premise and method}
@@ -271,6 +275,7 @@ not transformational, lift.
 \input{v2_section}
 \input{campaign_section}
 \input{v3_section}
+\input{v4_section}
 \input{future_work}
 
 \section{Conclusion}
@@ -287,6 +292,11 @@ repository-consistent takeaway is that for DECaLS lens finding the returns are i
 and contaminant-aware negatives --- a meaningful but not transformational model lift --- while the
 decisive levers for net-new discovery are \emph{resolution} (Euclid pre-screening) and
 \emph{footprint} (instrument-native retraining), the directions of \S\ref{sec:future}.
+\textbf{v4} (\S\ref{sec:v4}) takes the data/calibration lever as far as it goes on DR11: a
+calibrated-mean stage-1 selector erases the apparent DR9$\to$DR11 recall collapse for free, and a
+release-native warm-start fine-tune --- for the first time --- cracks the lrg$+$companion hard residual
+(held-out grade-A recall to $0.87$, hard-residual $0.54\!\to\!0.83$), establishing the release-native
+recipe the higher-resolution surveys will reuse.
 
 \input{appendix_catalog}
 
