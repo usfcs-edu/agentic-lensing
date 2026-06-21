@@ -21,6 +21,7 @@ API needs a key; the SDK rode on the claude CLI login).
 from __future__ import annotations
 
 import json
+import os
 import time
 from pathlib import Path
 from typing import Optional
@@ -52,6 +53,52 @@ _PRICE = {
 # invocation" stance — compute the evidence unconditionally rather than letting the
 # model plan it.
 _DEFAULT_VIEWS = ("full", "zoom", "residual")
+
+
+def _example_blocks(ex: dict, views) -> Optional[list]:
+    """Render one labeled few-shot reference example into content blocks (or None if no cutout)."""
+    cube = fetch.get_cube(name=ex.get("name"), ra=ex.get("ra"), dec=ex.get("dec"),
+                          survey=ex.get("survey_key") or ex.get("catalog") or "storfer")
+    if cube is None:
+        return None
+    imgs = render.render_views(cube, views=[v for v in views if v in render.VIEWS])
+    label = str(ex.get("label", "")).upper()
+    hdr = f"REFERENCE EXAMPLE -- {label}"
+    if ex.get("grade"):
+        hdr += f" (consensus grade {ex['grade']})"
+    if ex.get("note"):
+        hdr += f": {ex['note']}"
+    blocks: list = [{"type": "text", "text": hdr}]
+    for v, img in imgs.items():
+        blocks.append({"type": "text", "text": f"[{v}]"})
+        blocks.append({"type": "image", "source": {
+            "type": "base64", "media_type": "image/png", "data": render.png_b64(img)}})
+    return blocks
+
+
+def _fewshot_prefix(views) -> list:
+    """Optional in-context few-shot examples (LENSJUDGE_FEWSHOT_MANIFEST = a CSV with columns
+    name, ra, dec, survey_key, label, grade, note). Returns [] when unset. The examples render with
+    the SAME stretch/views as the candidate so they calibrate on like-for-like pixels."""
+    path = os.environ.get("LENSJUDGE_FEWSHOT_MANIFEST")
+    if not path:
+        return []
+    try:
+        import pandas as pd
+        rows = pd.read_csv(path).to_dict("records")
+    except Exception:
+        return []
+    out: list = [{"type": "text", "text":
+                  "Below are REFERENCE EXAMPLES with known labels, to calibrate your grading. Study them, "
+                  "then grade the CANDIDATE that follows (it is NOT among the examples). Use the FULL p_lens "
+                  "range: a clear lens should score near 1.0, a clear non-lens near 0.0; do not default to 0."}]
+    for ex in rows:
+        b = _example_blocks(ex, views)
+        if b:
+            out.extend(b)
+    out.append({"type": "text", "text": "END OF REFERENCE EXAMPLES. Now grade THIS candidate:"})
+    return out if len(out) > 2 else []   # only prefix if at least one example rendered
+
 
 _client: Optional[AsyncAnthropic] = None
 
@@ -100,7 +147,7 @@ def _build_content(cand: dict, views) -> Optional[list]:
         return None
     imgs = render.render_views(cube, views=[v for v in views if v in render.VIEWS])
     fov = config.SIZE_PIX * config.PIXSCALE
-    content: list = [{"type": "text", "text":
+    content: list = _fewshot_prefix(views) + [{"type": "text", "text":
                       _candidate_text(cand) +
                       f"\n\nRendered grz cutout views ({fov:.1f}\" field, ~0.26\"/px, "
                       "Lupton-RGB z=R/r=G/g=B; lens galaxies red, sources blue):"}]
