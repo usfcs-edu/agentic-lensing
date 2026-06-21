@@ -35,14 +35,17 @@ rejections (true mimics, \emph{not} objects that flipped to A/B at higher resolu
 typed hard negatives for the next-generation bank --- closing a mine$\to$grade$\to$retrain loop that
 continually sharpens the dominant contaminant classes.
 
-\paragraph{6. A full DR11-south candidate catalogue.} v3blend8 runs on DR11-south with essentially
-no adaptation (the pipeline is release-parametrised; only a DR10$\to$DR11 threshold recalibration is
-needed). A full-footprint scan would yield a real DR11-south candidate catalogue with v3's cleaner-
-bulk advantage over the published finders --- a useful deliverable, with the honest caveat that the
-net-new yield is resolution-bounded ($\approx$ the published-baseline level at the hardest frontier).
+\paragraph{6. A full DR11-south candidate catalogue.} \emph{Realised --- see \S\ref{sec:v4}.} v3blend8
+runs on DR11-south with essentially no adaptation (the pipeline is release-parametrised); v4 went
+further --- replacing the per-release threshold recalibration with a calibrated-mean selector and adding
+a release-native warm-start fine-tune --- and re-swept the full footprint into the v4 candidate set. The
+honest caveat stands: net-new yield is resolution-bounded, so the v4 catalogue is recall-richer but its
+new candidates remain pending higher-resolution vetting.
 
-\paragraph{Deployment recommendation.} Ship \textbf{v3blend8} (not the learned head, which does not
-generalise past $\phi{=}0.05$) as the stage-1/scoring ensemble, with the LensJudge v2 cascade
-(direct triage $+$ agentic mimic adjudication $+$ Euclid escalation by coverage) for vetting. This
-keeps v2-lean's lens recall, adds the contaminant-rejection edge on the bulk candidate list, and
-routes the resolution-breaking confirmation to exactly the candidates that have higher-res coverage.
+\paragraph{Deployment recommendation.} For DR11-south, ship the \textbf{v4} release-native fine-tuned
+ensemble with the \textbf{calibrated-mean stage-1 selector} (\S\ref{sec:v4}); retain \textbf{v3blend8}
+for DR10-south and the Euclid cross-validation. In all cases use the score \emph{mean} (not the learned
+head, which does not generalise past $\phi{=}0.05$) and the LensJudge cascade (direct triage $+$ agentic
+mimic adjudication $+$ HSC/Euclid escalation by coverage) for vetting. This keeps the v2-lean lens
+recall, adds v3's contaminant-rejection edge and v4's release-native gain on the hard residual, and
+routes the resolution-breaking confirmation to exactly the candidates with higher-resolution coverage.
