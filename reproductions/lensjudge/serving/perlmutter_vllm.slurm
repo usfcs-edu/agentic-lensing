@@ -43,7 +43,7 @@ srun podman-hpc run --rm --gpu \
   --max-model-len 32768 \
   --gpu-memory-utilization 0.92 \
   --enable-auto-tool-choice --tool-call-parser hermes \
-  --limit-mm-per-prompt image=8 \
+  --limit-mm-per-prompt '{"image": 8}' \
   --mm-processor-kwargs "${MM_KW}"
 
 # LensJudge (same node or a login node that can reach the compute node) then uses:
