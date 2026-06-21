@@ -257,6 +257,42 @@ def highcontrast(cube: np.ndarray, **kw) -> Image.Image:
     return lupton(cube, q=20.0, stretch=0.1, **kw)
 
 
+# --- arcsinh-RGB stretch (v4 experiment lever) -------------------------------
+# An alternative to Lupton-RGB for the `full`/`zoom` views: per-band median-subtract,
+# normalize by robust noise, arcsinh-compress, percentile-clip to [0,1], stack z/r/g -> R/G/B.
+# This is the stretch the open-VLM galaxy-search literature used (arXiv 2512.11982); it is
+# OPT-IN via LENSJUDGE_RENDER_STRETCH=arcsinh so the default (Lupton) is byte-identical to the
+# Claude-graded runs -- keep parity for the open-vs-Claude gate, toggle on for Phase-1 experiments.
+def _arcsinh_channel(ch: np.ndarray, a: float = 0.1) -> np.ndarray:
+    ch = ch.astype(float)
+    med = float(np.ma.median(sigma_clip(ch, sigma=3.0, maxiters=2)))
+    sig = float(mad_std(ch, ignore_nan=True)) or 1.0
+    y = np.arcsinh((ch - med) / sig / a)
+    lo, hi = np.percentile(y, 0.5), np.percentile(y, 99.5)
+    return np.clip((y - lo) / max(hi - lo, 1e-6), 0.0, 1.0)
+
+
+def arcsinh_rgb(cube: np.ndarray, px: int = config.RENDER_PX, a: float = 0.1) -> Image.Image:
+    """Per-band arcsinh-stretched RGB (z=R, r=G, g=B), matching the Lupton band order."""
+    rgb = np.stack([_arcsinh_channel(cube[2], a), _arcsinh_channel(cube[1], a),
+                    _arcsinh_channel(cube[0], a)], axis=-1)
+    return _img_from_rgb((rgb * 255).astype(np.uint8), px)
+
+
+def zoom_arcsinh(cube: np.ndarray, factor: float = 2.5, **kw) -> Image.Image:
+    n = cube.shape[1]
+    half = max(8, int(round(n / (2 * factor))))
+    c = n // 2
+    sub = cube[:, c - half:c + half + 1, c - half:c + half + 1]
+    return arcsinh_rgb(sub, **kw)
+
+
+def render_stretch() -> str:
+    """LENSJUDGE_RENDER_STRETCH = lupton (default) | arcsinh — swaps the full/zoom base stretch."""
+    v = os.environ.get("LENSJUDGE_RENDER_STRETCH", "lupton")
+    return v if v in ("lupton", "arcsinh") else "lupton"
+
+
 # --- residual A/B lever ------------------------------------------------------
 # LENSJUDGE_RESIDUAL_VERSION = "new" (default; the honest signed-chi residual) | "legacy"
 # (the deprecated Gaussian high-pass). Read at call time so one env var swaps the residual
@@ -297,6 +333,9 @@ def render_views(cube: np.ndarray, views=VIEWS, px: int = config.RENDER_PX) -> d
     renderers = dict(_RENDERERS)
     if residual_version() == "legacy":
         renderers["residual"] = residual_legacy
+    if render_stretch() == "arcsinh":          # v4: opt-in arcsinh-RGB for full/zoom
+        renderers["full"] = arcsinh_rgb
+        renderers["zoom"] = zoom_arcsinh
     out = {}
     for v in views:
         try:
