@@ -28,7 +28,7 @@ from typing import Optional
 from anthropic import AsyncAnthropic
 
 from lensjudge import config
-from lensjudge.common import fetch, hooks, parse, render
+from lensjudge.common import fetch, hooks, llm_client, parse, render
 from lensjudge.common.schemas import ImageGrade
 from lensjudge.imaging.grader_lean import GradeResult, _RUBRIC, _REPAIR
 from lensjudge.tools.photometry import _aperture_colors
@@ -120,6 +120,49 @@ def _build_content(cand: dict, views) -> Optional[list]:
     return content
 
 
+async def _grade_openai(cand: dict, content: list, model_id: str, sysp: str,
+                        n_imgs: int, tr, t0: float) -> GradeResult:
+    """Open-weight backend path (LENSJUDGE_BACKEND=openai): one OpenAI-compatible
+    multimodal call with the SAME evidence blocks + rubric, schema-validated by parse.
+
+    Mirrors the Anthropic single-call flow (one turn, one text-only repair retry) so the
+    GradeResult is drop-in identical; only the transport differs.
+    """
+    try:
+        res = await llm_client.chat_with_images(
+            system=sysp, content=content, model=model_id, max_tokens=2048,
+            json_schema=ImageGrade.model_json_schema())
+    except Exception as e:
+        return GradeResult(None, "", error=f"{type(e).__name__}: {e}", parse_ok=False,
+                           meta={"name": cand.get("name"), "mode": "direct"})
+    raw, cost = res.text, res.cost_usd
+    if tr is not None:
+        tr.write("direct_response", input_tokens=res.input_tokens,
+                 output_tokens=res.output_tokens, cost_usd=round(cost, 5),
+                 stop_reason=res.finish_reason, text=raw, backend="openai")
+    grade = parse.parse_model(raw, ImageGrade)
+    if grade is None and raw:  # one text-only repair retry (matches the anthropic path)
+        try:
+            r2 = await llm_client.chat_text(system=sysp, text=_REPAIR + raw,
+                                            model=model_id, max_tokens=2048)
+            cost += r2.cost_usd
+            g2 = parse.parse_model(r2.text, ImageGrade)
+            if g2 is not None:
+                grade, raw = g2, r2.text
+        except Exception:
+            pass
+    return GradeResult(
+        grade=grade, raw=raw, cost_usd=cost, num_turns=1, parse_ok=grade is not None,
+        meta={"name": cand.get("name"), "mode": "direct", "model_id": model_id,
+              "backend": "openai", "n_images": n_imgs,
+              "wall_s": round(time.time() - t0, 2),
+              "trace": str(tr.path) if tr else None,
+              # provenance columns expected by run_batch._row_dict (None in direct mode)
+              "tier": None, "escalated": None, "highres_survey": None,
+              "p_lens_tier1": None, "p_lens_tier2": None,
+              "n_thinking_blocks": 0, "thinking_chars": 0})
+
+
 async def grade_candidate(cand: dict, *, model: Optional[str] = None,
                           tools=("fetch_cutout", "get_photometry"),  # ignored (no loop)
                           system_prompt: Optional[str] = None,
@@ -133,10 +176,14 @@ async def grade_candidate(cand: dict, *, model: Optional[str] = None,
         return GradeResult(None, "", error="no cutout", parse_ok=False,
                            meta={"name": cand.get("name"), "mode": "direct"})
     n_imgs = sum(1 for b in content if b.get("type") == "image")
-    if tr is not None:
-        tr.write("direct_request", model=model_id, n_images=n_imgs, views=list(views))
-    client = _get_client()
     sysp = system_prompt or _RUBRIC
+    if tr is not None:
+        tr.write("direct_request", model=model_id, n_images=n_imgs, views=list(views),
+                 backend=llm_client.get_backend())
+    # open-weight backend: route through the OpenAI-compatible client and return.
+    if llm_client.is_open():
+        return await _grade_openai(cand, content, model_id, sysp, n_imgs, tr, t0)
+    client = _get_client()
 
     # thinking: off by default (matches lean's default; isolates the loop). When
     # LENSJUDGE_THINKING=adaptive, give the single call a reasoning scratchpad — this
