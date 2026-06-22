@@ -14,6 +14,8 @@ OUT="${OUT:-reproductions/lensjudge/outputs/sft/ckpt}"
 GPU="${GPU:-0}"
 EPOCHS="${EPOCHS:-1}"          # ~hours/epoch on one Titan RTX (~12 s/sample); 1 epoch is a sensible first run
 LORA_RANK="${LORA_RANK:-16}"
+SAVE_STEPS="${SAVE_STEPS:-100}"   # v2: set small (e.g. 25) for AUC-based checkpoint selection
+SAVE_LIMIT="${SAVE_LIMIT:-2}"     # v2: set high to keep all checkpoints for eval_checkpoints.py
 SWIFT="${SWIFT:-/home2/benson/.venvs/ljtrain/bin/swift}"
 
 export CUDA_VISIBLE_DEVICES="${GPU}"
@@ -31,6 +33,6 @@ exec "${SWIFT}" sft \
   --per_device_train_batch_size 1 --gradient_accumulation_steps 8 \
   --learning_rate 1e-4 --num_train_epochs "${EPOCHS}" --warmup_ratio 0.05 \
   --gradient_checkpointing true \
-  --eval_strategy steps --eval_steps 100 --save_steps 100 --save_total_limit 2 \
+  --eval_strategy steps --eval_steps "${SAVE_STEPS}" --save_steps "${SAVE_STEPS}" --save_total_limit "${SAVE_LIMIT}" \
   --logging_steps 5 --dataset_num_proc 2 \
   --output_dir "${OUT}"
