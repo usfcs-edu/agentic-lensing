@@ -16,22 +16,29 @@ EPOCHS="${EPOCHS:-1}"          # ~hours/epoch on one Titan RTX (~12 s/sample); 1
 LORA_RANK="${LORA_RANK:-16}"
 SAVE_STEPS="${SAVE_STEPS:-100}"   # v2: set small (e.g. 25) for AUC-based checkpoint selection
 SAVE_LIMIT="${SAVE_LIMIT:-2}"     # v2: set high to keep all checkpoints for eval_checkpoints.py
+MAX_STEPS="${MAX_STEPS:-}"        # optional: cap steps (smoke test). Empty = full EPOCHS.
 SWIFT="${SWIFT:-/home2/benson/.venvs/ljtrain/bin/swift}"
 
 export CUDA_VISIBLE_DEVICES="${GPU}"
 export HF_HOME="${HF_HOME:-/home2/benson/.cache/huggingface}"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
+val_arg=()
+[[ -f "${DATA_DIR}/sft_val.jsonl" ]] && val_arg+=(--val_dataset "${DATA_DIR}/sft_val.jsonl")  # else ms-swift auto-splits from train
+steps_arg=()
+[[ -n "${MAX_STEPS}" ]] && steps_arg+=(--max_steps "${MAX_STEPS}")
+
 exec "${SWIFT}" sft \
   --model "${MODEL}" \
   --dataset "${DATA_DIR}/sft_train.jsonl" \
-  --val_dataset "${DATA_DIR}/sft_val.jsonl" \
+  "${val_arg[@]}" \
   --tuner_type lora --quant_bits 4 --quant_method bnb \
   --torch_dtype float16 --attn_impl sdpa \
   --freeze_vit true --lora_rank "${LORA_RANK}" --lora_alpha $((LORA_RANK * 2)) --lora_dropout 0.05 \
   --max_length 6144 \
   --per_device_train_batch_size 1 --gradient_accumulation_steps 8 \
   --learning_rate 1e-4 --num_train_epochs "${EPOCHS}" --warmup_ratio 0.05 \
+  "${steps_arg[@]}" \
   --gradient_checkpointing true \
   --eval_strategy steps --eval_steps "${SAVE_STEPS}" --save_steps "${SAVE_STEPS}" --save_total_limit "${SAVE_LIMIT}" \
   --logging_steps 5 --dataset_num_proc 2 \
