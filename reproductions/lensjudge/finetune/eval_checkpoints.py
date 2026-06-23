@@ -63,7 +63,7 @@ def main():
     ap.add_argument("--ckpt-dir", required=True, help="dir containing checkpoint-* subdirs")
     ap.add_argument("--valset", required=True, help="valsel.jsonl (ms-swift messages format)")
     ap.add_argument("--labels", required=True, help="valsel_labels.csv (idx,label,name in valset order)")
-    ap.add_argument("--gpu", type=int, default=0)
+    ap.add_argument("--gpu", default="0", help="CUDA_VISIBLE_DEVICES (e.g. '5' or '5,6' for 32B model-parallel)")
     ap.add_argument("--result-dir", default=None)
     args = ap.parse_args()
 
