@@ -67,7 +67,32 @@ pipeline is correct and **reusable where the teacher signal is strong** (higher-
 DESI resolution no open approach (off-the-shelf, few-shot, or distillation) reaches Claude, and Claude itself
 is weak (0.66, ~0 recovery@1%FPR).
 
-## Next-iteration levers (not tried)
-1. **32B LoRA** distillation (scale helped most off-the-shelf; may transfer to fine-tune).
-2. **Phase 3** — agentic tool-loop + tier-2 HSC/Euclid escalation, where lens-vs-mimic and *net-new* value
-   actually live and the resolution lever applies; independent of the DESI-resolution detection gap.
+## 32B LoRA distillation (lever a, DONE — didn't help)
+Same v2 pipeline, 32B QLoRA model-parallel on 2× Titan RTX (7 h). AUC-select **plateaus at ~0.54**
+(25:0.516 / 50:0.539 / 75:0.542 / 100:0.541 / 125:0.542) — **≈ the 8B distill (0.543) and BELOW
+off-the-shelf 32B (0.559)**. Distilling Claude's compressed-near-0 p_lens pulls the 32B toward the
+collapsed regime, slightly *hurting* it vs off-the-shelf. Scale does not help distillation: the
+resolution-limited teacher is the ceiling, independent of student size.
+
+## Phase 3 — open-weight agentic tool-loop (DONE, mechanism transfers)
+Wired the OpenAI tool-calling loop into the agentic graders (`tools/openai_tools.py` + `grader_lean`
+branch on `LENSJUDGE_BACKEND`; Claude Agent SDK path retained). Live-validated on off-the-shelf
+Qwen3-VL-8B (vLLM `--enable-auto-tool-choice --tool-call-parser hermes`): the model **emits tool calls
+and loops** (mean 3.0 turns: fetch_cutout → get_photometry → grade), 270/270 parse.
+
+| 8B config | detection AUC | **lens-vs-mimic AUC** |
+|---|---|---|
+| direct (no loop) | 0.476 | 0.39 |
+| **agentic + v2 rubric (loop)** | 0.409 | **0.562** |
+| Claude oracle | 0.663 | 0.520 |
+
+The loop **lifts lens-vs-mimic 0.39 → 0.56** (above the Claude oracle's 0.52 on this set) while *not*
+helping detection (0.48 → 0.41) — the **exact agency-ablation signature**: the loop/v2 config is
+mimic-tuned and over-skeptical, trading lens-vs-random for lens-vs-mimic. The open-weight loop thus
+reproduces Claude's qualitative behavior; the cascade design (cheap direct triage → agentic mimic
+adjudication on escalations) ports to open weights.
+
+## Remaining (not done)
+- **Phase 5** — Perlmutter scale-out (vLLM podman-hpc recipe + slurm drafted; INT4 on Ampere).
+- Tier-2 **HSC/Euclid** open-weight port (the resolution lever for *net-new* science) — `run_hsc`/
+  `run_euclid` still on the Claude SDK; needs HSC creds + the same OpenAI-tool-loop port.
