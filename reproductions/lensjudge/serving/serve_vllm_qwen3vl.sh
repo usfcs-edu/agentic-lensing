@@ -45,7 +45,8 @@ extra=()
 [[ "${ENFORCE_EAGER}" == "1" ]] && extra+=(--enforce-eager)
 [[ "${ENABLE_TOOLS}" == "1" ]] && extra+=(--enable-auto-tool-choice --tool-call-parser "${TOOL_PARSER}")
 
-exec vllm serve "${MODEL}" \
+VLLM_BIN="${VLLM_BIN:-vllm}"   # override if vllm isn't on PATH, e.g. /home2/benson/.venvs/vllm/bin/vllm
+exec "${VLLM_BIN}" serve "${MODEL}" \
   --port "${PORT}" \
   --dtype "${DTYPE}" \
   --max-model-len "${MAXLEN}" \
