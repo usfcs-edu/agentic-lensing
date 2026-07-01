@@ -9,6 +9,7 @@ DESI grader uses (color context + sharp luminance + tight zoom), adapted to Eucl
 """
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import numpy as np
@@ -17,13 +18,19 @@ from PIL import Image
 
 from lensjudge.common.render import png_b64  # noqa: F401  (re-exported for callers)
 
-EUCLID_ROOT = Path(__file__).resolve().parents[2] / "euclid-q1" / "data"
+# The Euclid Q1 dataset is static staged FITS (no API). LENSJUDGE_EUCLID_ROOT lets an offline
+# deploy (e.g. Perlmutter) point at a copy staged on $SCRATCH; defaults to the in-repo location.
+EUCLID_ROOT = Path(os.environ.get(
+    "LENSJUDGE_EUCLID_ROOT",
+    str(Path(__file__).resolve().parents[2] / "euclid-q1" / "data")))
 SUBSETS = ("lens", "unsuccess", "group", "recenter")
 PIXSCALE = 0.1  # arcsec/px (CD1_1 = 2.7778e-05 deg)
 BANDS = ("VIS_FLUX", "NIR_Y_FLUX", "NIR_J_FLUX", "NIR_H_FLUX")
 
 
 def obj_dir(id_str: str) -> Path | None:
+    if not id_str:
+        return None
     for s in SUBSETS:
         d = EUCLID_ROOT / s / id_str
         if (d / f"{id_str}.fits").exists():

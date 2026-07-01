@@ -163,7 +163,9 @@ def test_import_without_claude_sdk():
         "    return _imp(n,*a,**k)\n"
         "builtins.__import__=_b\n"
         "import lensjudge.imaging.run_batch, lensjudge.imaging.grader_direct, lensjudge.imaging.grader_lean\n"
-        "from lensjudge.tools import server, openai_tools\n"
+        "import lensjudge.imaging.grader_escalate\n"
+        "from lensjudge.tools import server, openai_tools, hsc_cutout, euclid_cutout\n"
+        "from lensjudge.eval import run_hsc, run_euclid\n"
         "from lensjudge.common import hooks\n"
         "print('OK')\n"
     )

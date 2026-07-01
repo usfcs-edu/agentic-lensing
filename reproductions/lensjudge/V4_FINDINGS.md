@@ -127,8 +127,29 @@ capacity should actually pay off — NOT for tier-1 DESI. Serving gotchas learne
 `--quantization awq_marlin`; cyankiwi GLM-4.6V is **compressed-tensors** (omit `--quantization`, auto-detect);
 GLM tool parser = `glm47` (not glm47_moe); route all caches to `$SCRATCH`.
 
+## Tier-2 (HSC/Euclid) open-weight port — DONE (infrastructure; SDK-free, no-network tested)
+The resolution lever for *net-new* science now runs on the open backend. `fetch_hsc_cutout` /
+`fetch_euclid_cutout` are exposed as OpenAI tool schemas + executor branches (`tools/openai_tools.py`,
+reusing the SDK tools' loaders/renderers/`VIEW_DESC` so the open agent sees byte-identical HSC/Euclid
+evidence); `eval/run_hsc.py` + `eval/run_euclid.py` gained an `LENSJUDGE_BACKEND=openai` branch
+(`run_tool_loop`) with the Claude-SDK path retained; the SDK is now optional across the tier-2 modules
+(`hsc_cutout`/`euclid_cutout`/`run_hsc`/`run_euclid`) so the escalate cascade no longer silently drops
+to tier-1 in an SDK-free deploy. 17/17 no-network unit tests pass (`tests/test_tier2_openai.py` +
+extended `test_openai_tools.py`).
+
+**Where it runs — the decoupled fetch → stage → grade flow** (answers the tier-2 API/location question):
+- **Euclid needs no API** — static Zenodo Q1 dataset; `LENSJUDGE_EUCLID_ROOT` points at a staged copy →
+  runs **entirely offline on Perlmutter**.
+- **HSC needs the das_cutout service** (creds `HSC_USER`/`HSC_PASSWORD`, env-only). Perlmutter compute
+  nodes have no internet, so **fetch** on an internet host (gpu3 or a Perlmutter **login** node) via the
+  new `eval/stage_hsc.py`, rsync the warm cache, then **grade offline** on the A100. Enabled by three
+  small offline-cache changes: `hsc_fetch.fetch_hsc_cutout` serves a **warm cache credential-free** (auth
+  only needed to fetch a *missing* band) + a new `cached()` helper; `highres._resolve_hsc` treats a warm
+  cache as coverage without creds; `LENSJUDGE_HSC_CACHE` overrides the cache root (→ `$SCRATCH`). See
+  `serving/README.md` for the exact commands.
+
 ## Remaining (not done)
-- Tier-2 **HSC/Euclid** open-weight port (the resolution lever for *net-new* science) — `run_hsc`/
-  `run_euclid` still on the Claude SDK; needs HSC creds + the same OpenAI-tool-loop port.
-- A full production DR11 vetting sweep on Perlmutter (stage the candidate FITS + run at scale) — a
-  science-campaign run, not a "does it work" step; the path is now proven.
+- **Run** the tier-2 open-weight vetting at scale (stage the HSC shortlist / Euclid subset, grade on the
+  A100) — a science-campaign run, not a "does it work" step; the path is now proven & tested offline.
+- A full production DR11 tier-1 vetting sweep on Perlmutter with Qwen3-VL-32B-AWQ — likewise a
+  campaign run; the path is proven.

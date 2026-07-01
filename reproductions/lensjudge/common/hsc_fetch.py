@@ -16,6 +16,7 @@ Missing credentials -> returns None (escalate mode stays a safe no-op).
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from typing import Optional
 
 import numpy as np
@@ -29,11 +30,25 @@ BASE = "https://hsc-release.mtk.nao.ac.jp/das_cutout/pdr3/cgi-bin/cutout"
 FILTER = {"g": "HSC-G", "r": "HSC-R", "i": "HSC-I", "z": "HSC-Z", "y": "HSC-Y"}
 PRIMARY = ("i", "r")          # if neither primary band is covered -> treat as no coverage
 PIXSCALE = 0.168              # arcsec/px (confirmed from the returned WCS)
-HSC_CACHE = config.CACHE / "hsc"
+# HSC cutouts cache here. LENSJUDGE_HSC_CACHE lets the DECOUPLED tier-2 flow point the offline
+# GPU-grade host (Perlmutter A100, no internet/creds) at a cache staged/rsync'd from an
+# internet host (gpu3 or a Perlmutter login node): a warm cache serves credential-free.
+HSC_CACHE = Path(os.environ.get("LENSJUDGE_HSC_CACHE", str(config.CACHE / "hsc")))
 
 
 def have_credentials() -> bool:
     return bool(os.environ.get("HSC_USER") and os.environ.get("HSC_PASSWORD"))
+
+
+def cached(ra, dec, rerun: str = "pdr3_wide") -> bool:
+    """True if a primary-band HSC FITS for this position is already staged in the cache.
+
+    Lets a no-credentials offline grade host recognize HSC coverage from a warm cache
+    (the decoupled fetch->stage->grade flow) without a live credentialed probe."""
+    if ra is None or dec is None:
+        return False
+    d = HSC_CACHE / rerun / _key(ra, dec)
+    return any((d / f"{b}.fits").exists() for b in PRIMARY)
 
 
 def _auth() -> Optional[HTTPBasicAuth]:
@@ -61,15 +76,19 @@ def fetch_hsc_cutout(ra, dec, bands: str = "grizy", sw_arcsec: float = 14.0,
                      rerun: str = "pdr3_wide", timeout: int = 40) -> Optional[dict]:
     """Return ``{band_letter: 2D float array}`` for the covered bands, or ``None``.
 
-    None means: no credentials, or the position is outside the HSC PDR3 footprint (a 404 on the
-    primary i/r band), or a network error. Per-band FITS are cached under
-    ``cache/hsc/{rerun}/{ra}_{dec}/{band}.fits`` so a position is fetched at most once per band.
+    None means: no coverage — the position is outside the HSC PDR3 footprint (a 404 on the primary
+    i/r band), or there is no cached cutout AND no credentials to fetch one, or a network error.
+    Per-band FITS are cached under ``cache/hsc/{rerun}/{ra}_{dec}/{band}.fits`` so a position is
+    fetched at most once per band. **A warm cache serves credential-free** (auth is only needed to
+    fetch a band that is not already on disk) — this is what lets the offline GPU-grade host in the
+    decoupled tier-2 flow render staged HSC cutouts with no HSC creds and no internet.
     """
-    auth = _auth()
-    if auth is None or ra is None or dec is None:
+    if ra is None or dec is None:
         return None
+    auth = _auth()          # may be None: cached bands still serve; only network fetches need auth
     d = HSC_CACHE / rerun / _key(ra, dec)
-    d.mkdir(parents=True, exist_ok=True)
+    if auth is not None:
+        d.mkdir(parents=True, exist_ok=True)
     sw = f"{float(sw_arcsec) / 60.0:.4f}amin"
     out: dict = {}
     for b in bands:
@@ -81,6 +100,8 @@ def fetch_hsc_cutout(ra, dec, bands: str = "grizy", sw_arcsec: float = 14.0,
             if arr is not None:
                 out[b] = arr
             continue
+        if auth is None:
+            continue        # missing band + no creds: can't fetch; a warm cache still serves offline
         params = dict(ra=f"{float(ra):.6f}", dec=f"{float(dec):.6f}", sw=sw, sh=sw,
                       type="coadd", image="on", mask="off", variance="off",
                       filter=FILTER[b], rerun=rerun)
