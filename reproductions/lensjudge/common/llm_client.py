@@ -252,7 +252,10 @@ async def run_tool_loop(*, system: str, user_content: list[dict], tools: list[di
                 args = json.loads(fn.arguments) if fn.arguments else {}
             except Exception:
                 args = {}
-            text, images = await execute_tool(fn.name, args)
+            try:
+                text, images = await execute_tool(fn.name, args)
+            except Exception as e:  # a tool crash must not abort the loop — feed it back as an observation
+                text, images = (f"ERROR: tool {fn.name} failed: {type(e).__name__}: {e}", [])
             messages.append({"role": "tool", "tool_call_id": tc.id, "content": text})
             pending_images.extend(images)
         if pending_images:
