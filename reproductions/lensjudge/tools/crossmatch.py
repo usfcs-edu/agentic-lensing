@@ -16,9 +16,16 @@ import numpy as np
 import pandas as pd
 from astropy import units as u
 from astropy.coordinates import SkyCoord
-from claude_agent_sdk import tool
 
 from lensjudge import config
+
+try:  # optional: @tool (MCP) is only used by the anthropic path; no-op keeps core logic SDK-free
+    from claude_agent_sdk import tool
+except ModuleNotFoundError:
+    def tool(*_a, **_k):
+        def _deco(fn):
+            return fn
+        return _deco
 
 _CAT = None  # cached (DataFrame, SkyCoord)
 

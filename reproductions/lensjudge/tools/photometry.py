@@ -9,7 +9,13 @@ signature (Huang-2020 criterion 1) numerically, not just by eye.
 from __future__ import annotations
 
 import numpy as np
-from claude_agent_sdk import tool
+try:  # optional: @tool (MCP) is only used by the anthropic path; no-op keeps core logic SDK-free
+    from claude_agent_sdk import tool
+except ModuleNotFoundError:
+    def tool(*_a, **_k):
+        def _deco(fn):
+            return fn
+        return _deco
 
 from lensjudge.common import fetch
 
