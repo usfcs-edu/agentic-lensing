@@ -177,6 +177,42 @@ or the **Euclid paired DESI→Euclid p_lens lift** (the README's actual resoluti
 **bigger open model** (GLM-4.6V-106B / Qwen3-VL-235B on Perlmutter, per the tier-2 model rec); the 8B is too
 weak/OOD for tier-2. Artifacts: `outputs/euclid_rank_{open_8b,oracle}.parquet` (gitignored).
 
+## Tier-2 HSC known-lens gate — bigger open model (GLM-4.6V-106B) vs Claude (2026-07-01)
+The Euclid rank task couldn't gate (oracle at chance), so we ran the clean **oracle-succeeds** gate:
+grade **26 SuGOHI-matched known lenses** (real, confirmed lenses; storfer+inchausti) at **HSC-SSP PDR3
+0.168″** through the agentic `fetch_hsc_cutout` loop. This exercised the full decoupled flow end-to-end:
+`eval/stage_hsc.py` fetched 73/76 HSC cutouts on gpu3 (creds+internet) → rsync warm cache to Perlmutter →
+grade **offline on A100s** (credential-free warm cache) with **GLM-4.6V-106B-AWQ** (TP2, tools).
+
+| grader | recovery (A/B) | grades | mean p_lens | parse |
+|---|---|---|---|---|
+| **Claude sonnet** (oracle) | **92%** (23/25 escalated) | mostly A/B | 0.618 | — |
+| **GLM-4.6V-106B-AWQ** (agentic) | **0%** | **all D (25/25)** | 0.010 | 25/26 |
+
+GLM's rationales are **genuine and per-object** (it accurately describes each image — "red elliptical with a
+nearby compact blue source, round/point-like, no tangential curvature" → D; one correctly IDs a ring but
+calls it "a ring galaxy, not a lens"). So this is not a plumbing/parse artifact: **GLM-4.6V-106B sees the
+images but is systematically over-skeptical, grading confirmed lenses as non-lenses (D, p_lens 0.01).**
+
+**Verdict — scale does NOT fix tier-2.** Across both tier-2 experiments the open models collapse: Qwen3-VL-8B
+graded 86/89 D at Euclid 0.1″, and GLM-4.6V-106B graded **25/25 D** at HSC 0.168″ (0% recovery) where Claude
+recovers 92%. A 13× larger model fails as hard as the 8B. The bottleneck is the open models' **calibration /
+domain knowledge for lens vetting** (they demand textbook arcs and reject everything else), not resolution or
+capacity. This is the tier-1 over-skepticism (the agency-ablation signature) taken to the extreme at tier-2.
+
+**Serving gotchas learned (all real, cost cycles):** (1) **GLM-4.6V is a reasoning model** — in the agentic
+loop its `<think>` blocks never terminate with JSON; *more* `max_tokens` made parsing WORSE (12/26→6/26).
+Fixed with `LENSJUDGE_NOTHINK=1` (→ `chat_template_kwargs.enable_thinking=false`), which lifted parse to
+25/26. (2) **KV-cache OOM** at `--max-model-len 32768` on 2×40 GB (util 0.92 → max ≈23520); use ≤22528.
+(3) The **fetch→stage→grade decoupling works**: `stage_hsc.py` on gpu3 + offline credential-free warm-cache
+grade on the A100 (the tier-2 port's core design). Artifact: `outputs/hsc_gate_glm106_nothink.parquet`.
+
+**Actionable next step (the real path to open tier-2):** unlike DESI tier-1 (where Claude's teacher signal is
+weak, so distillation didn't help), **at HSC/Euclid Claude's signal is STRONG** (92% recovery, p_lens 0.62) —
+exactly the regime the v4 distillation pipeline was built for ("reusable where the teacher signal is strong").
+Fine-tuning/distilling an open VLM on Claude's HSC/Euclid grades is the promising route to a usable open-weight
+tier-2 grader; off-the-shelf open VLMs (8B–106B) are not.
+
 ## Remaining (not done)
 - **Run** the tier-2 open-weight vetting at scale (stage the HSC shortlist / Euclid subset, grade on the
   A100) — a science-campaign run, not a "does it work" step; the path is now proven & tested offline.
