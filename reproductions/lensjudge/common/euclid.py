@@ -44,12 +44,15 @@ def load_euclid(id_str: str) -> dict | None:
     if d is None:
         return None
     out = {}
-    with fits.open(d / f"{id_str}.fits") as h:
-        for b in BANDS:
-            try:
-                out[b] = np.nan_to_num(np.asarray(h[b].data, np.float32))
-            except KeyError:
-                pass
+    try:
+        with fits.open(d / f"{id_str}.fits") as h:
+            for b in BANDS:
+                try:
+                    out[b] = np.nan_to_num(np.asarray(h[b].data, np.float32))
+                except KeyError:
+                    pass
+    except OSError:   # empty/corrupt/unreadable FITS on disk -> treat as no cutout (graceful None)
+        return None
     return out or None
 
 
