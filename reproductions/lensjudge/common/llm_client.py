@@ -137,14 +137,26 @@ class ChatResult:
     raw: Any = None
 
 
-def _maybe_json_kwargs(json_schema: Optional[dict]) -> dict:
-    """Optional, server-dependent JSON-constraint kwargs, gated by env (default off)."""
+def _maybe_json_kwargs(json_schema: Optional[dict] = None) -> dict:
+    """Optional, server-dependent request kwargs, gated by env (all default off).
+
+    LENSJUDGE_JSON_MODE   -> response_format={"type":"json_object"}
+    LENSJUDGE_GUIDED_JSON -> extra_body.guided_json (vLLM/SGLang constrained decoding)
+    LENSJUDGE_NOTHINK     -> extra_body.chat_template_kwargs.enable_thinking=False. Reasoning VLMs
+        (GLM-4.6V) emit long <think> blocks that, in an agentic loop, never terminate with the final
+        JSON (more output tokens => more rambling, WORSE parse rate). Disabling thinking makes them
+        answer directly. No-op on servers/models that ignore the flag.
+    """
     kw: dict = {}
+    eb: dict = {}
     if os.environ.get("LENSJUDGE_JSON_MODE") == "1":
         kw["response_format"] = {"type": "json_object"}
     if os.environ.get("LENSJUDGE_GUIDED_JSON") == "1" and json_schema is not None:
-        # vLLM / SGLang constrained decoding; ignored by servers that don't support it
-        kw["extra_body"] = {"guided_json": json_schema}
+        eb["guided_json"] = json_schema
+    if os.environ.get("LENSJUDGE_NOTHINK") == "1":
+        eb["chat_template_kwargs"] = {"enable_thinking": False}
+    if eb:
+        kw["extra_body"] = eb
     return kw
 
 
@@ -235,7 +247,7 @@ async def run_tool_loop(*, system: str, user_content: list[dict], tools: list[di
     for turn in range(max_turns):
         resp = await client.chat.completions.create(
             model=model, messages=messages, tools=tools, tool_choice="auto",
-            max_tokens=max_tokens, temperature=temp)
+            max_tokens=max_tokens, temperature=temp, **_maybe_json_kwargs())
         cost += _open_cost(model, resp.usage)
         in_tok += getattr(resp.usage, "prompt_tokens", 0) or 0
         out_tok += getattr(resp.usage, "completion_tokens", 0) or 0
@@ -271,7 +283,8 @@ async def run_tool_loop(*, system: str, user_content: list[dict], tools: list[di
                              "content": anthropic_content_to_openai(pending_images)})
     # max_turns exhausted: ask once for the final JSON with no tools
     resp = await client.chat.completions.create(
-        model=model, messages=messages, max_tokens=max_tokens, temperature=temp)
+        model=model, messages=messages, max_tokens=max_tokens, temperature=temp,
+        **_maybe_json_kwargs())
     cost += _open_cost(model, resp.usage)
     final = resp.choices[0].message.content or ""
     messages.append({"role": "assistant", "content": final})
