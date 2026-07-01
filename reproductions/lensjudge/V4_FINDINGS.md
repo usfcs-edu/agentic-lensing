@@ -148,6 +148,35 @@ extended `test_openai_tools.py`).
   cache as coverage without creds; `LENSJUDGE_HSC_CACHE` overrides the cache root (→ `$SCRATCH`). See
   `serving/README.md` for the exact commands.
 
+## Tier-2 Euclid rank gate — first open-vs-Claude comparison (2026-07-01)
+Ran `eval/run_euclid --mode rank` on **89 Euclid Q1 objects** (34 grade-A / 34 B / 21 C, deterministic
+seed → identical objects) through the agentic `fetch_euclid_cutout` tool loop, on BOTH backends:
+open **Qwen3-VL-8B** (served on gpu3, tools) and the **Claude sonnet oracle**. Data verified healthy
+(87/89 clean FITS; a corrupt-FITS `OSError` in `load_euclid` was found + hardened to graceful None).
+
+| backend | p_lens by expert grade (A / B / C) | agent grades | Spearman(p_lens,expert) | AUC(A vs C) | parse | cost |
+|---|---|---|---|---|---|---|
+| **Qwen3-VL-8B** (agentic) | 0.05 / 0.03 / 0.00 | **86/89 = D** | 0.13 (n.s.) | 0.529 | 1.0 | $0 |
+| **Claude sonnet** (oracle) | 0.52 / 0.46 / 0.46 | 22A/30B/18C/19D | 0.108 (n.s.) | 0.556 | 1.0 | $6.62 |
+
+open-vs-oracle p_lens Spearman 0.275; exact grade agreement 22%.
+
+**Two findings.** (1) **The Euclid A/B/C "grade" is a subtle expert-CONFIDENCE ranking among already-selected
+discovery-engine candidates** (expert_score A 2.43 / B 1.71 / C 1.47), *not* a lens-vs-non-lens axis — grade-A
+appears across the `lens`, `unsuccess`, and `group` subsets alike, and only 21 grade-C are staged (the full
+catalog is 78% C, unstaged). So **even Claude is at chance here (AUC 0.556, Spearman n.s.)** → this task
+**cannot gate open-vs-Claude** (no oracle bar to clear). (2) The decision-relevant signal: the **open 8B's
+p_lens collapses (all-D, ~0) even with resolved 0.1″ arcs**, while Claude stays calibrated (mean ~0.49,
+correctly ordered A>B,C). The 8B is **unusable at tier-2 as-is** — over-skeptical *and* unfamiliar with the
+Euclid VIS+NIR color rendering (more collapsed than at DESI tier-1, where it gave p_lens 0.04–0.09). This is
+the same agency-ablation over-skepticism, worse on out-of-distribution Euclid imagery.
+
+**Implication for the plan:** a meaningful tier-2 open-vs-Claude gate needs BOTH (a) a task where the oracle
+clearly succeeds — **HSC SuGOHI known-lens recovery** (`run_hsc_validation`; Claude v3 pilot recovered 3/3)
+or the **Euclid paired DESI→Euclid p_lens lift** (the README's actual resolution finding) — and (b) a
+**bigger open model** (GLM-4.6V-106B / Qwen3-VL-235B on Perlmutter, per the tier-2 model rec); the 8B is too
+weak/OOD for tier-2. Artifacts: `outputs/euclid_rank_{open_8b,oracle}.parquet` (gitignored).
+
 ## Remaining (not done)
 - **Run** the tier-2 open-weight vetting at scale (stage the HSC shortlist / Euclid subset, grade on the
   A100) — a science-campaign run, not a "does it work" step; the path is now proven & tested offline.

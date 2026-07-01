@@ -93,6 +93,24 @@ def test_execute_euclid_no_data():
         euclid_mod.load_euclid = o
 
 
+def test_load_euclid_corrupt_fits_is_none():
+    """A corrupt/empty on-disk FITS must degrade to None, not raise (data staging is imperfect)."""
+    o_root = euclid_mod.EUCLID_ROOT
+    tmp = Path(tempfile.mkdtemp())
+    idd = "999_CORRUPT"
+    d = tmp / "lens" / idd
+    d.mkdir(parents=True)
+    (d / f"{idd}.fits").write_bytes(b"not a fits file at all")
+    euclid_mod.EUCLID_ROOT = tmp
+    try:
+        assert euclid_mod.load_euclid(idd) is None          # no raise
+        # and the executor turns it into a recoverable ERROR observation
+        text, images = asyncio.run(openai_tools.execute_tool("fetch_euclid_cutout", {"id_str": idd}))
+        assert text.startswith("ERROR") and images == []
+    finally:
+        euclid_mod.EUCLID_ROOT = o_root
+
+
 def test_execute_euclid_missing_id_str():
     """A tool call that omits id_str must return a recoverable ERROR, not raise (small VLMs drop args)."""
     for args in ({}, {"id_str": ""}, {"views": ["full"]}):
