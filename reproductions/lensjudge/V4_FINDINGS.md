@@ -105,6 +105,28 @@ Perlmutter `$HOME` is quota-tiny (~40 GB, was 101% full) and compute `/tmp` is s
 loader dies with `Errno 122 Disk quota exceeded`; (2) the Claude Agent SDK is now **optional** (guarded
 imports across grader_lean/hooks/tools) so the open path imports with no `claude_agent_sdk` installed.
 
+## Bigger model on Perlmutter A100 — EMPIRICAL (validated on-cluster)
+Perlmutter has 1,536× 4×A100-40GB + 256× 4×A100-80GB nodes (direct all-to-all NVLink3; TP≤4 fast;
+`-C "gpu&hbm80g"` for 80GB). A100=Ampere → no FP8 → INT4 (AWQ-marlin or compressed-tensors) for big
+models. Measured on the same LensBench-VI cutouts, offline, SDK-free:
+
+| model (A100) | quant | GPUs | metric | value | s/cand |
+|---|---|---|---|---|---|
+| Qwen3-VL-8B (direct) | bf16 | 1×40GB | detection AUC | 0.476 | 5.8 |
+| **Qwen3-VL-32B (direct)** | AWQ INT4 | 1×40GB | detection AUC | **0.534** | 13.4 |
+| Qwen3-VL-8B (agentic v2) | bf16 | 1× | lens-vs-mimic | 0.562 | ~15 |
+| **GLM-4.6V-106B (agentic v2)** | comp-tensors INT4 | 2×40GB TP2 | lens-vs-mimic | **0.560** | ~110 |
+| Claude oracle | — | — | detection AUC | 0.663 | — |
+
+32B-AWQ costs ~2.5 pt AUC vs 32B-fp16 (0.559) — 8.5% lens-call flips — acceptable for the single-GPU fit.
+**Conclusion: at DESI 0.26"/px, bigger ≈ same accuracy** — the 106B agentic ties the 8B agentic (0.56) at
+~7× the latency and 84% parse; the 32B is a modest +0.06 over 8B. Parameters don't clear the resolution
+wall. **Practical picks:** DR11 bulk sweep → **Qwen3-VL-32B-AWQ**, 4 data-parallel replicas per 40GB node
+(~3.4 s/cand aggregate); reserve GLM-4.6V-106B / 235B-A22B for **tier-2 (resolved HSC/Euclid)** where
+capacity should actually pay off — NOT for tier-1 DESI. Serving gotchas learned: QuantTrio Qwen3-VL AWQ →
+`--quantization awq_marlin`; cyankiwi GLM-4.6V is **compressed-tensors** (omit `--quantization`, auto-detect);
+GLM tool parser = `glm47` (not glm47_moe); route all caches to `$SCRATCH`.
+
 ## Remaining (not done)
 - Tier-2 **HSC/Euclid** open-weight port (the resolution lever for *net-new* science) — `run_hsc`/
   `run_euclid` still on the Claude SDK; needs HSC creds + the same OpenAI-tool-loop port.
