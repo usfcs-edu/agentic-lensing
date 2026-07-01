@@ -92,7 +92,21 @@ mimic-tuned and over-skeptical, trading lens-vs-random for lens-vs-mimic. The op
 reproduces Claude's qualitative behavior; the cascade design (cheap direct triage → agentic mimic
 adjudication on escalations) ports to open weights.
 
+## Phase 5 — Perlmutter A100 scale-out (DONE, validated offline)
+Provisioned Perlmutter (login node): uv → `$SCRATCH/venvs/vllm` (vLLM) + `$SCRATCH/venvs/lensjudge`
+(direct-mode deps, **no claude-agent-sdk**), Qwen3-VL-8B staged to `$SCRATCH` HF cache, lensjudge code
+rsync'd, cutouts staged as `{name}.fits` (new `LENSJUDGE_CUTOUT_DIR` override). A self-contained slurm
+job (`serving/perlmutter_vllm.slurm`) serves the model on **1 A100 (bf16)** and grades via the local
+endpoint. **Validated (job 55339203): server ready ~90 s, 12/12 parse, ~5.8 s/candidate (~3× gpu3),
+fully offline** (weights from `$SCRATCH`, no internet, SDK-free).
+
+Two fixes this required (both committed): (1) **all vLLM/Triton caches + TMPDIR must go to `$SCRATCH`** —
+Perlmutter `$HOME` is quota-tiny (~40 GB, was 101% full) and compute `/tmp` is small, else the weight
+loader dies with `Errno 122 Disk quota exceeded`; (2) the Claude Agent SDK is now **optional** (guarded
+imports across grader_lean/hooks/tools) so the open path imports with no `claude_agent_sdk` installed.
+
 ## Remaining (not done)
-- **Phase 5** — Perlmutter scale-out (vLLM podman-hpc recipe + slurm drafted; INT4 on Ampere).
 - Tier-2 **HSC/Euclid** open-weight port (the resolution lever for *net-new* science) — `run_hsc`/
   `run_euclid` still on the Claude SDK; needs HSC creds + the same OpenAI-tool-loop port.
+- A full production DR11 vetting sweep on Perlmutter (stage the candidate FITS + run at scale) — a
+  science-campaign run, not a "does it work" step; the path is now proven.

@@ -1,51 +1,60 @@
 #!/bin/bash
-# Perlmutter A100 batch server: Qwen3-VL via vLLM in a podman-hpc container, OpenAI-compatible.
-# Submit:  sbatch perlmutter_vllm.slurm     Account/QOS per your allocation (cosmo_g uncapped GPU).
+# Perlmutter A100 serve + (optional) grade — VALIDATED 2026-06-30 (job 55339203):
+# Qwen3-VL-8B bf16 on 1 A100 serves in ~90s and grades LensJudge cutouts SDK-free at ~5.8 s/cand,
+# fully offline. Submit:  sbatch perlmutter_vllm.slurm
 #
-# CRITICAL Perlmutter facts baked in:
-#  - A100 is AMPERE => NO native FP8/W8A8. Use fp16 (small) or AWQ/GPTQ INT4 (big). Never MXFP4/FP8.
-#  - Compute nodes have NO internet => pre-stage weights to $SCRATCH and HF_HUB_OFFLINE=1.
-#  - 4 GPUs/node (40 GB each). 1 GPU: 8B/32B/30B-A3B INT4. TP=2: GLM-4.6V-106B-A12B INT4.
-#    TP=4: Qwen3-VL-235B-A22B INT4 (referee tier).
-#  - podman-hpc: build/pull the vLLM image on a login node, then `podman-hpc migrate` it so
-#    compute nodes can run it.
-#SBATCH -A m0000_g            # TODO: set your GPU allocation (e.g. cosmo_g)
+# >>> #1 GOTCHA (cost hours): route ALL caches/temp to $SCRATCH. Perlmutter $HOME has a tiny quota
+#     (~40 GB, often full) and compute /tmp is small; vLLM's weight-loader + Triton JIT write there and
+#     die with "OSError: [Errno 122] Disk quota exceeded". The exports below fix it.
+# Other Perlmutter facts:
+#  - A100 = AMPERE: bf16 is native (small models); for big models use AWQ/GPTQ INT4 (NO FP8/W8A8).
+#  - Compute nodes have NO internet: pre-stage weights to $SCRATCH (hf download on a login node) +
+#    HF_HUB_OFFLINE=1. 1 A100(40GB): 8B bf16 / 32B / 30B-A3B INT4. TP=4: 235B INT4 referee.
+#  - The open path is SDK-free (claude_agent_sdk optional) — the Perlmutter lensjudge venv omits it.
+#  - Prereqs (build once on a login node): $SCRATCH/venvs/vllm (uv venv + `uv pip install vllm ninja
+#    hf_transfer`), $SCRATCH/venvs/lensjudge (pandas numpy astropy pillow pydantic scipy requests tqdm
+#    pyarrow openai anthropic scikit-learn), the model in $HF_HOME, code rsync'd to $LJ_REPRO/lensjudge,
+#    and cutouts staged as {name}.fits in $CUTOUT_DIR.
+#SBATCH -A cosmo_g
 #SBATCH -C gpu
 #SBATCH -q regular
-#SBATCH -t 04:00:00
+#SBATCH -t 02:00:00
 #SBATCH -N 1
-#SBATCH --gpus-per-node=4
-#SBATCH -J ljv4-vllm
-#SBATCH -o ljv4-vllm-%j.out
+#SBATCH --gpus 1
+#SBATCH -J ljv5
+#SBATCH -o ljv5_%j.out
+set -x
 
-set -euo pipefail
-
-MODEL_DIR="${MODEL_DIR:-$SCRATCH/ljv4/models/Qwen3-VL-235B-A22B-Instruct-AWQ}"  # pre-staged weights
+MODEL="${MODEL:-Qwen/Qwen3-VL-8B-Instruct}"       # served id; big tier: a local INT4 model dir + --quantization awq --tensor-parallel-size 4
 PORT="${PORT:-8000}"
-TP="${TP:-4}"
-IMAGE="${IMAGE:-vllm/vllm-openai:latest}"   # pre-pulled + `podman-hpc migrate`d on a login node
+VB="$SCRATCH/venvs/vllm/bin"
+LJPY="$SCRATCH/venvs/lensjudge/bin/python"
+LJ_REPRO="${LJ_REPRO:-$SCRATCH/ljv5/reproductions}"
+CUTOUT_DIR="${CUTOUT_DIR:-$SCRATCH/ljv5/cutouts}"
+MANIFEST="${MANIFEST:-$CUTOUT_DIR/lensbench_smoke.csv}"
+OUT="${OUT:-$SCRATCH/ljv5/preds_perlmutter.parquet}"
+DTYPE="${DTYPE:-bfloat16}"                          # A100 native; INT4 tier: leave model quantized + add --quantization awq
 
-export HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
+# --- route every cache/tmp to $SCRATCH (the #1 gotcha) ---
+export HF_HOME="${HF_HOME:-$SCRATCH/claudenet/hf}" HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
+export VLLM_USE_FLASHINFER_SAMPLER=0
+export TMPDIR="$SCRATCH/tmp" VLLM_CACHE_ROOT="$SCRATCH/.cache/vllm" XDG_CACHE_HOME="$SCRATCH/.cache"
+export TRITON_CACHE_DIR="$SCRATCH/.cache/triton" TORCHINDUCTOR_CACHE_DIR="$SCRATCH/.cache/inductor"
+mkdir -p "$TMPDIR" "$VLLM_CACHE_ROOT" "$XDG_CACHE_HOME" "$TRITON_CACHE_DIR" "$TORCHINDUCTOR_CACHE_DIR"
 
-# tiny-cutout resolution floor (see README.md "Why min_pixels matters")
-MM_KW='{"min_pixels": 160000, "max_pixels": 1003520}'
+"$VB/vllm" serve "$MODEL" --port "$PORT" --dtype "$DTYPE" --enforce-eager \
+  --max-model-len 16384 --gpu-memory-utilization 0.9 \
+  --limit-mm-per-prompt '{"image":8}' --mm-processor-kwargs '{"min_pixels":160000,"max_pixels":1003520}' \
+  --served-model-name "$MODEL" > "$SCRATCH/ljv5_vllm.log" 2>&1 &
+SRV=$!
+ready=0; for i in $(seq 1 90); do curl -sf "http://localhost:$PORT/v1/models" >/dev/null 2>&1 && { ready=1; break; }; sleep 10; done
+echo "SERVER_READY=$ready after ~$((i*10))s"
 
-srun podman-hpc run --rm --gpu \
-  -v "${MODEL_DIR}:/model:ro" \
-  -e HF_HUB_OFFLINE=1 -e TRANSFORMERS_OFFLINE=1 \
-  -p "${PORT}:${PORT}" \
-  "${IMAGE}" \
-  --model /model \
-  --served-model-name "$(basename "${MODEL_DIR}")" \
-  --port "${PORT}" \
-  --tensor-parallel-size "${TP}" \
-  --quantization awq \
-  --max-model-len 32768 \
-  --gpu-memory-utilization 0.92 \
-  --enable-auto-tool-choice --tool-call-parser hermes \
-  --limit-mm-per-prompt '{"image": 8}' \
-  --mm-processor-kwargs "${MM_KW}"
-
-# LensJudge (same node or a login node that can reach the compute node) then uses:
-#   export LENSJUDGE_BACKEND=openai LENSJUDGE_BASE_URL=http://<node>:${PORT}/v1
-#   export LENSJUDGE_MODEL_GRADER="$(basename "${MODEL_DIR}")" LENSJUDGE_GUIDED_JSON=1
+if [ "$ready" = "1" ]; then
+  LENSJUDGE_BACKEND=openai LENSJUDGE_BASE_URL="http://localhost:$PORT/v1" \
+  LENSJUDGE_MODEL_GRADER="$MODEL" LENSJUDGE_CUTOUT_DIR="$CUTOUT_DIR" \
+  HF_HOME="$HF_HOME" PYTHONPATH="$LJ_REPRO" \
+  "$LJPY" -m lensjudge.imaging.run_batch --mode direct --manifest "$MANIFEST" --out "$OUT" --concurrency 8
+  echo "GATE_RC=$?"
+fi
+kill $SRV 2>/dev/null; echo "JOB_DONE"
