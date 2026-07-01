@@ -93,6 +93,32 @@ def test_execute_euclid_no_data():
         euclid_mod.load_euclid = o
 
 
+def test_run_hsc_manifest_batch(tmp_path=None):
+    """The batch HSC runner grades a ra,dec[,name] CSV and writes a parquet (mocked grade_hsc)."""
+    import pandas as pd
+    o_grade = run_hsc.grade_hsc
+
+    async def _fake(obj, model=None):
+        # emulate grade_hsc output shape; grade A if name endswith 'A' else D
+        g = "A" if str(obj.get("name", "")).endswith("A") else "D"
+        return {**obj, "p_lens": 0.8 if g == "A" else 0.05, "agent_grade": g,
+                "confidence": 0.6, "contaminant": None, "cost_usd": 0.0, "wall_s": 0.1,
+                "rationale": "x", "backend": "openai"}
+    run_hsc.grade_hsc = _fake
+    d = Path(tempfile.mkdtemp())
+    man = d / "m.csv"
+    pd.DataFrame({"ra": [1.0, 2.0, 3.0], "dec": [1.0, 2.0, 3.0],
+                  "name": ["L-A", "L-A", "L-D"]}).to_csv(man, index=False)
+    outp = d / "preds.parquet"
+    try:
+        asyncio.run(run_hsc.run_manifest(str(man), str(outp), None, concurrency=2))
+        got = pd.read_parquet(outp)
+        assert len(got) == 3 and set(got.agent_grade) == {"A", "D"}
+        assert (got.agent_grade == "A").sum() == 2 and got.name.tolist() == ["L-A", "L-A", "L-D"]
+    finally:
+        run_hsc.grade_hsc = o_grade
+
+
 def test_load_euclid_corrupt_fits_is_none():
     """A corrupt/empty on-disk FITS must degrade to None, not raise (data staging is imperfect)."""
     o_root = euclid_mod.EUCLID_ROOT
