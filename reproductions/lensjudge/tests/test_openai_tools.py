@@ -168,7 +168,7 @@ def test_import_without_claude_sdk():
         "print('OK')\n"
     )
     r = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True,
-                       env={**os.environ, "PYTHONPATH": str(Path(__file__).resolve().parents[3])})
+                       env={**os.environ, "PYTHONPATH": str(Path(__file__).resolve().parents[2])})
     assert "OK" in r.stdout, f"SDK-free import failed:\n{r.stderr[-600:]}"
 
 
