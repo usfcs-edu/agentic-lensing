@@ -10,6 +10,7 @@ and cache the result under cache/cubes/.
 """
 from __future__ import annotations
 
+import os
 import re
 import time
 from pathlib import Path
@@ -123,6 +124,15 @@ def get_cube(name: str | None = None, ra: float | None = None, dec: float | None
     raw layer string ('ls-dr9'/'ls-dr10').
     """
     if name:
+        # deployment override: a single staged dir of {name}.fits (e.g. Perlmutter offline serving,
+        # where cutouts are pre-staged and CUTOUT_DIRS' repo-relative paths don't apply).
+        staged = os.environ.get("LENSJUDGE_CUTOUT_DIR")
+        if staged:
+            sp = Path(staged) / f"{name}.fits"
+            if sp.exists():
+                cube = _read_fits_cube(sp)
+                if cube is not None:
+                    return cube
         p = on_disk_path(name, survey if survey in config.CUTOUT_DIRS else None)
         if p is not None:
             cube = _read_fits_cube(p)
