@@ -111,13 +111,66 @@ async def grade_hsc(obj: dict, model: str | None = None) -> dict:
             "rationale": (g.rationale[:300] if g else raw[:200])}
 
 
+async def _bounded(coro_fns, concurrency):
+    sem = asyncio.Semaphore(concurrency)
+
+    async def run(fn):
+        async with sem:
+            return await fn()
+    return await asyncio.gather(*[run(f) for f in coro_fns])
+
+
+async def run_manifest(manifest: str, out: str | None, model: str | None, concurrency: int):
+    """Batch-grade a CSV of ra,dec[,name] at HSC resolution (the tier-2 known-lens gate runner).
+
+    Offline-friendly: with LENSJUDGE_HSC_CACHE pointed at a warm cache, each position renders from
+    staged FITS credential-free (see common/hsc_fetch). Reports recovery = fraction graded A/B."""
+    import pandas as pd
+    from lensjudge.common import llm_client
+    df = pd.read_csv(manifest)
+    cols = {c.lower(): c for c in df.columns}
+    if "ra" not in cols or "dec" not in cols:
+        raise SystemExit(f"manifest needs ra,dec columns; got {list(df.columns)}")
+    rows = df.to_dict("records")
+
+    def obj_of(r):
+        o = {"ra": float(r[cols["ra"]]), "dec": float(r[cols["dec"]])}
+        if "name" in cols:
+            o["name"] = str(r[cols["name"]])
+        for k in ("source", "sugohi_grade", "desi_grade", "grade"):  # carry labels through for scoring
+            if k in cols:
+                o[k] = r[cols[k]]
+        return o
+
+    print(f"[hsc-batch] {len(rows)} objects | backend={llm_client.get_backend()} | "
+          f"model={model or config.MODELS['grader']}")
+    recs = await _bounded([lambda o=obj_of(r): grade_hsc(o, model) for r in rows], concurrency)
+    out_df = pd.DataFrame(recs)
+    outp = out or str(config.OUT / "hsc_batch_preds.parquet")
+    out_df.to_parquet(outp, index=False)
+    graded = out_df[out_df.agent_grade.notna()]
+    ab = graded.agent_grade.isin(["A", "B"]).mean() if len(graded) else float("nan")
+    print(f"[hsc-batch] saved {outp} | parsed {len(graded)}/{len(out_df)} | "
+          f"grades {graded.agent_grade.value_counts().to_dict() if len(graded) else {}}")
+    print(f"[hsc-batch] recovery(A/B)={ab:.0%} | mean p_lens={graded.p_lens.mean():.3f} | "
+          f"total ${out_df.cost_usd.sum():.2f}")
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--ra", type=float, required=True)
-    ap.add_argument("--dec", type=float, required=True)
+    ap.add_argument("--ra", type=float)
+    ap.add_argument("--dec", type=float)
     ap.add_argument("--name", default=None)
     ap.add_argument("--model", default=None)
+    ap.add_argument("--manifest", default=None, help="CSV ra,dec[,name] -> batch HSC grade")
+    ap.add_argument("--out", default=None, help="batch: output parquet path")
+    ap.add_argument("--concurrency", type=int, default=4)
     args = ap.parse_args()
+    if args.manifest:
+        asyncio.run(run_manifest(args.manifest, args.out, args.model, args.concurrency))
+        return
+    if args.ra is None or args.dec is None:
+        ap.error("need --ra and --dec (single object), or --manifest (batch)")
     obj = {"ra": args.ra, "dec": args.dec, "name": args.name}
     res = asyncio.run(grade_hsc(obj, args.model))
     print({k: res.get(k) for k in ("name", "ra", "dec", "agent_grade", "p_lens",
