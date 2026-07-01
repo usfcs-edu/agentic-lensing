@@ -53,6 +53,13 @@ def _temperature() -> float:
     return float(os.environ.get("LENSJUDGE_TEMPERATURE", "0.0"))
 
 
+def _max_tokens(default: int = 2048) -> int:
+    """Output-token budget. LENSJUDGE_MAX_TOKENS lets reasoning VLMs (e.g. GLM-4.6V, which emit long
+    <think> blocks before the final JSON) have room to finish; too small a budget truncates the JSON
+    and parsing fails. Default 2048 keeps existing (non-thinking) behavior unchanged."""
+    return int(os.environ.get("LENSJUDGE_MAX_TOKENS", str(default)))
+
+
 # --- open-weight price table (local inference is free; record tokens regardless) ---
 # $/Mtok (input, output). Add hosted-endpoint prices here if a paid OpenAI-compatible
 # provider is ever used; default 0.0 for self-hosted vLLM/SGLang/MLX.
@@ -142,7 +149,7 @@ def _maybe_json_kwargs(json_schema: Optional[dict]) -> dict:
 
 
 async def chat_with_images(*, system: str, content: list[dict], model: str,
-                           max_tokens: int = 2048,
+                           max_tokens: Optional[int] = None,
                            json_schema: Optional[dict] = None,
                            temperature: Optional[float] = None) -> ChatResult:
     """One multimodal chat completion (system + a single user turn with text+images).
@@ -156,19 +163,19 @@ async def chat_with_images(*, system: str, content: list[dict], model: str,
                 {"role": "user", "content": parts}]
     kw = _maybe_json_kwargs(json_schema)
     resp = await client.chat.completions.create(
-        model=model, messages=messages, max_tokens=max_tokens,
+        model=model, messages=messages, max_tokens=max_tokens or _max_tokens(),
         temperature=_temperature() if temperature is None else temperature, **kw)
     return _chat_result(resp, model)
 
 
-async def chat_text(*, system: str, text: str, model: str, max_tokens: int = 2048,
+async def chat_text(*, system: str, text: str, model: str, max_tokens: Optional[int] = None,
                     temperature: Optional[float] = None) -> ChatResult:
     """One text-only chat completion (used for the JSON repair retry)."""
     client = _get_client()
     messages = [{"role": "system", "content": system},
                 {"role": "user", "content": text}]
     resp = await client.chat.completions.create(
-        model=model, messages=messages, max_tokens=max_tokens,
+        model=model, messages=messages, max_tokens=max_tokens or _max_tokens(),
         temperature=_temperature() if temperature is None else temperature)
     return _chat_result(resp, model)
 
@@ -206,7 +213,7 @@ ToolExecutor = Callable[[str, dict], Awaitable[tuple[str, list[dict]]]]
 
 async def run_tool_loop(*, system: str, user_content: list[dict], tools: list[dict],
                         execute_tool: ToolExecutor, model: str, max_turns: int = 6,
-                        max_tokens: int = 2048,
+                        max_tokens: Optional[int] = None,
                         temperature: Optional[float] = None) -> LoopResult:
     """Manual OpenAI tool-calling loop mirroring the Claude Agent SDK behavior.
 
@@ -217,6 +224,7 @@ async def run_tool_loop(*, system: str, user_content: list[dict], tools: list[di
     """
     client = _get_client()
     temp = _temperature() if temperature is None else temperature
+    max_tokens = max_tokens if max_tokens is not None else _max_tokens()
     messages: list[dict] = [
         {"role": "system", "content": system},
         {"role": "user", "content": anthropic_content_to_openai(user_content)},
