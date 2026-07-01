@@ -13,8 +13,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Optional
 
-from claude_agent_sdk import (AssistantMessage, ClaudeAgentOptions, ResultMessage,
-                              TextBlock, ThinkingBlock, query)
+try:  # the open-weight backend doesn't need the Claude Agent SDK (offline deploys omit it)
+    from claude_agent_sdk import (AssistantMessage, ClaudeAgentOptions, ResultMessage,
+                                  TextBlock, ThinkingBlock, query)
+except ModuleNotFoundError:
+    AssistantMessage = ClaudeAgentOptions = ResultMessage = TextBlock = ThinkingBlock = query = None
 
 from lensjudge import config
 from lensjudge.common import hooks, llm_client, parse

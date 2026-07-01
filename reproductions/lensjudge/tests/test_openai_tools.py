@@ -151,6 +151,27 @@ def test_grade_openai_agentic_end_to_end():
                 os.environ[k] = v
 
 
+def test_import_without_claude_sdk():
+    """The open-weight path must import with NO claude_agent_sdk (offline/Perlmutter deployment)."""
+    import subprocess
+    code = (
+        "import builtins\n"
+        "_imp=builtins.__import__\n"
+        "def _b(n,*a,**k):\n"
+        "    if n=='claude_agent_sdk' or n.startswith('claude_agent_sdk.'):\n"
+        "        raise ModuleNotFoundError('blocked')\n"
+        "    return _imp(n,*a,**k)\n"
+        "builtins.__import__=_b\n"
+        "import lensjudge.imaging.run_batch, lensjudge.imaging.grader_direct, lensjudge.imaging.grader_lean\n"
+        "from lensjudge.tools import server, openai_tools\n"
+        "from lensjudge.common import hooks\n"
+        "print('OK')\n"
+    )
+    r = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True,
+                       env={**os.environ, "PYTHONPATH": str(Path(__file__).resolve().parents[3])})
+    assert "OK" in r.stdout, f"SDK-free import failed:\n{r.stderr[-600:]}"
+
+
 if __name__ == "__main__":
     tests = [v for k, v in sorted(globals().items())
              if k.startswith("test_") and callable(v)]

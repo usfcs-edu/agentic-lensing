@@ -7,7 +7,10 @@ grader has no torch/JAX/DESI dependency.
 """
 from __future__ import annotations
 
-from claude_agent_sdk import create_sdk_mcp_server
+try:  # optional: only the anthropic (Claude Agent SDK) path builds the MCP server
+    from claude_agent_sdk import create_sdk_mcp_server
+except ModuleNotFoundError:
+    create_sdk_mcp_server = None
 
 from lensjudge import config
 from lensjudge.tools.cutout import fetch_cutout

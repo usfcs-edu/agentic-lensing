@@ -12,7 +12,10 @@ import time
 from pathlib import Path
 from typing import Any
 
-from claude_agent_sdk import HookMatcher
+try:  # optional: HookMatcher is only used by the anthropic (Claude Agent SDK) trace path
+    from claude_agent_sdk import HookMatcher
+except ModuleNotFoundError:
+    HookMatcher = None
 
 
 def _field(obj: Any, name: str, default=None):
