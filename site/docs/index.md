@@ -40,7 +40,7 @@ survivors). Honest throughout: the escalated objects are cross-validated
 catalogue lenses, not new discoveries.
 
 **[ClaudeNet](current/claudenet/index.md)** — an ML strong-lens finder for the
-DESI Legacy Surveys, consolidated across three generations. **v1** shows
+DESI Legacy Surveys, consolidated across four generations. **v1** shows
 architecture is not the bottleneck — a 194K shielded ResNet ties a 20.5M
 EfficientNetV2-S to ±0.003 AUC and the Inchausti meta-learner collapses to a
 simple average on correlated bases — so a deliberately decorrelated ensemble
@@ -61,6 +61,14 @@ originals at the hardest real-vs-mimic distinction — the discovery frontier is
 **resolution-bounded** at DECaLS 0.262″/px. Cross-validating the DESI∩Euclid-Q1
 overlap yields 49 cross-validated candidates (median p_lens 0.03→0.70); the
 decisive levers are higher-resolution vetting and instrument-native training.
+**v4** acts on exactly those levers for the DR11-south release: a free
+calibrated-mean combiner erases the apparent DR9→DR11 recall collapse (grade-A
+54%→75%, no retraining — threshold-free AUC stays 0.9955), and a release-native
+fine-tune on a ~13× larger native-resolution positive pool cracks the
+lrg+companion hard residual and lifts held-out recall to its best-ever level
+(Inchausti grade-A **0.87**, Storfer **0.825**, vs 0.54/0.32). A full
+5.38×10⁷-galaxy DR11-south re-sweep adds 134k net-new candidates — still
+DECam-specific and pending high-resolution vetting.
 
 **[Redshifty](current/redshifty/index.md)** — reproduces the Approach-A
 "redshift ignition" NERSC result on a single commodity GPU: sustained
