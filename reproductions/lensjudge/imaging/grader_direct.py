@@ -214,11 +214,15 @@ async def grade_candidate(cand: dict, *, model: Optional[str] = None,
                           tools=("fetch_cutout", "get_photometry"),  # ignored (no loop)
                           system_prompt: Optional[str] = None,
                           views=_DEFAULT_VIEWS,
+                          content: Optional[list] = None,
                           trace_path: Optional[str] = None) -> GradeResult:
+    # `content` lets callers supply PRE-RENDERED evidence blocks (e.g. Euclid/HSC high-res views for
+    # tier-2 distillation) and reuse this dual-backend single-call path unchanged; default = DESI grz.
     model_id = _resolve_model(model)
     tr = hooks.Trace(trace_path) if trace_path else None
     t0 = time.time()
-    content = _build_content(cand, views)
+    if content is None:
+        content = _build_content(cand, views)
     if content is None:
         return GradeResult(None, "", error="no cutout", parse_ok=False,
                            meta={"name": cand.get("name"), "mode": "direct"})
