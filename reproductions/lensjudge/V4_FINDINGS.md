@@ -213,6 +213,40 @@ exactly the regime the v4 distillation pipeline was built for ("reusable where t
 Fine-tuning/distilling an open VLM on Claude's HSC/Euclid grades is the promising route to a usable open-weight
 tier-2 grader; off-the-shelf open VLMs (8B–106B) are not.
 
+## Tier-2 Euclid distillation PoC — DISTILLATION WORKS (2026-07-02)
+The gates above showed off-the-shelf open VLMs (8B, GLM-106B) collapse to all-D at tier-2. This PoC tests
+the proposed fix: LoRA-distill **Claude's DIRECT Euclid grades** into Qwen3-VL-8B. Pipeline
+(`finetune/distill_euclid.py`, fully offline): grade-stratified split (train 388 / valsel 64 / test 80,
+disjoint) → Claude-label all three DIRECT (no tool loop) at Euclid 0.1″ (~$8; balanced signal: train
+52A/106B/108C/121D) → SFT (349 ex, 4 Euclid views + Claude JSON targets) → QLoRA on Qwen3-VL-8B (3 epochs,
+2 h, gpu3) → **AUC-select** (valsel curve 20:0.70 · 40:0.77 · **60:0.89** · 80:0.85 · 120:0.88 — classic
+overfit-then-plateau; best ckpt-60) → merge → serve → gate on held-out test.
+
+**Held-out test (80 obj), reproducing the Claude teacher:**
+
+| metric | off-the-shelf 8B | **distilled (ckpt-60)** | Claude |
+|---|---|---|---|
+| recovery of Claude-A/B | 47% | **87%** | — |
+| AUC (Claude A/B vs D) | 0.625 | **0.704** | — |
+| Spearman(student, Claude p_lens) | 0.21 | **0.41** | — |
+| grade dist | D56/B17/A7 | **B52/C15/D10/A3** | D34/B19/C16/A11 |
+| mean p_lens | 0.25 | 0.51 | 0.35 |
+
+**Distillation FIXED the tier-2 collapse:** the student stops defaulting to D — recovery of Claude's lenses
+47%→**87%**, agreement with Claude's p_lens doubled (Spearman 0.21→0.41), separation of Claude-A/B-vs-D
+0.625→**0.704**, all on held-out data. This is the first positive tier-2 result and validates the v4 thesis:
+distillation pays off **where the teacher signal is strong** (HSC/Euclid), unlike the failed DESI tier-1
+attempt (weak teacher). The v2 distillation methodology (continuous targets + AUC-select) ports directly.
+
+**Honest caveats:** small PoC (349 train / 80 test; noisy). The distilled student now slightly *over*-calls
+(mean p_lens 0.51 > Claude 0.35, B-heavy) — high recovery but an elevated false-positive rate; it learned
+"don't collapse" but overshot. Held-out AUC 0.704 < valsel 0.887 (selection optimism → true generalization
+~0.70). Teacher = Claude's own Euclid grades (imperfect on fine A/B/C). **To productionize:** scale train +
+hard negatives to sharpen calibration, add HSC, and gate on REAL confirmed lenses (SuGOHI-style) not just
+teacher agreement. But the core question — can distillation lift an open VLM out of the tier-2 collapse? —
+is answered **yes**. Artifacts (gitignored): `outputs/distill_euclid/` (labels, sft, ckpt-60-merged, gate
+parquets).
+
 ## Remaining (not done)
 - **Run** the tier-2 open-weight vetting at scale (stage the HSC shortlist / Euclid subset, grade on the
   A100) — a science-campaign run, not a "does it work" step; the path is now proven & tested offline.
