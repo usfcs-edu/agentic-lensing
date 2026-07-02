@@ -247,7 +247,41 @@ teacher agreement. But the core question — can distillation lift an open VLM o
 is answered **yes**. Artifacts (gitignored): `outputs/distill_euclid/` (labels, sft, ckpt-60-merged, gate
 parquets).
 
+## Tier-2 productionization attempt (HSC hard-neg + real-lens gate) — NEGATIVE, well-diagnosed (2026-07-02)
+The Euclid PoC distilled Claude's *soft* grades on all-candidate data and improved (0.625→0.704) but
+over-called for lack of true negatives. This pass tried to productionize: add REAL HSC hard negatives
+(132 covered mimics/randoms, fetched via parallel `stage_hsc`) + SuGOHI-confirmed positives, train a
+**combined HSC+Euclid** student on **ground-truth** labels (SuGOHI→A, mimic/random→D), and gate on a
+HELD-OUT **real-lens** test (26 confirmed SuGOHI lenses vs 46 true non-lenses) — not teacher agreement.
+
+**Gate (held-out HSC real-lens test):**
+
+| grader | real-lens AUC | recovery | rejection | mean p_lens L / N |
+|---|---|---|---|---|
+| off-the-shelf 8B | 0.730 | 8% | 96% | 0.15 / 0.09 |
+| **distilled (combined, ckpt-118)** | **0.502** | 15% | 85% | **0.18 / 0.18** |
+| Claude (oracle) | 0.823 | 54% | 89% | 0.46 / 0.12 |
+
+**The combined ground-truth recipe FAILED — it flattened discrimination to chance (AUC 0.50), *below*
+off-the-shelf (0.73).** The distilled student calls lens-like features indiscriminately: 4 true-positives
+but **7 false-positives** (mimics look arc-like), identical mean p_lens for lenses and non-lenses.
+
+**Root causes (diagnosed, not guessed):**
+1. **Ground-truth-A on ambiguous positives.** Claude itself grades only 54% of these SuGOHI-at-HSC lenses
+   A/B — ~46% look genuinely non-lensy even to Claude. Forcing them all to target A taught the student to
+   call ambiguous/arc-like things lenses → it can't separate real arcs from mimics.
+2. **Cross-survey selection masking.** The AUC-select valset was 38 Euclid / 13 HSC, so its 0.833 "best"
+   was Euclid-dominated and hid the HSC-only failure (0.50). Per-survey selection is mandatory.
+3. **Too few / noisy HSC positives** (47 train) and mimics that are visually lens-like — a hard, small set.
+
+**The Euclid teacher-distillation result (0.625→0.704) stands; this ground-truth+combined+small-HSC recipe
+does not transfer to real HSC lenses.** Corrected recipe for a future iteration: distill Claude's **soft**
+HSC grades (calibrated, captures visual difficulty) — NOT ground-truth-A — on a larger, cleaner HSC
+positive set; train **HSC-only** and **AUC-select on an HSC-only** valset; keep the hard negatives.
+Artifacts (gitignored): `outputs/distill_hsc/`, `outputs/distill_combined/`.
+
 ## Remaining (not done)
+- **Corrected tier-2 distill** (soft Claude HSC labels, HSC-only train+select) — the diagnosed next recipe.
 - **Run** the tier-2 open-weight vetting at scale (stage the HSC shortlist / Euclid subset, grade on the
   A100) — a science-campaign run, not a "does it work" step; the path is now proven & tested offline.
 - A full production DR11 tier-1 vetting sweep on Perlmutter with Qwen3-VL-32B-AWQ — likewise a
