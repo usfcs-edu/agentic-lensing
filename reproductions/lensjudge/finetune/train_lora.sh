@@ -35,7 +35,7 @@ exec "${SWIFT}" sft \
   --tuner_type lora --quant_bits 4 --quant_method bnb \
   --torch_dtype float16 --attn_impl sdpa \
   --freeze_vit true --lora_rank "${LORA_RANK}" --lora_alpha $((LORA_RANK * 2)) --lora_dropout 0.05 \
-  --max_length 6144 \
+  --max_length "${MAX_LENGTH:-6144}" \
   --per_device_train_batch_size 1 --gradient_accumulation_steps 8 \
   --learning_rate 1e-4 --num_train_epochs "${EPOCHS}" --warmup_ratio 0.05 \
   "${steps_arg[@]}" \

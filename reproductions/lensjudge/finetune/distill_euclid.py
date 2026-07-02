@@ -196,6 +196,45 @@ def stage_sft(args):
     print(f"[sft] {miss} skipped for missing cutout")
 
 
+# ------------------------------------------------------------------- evalset
+def stage_evalset(args):
+    """Build an ms-swift infer valset (system+user+Euclid images, NO assistant) + a labels CSV
+    (idx,label,name in row order), keeping only Claude pos/neg grades. Feeds eval_checkpoints.py
+    (AUC-based LoRA checkpoint selection) — labels are Claude-A/B (lens) vs Claude-D (nonlens)."""
+    preds = pd.read_parquet(args.preds)
+    pos, neg = set(args.pos.split(",")), set(args.neg.split(","))
+    img_dir = OUT / "eval_images"
+    img_dir.mkdir(parents=True, exist_ok=True)
+    rows = []
+    for _, r in preds.iterrows():
+        cg = str(r.get("agent_grade"))
+        if cg not in pos and cg not in neg:
+            continue
+        idd = str(r["id_str"])
+        imgs = _euclid_imgs(idd)
+        if not imgs:
+            continue
+        paths, tags = [], []
+        for v, img in imgs.items():
+            p = img_dir / f"{idd}_{v}.png"
+            render.save_png(img, p)
+            paths.append(str(p)); tags.append("<image>")
+        user = "".join(tags) + f"\nGrade this Euclid Q1 strong-lens candidate (id_str={idd}). " \
+               "Rendered 0.1\"/px VIS+NIR views. Respond with ONLY the JSON."
+        rows.append({"rec": {"messages": [{"role": "system", "content": DIRECT_SYS},
+                                          {"role": "user", "content": user}], "images": paths},
+                     "label": ("lens" if cg in pos else "nonlens"), "name": idd})
+    OUT.mkdir(parents=True, exist_ok=True)
+    js, lab = OUT / f"{args.out_prefix}.jsonl", OUT / f"{args.out_prefix}_labels.csv"
+    with open(js, "w") as fh:
+        for x in rows:
+            fh.write(json.dumps(x["rec"]) + "\n")
+    pd.DataFrame([{"idx": i, "label": x["label"], "name": x["name"]}
+                 for i, x in enumerate(rows)]).to_csv(lab, index=False)
+    npos = sum(1 for x in rows if x["label"] == "lens")
+    print(f"[evalset] {len(rows)} rows ({npos} lens / {len(rows) - npos} nonlens) -> {js} + {lab}")
+
+
 # ---------------------------------------------------------------------- gate
 def _auc(pos, neg):
     from sklearn.metrics import roc_auc_score
@@ -243,10 +282,14 @@ def main():
     lb.add_argument("--concurrency", type=int, default=6)
     s = sub.add_parser("sft"); s.add_argument("--train-preds", required=True)
     s.add_argument("--val-frac", type=float, default=0.1)
+    ev = sub.add_parser("evalset"); ev.add_argument("--preds", required=True)
+    ev.add_argument("--out-prefix", required=True); ev.add_argument("--pos", default="A,B")
+    ev.add_argument("--neg", default="D")
     g = sub.add_parser("gate"); g.add_argument("--student", required=True)
     g.add_argument("--ref", required=True); g.add_argument("--baseline", default=None)
     args = ap.parse_args()
-    {"manifest": stage_manifest, "label": stage_label, "sft": stage_sft, "gate": stage_gate}[args.stage](args)
+    {"manifest": stage_manifest, "label": stage_label, "sft": stage_sft,
+     "evalset": stage_evalset, "gate": stage_gate}[args.stage](args)
 
 
 if __name__ == "__main__":
