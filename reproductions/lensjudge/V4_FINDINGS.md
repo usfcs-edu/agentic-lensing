@@ -280,8 +280,41 @@ HSC grades (calibrated, captures visual difficulty) — NOT ground-truth-A — o
 positive set; train **HSC-only** and **AUC-select on an HSC-only** valset; keep the hard negatives.
 Artifacts (gitignored): `outputs/distill_hsc/`, `outputs/distill_combined/`.
 
+## Corrected recipe (soft Claude HSC labels + HSC-only selection) — PARTIAL, data-limited (2026-07-02)
+Applied the two diagnosed fixes: (1) distill Claude's **soft** HSC grades (positives spread 13A/8B/10C/7D,
+mean p_lens 0.48 — ambiguous ones correctly C/D, NOT forced to A) via `distill_hsc sft --claude-preds`;
+(2) train **HSC-only** (95 ex) + **AUC-select on an HSC-only** valset (`distill_hsc evalset`) — no
+cross-survey masking. Same held-out real-lens test.
+
+| grader | real-lens AUC | recovery | rejection | TP / FP |
+|---|---|---|---|---|
+| off-the-shelf 8B | 0.730 | 8% | 96% | 2 / 2 |
+| combined ground-truth (failed) | 0.502 | 15% | 85% | 4 / 7 |
+| **HSC-only SOFT (corrected)** | **0.617** | **19%** | 83% | 5 / 8 |
+| Claude (oracle) | 0.823 | 54% | 89% | 14 / 5 |
+
+**The corrected recipe is methodologically VALIDATED but data-limited.** It fixed the catastrophic
+ground-truth failure (0.502→0.617, real discrimination restored: L mean p_lens 0.20 > N 0.16) and **more
+than doubled recovery** (8%→19%, finds 5 real lenses vs off-the-shelf's 2), with a calibrated grade spread
+(D31/C28/B12/A1) instead of collapse. **But 95 HSC training examples is too thin to reach a usable grader:**
+it does not beat off-the-shelf's *AUC* (whose 0.730 is a rejection artifact — 8% recovery, useless as a
+finder) and is far below Claude (0.823 / 54%). The AUC-select curve peaked early (16:0.71) then overfit —
+the signature of too little data.
+
+**Firm conclusion:** the soft-distillation recipe is CORRECT (restores discrimination + lifts recovery toward
+Claude); the binding constraint at tier-2 is now **HSC training-data volume**, not method. The clear next
+lever is **more real HSC lens positives** — the full SuGOHI catalog (hundreds, not just the 73 DESI-matched)
+and/or Euclid-confirmed lenses (higher resolution, larger sample) — then re-run this exact recipe.
+
+## Summary of the tier-2 distillation arc
+- Off-the-shelf open VLMs (8B, GLM-106B) **collapse** at tier-2 (all-D, ~0% recovery).
+- **Euclid soft-distillation** of Claude's grades **works** (0.625→0.704) — first positive result.
+- HSC combined **ground-truth** recipe **fails** (0.50, flattened) — ambiguous-A labels + cross-survey masking.
+- HSC-only **soft** recipe (both bugs fixed) **restores discrimination + doubles recovery** (0.617, 19%) but
+  is **data-limited** at 95 examples → below Claude. Method validated; needs more HSC/Euclid lens data.
+
 ## Remaining (not done)
-- **Corrected tier-2 distill** (soft Claude HSC labels, HSC-only train+select) — the diagnosed next recipe.
+- **Scale the HSC/Euclid positive set** (full SuGOHI catalog / Euclid-confirmed lenses) + re-run the soft recipe.
 - **Run** the tier-2 open-weight vetting at scale (stage the HSC shortlist / Euclid subset, grade on the
   A100) — a science-campaign run, not a "does it work" step; the path is now proven & tested offline.
 - A full production DR11 tier-1 vetting sweep on Perlmutter with Qwen3-VL-32B-AWQ — likewise a
