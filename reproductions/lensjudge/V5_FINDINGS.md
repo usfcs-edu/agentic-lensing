@@ -118,6 +118,29 @@ leg parsed 0/72 because the gate server had no tool parser and `run_hsc` is agen
 the DIRECT HSC grader (`distill_hsc label`, inline views, no tools; also the better perception gate);
 all three gate jobs resubmitted (55440600 bf16 / 55440603 Int4 / 55440604 Qwen3.6-TP2).
 
+## ★ Phase B HEADLINE — Qwen3.5-27B bf16 MATCHES the frozen Claude bar at tier-2, zero-shot (2026-07-03)
+HSC real-lens gate (26 confirmed SuGOHI lenses vs 46 true non-lenses; DIRECT inline views; parse 72/72):
+
+| grader | real-lens AUC | recovery | rejection | mean p_lens L/N |
+|---|---|---|---|---|
+| off-the-shelf old-gen (artifact line) | 0.730 | 8% | 96% | 0.15/0.09 |
+| Qwen3.5-27B-GPTQ-Int4 | 0.778 | 38% | 93% | 0.39/0.09 |
+| Qwen3.6-27B bf16 (TP2) | 0.780 | 46% | 85% | 0.45/0.16 |
+| **Qwen3.5-27B bf16** | **0.823** | **50%** | **91%** | **0.51/0.11** |
+| frozen Claude reference | 0.823 | 54% | 89% | 0.46/0.12 |
+
+**An open-weight model matches Claude's real-lens vetting at HSC — zero-shot, offline, Claude-free** (even
+the p_lens calibration profile mirrors Claude's). The v4 tier-2 collapse was a model-GENERATION problem.
+Caveats: n=72 → the exact AUC tie is luck; the defensible claim is "statistically indistinguishable";
+360-row test2 confirmation submitted. Quant matters at tier-2 (Int4 −4.5 pt AUC / −12 pt recovery →
+bf16 for tier-2, Int4 for sweeps). Qwen3.6 ≠ better at tier-2; slightly best at tier-1 (det 0.661/0.682,
+mimic 0.523/0.529 — first hair above chance, still ~noise).
+
+**Phase-B picks locked (pending test2 confirm):** tier-2 grader = **Qwen3.5-27B bf16** (1×A100-80 or TP2
+A100-40; ~20-min job incl. boot for 72+330 gradings); tier-1 = still CNNs for detection (27B det
+0.654–0.682 fresh-bench); Phase D fine-tune (41× corpus + unfrozen ViT) is now UPSIDE over Claude parity,
+not rescue; 397B teacher gate demoted to optional (27B already at the teacher-quality bar).
+
 **Qwen3.6 question (user asked; live-verified 2026-07-03):** Qwen3.6-27B + 35B-A3B EXIST (Apr 2026,
 multimodal); no 9B, no 122B, **no official Int4 yet** (bf16-only → hbm80g or TP2). Architecture is
 literally `Qwen3_5ForConditionalGeneration` — 3.6 = refreshed weights on the SAME arch/vision stack
