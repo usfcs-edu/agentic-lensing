@@ -67,6 +67,26 @@ wall. Methodological rule now standing: **any config selected on a bench must re
 draw before it enters the cascade** (v4's single-bench numbers, incl. the agentic-loop mimic 0.562, are
 subject to the same rule — re-measure in flight).
 
+## Phase A closed: complete off-the-shelf tier-1 negative (disjoint-verified, 2026-07-03)
+The agentic re-measure on the fresh 330-row bench: **mimic 0.516 (logprob) / 0.479 (generated p_lens,
+v4-comparable) vs v4's original-bench 0.562**; detection 0.470–0.482; parse 1.00, 3.0 turns (loop
+mechanics unchanged). Together with the direct-config collapse:
+
+**FIRM RESULT — no off-the-shelf tier-1 vetting signal exists in the open 8B in ANY configuration**
+(direct or agentic × rubric v1/v2 × lupton/arcsinh × generated/logprob/expected-grade scoring ×
+equal-weight ensembles): everything lands at 0.47–0.55 on detection AND lens-vs-mimic, on a disjoint
+draw. v4's "loop lifts mimic to 0.562" was bench-specific. Note Claude's frozen mimic bar (0.520) was
+itself near-chance — the CNN-selected mimic bank is genuinely hard for image-level graders by
+construction; nothing about the loop or prompts fixes perception at 0.26″/px.
+
+**Consequences for the plan:** the Phase-A "DR11 swap at parity" premise is gone — there is nothing
+off-the-shelf to deploy. The value path shifts to: **Phase B** (do Qwen3.5's stronger fine-perception
+towers move the wall at all? 1-day gates), **Phase C/D** (train discrimination in: 13k expert-labeled
+HSC mimics + human-soft targets + unfrozen ViT), **Phase E** (AION-1 encoder probe — SSL/CNN encoders
+demonstrably CAN separate at tier-1, e.g. ClaudeNet's contaminant-aware finder). The DR11 vetting deploy
+is DEFERRED until a backbone or student shows a fresh-bench win. Methodological rule held: every claim
+above is disjoint-draw verified.
+
 ## Phase C groundwork (2026-07-03; zero-GPU, catalogs in gitignored cache, curl-regenerable)
 HOLISMOKES tables pulled + profiled: paperVI 467 rows; paperXIII 162+384; **paperXVI 14,152 expert-graded
 rows: 598 A/B-like positives (G≥1.5) + 12,880 expert REJECTS (G<1.0) with continuous G scores (0–3,
