@@ -106,10 +106,18 @@ def stage_manifest(args):
 # ----------------------------------------------------------------------- sft
 def stage_sft(args):
     tr = pd.read_csv(args.manifest)
+    soft = None
+    if getattr(args, "claude_preds", None):   # SOFT distillation: use Claude's actual grades as targets
+        cp = pd.read_parquet(args.claude_preds)
+        soft = {str(n): tj for n, tj in zip(cp["name"], cp["target_json"]) if isinstance(tj, str)}
+        print(f"[sft] SOFT distillation: {len(soft)} Claude targets loaded (calibrated, not ground-truth)")
     img_dir = OUT / "images"
     img_dir.mkdir(parents=True, exist_ok=True)
     recs, miss = [], 0
     for _, r in tr.iterrows():
+        if soft is not None and str(r["name"]) not in soft:
+            miss += 1
+            continue
         imgs = _hsc_imgs(r["ra"], r["dec"])
         if not imgs:
             miss += 1
@@ -119,7 +127,9 @@ def stage_sft(args):
             p = img_dir / f"{r['name']}_{v}.png"
             render.save_png(img, p)
             paths.append(str(p)); tags.append("<image>")
-        if r["label"] == "lens":  # GROUND TRUTH: SuGOHI-confirmed strong lens
+        if soft is not None:      # SOFT: Claude's calibrated grade (captures visual difficulty)
+            target = soft[str(r["name"])]
+        elif r["label"] == "lens":  # GROUND TRUTH: SuGOHI-confirmed strong lens
             target = _target_json("A", rationale="Known SuGOHI-confirmed strong lens: resolved tangential "
                                   "arc / Einstein ring around the red lens galaxy at HSC resolution.")
         else:                     # GROUND TRUTH: true non-lens (mimic / random galaxy)
@@ -173,6 +183,7 @@ def stage_label(args):
         return {"name": str(r["name"]), "label": r.get("label"), "kind": r.get("kind"),
                 "p_lens": (g.grade.p_lens if g.grade else np.nan),
                 "agent_grade": (g.grade.grade if g.grade else None),
+                "target_json": (g.grade.model_dump_json() if g.grade else None),
                 "cost_usd": g.cost_usd, "error": g.error}
     recs = asyncio.run(_bounded([lambda r=r: grade_one(r) for _, r in man.iterrows()], args.concurrency))
     df = pd.DataFrame(recs)
@@ -181,6 +192,39 @@ def stage_label(args):
     ok = df[df.agent_grade.notna()]
     print(f"[label] parsed {len(ok)}/{len(df)} | grades {ok.agent_grade.value_counts().to_dict()} | "
           f"${df.cost_usd.sum():.2f} -> {outp}")
+
+
+# ------------------------------------------------------------------- evalset
+def stage_evalset(args):
+    """Build an ms-swift infer valset (HSC images, no assistant) + labels CSV from a manifest,
+    using its GROUND-TRUTH lens/nonlens labels — for HSC-only AUC checkpoint selection."""
+    man = pd.read_csv(args.manifest)
+    img_dir = OUT / "eval_images"
+    img_dir.mkdir(parents=True, exist_ok=True)
+    rows = []
+    for _, r in man.iterrows():
+        imgs = _hsc_imgs(r["ra"], r["dec"])
+        if not imgs:
+            continue
+        paths, tags = [], []
+        for v, img in imgs.items():
+            p = img_dir / f"{r['name']}_{v}.png"
+            render.save_png(img, p)
+            paths.append(str(p)); tags.append("<image>")
+        user = "".join(tags) + "\nGrade this strong-lens candidate at HSC 0.168\"/px. " \
+               "Rendered grizy views (full, lum, zoom, lum_sub). Respond with ONLY the JSON."
+        rows.append({"rec": {"messages": [{"role": "system", "content": DIRECT_SYS},
+                                          {"role": "user", "content": user}], "images": paths},
+                     "label": r["label"], "name": str(r["name"])})
+    OUT.mkdir(parents=True, exist_ok=True)
+    js, lab = OUT / f"{args.out_prefix}.jsonl", OUT / f"{args.out_prefix}_labels.csv"
+    with open(js, "w") as fh:
+        for x in rows:
+            fh.write(json.dumps(x["rec"]) + "\n")
+    pd.DataFrame([{"idx": i, "label": x["label"], "name": x["name"]}
+                 for i, x in enumerate(rows)]).to_csv(lab, index=False)
+    npos = sum(1 for x in rows if x["label"] == "lens")
+    print(f"[evalset] {len(rows)} rows ({npos} lens / {len(rows) - npos} nonlens) -> {js} + {lab}")
 
 
 # ---------------------------------------------------------------------- gate
@@ -220,6 +264,9 @@ def main():
     m = sub.add_parser("manifest"); m.add_argument("--test-frac", type=float, default=0.35)
     s = sub.add_parser("sft"); s.add_argument("--manifest", required=True)
     s.add_argument("--val-frac", type=float, default=0.1)
+    s.add_argument("--claude-preds", default=None, help="parquet w/ name,target_json -> SOFT distillation")
+    ev = sub.add_parser("evalset"); ev.add_argument("--manifest", required=True)
+    ev.add_argument("--out-prefix", required=True)
     lb = sub.add_parser("label"); lb.add_argument("--manifest", required=True)
     lb.add_argument("--out", default=None); lb.add_argument("--model", default=None)
     lb.add_argument("--concurrency", type=int, default=6)
@@ -228,7 +275,7 @@ def main():
     g.add_argument("--claude", default=None)
     args = ap.parse_args()
     {"manifest": stage_manifest, "sft": stage_sft, "label": stage_label,
-     "gate": stage_gate}[args.stage](args)
+     "evalset": stage_evalset, "gate": stage_gate}[args.stage](args)
 
 
 if __name__ == "__main__":
