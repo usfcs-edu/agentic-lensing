@@ -110,6 +110,14 @@ bank stays a *training* problem (Phase D), not a prompting/backbone one. Next: Q
 Perlmutter (fresh DESI bench + HSC real-lens test) — jobs 55427172 (bf16, hbm80g) + 55434890 (Int4, fast
 gpu partition).
 
+**Phase B gate №2 — Qwen3.5-27B-GPTQ-Int4 (Perlmutter A100-40, job 55434890, 19 min):** fresh DESI bench
+**detection 0.614/0.611, mimic 0.454/0.420, parse 1.00** — ≈ the 9B (0.621). **The GENERATION helps
+(+0.07); 9B→27B SCALE adds nothing at tier-1** (params-don't-clear-the-wall, reconfirmed on the new
+generation). The 27B's decisive test is tier-2 (HSC), where capacity should matter. Ops: the job's HSC
+leg parsed 0/72 because the gate server had no tool parser and `run_hsc` is agentic — GATE2 switched to
+the DIRECT HSC grader (`distill_hsc label`, inline views, no tools; also the better perception gate);
+all three gate jobs resubmitted (55440600 bf16 / 55440603 Int4 / 55440604 Qwen3.6-TP2).
+
 **Qwen3.6 question (user asked; live-verified 2026-07-03):** Qwen3.6-27B + 35B-A3B EXIST (Apr 2026,
 multimodal); no 9B, no 122B, **no official Int4 yet** (bf16-only → hbm80g or TP2). Architecture is
 literally `Qwen3_5ForConditionalGeneration` — 3.6 = refreshed weights on the SAME arch/vision stack
