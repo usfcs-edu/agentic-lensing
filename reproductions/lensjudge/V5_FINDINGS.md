@@ -87,6 +87,28 @@ demonstrably CAN separate at tier-1, e.g. ClaudeNet's contaminant-aware finder).
 is DEFERRED until a backbone or student shows a fresh-bench win. Methodological rule held: every claim
 above is disjoint-draw verified.
 
+## Phase B gate №1 — Qwen3.5-9B (2026-07-03, gpu3)
+**sm75 VERDICT: POSITIVE.** Qwen3.5-9B (early-fusion, hybrid GDN) loads (17.7 GiB fp16), JIT-compiles its
+Triton/FLA GDN kernels on Turing, serves multimodal requests, and honors `chat_template_kwargs
+enable_thinking:false` — on vLLM 0.23 + TRITON_ATTN + enforce-eager. First boot needs ~10–20 min of Triton
+JIT (warm cache: ready in 120 s). gpu3 stays viable for the v5 small tier. (Ops gotcha re-learned: killing
+the serve wrapper orphans `VLLM::EngineCore` holding the VRAM — clean up by owner-checked PID from
+`nvidia-smi --query-compute-apps`.)
+
+**Fresh-bench gate (330-row disjoint bench, direct, v1 rubric, logprob scores):**
+
+| model (same bench) | detection AUC | lens-vs-mimic |
+|---|---|---|
+| Qwen3-VL-8B best direct config (c2) | 0.549 | 0.413 |
+| Qwen3-VL-8B agentic v2 | 0.470–0.482 | 0.479–0.516 |
+| **Qwen3.5-9B direct v1 (zero-shot)** | **0.621 / 0.624** | 0.495 / 0.489 |
+
+**First fresh-bench evidence that the backbone GENERATION moves tier-1 perception** (+0.07–0.15 at the
+same size class, zero-shot; Claude's 0.663 detection was original-bench-only — not directly comparable
+under the disjoint rule). Mimic remains at chance for every off-the-shelf model — the CNN-selected mimic
+bank stays a *training* problem (Phase D), not a prompting/backbone one. Next: Qwen3.5-27B gate on
+Perlmutter (fresh DESI bench + HSC real-lens test) — job 55427172.
+
 ## Phase C groundwork (2026-07-03; zero-GPU, catalogs in gitignored cache, curl-regenerable)
 HOLISMOKES tables pulled + profiled: paperVI 467 rows; paperXIII 162+384; **paperXVI 14,152 expert-graded
 rows: 598 A/B-like positives (G≥1.5) + 12,880 expert REJECTS (G<1.0) with continuous G scores (0–3,
