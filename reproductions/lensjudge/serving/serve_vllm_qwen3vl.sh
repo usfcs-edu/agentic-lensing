@@ -44,6 +44,11 @@ extra=()
 [[ -n "${ATTN_BACKEND}" ]] && extra+=(--attention-backend "${ATTN_BACKEND}")
 [[ "${ENFORCE_EAGER}" == "1" ]] && extra+=(--enforce-eager)
 [[ "${ENABLE_TOOLS}" == "1" ]] && extra+=(--enable-auto-tool-choice --tool-call-parser "${TOOL_PARSER}")
+# v5: server-side thinking-off for reasoning VLMs (GLM-4.6V / Qwen3.5). vLLM >= 0.24 ONLY —
+# --default-chat-template-kwargs does not exist on 0.23 (gpu3's venv), so this is opt-in.
+# Client keeps LENSJUDGE_NOTHINK=1 as the per-request override for A/B tests.
+NOTHINK_SERVER="${NOTHINK_SERVER:-0}"
+[[ "${NOTHINK_SERVER}" == "1" ]] && extra+=(--default-chat-template-kwargs '{"enable_thinking": false}')
 
 VLLM_BIN="${VLLM_BIN:-vllm}"   # override if vllm isn't on PATH, e.g. /home2/benson/.venvs/vllm/bin/vllm
 exec "${VLLM_BIN}" serve "${MODEL}" \

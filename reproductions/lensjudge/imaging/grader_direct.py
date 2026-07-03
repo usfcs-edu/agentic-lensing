@@ -182,11 +182,12 @@ async def _grade_openai(cand: dict, content: list, model_id: str, sysp: str,
     except Exception as e:
         return GradeResult(None, "", error=f"{type(e).__name__}: {e}", parse_ok=False,
                            meta={"name": cand.get("name"), "mode": "direct"})
-    raw, cost = res.text, res.cost_usd
+    raw, cost, gp = res.text, res.cost_usd, res.grade_probs
     if tr is not None:
         tr.write("direct_response", input_tokens=res.input_tokens,
                  output_tokens=res.output_tokens, cost_usd=round(cost, 5),
-                 stop_reason=res.finish_reason, text=raw, backend="openai")
+                 stop_reason=res.finish_reason, text=raw, backend="openai",
+                 grade_probs=gp)
     grade = parse.parse_model(raw, ImageGrade)
     if grade is None and raw:  # one text-only repair retry (matches the anthropic path)
         try:
@@ -196,6 +197,7 @@ async def _grade_openai(cand: dict, content: list, model_id: str, sysp: str,
             g2 = parse.parse_model(r2.text, ImageGrade)
             if g2 is not None:
                 grade, raw = g2, r2.text
+                gp = r2.grade_probs or gp
         except Exception:
             pass
     return GradeResult(
@@ -204,6 +206,8 @@ async def _grade_openai(cand: dict, content: list, model_id: str, sysp: str,
               "backend": "openai", "n_images": n_imgs,
               "wall_s": round(time.time() - t0, 2),
               "trace": str(tr.path) if tr else None,
+              # v5 logprob scoring: raw grade-token distribution + uncalibrated P(A)+P(B)
+              "grade_probs": gp, "p_lens_logprob": llm_client.logprob_p_lens(gp),
               # provenance columns expected by run_batch._row_dict (None in direct mode)
               "tier": None, "escalated": None, "highres_survey": None,
               "p_lens_tier1": None, "p_lens_tier2": None,

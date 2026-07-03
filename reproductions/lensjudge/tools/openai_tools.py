@@ -11,7 +11,9 @@ OpenAI `tool` message and injects the images as a follow-up user turn (OpenAI to
 """
 from __future__ import annotations
 
+import copy
 import json
+import os
 
 from lensjudge.common import fetch, render
 from lensjudge.tools.photometry import _aperture_colors   # reused; same as get_photometry's core
@@ -100,9 +102,37 @@ _TOOLS = {
 }
 
 
-def tool_schemas(names) -> list:
-    """OpenAI tool schemas for the requested tool names (unknown names skipped)."""
-    return [_TOOLS[n] for n in (names or ["fetch_cutout", "get_photometry"]) if n in _TOOLS]
+# advisory even outside strict mode; grammar-enforced under strict tool calling
+for _t in _TOOLS.values():
+    _t["function"]["parameters"]["additionalProperties"] = False
+
+
+def _strictify(tool: dict) -> dict:
+    """Transform a tool def to vLLM/OpenAI STRICT form (grammar-constrained arguments):
+    strict=true, every property required, optional ones made nullable (type -> [T, "null"]).
+    Fixes malformed tool-call JSON from small open models — but forces them to emit all keys,
+    so it is env-gated (LENSJUDGE_STRICT_TOOLS=1) until a live gate shows it wins."""
+    t = copy.deepcopy(tool)
+    fn = t["function"]
+    fn["strict"] = True
+    params = fn.get("parameters") or {}
+    props = params.get("properties") or {}
+    was_required = set(params.get("required") or [])
+    for k, p in props.items():
+        if k not in was_required and isinstance(p.get("type"), str):
+            p["type"] = [p["type"], "null"]
+    params["required"] = list(props.keys())
+    params["additionalProperties"] = False
+    return t
+
+
+def tool_schemas(names, strict: bool | None = None) -> list:
+    """OpenAI tool schemas for the requested tool names (unknown names skipped).
+    strict=None reads LENSJUDGE_STRICT_TOOLS (default off)."""
+    if strict is None:
+        strict = os.environ.get("LENSJUDGE_STRICT_TOOLS") == "1"
+    out = [_TOOLS[n] for n in (names or ["fetch_cutout", "get_photometry"]) if n in _TOOLS]
+    return [_strictify(t) for t in out] if strict else out
 
 
 def _survey(args: dict) -> str:

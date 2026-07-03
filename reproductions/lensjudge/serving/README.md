@@ -87,6 +87,21 @@ Tier-2 is the resolution lever for *net-new* science — the V4 finding is that 
 clears the DESI resolution wall at tier-1, so the ≥32B / GLM-4.6V-106B capacity is reserved for tier-2
 where resolved arcs should actually pay off.
 
+## v5 client/serving switches (A0)
+
+| env | default | effect |
+|---|---|---|
+| `LENSJUDGE_STRUCTURED` | `auto` | structured-output request key: `auto` probes the server `/version` once (vLLM ≥ 0.24 → `structured_outputs:{json:…}`; else legacy `guided_json`); force with `new`/`legacy` |
+| `LENSJUDGE_LOGPROBS` | `1` | request per-token logprobs and extract **P(A/B/C/D) at the grade token** → `grade_probs` + uncalibrated `p_lens_logprob` = P(A)+P(B) (columns `gp_A..gp_D`, `p_lens_logprob` in run_batch parquets). Calibrate downstream (`eval/calibrate.py`) — generated p_lens floats are miscalibrated on faint rare objects |
+| `LENSJUDGE_STRICT_TOOLS` | off | emit STRICT tool schemas (`strict:true`, all-required + nullable optionals, `additionalProperties:false`) — grammar-constrains tool-call arguments on vLLM. Off until a live gate shows it beats the default (it forces small models to emit every key) |
+| `NOTHINK_SERVER=1` (serve script) | off | adds `--default-chat-template-kwargs '{"enable_thinking": false}'` — server-side thinking-off for reasoning VLMs. **vLLM ≥ 0.24 only** (gpu3's 0.23 lacks the flag); client `LENSJUDGE_NOTHINK=1` remains the per-request override |
+
+**Prefix-caching note (vLLM ≥ 0.24 caches multimodal prefixes):** keep all static text (system rubric, tool
+schemas) *before* per-candidate images — already true for our graders — and never mutate earlier turns in
+the tool loop (ours is append-only, and re-sent image blocks are byte-identical, so within-episode ViT/KV
+reuse works). `--default-chat-template-kwargs`/`device_ids` notes: our launchers export
+`CUDA_VISIBLE_DEVICES` themselves, which remains valid on 0.24.
+
 ## Why `min_pixels` matters
 Cutouts are 101 px upsampled to 400 px. A VLM's default image preprocessor may **re-downsample** a 400 px
 image and destroy the faint arc. Raise `min_pixels` (Qwen3-VL) / the visual-token budget (Gemma) so the
