@@ -107,7 +107,16 @@ the serve wrapper orphans `VLLM::EngineCore` holding the VRAM — clean up by ow
 same size class, zero-shot; Claude's 0.663 detection was original-bench-only — not directly comparable
 under the disjoint rule). Mimic remains at chance for every off-the-shelf model — the CNN-selected mimic
 bank stays a *training* problem (Phase D), not a prompting/backbone one. Next: Qwen3.5-27B gate on
-Perlmutter (fresh DESI bench + HSC real-lens test) — job 55427172.
+Perlmutter (fresh DESI bench + HSC real-lens test) — jobs 55427172 (bf16, hbm80g) + 55434890 (Int4, fast
+gpu partition).
+
+**Qwen3.6 question (user asked; live-verified 2026-07-03):** Qwen3.6-27B + 35B-A3B EXIST (Apr 2026,
+multimodal); no 9B, no 122B, **no official Int4 yet** (bf16-only → hbm80g or TP2). Architecture is
+literally `Qwen3_5ForConditionalGeneration` — 3.6 = refreshed weights on the SAME arch/vision stack
+(sweep's flag verified at config level; claimed gains are agentic, our constraint is perception —
+empirical question). Decision: **3.6-27B added to the Phase B gate list** (staged to Perlmutter; TP2
+2×A100-40 fast-lane slurm ready) — if its weights gate better, the identical arch makes it a zero-cost
+swap for the Phase D fine-tune. 3.5 keeps the Int4/sweep + 9B/student/Mac + 122B/397B tiers regardless.
 
 ## Phase C groundwork (2026-07-03; zero-GPU, catalogs in gitignored cache, curl-regenerable)
 HOLISMOKES tables pulled + profiled: paperVI 467 rows; paperXIII 162+384; **paperXVI 14,152 expert-graded
