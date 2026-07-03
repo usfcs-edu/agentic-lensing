@@ -57,9 +57,15 @@ Logprob scores (`s_ab` = P(A)+P(B); `s_exp` = Σ w·P, w = A1/B0.7/C0.4/D0):
    v1) and consistent across renders; arcsinh adds ~+0.02–0.03 mimic and +0.05 detection.
 3. Detection stays ≈0.5 in every config — the tier-1 wall, unchanged (detection is the CNNs' job).
 
-**Confirmation in flight:** c4 + c3 re-run on a fresh, fully disjoint 330-row bench (150 new lenses /
-120 new mimics / 60 new randoms, seed 777, 0 overlap). If mimic ≥ ~0.6 holds, the Phase-A cascade's
-Stage-2 mimic adjudication becomes the cheap DIRECT c4 config instead of the agentic loop.
+**CONFIRMATION RESULT (fresh disjoint 330-row bench: 150 new lenses / 120 new mimics / 60 new randoms,
+0 overlap; parse 1.00, gp coverage 1.00, 0 errors; mimic composition verified matched — same
+confident/visual/type mix):** the discovery **COLLAPSED** — c4 mimic 0.655→**0.499**, c3 0.622→**0.474**
+(chance). The "v2-rubric effect" was bench-specific overfit + winner's curse (best of 4 configs × 4
+metrics on one 270-row bench with 60 mimics). **Firm negative: at tier-1 DESI resolution, NO
+prompt/render/scoring/ensemble lever moves the off-the-shelf 8B** — fully consistent with the perception
+wall. Methodological rule now standing: **any config selected on a bench must re-verify on a disjoint
+draw before it enters the cascade** (v4's single-bench numbers, incl. the agentic-loop mimic 0.562, are
+subject to the same rule — re-measure in flight).
 
 ## Phase C groundwork (2026-07-03; zero-GPU, catalogs in gitignored cache, curl-regenerable)
 HOLISMOKES tables pulled + profiled: paperVI 467 rows; paperXIII 162+384; **paperXVI 14,152 expert-graded
