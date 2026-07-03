@@ -27,6 +27,31 @@ def test_tool_schemas():
     assert "name" in s[0]["function"]["parameters"]["properties"]
 
 
+def test_strict_tool_schemas():
+    """LENSJUDGE_STRICT_TOOLS=1 -> strict form (all-required, nullable optionals, no extra props);
+    default stays non-strict (only advisory additionalProperties:false) and the base defs unmutated."""
+    saved = os.environ.pop("LENSJUDGE_STRICT_TOOLS", None)
+    try:
+        os.environ["LENSJUDGE_STRICT_TOOLS"] = "1"
+        s = openai_tools.tool_schemas(["fetch_cutout"])[0]["function"]
+        assert s["strict"] is True
+        params = s["parameters"]
+        assert set(params["required"]) == set(params["properties"].keys())
+        assert params["additionalProperties"] is False
+        assert params["properties"]["survey"]["type"] == ["string", "null"]   # optional -> nullable
+        assert params["properties"]["name"]["type"] == "string"               # required unchanged
+        os.environ.pop("LENSJUDGE_STRICT_TOOLS", None)
+        base = openai_tools.tool_schemas(["fetch_cutout"])[0]["function"]
+        assert "strict" not in base                                            # base defs not mutated
+        assert base["parameters"]["required"] == ["name"]
+        assert base["parameters"]["additionalProperties"] is False             # advisory, always on
+    finally:
+        if saved is not None:
+            os.environ["LENSJUDGE_STRICT_TOOLS"] = saved
+        else:
+            os.environ.pop("LENSJUDGE_STRICT_TOOLS", None)
+
+
 # ---------------------------------------------------------------- executor
 def test_execute_fetch_cutout(monkeypatch=None):
     o, orv, ob, ord_ = (fetch.get_cube, render.render_views, render.png_b64, render.residual_view_desc)

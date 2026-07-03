@@ -26,7 +26,9 @@ The served MODEL NAME flows through the EXISTING per-role seam: set e.g.
 from __future__ import annotations
 
 import json
+import math
 import os
+import re
 from dataclasses import dataclass, field
 from typing import Any, Awaitable, Callable, Optional
 
@@ -58,6 +60,121 @@ def _max_tokens(default: int = 2048) -> int:
     <think> blocks before the final JSON) have room to finish; too small a budget truncates the JSON
     and parsing fails. Default 2048 keeps existing (non-thinking) behavior unchanged."""
     return int(os.environ.get("LENSJUDGE_MAX_TOKENS", str(default)))
+
+
+# --- structured-outputs shim (vLLM 0.24 deprecated `guided_json` -> `structured_outputs`) ----
+_STRUCTURED_RESOLVED: Optional[str] = None   # cached auto-probe result for this process
+
+
+def _server_version(base_url: str) -> Optional[tuple]:
+    """Best-effort vLLM version probe: GET <root>/version (the endpoint lives at the server root,
+    not under /v1). Returns (major, minor) or None (non-vLLM server / unreachable / parse fail)."""
+    try:
+        import requests
+        root = (base_url or "").rstrip("/")
+        if root.endswith("/v1"):
+            root = root[:-3].rstrip("/")
+        if not root:
+            return None
+        r = requests.get(root + "/version", timeout=3)
+        parts = tuple(int(x) for x in str(r.json().get("version", "")).split(".")[:2])
+        return parts if len(parts) == 2 else None
+    except Exception:
+        return None
+
+
+def _structured_mode() -> str:
+    """Which structured-output request key to send: 'legacy' (guided_json, vLLM <= 0.23) or 'new'
+    (structured_outputs, vLLM >= 0.24 where guided_json is deprecated).
+
+    LENSJUDGE_STRUCTURED = auto (default) | new | legacy. auto probes the server /version ONCE per
+    process and falls back to legacy when the probe fails (older vLLM accepts legacy; 0.24 still
+    accepts it too, only deprecated — so legacy is the safe default)."""
+    global _STRUCTURED_RESOLVED
+    mode = os.environ.get("LENSJUDGE_STRUCTURED", "auto").strip().lower()
+    if mode in ("new", "legacy"):
+        return mode
+    if _STRUCTURED_RESOLVED is None:
+        v = _server_version(os.environ.get("LENSJUDGE_BASE_URL", ""))
+        _STRUCTURED_RESOLVED = "new" if (v is not None and v >= (0, 24)) else "legacy"
+    return _STRUCTURED_RESOLVED
+
+
+# --- grade-token logprob scoring (v5: generated p_lens floats are miscalibrated on faint rare
+# objects; score from the token distribution at the `"grade":"X"` position instead) -------------
+def _want_logprobs() -> bool:
+    """Request per-token logprobs on open-backend completions (default ON; LENSJUDGE_LOGPROBS=0 off)."""
+    return os.environ.get("LENSJUDGE_LOGPROBS", "1") == "1"
+
+
+def _lp_kwargs() -> dict:
+    return {"logprobs": True, "top_logprobs": 10} if _want_logprobs() else {}
+
+
+def _f(obj: Any, name: str, default=None):
+    """Field access across SDK objects and plain dicts (tests / raw JSON)."""
+    if isinstance(obj, dict):
+        return obj.get(name, default)
+    return getattr(obj, name, default)
+
+
+_GRADE_KEY_RE = re.compile(r'"grade"\s*:\s*"')
+
+
+def extract_grade_probs(logprobs_content) -> Optional[dict]:
+    """P(letter) for A/B/C/D at the ImageGrade ``"grade":"X"`` position.
+
+    Walks the chat-completion logprobs content, finds the token holding the grade letter (the char
+    right after the first `"grade":"` in the concatenated token text), and sums exp(logprob) over
+    the top_logprobs entries whose token starts with each letter (handles `A` vs `"A` tokenizations).
+    Returns e.g. {"A": 0.71, "B": 0.22, "D": 0.01} (unnormalized true probabilities, each capped at
+    1.0), or None when no grade position / no letter mass is found."""
+    try:
+        items = list(logprobs_content or [])
+    except TypeError:
+        return None
+    if not items:
+        return None
+    texts = [str(_f(t, "token") or "") for t in items]
+    m = _GRADE_KEY_RE.search("".join(texts))
+    if not m:
+        return None
+    pos, off, idx = m.end(), 0, None
+    for i, s in enumerate(texts):
+        if off <= pos < off + len(s):
+            idx = i
+            break
+        off += len(s)
+    if idx is None:
+        return None
+    probs: dict = {}
+    for cand in (_f(items[idx], "top_logprobs") or []):
+        ttxt = str(_f(cand, "token") or "").lstrip().lstrip('"')
+        lp = _f(cand, "logprob")
+        if ttxt and ttxt[0] in "ABCD" and lp is not None:
+            letter = ttxt[0]
+            probs[letter] = min(1.0, probs.get(letter, 0.0) + math.exp(float(lp)))
+    if not probs:   # top_logprobs absent -> at least use the sampled token's own logprob
+        ttxt = texts[idx].lstrip().lstrip('"')
+        lp = _f(items[idx], "logprob")
+        if ttxt and ttxt[0] in "ABCD" and lp is not None:
+            probs[ttxt[0]] = min(1.0, math.exp(float(lp)))
+    return {k: round(v, 6) for k, v in probs.items()} or None
+
+
+def _grade_probs_from_choice(choice: Any) -> Optional[dict]:
+    lp = getattr(choice, "logprobs", None)
+    if lp is None:
+        return None
+    return extract_grade_probs(_f(lp, "content"))
+
+
+def logprob_p_lens(grade_probs: Optional[dict]) -> Optional[float]:
+    """Uncalibrated detection score from the grade-token distribution: P(A) + P(B).
+    Calibration (isotonic/Platt per backend+survey) happens downstream in eval/calibrate."""
+    if not grade_probs:
+        return None
+    return round(min(1.0, grade_probs.get("A", 0.0) + grade_probs.get("B", 0.0)), 4)
 
 
 # --- open-weight price table (local inference is free; record tokens regardless) ---
@@ -134,6 +251,7 @@ class ChatResult:
     cost_usd: float = 0.0
     finish_reason: Optional[str] = None
     model: Optional[str] = None
+    grade_probs: Optional[dict] = None   # P(A/B/C/D) at the grade token (open backend, logprobs on)
     raw: Any = None
 
 
@@ -152,7 +270,11 @@ def _maybe_json_kwargs(json_schema: Optional[dict] = None) -> dict:
     if os.environ.get("LENSJUDGE_JSON_MODE") == "1":
         kw["response_format"] = {"type": "json_object"}
     if os.environ.get("LENSJUDGE_GUIDED_JSON") == "1" and json_schema is not None:
-        eb["guided_json"] = json_schema
+        # vLLM 0.24 deprecated guided_json in favor of structured_outputs (see _structured_mode)
+        if _structured_mode() == "new":
+            eb["structured_outputs"] = {"json": json_schema}
+        else:
+            eb["guided_json"] = json_schema
     if os.environ.get("LENSJUDGE_NOTHINK") == "1":
         eb["chat_template_kwargs"] = {"enable_thinking": False}
     if eb:
@@ -173,7 +295,7 @@ async def chat_with_images(*, system: str, content: list[dict], model: str,
     parts = anthropic_content_to_openai(content)
     messages = [{"role": "system", "content": system},
                 {"role": "user", "content": parts}]
-    kw = _maybe_json_kwargs(json_schema)
+    kw = {**_maybe_json_kwargs(json_schema), **_lp_kwargs()}
     resp = await client.chat.completions.create(
         model=model, messages=messages, max_tokens=max_tokens or _max_tokens(),
         temperature=_temperature() if temperature is None else temperature, **kw)
@@ -188,7 +310,7 @@ async def chat_text(*, system: str, text: str, model: str, max_tokens: Optional[
                 {"role": "user", "content": text}]
     resp = await client.chat.completions.create(
         model=model, messages=messages, max_tokens=max_tokens or _max_tokens(),
-        temperature=_temperature() if temperature is None else temperature)
+        temperature=_temperature() if temperature is None else temperature, **_lp_kwargs())
     return _chat_result(resp, model)
 
 
@@ -201,7 +323,7 @@ def _chat_result(resp: Any, model: str) -> ChatResult:
         output_tokens=getattr(resp.usage, "completion_tokens", 0) or 0,
         cost_usd=_open_cost(model, resp.usage),
         finish_reason=getattr(choice, "finish_reason", None),
-        model=model, raw=resp)
+        model=model, grade_probs=_grade_probs_from_choice(choice), raw=resp)
 
 
 # --- agentic tool-calling loop (wired into the graders in Phase 3) ----------
@@ -213,6 +335,7 @@ class LoopResult:
     tool_calls: int = 0
     input_tokens: int = 0
     output_tokens: int = 0
+    grade_probs: Optional[dict] = None   # P(A/B/C/D) at the grade token of the FINAL reply
     messages: list = field(default_factory=list)
 
 
@@ -247,7 +370,8 @@ async def run_tool_loop(*, system: str, user_content: list[dict], tools: list[di
     for turn in range(max_turns):
         resp = await client.chat.completions.create(
             model=model, messages=messages, tools=tools, tool_choice="auto",
-            max_tokens=max_tokens, temperature=temp, **_maybe_json_kwargs())
+            max_tokens=max_tokens, temperature=temp,
+            **_maybe_json_kwargs(), **_lp_kwargs())
         cost += _open_cost(model, resp.usage)
         in_tok += getattr(resp.usage, "prompt_tokens", 0) or 0
         out_tok += getattr(resp.usage, "completion_tokens", 0) or 0
@@ -263,7 +387,9 @@ async def run_tool_loop(*, system: str, user_content: list[dict], tools: list[di
         if not calls:
             return LoopResult(text=msg.content or "", cost_usd=cost, num_turns=turn + 1,
                               tool_calls=n_tool, input_tokens=in_tok,
-                              output_tokens=out_tok, messages=messages)
+                              output_tokens=out_tok,
+                              grade_probs=_grade_probs_from_choice(resp.choices[0]),
+                              messages=messages)
         pending_images: list[dict] = []
         for tc in calls:
             n_tool += 1
@@ -284,9 +410,10 @@ async def run_tool_loop(*, system: str, user_content: list[dict], tools: list[di
     # max_turns exhausted: ask once for the final JSON with no tools
     resp = await client.chat.completions.create(
         model=model, messages=messages, max_tokens=max_tokens, temperature=temp,
-        **_maybe_json_kwargs())
+        **_maybe_json_kwargs(), **_lp_kwargs())
     cost += _open_cost(model, resp.usage)
     final = resp.choices[0].message.content or ""
     messages.append({"role": "assistant", "content": final})
     return LoopResult(text=final, cost_usd=cost, num_turns=max_turns, tool_calls=n_tool,
-                      input_tokens=in_tok, output_tokens=out_tok, messages=messages)
+                      input_tokens=in_tok, output_tokens=out_tok,
+                      grade_probs=_grade_probs_from_choice(resp.choices[0]), messages=messages)

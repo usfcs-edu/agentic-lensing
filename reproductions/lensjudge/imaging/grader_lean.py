@@ -106,7 +106,7 @@ async def _grade_openai_agentic(cand: dict, *, model, system_prompt, tools, trac
     except Exception as e:
         return GradeResult(None, "", error=f"{type(e).__name__}: {e}",
                            meta={"name": cand.get("name"), "mode": "lean_openai"})
-    raw, cost = res.text, res.cost_usd
+    raw, cost, gp = res.text, res.cost_usd, res.grade_probs
     grade = parse.parse_model(raw, ImageGrade)
     if grade is None and raw:                         # one text-only repair retry (matches SDK path)
         try:
@@ -115,12 +115,14 @@ async def _grade_openai_agentic(cand: dict, *, model, system_prompt, tools, trac
             g2 = parse.parse_model(r2.text, ImageGrade)
             if g2 is not None:
                 grade, raw = g2, r2.text
+                gp = r2.grade_probs or gp
         except Exception:
             pass
     return GradeResult(
         grade=grade, raw=raw, cost_usd=cost, num_turns=res.num_turns, parse_ok=grade is not None,
         meta={"name": cand.get("name"), "mode": "lean_openai", "backend": "openai",
               "model_id": model_id, "tool_calls": res.tool_calls,
+              "grade_probs": gp, "p_lens_logprob": llm_client.logprob_p_lens(gp),
               "wall_s": round(time.time() - t0, 2), "n_thinking_blocks": 0, "thinking_chars": 0})
 
 
