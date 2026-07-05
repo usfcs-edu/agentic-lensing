@@ -141,6 +141,20 @@ A100-40; ~20-min job incl. boot for 72+330 gradings); tier-1 = still CNNs for de
 0.654–0.682 fresh-bench); Phase D fine-tune (41× corpus + unfrozen ViT) is now UPSIDE over Claude parity,
 not rescue; 397B teacher gate demoted to optional (27B already at the teacher-quality bar).
 
+**test2 CONFIRMATION (360 rows: 120 typical SuGOHI A/B lenses vs 240 XVI expert rejects; job 55444848,
+22 min, 360/360 parse) — the headline gets an essential SCOPE ASTERISK:** Qwen3.5-27B bf16 on the
+HSC-NATIVE population = **AUC 0.563, recovery 15% (catalog-A 12% n=26, B 16% n=94), rejection 91%,
+mean p_lens L 0.17 / N 0.11.** Interpretation: the 72-gate's 26 lenses are the DESI∩SuGOHI crossmatch —
+lenses bright enough to be found at 1.3″ seeing, i.e. the EASIEST sub-population, and that is the only
+bench Claude's frozen 0.823/54% was ever measured on. **Zero-shot parity with Claude holds on that
+DESI-bright subset; typical HSC-native lenses (fainter, smaller θ_E, vs near-miss rejects) remain
+unsolved zero-shot.** Notes: test2's bench is harder by construction (240/240 negatives are
+CNN-selected-expert-rejected; some near-miss rejects with G→1.5 may be real lenses; catalog-B positives
+are "probable" not certain — label noise lowers the achievable ceiling somewhat, but 0.563 is far from
+any ceiling). **Consequence: Phase D's fine-tune on the 3,913-example corpus (drawn from exactly this
+population) is the value path for real tier-2 capability; test2 is its primary gate (model-to-model +
+fine-tune deltas; no Claude number exists for it under the Claude-free policy, by design).**
+
 **Qwen3.6 question (user asked; live-verified 2026-07-03):** Qwen3.6-27B + 35B-A3B EXIST (Apr 2026,
 multimodal); no 9B, no 122B, **no official Int4 yet** (bf16-only → hbm80g or TP2). Architecture is
 literally `Qwen3_5ForConditionalGeneration` — 3.6 = refreshed weights on the SAME arch/vision stack
