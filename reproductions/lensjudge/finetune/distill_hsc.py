@@ -183,6 +183,7 @@ def stage_label(args):
         return {"name": str(r["name"]), "label": r.get("label"), "kind": r.get("kind"),
                 "p_lens": (g.grade.p_lens if g.grade else np.nan),
                 "agent_grade": (g.grade.grade if g.grade else None),
+                "p_lens_logprob": g.meta.get("p_lens_logprob"),
                 "target_json": (g.grade.model_dump_json() if g.grade else None),
                 "cost_usd": g.cost_usd, "error": g.error}
     recs = asyncio.run(_bounded([lambda r=r: grade_one(r) for _, r in man.iterrows()], args.concurrency))
@@ -192,6 +193,64 @@ def stage_label(args):
     ok = df[df.agent_grade.notna()]
     print(f"[label] parsed {len(ok)}/{len(df)} | grades {ok.agent_grade.value_counts().to_dict()} | "
           f"${df.cost_usd.sum():.2f} -> {outp}")
+
+
+# -------------------------------------------------------------------- sft-v5
+_V5_GRADE = {"lens": None, "nonlens": "D", "softmid": "C"}   # lens keeps its catalog grade (A/B)
+
+
+def _v5_rationale(r) -> str:
+    if r.label == "lens":
+        return (f"Committee grade-{r.grade} strong-lens candidate (SuGOHI/HOLISMOKES): tangential "
+                "arc or counter-image structure around the red galaxy at HSC resolution.")
+    if r.label == "nonlens":
+        return ("CNN-selected candidate REJECTED by the expert graders: the arc-like feature is a "
+                "contaminant (companion / spiral arm / ring / tidal feature), not lensing.")
+    return ("Ambiguous committee grade-C candidate: some lens-like features but not convincing at "
+            "HSC resolution.")
+
+
+def stage_sft_v5(args):
+    """Build the v5 SFT set from finetune/build_corpus_v5 output: HSC PNGs + HUMAN-SOFT ImageGrade
+    targets (catalog grade + committee-score p_lens). Fully Claude-free."""
+    tr = pd.read_csv(args.manifest)
+    img_dir = OUT / "images_v5"
+    img_dir.mkdir(parents=True, exist_ok=True)
+    recs, miss = [], 0
+    for r in tr.itertuples():
+        imgs = _hsc_imgs(r.ra, r.dec)
+        if not imgs:
+            miss += 1
+            continue
+        safe = str(r.name).replace("/", "_").replace(" ", "_")
+        paths, tags = [], []
+        for v, img in imgs.items():
+            p = img_dir / f"{safe}_{v}.png"
+            if not p.exists():
+                render.save_png(img, p)
+            paths.append(str(p)); tags.append("<image>")
+        grade = _V5_GRADE[r.label] or r.grade
+        target = _target_json(grade, p_lens=float(r.soft), rationale=_v5_rationale(r),
+                              contaminant=("contaminant" if r.label == "nonlens" else None))
+        user = "".join(tags) + "\nGrade this strong-lens candidate at HSC 0.168\"/px. " \
+               "Rendered grizy views (full, lum, zoom, lum_sub). Respond with ONLY the JSON."
+        recs.append({"messages": [{"role": "system", "content": DIRECT_SYS},
+                                  {"role": "user", "content": user},
+                                  {"role": "assistant", "content": target}],
+                     "images": paths, "label": r.label})
+        if len(recs) % 500 == 0:
+            print(f"  rendered {len(recs)} (missing {miss})")
+    rng = np.random.RandomState(SEED)
+    rng.shuffle(recs)
+    n_val = int(len(recs) * args.val_frac)
+    for split, data in (("train", recs[n_val:]), ("val", recs[:n_val])):
+        p = OUT / f"sft_v5_{split}.jsonl"
+        with open(p, "w") as fh:
+            for rec in data:
+                fh.write(json.dumps(rec) + "\n")
+        counts = pd.Series([x["label"] for x in data]).value_counts().to_dict()
+        print(f"[sft-v5] {split}: {len(data)} ({counts}) -> {p}")
+    print(f"[sft-v5] {miss} skipped for missing cutout")
 
 
 # ------------------------------------------------------------------- evalset
@@ -267,6 +326,8 @@ def main():
     s.add_argument("--claude-preds", default=None, help="parquet w/ name,target_json -> SOFT distillation")
     ev = sub.add_parser("evalset"); ev.add_argument("--manifest", required=True)
     ev.add_argument("--out-prefix", required=True)
+    s5 = sub.add_parser("sft-v5"); s5.add_argument("--manifest", required=True)
+    s5.add_argument("--val-frac", type=float, default=0.03)
     lb = sub.add_parser("label"); lb.add_argument("--manifest", required=True)
     lb.add_argument("--out", default=None); lb.add_argument("--model", default=None)
     lb.add_argument("--concurrency", type=int, default=6)
@@ -275,7 +336,7 @@ def main():
     g.add_argument("--claude", default=None)
     args = ap.parse_args()
     {"manifest": stage_manifest, "sft": stage_sft, "label": stage_label,
-     "evalset": stage_evalset, "gate": stage_gate}[args.stage](args)
+     "evalset": stage_evalset, "sft-v5": stage_sft_v5, "gate": stage_gate}[args.stage](args)
 
 
 if __name__ == "__main__":
