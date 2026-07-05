@@ -163,6 +163,26 @@ empirical question). Decision: **3.6-27B added to the Phase B gate list** (stage
 2×A100-40 fast-lane slurm ready) — if its weights gate better, the identical arch makes it a zero-cost
 swap for the Phase D fine-tune. 3.5 keeps the Int4/sweep + 9B/student/Mac + 122B/397B tiers regardless.
 
+## Phase D run №1 — MODE COLLAPSE, diagnosed + fixed (2026-07-05)
+First v5 fine-tune (Qwen3.5-9B, QLoRA + unfrozen ViT, 5,433-example corpus, GDN/FLA recipe validated on
+sm75, fp16 nan-rate 3/54 = tolerable): train loss crashed 0.94→0.02 while **valsel AUC fell to chance
+(ckpt-75: 0.533 predicting "C/0.45" for 94% of rows; ckpt-150: 0.500 predicting "D/0.0" for 180/180)** —
+the student emitted class templates and ignored the images entirely. Run killed at step ~265; the queued
+27B A100 job was HELD before submission.
+
+**Root cause (matches the v4 v1-failure at larger scale): CLASS-CONSTANT targets.** My v5 targets used 3
+fixed rationale strings + fixed per-grade criteria blocks → ~95% of target tokens were class-deterministic
+→ cross-entropy is minimized by emitting the class prior with no vision conditioning. The Euclid PoC
+worked precisely because Claude's targets were PER-EXAMPLE UNIQUE — the only way to reduce loss was to
+look at the pixels.
+
+**Fix (distill_hsc._v5_target): per-example unique targets from catalog facts** — short fact-bearing
+rationales (coords, θ_E where present, committee score, 3 hash-selected phrasings), criteria correlated
+with the soft score + deterministic hash jitter, p_lens de-constanted (±0.04 hash jitter on letter-grade
+mappings; XVI continuous scores kept exact), varied confidence; plus LR 1e-4→5e-5 and warmup 0.05→0.1.
+**Standing rule addition: SFT targets must be per-example unique — verify target diversity before every
+training run** (uniqueness check now part of the build).
+
 ## Phase C groundwork (2026-07-03; zero-GPU, catalogs in gitignored cache, curl-regenerable)
 HOLISMOKES tables pulled + profiled: paperVI 467 rows; paperXIII 162+384; **paperXVI 14,152 expert-graded
 rows: 598 A/B-like positives (G≥1.5) + 12,880 expert REJECTS (G<1.0) with continuous G scores (0–3,
