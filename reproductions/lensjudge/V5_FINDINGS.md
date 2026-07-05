@@ -183,6 +183,19 @@ mappings; XVI continuous scores kept exact), varied confidence; plus LR 1e-4→5
 **Standing rule addition: SFT targets must be per-example unique — verify target diversity before every
 training run** (uniqueness check now part of the build).
 
+## Phase D run №2 interim (2026-07-05) — collapse fixed, generalization still missing at 9B/fp16
+Run-2 (unique targets, LR 5e-5, warmup 0.1, vit_lr 5e-6): train loss plateaus at ~0.39 (vs run-1's 0.02
+memorization crash), grads finite — the template shortcut is structurally gone. But valsel AUC at
+ckpt-75/150/225 = 0.481/0.493/0.508 (rising, ≈chance), and ckpt-225 still outputs grade-D for all 180
+valsel rows (p_lens spread only 0.01–0.20): **memorize-without-generalize** — 51M LoRA params fit 5,435
+train pairs; unseen images fall back to the prior. Two recipe gaps identified: (1) **ZERO augmentation**
+in our SFT (CNN lens-finders depend on dihedral augmentation; rotations/flips are label-preserving) —
+queued for run-3; (2) possible 9B-capacity/fp16 limits — the **27B bf16 A100 run tests this directly
+(job 55537116, submitted with the unique-target jsonls; the stale class-constant jsonls on Perlmutter
+were caught and replaced first)**. Phase E's AION-1 frozen-encoder probe launched in parallel on gpu3
+(GPU 2): a small head cannot memorize like LoRA — if it generalizes from the same corpus, the corpus is
+good and VLM-SFT is the bottleneck; if it also sits at ~0.55, investigate corpus/renders/labels.
+
 ## Phase C groundwork (2026-07-03; zero-GPU, catalogs in gitignored cache, curl-regenerable)
 HOLISMOKES tables pulled + profiled: paperVI 467 rows; paperXIII 162+384; **paperXVI 14,152 expert-graded
 rows: 598 A/B-like positives (G≥1.5) + 12,880 expert REJECTS (G<1.0) with continuous G scores (0–3,
