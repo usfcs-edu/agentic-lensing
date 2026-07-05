@@ -51,7 +51,7 @@ exec "${SWIFT}" sft \
   "${vit_arg[@]}" --lora_rank "${LORA_RANK}" --lora_alpha $((LORA_RANK * 2)) --lora_dropout 0.05 \
   --max_length "${MAX_LENGTH:-6144}" \
   --per_device_train_batch_size 1 --gradient_accumulation_steps 8 \
-  --learning_rate "${LR}" --num_train_epochs "${EPOCHS}" --warmup_ratio 0.05 \
+  --learning_rate "${LR}" --num_train_epochs "${EPOCHS}" --warmup_ratio "${WARMUP:-0.05}" \
   "${steps_arg[@]}" \
   --gradient_checkpointing true \
   --eval_strategy steps --eval_steps "${SAVE_STEPS}" --save_steps "${SAVE_STEPS}" --save_total_limit "${SAVE_LIMIT}" \

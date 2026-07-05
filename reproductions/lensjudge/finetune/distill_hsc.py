@@ -199,21 +199,71 @@ def stage_label(args):
 _V5_GRADE = {"lens": None, "nonlens": "D", "softmid": "C"}   # lens keeps its catalog grade (A/B)
 
 
-def _v5_rationale(r) -> str:
+def _hash01(name: str, salt: str) -> float:
+    """Deterministic per-example pseudo-random float in [0,1) — reproducible target jitter."""
+    import hashlib
+    return int(hashlib.md5(f"{salt}:{name}".encode()).hexdigest()[:8], 16) / 0xFFFFFFFF
+
+
+def _v5_target(r) -> str:
+    """Per-example UNIQUE ImageGrade target. v5 collapse lesson (mode-collapse run 2026-07-05):
+    class-constant templates let the student minimize loss by emitting the class prior and IGNORING
+    the images (valsel AUC -> 0.50 while train loss -> 0.02). The Euclid PoC worked because Claude's
+    targets were per-example unique — replicate that property from CATALOG FACTS + deterministic
+    hash jitter: unique short rationales (coords/theta_E/score), soft-correlated jittered criteria,
+    de-constanted p_lens. Loss can then only fall by conditioning on the pixels."""
+    name = str(r.name)
+    soft = float(r.soft)
+    h = lambda s: _hash01(name, s)                      # noqa: E731
+    # p_lens: keep continuous committee scores exactly; de-constant letter-grade mappings (+-0.04)
+    if getattr(r, "src", "") == "sugohi" or r.label == "softmid":
+        p = round(min(0.99, max(0.01, soft + (h("p") - 0.5) * 0.08)), 2)
+    else:
+        p = round(min(0.99, max(0.01, soft)), 2)
+    # criteria: correlated with soft, per-example jitter, per-criterion offsets
+    crit = {}
+    for i, k in enumerate(("blue_source", "low_surface_brightness", "curvature",
+                           "counter_images", "arc_morphology")):
+        base = 10.0 * soft * (0.75 + 0.5 * h(f"c{i}"))
+        crit[k] = int(min(10, max(0, round(base + (h(f"o{i}") - 0.5) * 2))))
+    conf = round(min(0.95, max(0.2, 0.4 + abs(soft - 0.5) + (h("cf") - 0.5) * 0.2)), 2)
+    # short, fact-bearing, per-example rationale (facts vary; phrasing varies by hash)
+    facts = [f"({r.ra:.4f},{r.dec:.4f})"]
+    te = getattr(r, "theta_e", None)
+    if te is not None and pd.notna(te) and float(te) > 0:
+        facts.append(f"thetaE~{float(te):.2f}\"")
+    if str(getattr(r, "src", "")).startswith("holismokes"):
+        facts.append(f"committee score {soft * 3:.2f}/3")
+    fact_s = " ".join(facts)
     if r.label == "lens":
-        return (f"Committee grade-{r.grade} strong-lens candidate (SuGOHI/HOLISMOKES): tangential "
-                "arc or counter-image structure around the red galaxy at HSC resolution.")
-    if r.label == "nonlens":
-        return ("CNN-selected candidate REJECTED by the expert graders: the arc-like feature is a "
-                "contaminant (companion / spiral arm / ring / tidal feature), not lensing.")
-    return ("Ambiguous committee grade-C candidate: some lens-like features but not convincing at "
-            "HSC resolution.")
+        stems = [f"Grade-{r.grade} committee lens {fact_s}: arc structure around the deflector.",
+                 f"Committee-confirmed grade-{r.grade} candidate {fact_s}; lensing morphology present.",
+                 f"{fact_s}: graded {r.grade} by the expert committee; consistent arc geometry."]
+    elif r.label == "nonlens":
+        stems = [f"Expert-rejected candidate {fact_s}: arc-like feature is a contaminant.",
+                 f"{fact_s}: committee rejected; no genuine lensing geometry.",
+                 f"Rejected on inspection {fact_s}; feature not consistent with lensing."]
+    else:
+        stems = [f"Ambiguous grade-C candidate {fact_s}: suggestive but unconvincing features.",
+                 f"{fact_s}: committee grade C; lens-like hints below the confidence bar.",
+                 f"Borderline candidate {fact_s}, graded C by the committee."]
+    rationale = stems[int(h("r") * len(stems))]
+    grade = _V5_GRADE[r.label] or r.grade
+    return _target_json(grade, p_lens=p, rationale=rationale, crit=crit, confidence=conf,
+                        contaminant=("contaminant" if r.label == "nonlens" else None))
 
 
 def stage_sft_v5(args):
     """Build the v5 SFT set from finetune/build_corpus_v5 output: HSC PNGs + HUMAN-SOFT ImageGrade
-    targets (catalog grade + committee-score p_lens). Fully Claude-free."""
+    targets (catalog grade + committee-score p_lens), per-example UNIQUE (see _v5_target)."""
     tr = pd.read_csv(args.manifest)
+    # join SuGOHI theta_e for fact-bearing rationales (unique targets); NaN-safe
+    sug = config.HERE / "cache" / "v5_catalogs" / "sugohi" / "sugohi_normalized.csv"
+    if sug.exists():
+        s = pd.read_csv(sug)[["name", "theta_e"]]
+        tr = tr.merge(s, on="name", how="left")
+    else:
+        tr["theta_e"] = np.nan
     img_dir = OUT / "images_v5"
     img_dir.mkdir(parents=True, exist_ok=True)
     recs, miss = [], 0
@@ -229,9 +279,7 @@ def stage_sft_v5(args):
             if not p.exists():
                 render.save_png(img, p)
             paths.append(str(p)); tags.append("<image>")
-        grade = _V5_GRADE[r.label] or r.grade
-        target = _target_json(grade, p_lens=float(r.soft), rationale=_v5_rationale(r),
-                              contaminant=("contaminant" if r.label == "nonlens" else None))
+        target = _v5_target(r)
         user = "".join(tags) + "\nGrade this strong-lens candidate at HSC 0.168\"/px. " \
                "Rendered grizy views (full, lum, zoom, lum_sub). Respond with ONLY the JSON."
         recs.append({"messages": [{"role": "system", "content": DIRECT_SYS},
