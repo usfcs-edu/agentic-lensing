@@ -1,0 +1,14 @@
+# Hard constraints for ALL pip installs into the cgl venvs.
+# Core pins are parity-critical: they match the blessed gigalens stack exactly.
+# Any package that cannot resolve under these pins gets DOWNGRADED, not jax upgraded.
+jax==0.6.2
+jaxlib==0.6.2
+jax-cuda12-plugin==0.6.2
+jax-cuda12-pjrt==0.6.2
+numpy==2.4.6
+scipy==1.17.1
+tensorflow-probability==0.25.0
+optax==0.2.8
+objax==1.8.0
+astropy==7.2.0
+lenstronomy==1.14.0

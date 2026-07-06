@@ -1,0 +1,17 @@
+data/
+# gate-evidence exceptions: small provenance artifacts quoted by the report
+!data/parity_report.json
+!data/env_freeze_*.txt
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.jax_cache/
+papers/*.aux
+papers/*.bbl
+papers/*.bcf
+papers/*.blg
+papers/*.log
+papers/*.out
+papers/*.run.xml
+papers/*.toc

@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cgl"
+version = "0.1.0"
+description = "claude-giga-lens campaign package: correlated-noise whitened likelihood, generalized ridge marginalization, lens-posterior zoo, sampler adapters"
+requires-python = ">=3.13"
+# Dependencies are intentionally NOT declared here: the campaign runs against the
+# pinned venvs in requirements-aarch64.txt / requirements-perlmutter.txt (core pins
+# identical to the blessed gigalens stack). `pip install -e . --no-deps` only.
+
+[tool.setuptools.packages.find]
+include = ["cgl*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "gpu: tests that require a GPU (parity harness); deselect with -m 'not gpu'",
+]
