@@ -1,0 +1,83 @@
+{
+  "generated_by": "05_gen_drizzle_mocks.py",
+  "gate_sigma": 0.05,
+  "n_mocks": 8,
+  "rho_fine_axis": [
+    1.0,
+    0.6666666666666672,
+    0.33333333333333365
+  ],
+  "psf_eff_shape": [
+    19,
+    19
+  ],
+  "mocks": [
+    {
+      "seed": 0,
+      "theta_E": 1.289914718615114,
+      "gamma": 1.9669737841771746,
+      "arc_snr": 1245.7985788839833,
+      "render_check_max_dev_sigma": 16.32979184625497,
+      "render_check_pass": false
+    },
+    {
+      "seed": 1,
+      "theta_E": 1.3627975367762934,
+      "gamma": 2.2054045358752896,
+      "arc_snr": 728.9415964496975,
+      "render_check_max_dev_sigma": 2.087414999192595,
+      "render_check_pass": false
+    },
+    {
+      "seed": 2,
+      "theta_E": 1.3104975794841884,
+      "gamma": 1.8693128896298132,
+      "arc_snr": 803.2671786323823,
+      "render_check_max_dev_sigma": 10.642113855769649,
+      "render_check_pass": false
+    },
+    {
+      "seed": 3,
+      "theta_E": 2.082092362624466,
+      "gamma": 1.3610837421714546,
+      "arc_snr": 3501.8239993321667,
+      "render_check_max_dev_sigma": 2.8943539317997318,
+      "render_check_pass": false
+    },
+    {
+      "seed": 4,
+      "theta_E": 1.0620444353723049,
+      "gamma": 1.9563206769185557,
+      "arc_snr": 984.2338791306257,
+      "render_check_max_dev_sigma": 18.29761975383066,
+      "render_check_pass": false
+    },
+    {
+      "seed": 5,
+      "theta_E": 1.0229193989914775,
+      "gamma": 1.6689102510929636,
+      "arc_snr": 605.646831115107,
+      "render_check_max_dev_sigma": 15.72156502622097,
+      "render_check_pass": false
+    },
+    {
+      "seed": 6,
+      "theta_E": 1.62648702546878,
+      "gamma": 2.4441228259542482,
+      "arc_snr": 504.21355259722856,
+      "render_check_max_dev_sigma": 11.106856235800253,
+      "render_check_pass": false
+    },
+    {
+      "seed": 7,
+      "theta_E": 1.2503844820426675,
+      "gamma": 2.0746863843771175,
+      "arc_snr": 490.74700114386127,
+      "render_check_max_dev_sigma": 26.73649610127478,
+      "render_check_pass": false
+    }
+  ],
+  "worst_render_check_sigma": 26.73649610127478,
+  "all_gates_pass": false,
+  "wall_s": 3.7453455924987793
+}

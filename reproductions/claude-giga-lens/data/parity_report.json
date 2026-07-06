@@ -1,0 +1,134 @@
+{
+  "generated_utc": "2026-07-06T15:44:56Z",
+  "env": {
+    "python": "3.13.13",
+    "hostname": "phoenix.cs.usfca.edu",
+    "jax": "0.6.2",
+    "numpy": "2.4.6",
+    "device": "cuda:0",
+    "device_kind": "NVIDIA L4",
+    "CUDA_VISIBLE_DEVICES": "8",
+    "XLA_FLAGS": "--xla_gpu_autotune_level=0 --xla_disable_hlo_passes=priority-fusion",
+    "x64": true,
+    "vendored_gigalens_ref": "58ec9a7db45c53c49f4994ad4f9659f708346763",
+    "gigalens_file": "/raid/benson/git/agentic-lensing/reproductions/claude-giga-lens/vendor/gigalens-sean/src/gigalens/__init__.py",
+    "foundry_module": "/raid/benson/git/agentic-lensing/reproductions/foundry-i/_hmc_lib_marg.py"
+  },
+  "reference": {
+    "map_marg_pd": "/raid/benson/git/agentic-lensing/reproductions/foundry-i/data/map_marg_pd.npz",
+    "z_ref_key": "qz_refined",
+    "stored_logp": -45840.98400599839,
+    "perturbation": "z_ref + 0.1*default_rng(seed).standard_normal(46), seeds 0,1,2"
+  },
+  "gates": {
+    "A": {
+      "description": "forward model image max|d|/max|img| at z_ref",
+      "threshold": 1e-12,
+      "achieved": 6.15478928747101e-17,
+      "pass": true,
+      "detail": {
+        "m_det_rel": 0.0,
+        "full_model_rel": 6.15478928747101e-17,
+        "max_abs_m_det": 14.469810791219532,
+        "shapelet_amps_max_abs_diff": 5.273559366969494e-16,
+        "shapelet_amps_max_rel_diff": 1.2923992736498275e-15,
+        "note": "foundry m_det rebuilt harness-side from their bij+sim_config (module exports no image fn); amps use their shapelet_amps."
+      }
+    },
+    "B": {
+      "description": "|d log-posterior| foundry vs cgl, worst of 4 points",
+      "threshold": 1e-08,
+      "achieved": 0.0,
+      "pass": true
+    },
+    "C": {
+      "description": "gradient rel-L2 foundry vs cgl, worst of 4 points",
+      "threshold": 1e-08,
+      "achieved": 0.0,
+      "pass": true
+    },
+    "D": {
+      "description": "delta-kernel conv-whitener vs diagonal |d logp|, worst of 4",
+      "threshold": 1e-10,
+      "achieved": 0.0,
+      "pass": true
+    },
+    "E": {
+      "description": "|(-1/2 logdetA)_chol - (-1/2 slogdet(A))_numpy| at z_ref",
+      "threshold": 1e-10,
+      "achieved": 0.0,
+      "pass": true,
+      "detail": {
+        "logdetA_chol": 323.2288486258872,
+        "logdetA_numpy": 323.2288486258872,
+        "cond_A": 13713.800684694157
+      }
+    }
+  },
+  "informational": {
+    "stored_map_logp": {
+      "stored": -45840.98400599839,
+      "cgl_at_z_ref": -45840.984005998456,
+      "abs_diff_cgl": 6.548361852765083e-11,
+      "foundry_at_z_ref": -45840.984005998456,
+      "abs_diff_foundry": 6.548361852765083e-11,
+      "note": "stored logp came from the pip-gigalens-era stack on an A16; both of today's values run the vendored lib on an L4, so abs_diff_foundry isolates lib/arch drift from port drift.",
+      "tol_informational": 1e-05
+    },
+    "gu2022_forward": {
+      "mock": "/raid/benson/git/agentic-lensing/reproductions/gu-2022/data/mocks/system_000.npz",
+      "max_abs_diff": 0.00017770465055377827,
+      "max_model": 117.76164245605469,
+      "max_rel_diff": 1.5090198034567378e-06,
+      "note": "stored model was rendered float32 on the pip multi-node lib; expect ~f32-level agreement (informational tol 1e-5)"
+    }
+  },
+  "data_parity": {
+    "max_abs_diff_observed_image": 0.0,
+    "max_abs_diff_masked_err_map": 0.0
+  },
+  "points": {
+    "z_ref": {
+      "logp_foundry": -45840.984005998456,
+      "logp_cgl": -45840.984005998456,
+      "abs_dlogp": 0.0,
+      "grad_norm_foundry": 400.5805890781202,
+      "grad_norm_cgl": 400.5805890781202,
+      "grad_rel_l2": 0.0,
+      "logp_cgl_convwhiten": -45840.984005998456,
+      "abs_dlogp_conv_vs_diag": 0.0
+    },
+    "z_pert0": {
+      "logp_foundry": -153373.9036997893,
+      "logp_cgl": -153373.9036997893,
+      "abs_dlogp": 0.0,
+      "grad_norm_foundry": 631596.7717732617,
+      "grad_norm_cgl": 631596.7717732617,
+      "grad_rel_l2": 0.0,
+      "logp_cgl_convwhiten": -153373.9036997893,
+      "abs_dlogp_conv_vs_diag": 0.0
+    },
+    "z_pert1": {
+      "logp_foundry": -125018.29294252578,
+      "logp_cgl": -125018.29294252578,
+      "abs_dlogp": 0.0,
+      "grad_norm_foundry": 442210.92608714604,
+      "grad_norm_cgl": 442210.92608714604,
+      "grad_rel_l2": 0.0,
+      "logp_cgl_convwhiten": -125018.29294252578,
+      "abs_dlogp_conv_vs_diag": 0.0
+    },
+    "z_pert2": {
+      "logp_foundry": -125255.94493269495,
+      "logp_cgl": -125255.94493269495,
+      "abs_dlogp": 0.0,
+      "grad_norm_foundry": 163531.18497348833,
+      "grad_norm_cgl": 163531.18497348833,
+      "grad_rel_l2": 0.0,
+      "logp_cgl_convwhiten": -125255.94493269495,
+      "abs_dlogp_conv_vs_diag": 0.0
+    }
+  },
+  "all_hard_gates_pass": true,
+  "wall_s": 207.31709599494934
+}

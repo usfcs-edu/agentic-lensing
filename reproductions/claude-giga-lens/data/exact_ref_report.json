@@ -1,0 +1,901 @@
+{
+  "generated_by": "04_validate_exact_smallgrid.py",
+  "gate_nats": 0.1,
+  "n_draws": 20,
+  "products": {
+    "v2d": {
+      "n_e": 487,
+      "gate": {
+        "threshold": 0.1,
+        "worst_abs_dlogL": 2.7939677238464355e-09,
+        "gate_pass": true
+      },
+      "per_draw": [
+        {
+          "i": 0,
+          "logL_gpu": -30060.62091324705,
+          "logL_dense": -30060.620913246876,
+          "abs_dlogL": 1.7462298274040222e-10,
+          "u_sq_gpu": 291461.977437232,
+          "u_sq_dense": 291461.97743723204,
+          "logdetA_gpu": 82.75750070780363,
+          "logdetA_dense": 82.75750070780357,
+          "jit_minus_eager": 1.0426447261124849e-07
+        },
+        {
+          "i": 1,
+          "logL_gpu": -22070.5363308269,
+          "logL_dense": -22070.536330826493,
+          "abs_dlogL": 4.0745362639427185e-10,
+          "u_sq_gpu": 458504.043470205,
+          "u_sq_dense": 458504.0434702049,
+          "logdetA_gpu": 156.54036106273858,
+          "logdetA_dense": 156.5403610627386,
+          "jit_minus_eager": 1.0427902452647686e-07
+        },
+        {
+          "i": 2,
+          "logL_gpu": -26617.992033821258,
+          "logL_dense": -26617.99203382149,
+          "abs_dlogL": 2.3283064365386963e-10,
+          "u_sq_gpu": 1666510.10097191,
+          "u_sq_dense": 1666510.1009719102,
+          "logdetA_gpu": 141.45682462366855,
+          "logdetA_dense": 141.45682462366858,
+          "jit_minus_eager": 1.043081283569336e-07
+        },
+        {
+          "i": 3,
+          "logL_gpu": -195282.05899286823,
+          "logL_dense": -195282.0589928682,
+          "abs_dlogL": 2.9103830456733704e-11,
+          "u_sq_gpu": 461628.0351195588,
+          "u_sq_dense": 461628.03511955874,
+          "logdetA_gpu": -14.312132333139562,
+          "logdetA_dense": -14.31213233313956,
+          "jit_minus_eager": 1.043081283569336e-07
+        },
+        {
+          "i": 4,
+          "logL_gpu": -93106.73715128042,
+          "logL_dense": -93106.73715128041,
+          "abs_dlogL": 1.4551915228366852e-11,
+          "u_sq_gpu": 403135.77010353503,
+          "u_sq_dense": 403135.77010353544,
+          "logdetA_gpu": 21.720537246808345,
+          "logdetA_dense": 21.720537246808362,
+          "jit_minus_eager": 1.0426447261124849e-07
+        },
+        {
+          "i": 5,
+          "logL_gpu": -64732.497535753646,
+          "logL_dense": -64732.497535754344,
+          "abs_dlogL": 6.984919309616089e-10,
+          "u_sq_gpu": 3660250.508396725,
+          "u_sq_dense": 3660250.5083967242,
+          "logdetA_gpu": 99.78363360861076,
+          "logdetA_dense": 99.78363360861063,
+          "jit_minus_eager": 1.0477378964424133e-07
+        },
+        {
+          "i": 6,
+          "logL_gpu": -101773.8890763627,
+          "logL_dense": -101773.88907636177,
+          "abs_dlogL": 9.313225746154785e-10,
+          "u_sq_gpu": 4810806.490157146,
+          "u_sq_dense": 4810806.490157144,
+          "logdetA_gpu": 66.12845430123666,
+          "logdetA_dense": 66.1284543012366,
+          "jit_minus_eager": 1.0523945093154907e-07
+        },
+        {
+          "i": 7,
+          "logL_gpu": -8058.891091022272,
+          "logL_dense": -8058.891091022127,
+          "abs_dlogL": 1.4551915228366852e-10,
+          "u_sq_gpu": 241795.78491372912,
+          "u_sq_dense": 241795.78491372903,
+          "logdetA_gpu": 112.5351571916748,
+          "logdetA_dense": 112.53515719167476,
+          "jit_minus_eager": 1.0424992069602013e-07
+        },
+        {
+          "i": 8,
+          "logL_gpu": -277378.7279477958,
+          "logL_dense": -277378.7279477971,
+          "abs_dlogL": 1.280568540096283e-09,
+          "u_sq_gpu": 2142066.0305752433,
+          "u_sq_dense": 2142066.0305752433,
+          "logdetA_gpu": 76.8437402484889,
+          "logdetA_dense": 76.84374024848796,
+          "jit_minus_eager": 1.043081283569336e-07
+        },
+        {
+          "i": 9,
+          "logL_gpu": -606684.4351211662,
+          "logL_dense": -606684.435121169,
+          "abs_dlogL": 2.7939677238464355e-09,
+          "u_sq_gpu": 6949309.893817792,
+          "u_sq_dense": 6949309.893817794,
+          "logdetA_gpu": 127.17815029542592,
+          "logdetA_dense": 127.17815029542592,
+          "jit_minus_eager": 1.0384246706962585e-07
+        },
+        {
+          "i": 10,
+          "logL_gpu": -187760.509312388,
+          "logL_dense": -187760.50931238796,
+          "abs_dlogL": 2.9103830456733704e-11,
+          "u_sq_gpu": 395459.28157081356,
+          "u_sq_dense": 395459.2815708135,
+          "logdetA_gpu": -19.284644968858828,
+          "logdetA_dense": -19.28464496885884,
+          "jit_minus_eager": 1.0433723218739033e-07
+        },
+        {
+          "i": 11,
+          "logL_gpu": -26110.645548658154,
+          "logL_dense": -26110.645548657572,
+          "abs_dlogL": 5.820766091346741e-10,
+          "u_sq_gpu": 377694.05392153945,
+          "u_sq_dense": 377694.0539215395,
+          "logdetA_gpu": 70.37800754956095,
+          "logdetA_dense": 70.3780075495602,
+          "jit_minus_eager": 1.0436633601784706e-07
+        },
+        {
+          "i": 12,
+          "logL_gpu": -17462.073103763072,
+          "logL_dense": -17462.073103763116,
+          "abs_dlogL": 4.3655745685100555e-11,
+          "u_sq_gpu": 181627.01387599576,
+          "u_sq_dense": 181627.01387599573,
+          "logdetA_gpu": 107.86673339013,
+          "logdetA_dense": 107.86673339012987,
+          "jit_minus_eager": 1.0432268027216196e-07
+        },
+        {
+          "i": 13,
+          "logL_gpu": -29211.379007546948,
+          "logL_dense": -29211.379007546948,
+          "abs_dlogL": 0.0,
+          "u_sq_gpu": 2701200.987727006,
+          "u_sq_dense": 2701200.9877270046,
+          "logdetA_gpu": 113.8704372402617,
+          "logdetA_dense": 113.87043724026172,
+          "jit_minus_eager": 1.0454095900058746e-07
+        },
+        {
+          "i": 14,
+          "logL_gpu": -8444.913938656071,
+          "logL_dense": -8444.913938656064,
+          "abs_dlogL": 7.275957614183426e-12,
+          "u_sq_gpu": 53793.15078651962,
+          "u_sq_dense": 53793.15078651963,
+          "logdetA_gpu": 96.88865481415824,
+          "logdetA_dense": 96.88865481415819,
+          "jit_minus_eager": 1.043081283569336e-07
+        },
+        {
+          "i": 15,
+          "logL_gpu": -21883.202287324486,
+          "logL_dense": -21883.202287324486,
+          "abs_dlogL": 0.0,
+          "u_sq_gpu": 4673474.536740426,
+          "u_sq_dense": 4673474.536740425,
+          "logdetA_gpu": 100.48894992427438,
+          "logdetA_dense": 100.48894992427445,
+          "jit_minus_eager": 1.0523945093154907e-07
+        },
+        {
+          "i": 16,
+          "logL_gpu": -26746.986606629096,
+          "logL_dense": -26746.986606630027,
+          "abs_dlogL": 9.313225746154785e-10,
+          "u_sq_gpu": 2497201.4425954977,
+          "u_sq_dense": 2497201.442595497,
+          "logdetA_gpu": 107.46783922891517,
+          "logdetA_dense": 107.46783922891515,
+          "jit_minus_eager": 1.0477378964424133e-07
+        },
+        {
+          "i": 17,
+          "logL_gpu": -85227.51015289845,
+          "logL_dense": -85227.51015289828,
+          "abs_dlogL": 1.7462298274040222e-10,
+          "u_sq_gpu": 824712.2603308161,
+          "u_sq_dense": 824712.2603308164,
+          "logdetA_gpu": 34.11377517685227,
+          "logdetA_dense": 34.113775176852464,
+          "jit_minus_eager": 1.0413350537419319e-07
+        },
+        {
+          "i": 18,
+          "logL_gpu": -4954.691780268131,
+          "logL_dense": -4954.691780268073,
+          "abs_dlogL": 5.820766091346741e-11,
+          "u_sq_gpu": 565832.765466354,
+          "u_sq_dense": 565832.7654663539,
+          "logdetA_gpu": 106.26723007084387,
+          "logdetA_dense": 106.26723007084415,
+          "jit_minus_eager": 1.0419171303510666e-07
+        },
+        {
+          "i": 19,
+          "logL_gpu": -35552.21646826714,
+          "logL_dense": -35552.21646826656,
+          "abs_dlogL": 5.820766091346741e-10,
+          "u_sq_gpu": 1396209.927319373,
+          "u_sq_dense": 1396209.9273193735,
+          "logdetA_gpu": 115.44514632876898,
+          "logdetA_dense": 115.44514632876896,
+          "jit_minus_eager": 1.0407529771327972e-07
+        }
+      ],
+      "sigma_u": {
+        "match_03": true,
+        "var_min": 0.9999911009707817,
+        "var_max": 0.9999911009707833,
+        "offdiag_mean_abs": 9.504374514991384e-06,
+        "var_gate_pass": true,
+        "offdiag_gate_pass": true
+      },
+      "constants": {
+        "n_e": 487,
+        "n_kept": 5865,
+        "conv_dropped_const": -447.5230656706756,
+        "gls_log2pi_term": -5389.574497245405,
+        "logdetC_exact": -40912.65599329637,
+        "logdetC_szego_whitener": -40939.95277639074,
+        "szego_gap": 27.29678309436713,
+        "note": "conv path drops -(n_e/2)log2pi (identity whitened cov, logdet=0); GLS carries -(n_k/2)log2pi - 1/2 logdetC_exact. szego_gap = exact logdetC - [sum_kept 2 log sigma + n_k * whitener logdet_per_pix]; any cross-whitener or evidence comparison must use the EXACT constants."
+      },
+      "gls_draws": [
+        {
+          "i": 0,
+          "logL_gls_data": -487245.63118200767,
+          "logL_gls_full": -472178.8776826049,
+          "quad_gls": 3339786.6094738026,
+          "conv_data": -30060.620913246876,
+          "conv_aligned_full": -30508.143978917553,
+          "delta_data": 457185.0102687608
+        },
+        {
+          "i": 1,
+          "logL_gls_data": -652740.5639680029,
+          "logL_gls_full": -637673.8104686001,
+          "quad_gls": 2486821.5067125084,
+          "conv_data": -22070.536330826493,
+          "conv_aligned_full": -22518.05939649717,
+          "delta_data": 630670.0276371764
+        },
+        {
+          "i": 2,
+          "logL_gls_data": -6660935.0917115435,
+          "logL_gls_full": -6645868.338212141,
+          "quad_gls": 16966281.414173122,
+          "conv_data": -26617.99203382149,
+          "conv_aligned_full": -27065.515099492168,
+          "delta_data": 6634317.099677722
+        },
+        {
+          "i": 3,
+          "logL_gls_data": -15888561.758125499,
+          "logL_gls_full": -15873495.004626095,
+          "quad_gls": 50024671.12671585,
+          "conv_data": -195282.0589928682,
+          "conv_aligned_full": -195729.5820585389,
+          "delta_data": 15693279.69913263
+        },
+        {
+          "i": 4,
+          "logL_gls_data": -5715824.098205057,
+          "logL_gls_full": -5700757.344705654,
+          "quad_gls": 28071952.34146888,
+          "conv_data": -93106.73715128041,
+          "conv_aligned_full": -93554.26021695108,
+          "delta_data": 5622717.361053777
+        },
+        {
+          "i": 5,
+          "logL_gls_data": -1236119.9254382788,
+          "logL_gls_full": -1221053.1719388762,
+          "quad_gls": 15899712.88484112,
+          "conv_data": -64732.497535754344,
+          "conv_aligned_full": -65180.02060142502,
+          "delta_data": 1171387.4279025244
+        },
+        {
+          "i": 6,
+          "logL_gls_data": -834034.3947181044,
+          "logL_gls_full": -818967.6412187016,
+          "quad_gls": 12228773.813879957,
+          "conv_data": -101773.88907636177,
+          "conv_aligned_full": -102221.41214203244,
+          "delta_data": 732260.5056417426
+        },
+        {
+          "i": 7,
+          "logL_gls_data": -1910602.08517244,
+          "logL_gls_full": -1895535.3316730373,
+          "quad_gls": 4864940.309260525,
+          "conv_data": -8058.891091022127,
+          "conv_aligned_full": -8506.414156692803,
+          "delta_data": 1902543.1940814178
+        },
+        {
+          "i": 8,
+          "logL_gls_data": -4267119.482919594,
+          "logL_gls_full": -4252052.729420192,
+          "quad_gls": 21796083.92096304,
+          "conv_data": -277378.7279477971,
+          "conv_aligned_full": -277826.2510134678,
+          "delta_data": 3989740.754971797
+        },
+        {
+          "i": 9,
+          "logL_gls_data": -25168512.90237477,
+          "logL_gls_full": -25153446.148875367,
+          "quad_gls": 69178650.87032764,
+          "conv_data": -606684.435121169,
+          "conv_aligned_full": -607131.9581868396,
+          "delta_data": 24561828.467253603
+        },
+        {
+          "i": 10,
+          "logL_gls_data": -6942957.427511291,
+          "logL_gls_full": -6927890.674011888,
+          "quad_gls": 284060304.47011065,
+          "conv_data": -187760.50931238796,
+          "conv_aligned_full": -188208.03237805865,
+          "delta_data": 6755196.918198903
+        },
+        {
+          "i": 11,
+          "logL_gls_data": -1506765.1505836716,
+          "logL_gls_full": -1491698.3970842687,
+          "quad_gls": 9484716.033326434,
+          "conv_data": -26110.645548657572,
+          "conv_aligned_full": -26558.16861432825,
+          "delta_data": 1480654.5050350141
+        },
+        {
+          "i": 12,
+          "logL_gls_data": -974770.6348544465,
+          "logL_gls_full": -959703.8813550437,
+          "quad_gls": 3312516.3275403976,
+          "conv_data": -17462.073103763116,
+          "conv_aligned_full": -17909.596169433793,
+          "delta_data": 957308.5617506834
+        },
+        {
+          "i": 13,
+          "logL_gls_data": -191082.02820898913,
+          "logL_gls_full": -176015.27470958635,
+          "quad_gls": 6291251.013953645,
+          "conv_data": -29211.379007546948,
+          "conv_aligned_full": -29658.902073217625,
+          "delta_data": 161870.64920144217
+        },
+        {
+          "i": 14,
+          "logL_gls_data": -705593.3362093088,
+          "logL_gls_full": -690526.582709906,
+          "quad_gls": 1588829.6333665322,
+          "conv_data": -8444.913938656064,
+          "conv_aligned_full": -8892.437004326739,
+          "delta_data": 697148.4222706527
+        },
+        {
+          "i": 15,
+          "logL_gls_data": -1047707.7626984179,
+          "logL_gls_full": -1032641.0091990151,
+          "quad_gls": 17283205.942972176,
+          "conv_data": -21883.202287324486,
+          "conv_aligned_full": -22330.725352995163,
+          "delta_data": 1025824.5604110934
+        },
+        {
+          "i": 16,
+          "logL_gls_data": -628703.4770991568,
+          "logL_gls_full": -613636.723599754,
+          "quad_gls": 14016223.06373908,
+          "conv_data": -26746.986606630027,
+          "conv_aligned_full": -27194.509672300705,
+          "delta_data": 601956.4904925268
+        },
+        {
+          "i": 17,
+          "logL_gls_data": -495836.979030253,
+          "logL_gls_full": -480770.22553085024,
+          "quad_gls": 6272943.70473277,
+          "conv_data": -85227.51015289828,
+          "conv_aligned_full": -85675.03321856895,
+          "delta_data": 410609.46887735475
+        },
+        {
+          "i": 18,
+          "logL_gls_data": -920023.6452421308,
+          "logL_gls_full": -904956.8917427281,
+          "quad_gls": 4652942.408929127,
+          "conv_data": -4954.691780268073,
+          "conv_aligned_full": -5402.214845938748,
+          "delta_data": 915068.9534618628
+        },
+        {
+          "i": 19,
+          "logL_gls_data": -1960016.1319051161,
+          "logL_gls_full": -1944949.3784057135,
+          "quad_gls": 7588354.928011437,
+          "conv_data": -35552.21646826656,
+          "conv_aligned_full": -35999.73953393724,
+          "delta_data": 1924463.9154368495
+        }
+      ],
+      "misspec": {
+        "description": "INFORMATIONAL misspecification scale: whitened-path data logL minus exact-GLS data logL (different estimators; see module docstring for why this is NOT the 0.1-nat gate)",
+        "mean": 3816301.5996378763,
+        "sd": 5963803.656912141,
+        "min": 161870.64920144217,
+        "max": 24561828.467253603,
+        "mean_abs_frac_of_usq": 5.592612022855464
+      },
+      "wall_s": 16.76756715774536
+    },
+    "v3b": {
+      "n_e": 9273,
+      "gate": {
+        "threshold": 0.1,
+        "worst_abs_dlogL": 6.258487701416016e-07,
+        "gate_pass": true
+      },
+      "per_draw": [
+        {
+          "i": 0,
+          "logL_gpu": -807803.6025132518,
+          "logL_dense": -807803.6025132542,
+          "abs_dlogL": 2.3283064365386963e-09,
+          "u_sq_gpu": 6991326.466662565,
+          "u_sq_dense": 6991326.466662569,
+          "logdetA_gpu": 147.35088047575425,
+          "logdetA_dense": 147.35088047575425,
+          "jit_minus_eager": 1.0337680578231812e-07
+        },
+        {
+          "i": 1,
+          "logL_gpu": -835438.2254984913,
+          "logL_dense": -835438.2254984911,
+          "abs_dlogL": 2.3283064365386963e-10,
+          "u_sq_gpu": 4190021.798717303,
+          "u_sq_dense": 4190021.7987173037,
+          "logdetA_gpu": 182.30952355945075,
+          "logdetA_dense": 182.3095235594507,
+          "jit_minus_eager": 1.0407529771327972e-07
+        },
+        {
+          "i": 2,
+          "logL_gpu": -1885449.0114747381,
+          "logL_dense": -1885449.0114747214,
+          "abs_dlogL": 1.6763806343078613e-08,
+          "u_sq_gpu": 10252841.745710555,
+          "u_sq_dense": 10252841.745710548,
+          "logdetA_gpu": 146.7485211160899,
+          "logdetA_dense": 146.7485211160899,
+          "jit_minus_eager": 1.0291114449501038e-07
+        },
+        {
+          "i": 3,
+          "logL_gpu": -6698530.705243609,
+          "logL_dense": -6698530.705243624,
+          "abs_dlogL": 1.4901161193847656e-08,
+          "u_sq_gpu": 58227788.201311275,
+          "u_sq_dense": 58227788.201311275,
+          "logdetA_gpu": 122.39984001706392,
+          "logdetA_dense": 122.3998400170639,
+          "jit_minus_eager": 1.043081283569336e-07
+        },
+        {
+          "i": 4,
+          "logL_gpu": -2384486.468084952,
+          "logL_dense": -2384486.4680849444,
+          "abs_dlogL": 7.450580596923828e-09,
+          "u_sq_gpu": 22669741.96251663,
+          "u_sq_dense": 22669741.962516624,
+          "logdetA_gpu": 111.06704545753978,
+          "logdetA_dense": 111.06704545753978,
+          "jit_minus_eager": 1.043081283569336e-07
+        },
+        {
+          "i": 5,
+          "logL_gpu": -1281747.0564239286,
+          "logL_dense": -1281747.0564239435,
+          "abs_dlogL": 1.4901161193847656e-08,
+          "u_sq_gpu": 24124086.29337082,
+          "u_sq_dense": 24124086.293370828,
+          "logdetA_gpu": 159.47480530294143,
+          "logdetA_dense": 159.4748053029415,
+          "jit_minus_eager": 1.0244548320770264e-07
+        },
+        {
+          "i": 6,
+          "logL_gpu": -1273535.8474373508,
+          "logL_dense": -1273535.8474373508,
+          "abs_dlogL": 0.0,
+          "u_sq_gpu": 15934977.87026922,
+          "u_sq_dense": 15934977.87026922,
+          "logdetA_gpu": 125.24829838941302,
+          "logdetA_dense": 125.24829838941302,
+          "jit_minus_eager": 1.0617077350616455e-07
+        },
+        {
+          "i": 7,
+          "logL_gpu": -549206.3916570002,
+          "logL_dense": -549206.3916570023,
+          "abs_dlogL": 2.0954757928848267e-09,
+          "u_sq_gpu": 4215109.142913418,
+          "u_sq_dense": 4215109.142913419,
+          "logdetA_gpu": 157.5440014772527,
+          "logdetA_dense": 157.54400147725272,
+          "jit_minus_eager": 1.0454095900058746e-07
+        },
+        {
+          "i": 8,
+          "logL_gpu": -4445014.383798591,
+          "logL_dense": -4445014.383798576,
+          "abs_dlogL": 1.4901161193847656e-08,
+          "u_sq_gpu": 43516156.89207882,
+          "u_sq_dense": 43516156.8920788,
+          "logdetA_gpu": 172.12234213853137,
+          "logdetA_dense": 172.12234213853134,
+          "jit_minus_eager": 1.0803341865539551e-07
+        },
+        {
+          "i": 9,
+          "logL_gpu": -22561805.072251454,
+          "logL_dense": -22561805.072251447,
+          "abs_dlogL": 7.450580596923828e-09,
+          "u_sq_gpu": 99377036.263721,
+          "u_sq_dense": 99377036.26372099,
+          "logdetA_gpu": 172.59678281914367,
+          "logdetA_dense": 172.59678281914373,
+          "jit_minus_eager": 9.685754776000977e-08
+        },
+        {
+          "i": 10,
+          "logL_gpu": -7460445.888585719,
+          "logL_dense": -7460445.888585093,
+          "abs_dlogL": 6.258487701416016e-07,
+          "u_sq_gpu": 294326418.90896493,
+          "u_sq_dense": 294326418.90896505,
+          "logdetA_gpu": 102.04958570528191,
+          "logdetA_dense": 102.0495857052819,
+          "jit_minus_eager": 4.470348358154297e-08
+        },
+        {
+          "i": 11,
+          "logL_gpu": -528739.1295643784,
+          "logL_dense": -528739.1295643803,
+          "abs_dlogL": 1.862645149230957e-09,
+          "u_sq_gpu": 6151698.347918264,
+          "u_sq_dense": 6151698.3479182655,
+          "logdetA_gpu": 160.25141806626664,
+          "logdetA_dense": 160.2514180662667,
+          "jit_minus_eager": 1.0384246706962585e-07
+        },
+        {
+          "i": 12,
+          "logL_gpu": -862746.6090054081,
+          "logL_dense": -862746.6090054109,
+          "abs_dlogL": 2.7939677238464355e-09,
+          "u_sq_gpu": 6659507.503987866,
+          "u_sq_dense": 6659507.503987867,
+          "logdetA_gpu": 178.13781752771644,
+          "logdetA_dense": 178.13781752771644,
+          "jit_minus_eager": 1.0384246706962585e-07
+        },
+        {
+          "i": 13,
+          "logL_gpu": -268185.81300813536,
+          "logL_dense": -268185.8130081484,
+          "abs_dlogL": 1.30385160446167e-08,
+          "u_sq_gpu": 6636820.986739825,
+          "u_sq_dense": 6636820.986739827,
+          "logdetA_gpu": 145.69051213229758,
+          "logdetA_dense": 145.6905121322976,
+          "jit_minus_eager": 1.0291114449501038e-07
+        },
+        {
+          "i": 14,
+          "logL_gpu": -252149.29046392706,
+          "logL_dense": -252149.290463928,
+          "abs_dlogL": 9.313225746154785e-10,
+          "u_sq_gpu": 1299006.0197647554,
+          "u_sq_dense": 1299006.0197647547,
+          "logdetA_gpu": 135.14527866460585,
+          "logdetA_dense": 135.14527866460588,
+          "jit_minus_eager": 1.0424992069602013e-07
+        },
+        {
+          "i": 15,
+          "logL_gpu": -441046.1055257035,
+          "logL_dense": -441046.10552568303,
+          "abs_dlogL": 2.0489096641540527e-08,
+          "u_sq_gpu": 18941964.02841763,
+          "u_sq_dense": 18941964.028417632,
+          "logdetA_gpu": 159.12888397906897,
+          "logdetA_dense": 159.12888397906895,
+          "jit_minus_eager": 1.0617077350616455e-07
+        },
+        {
+          "i": 16,
+          "logL_gpu": -681428.5946610466,
+          "logL_dense": -681428.594661136,
+          "abs_dlogL": 8.940696716308594e-08,
+          "u_sq_gpu": 17420723.558062077,
+          "u_sq_dense": 17420723.55806208,
+          "logdetA_gpu": 173.18846416066617,
+          "logdetA_dense": 173.18846416066617,
+          "jit_minus_eager": 1.0523945093154907e-07
+        },
+        {
+          "i": 17,
+          "logL_gpu": -752953.7880685151,
+          "logL_dense": -752953.7880685431,
+          "abs_dlogL": 2.7939677238464355e-08,
+          "u_sq_gpu": 11659433.322184023,
+          "u_sq_dense": 11659433.322184026,
+          "logdetA_gpu": 152.66293611169206,
+          "logdetA_dense": 152.66293611169206,
+          "jit_minus_eager": 1.043081283569336e-07
+        },
+        {
+          "i": 18,
+          "logL_gpu": -351436.5287688999,
+          "logL_dense": -351436.52876889525,
+          "abs_dlogL": 4.6566128730773926e-09,
+          "u_sq_gpu": 4681781.760178311,
+          "u_sq_dense": 4681781.760178313,
+          "logdetA_gpu": 172.74610803100717,
+          "logdetA_dense": 172.74610803100714,
+          "jit_minus_eager": 1.043081283569336e-07
+        },
+        {
+          "i": 19,
+          "logL_gpu": -1095069.8611501206,
+          "logL_dense": -1095069.8611501178,
+          "abs_dlogL": 2.7939677238464355e-09,
+          "u_sq_gpu": 10106971.350204915,
+          "u_sq_dense": 10106971.350204915,
+          "logdetA_gpu": 140.8545881773015,
+          "logdetA_dense": 140.85458817730148,
+          "jit_minus_eager": 1.0384246706962585e-07
+        }
+      ],
+      "sigma_u": {
+        "match_03": true,
+        "var_min": 1.0000253265340733,
+        "var_max": 1.0000253265340757,
+        "offdiag_mean_abs": 4.3212511068738394e-05,
+        "var_gate_pass": true,
+        "offdiag_gate_pass": true
+      },
+      "constants": {
+        "n_e": 9273,
+        "n_kept": 16653,
+        "conv_dropped_const": -8521.31701840693,
+        "gls_log2pi_term": -15303.083393457415,
+        "logdetC_exact": -151894.79247653898,
+        "logdetC_szego_whitener": -152074.0052984189,
+        "szego_gap": 179.21282187991892,
+        "note": "conv path drops -(n_e/2)log2pi (identity whitened cov, logdet=0); GLS carries -(n_k/2)log2pi - 1/2 logdetC_exact. szego_gap = exact logdetC - [sum_kept 2 log sigma + n_k * whitener logdet_per_pix]; any cross-whitener or evidence comparison must use the EXACT constants."
+      },
+      "gls_draws": [
+        {
+          "i": 0,
+          "logL_gls_data": -1649926.2807575115,
+          "logL_gls_full": -1589281.9679126993,
+          "quad_gls": 9827663.955196882,
+          "conv_data": -807803.6025132542,
+          "conv_aligned_full": -816324.9195316611,
+          "delta_data": 842122.6782442573
+        },
+        {
+          "i": 1,
+          "logL_gls_data": -2012656.7476442966,
+          "logL_gls_full": -1952012.4347994844,
+          "quad_gls": 7167067.12522964,
+          "conv_data": -835438.2254984911,
+          "conv_aligned_full": -843959.542516898,
+          "delta_data": 1177218.5221458054
+        },
+        {
+          "i": 2,
+          "logL_gls_data": -11261006.901355974,
+          "logL_gls_full": -11200362.588511162,
+          "quad_gls": 31184334.917002764,
+          "conv_data": -1885449.0114747214,
+          "conv_aligned_full": -1893970.3284931283,
+          "delta_data": 9375557.889881253
+        },
+        {
+          "i": 3,
+          "logL_gls_data": -28674489.3036373,
+          "logL_gls_full": -28613844.990792487,
+          "quad_gls": 116991161.97814749,
+          "conv_data": -6698530.705243624,
+          "conv_aligned_full": -6707052.02226203,
+          "delta_data": 21975958.598393675
+        },
+        {
+          "i": 4,
+          "logL_gls_data": -10143357.038967954,
+          "logL_gls_full": -10082712.726123141,
+          "quad_gls": 46176780.635988556,
+          "conv_data": -2384486.4680849444,
+          "conv_aligned_full": -2393007.7851033513,
+          "delta_data": 7758870.57088301
+        },
+        {
+          "i": 5,
+          "logL_gls_data": -3252382.6471344894,
+          "logL_gls_full": -3191738.3342896774,
+          "quad_gls": 32297521.973812263,
+          "conv_data": -1281747.0564239435,
+          "conv_aligned_full": -1290268.3734423504,
+          "delta_data": 1970635.590710546
+        },
+        {
+          "i": 6,
+          "logL_gls_data": -2279309.7692084704,
+          "logL_gls_full": -2218665.4563636584,
+          "quad_gls": 19795607.885502037,
+          "conv_data": -1273535.8474373508,
+          "conv_aligned_full": -1282057.1644557577,
+          "delta_data": 1005773.9217711196
+        },
+        {
+          "i": 7,
+          "logL_gls_data": -3392721.163982149,
+          "logL_gls_full": -3332076.8511373373,
+          "quad_gls": 10480298.560503997,
+          "conv_data": -549206.3916570023,
+          "conv_aligned_full": -557727.7086754092,
+          "delta_data": 2843514.772325147
+        },
+        {
+          "i": 8,
+          "logL_gls_data": -9000480.379752966,
+          "logL_gls_full": -8939836.066908153,
+          "quad_gls": 56900557.657647714,
+          "conv_data": -4445014.383798576,
+          "conv_aligned_full": -4453535.700816982,
+          "delta_data": 4555465.99595439
+        },
+        {
+          "i": 9,
+          "logL_gls_data": -67431852.34183998,
+          "logL_gls_full": -67371208.02899517,
+          "quad_gls": 195130486.51651233,
+          "conv_data": -22561805.072251447,
+          "conv_aligned_full": -22570326.389269855,
+          "delta_data": 44870047.26958854
+        },
+        {
+          "i": 10,
+          "logL_gls_data": -11553262.356403042,
+          "logL_gls_full": -11492618.043558229,
+          "quad_gls": 387606070.10661364,
+          "conv_data": -7460445.888585093,
+          "conv_aligned_full": -7468967.2056035,
+          "delta_data": 4092816.467817948
+        },
+        {
+          "i": 11,
+          "logL_gls_data": -2847307.226827527,
+          "logL_gls_full": -2786662.913982715,
+          "quad_gls": 13755906.100426625,
+          "conv_data": -528739.1295643803,
+          "conv_aligned_full": -537260.4465827872,
+          "delta_data": 2318568.0972631467
+        },
+        {
+          "i": 12,
+          "logL_gls_data": -2553431.109061187,
+          "logL_gls_full": -2492786.796216375,
+          "quad_gls": 11194648.040946877,
+          "conv_data": -862746.6090054109,
+          "conv_aligned_full": -871267.9260238179,
+          "delta_data": 1690684.5000557762
+        },
+        {
+          "i": 13,
+          "logL_gls_data": -529634.6924022842,
+          "logL_gls_full": -468990.3795574722,
+          "quad_gls": 8274450.324381326,
+          "conv_data": -268185.8130081484,
+          "conv_aligned_full": -276707.1300265553,
+          "delta_data": 261448.87939413585
+        },
+        {
+          "i": 14,
+          "logL_gls_data": -1421672.8483898211,
+          "logL_gls_full": -1361028.535545009,
+          "quad_gls": 3794257.9384039836,
+          "conv_data": -252149.290463928,
+          "conv_aligned_full": -260670.60748233492,
+          "delta_data": 1169523.5579258932
+        },
+        {
+          "i": 15,
+          "logL_gls_data": -1872475.671222849,
+          "logL_gls_full": -1811831.3583780369,
+          "quad_gls": 23323825.93615775,
+          "conv_data": -441046.10552568303,
+          "conv_aligned_full": -449567.42254408996,
+          "delta_data": 1431429.5656971661
+        },
+        {
+          "i": 16,
+          "logL_gls_data": -1696172.6199455662,
+          "logL_gls_full": -1635528.307100754,
+          "quad_gls": 24488234.047321904,
+          "conv_data": -681428.594661136,
+          "conv_aligned_full": -689949.911679543,
+          "delta_data": 1014744.0252844301
+        },
+        {
+          "i": 17,
+          "logL_gls_data": -1428730.8932727762,
+          "logL_gls_full": -1368086.580427964,
+          "quad_gls": 14372335.149674099,
+          "conv_data": -752953.7880685431,
+          "conv_aligned_full": -761475.10508695,
+          "delta_data": 675777.1052042331
+        },
+        {
+          "i": 18,
+          "logL_gls_data": -2008784.311392723,
+          "logL_gls_full": -1948139.9985479107,
+          "quad_gls": 9532832.56520839,
+          "conv_data": -351436.52876889525,
+          "conv_aligned_full": -359957.8457873022,
+          "delta_data": 1657347.7826238277
+        },
+        {
+          "i": 19,
+          "logL_gls_data": -4111473.8615480224,
+          "logL_gls_full": -4050829.5487032104,
+          "quad_gls": 17630084.039439466,
+          "conv_data": -1095069.8611501178,
+          "conv_aligned_full": -1103591.1781685248,
+          "delta_data": 3016404.000397905
+        }
+      ],
+      "misspec": {
+        "description": "INFORMATIONAL misspecification scale: whitened-path data logL minus exact-GLS data logL (different estimators; see module docstring for why this is NOT the 0.1-nat gate)",
+        "mean": 5685195.489578111,
+        "sd": 10187164.16172426,
+        "min": 261448.87939413585,
+        "max": 44870047.26958854,
+        "mean_abs_frac_of_usq": 0.2919869665566292
+      },
+      "wall_s": 105.8965585231781
+    }
+  },
+  "v3_cg_spotcheck": {
+    "residual": "img - model_map_v3cold (real MAP residual)",
+    "n_kept": 66752,
+    "n_eroded": 37519,
+    "quad_exact_cg": 30578.051306561134,
+    "cg_iters": 131,
+    "cg_rel_resid": 9.796095045855369e-09,
+    "cg_info": 0,
+    "quad_per_kept": 0.45808442153884726,
+    "u_sq_whitened": 12383.106268242156,
+    "u_sq_per_eroded": 0.33004894235566395,
+    "wall_s": 2.4748117923736572,
+    "note": "informational: exact GLS quad vs whitened quad on the fine product; also validates the CG machinery (iters, residual)"
+  },
+  "all_hard_gates_pass": true,
+  "wall_s": 224.99938321113586
+}

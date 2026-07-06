@@ -1,0 +1,83 @@
+{
+  "generated_by": "05_gen_drizzle_mocks.py",
+  "gate_sigma": 0.05,
+  "n_mocks": 8,
+  "rho_fine_axis": [
+    1.0,
+    0.6666666666666671,
+    0.33333333333333365
+  ],
+  "psf_eff_shape": [
+    19,
+    19
+  ],
+  "mocks": [
+    {
+      "seed": 0,
+      "theta_E": 1.289914718615114,
+      "gamma": 1.9669737841771746,
+      "arc_snr": 2016.3829461253574,
+      "render_check_max_dev_sigma": 1.3741792731926698e-12,
+      "render_check_pass": true
+    },
+    {
+      "seed": 1,
+      "theta_E": 1.3627975367762934,
+      "gamma": 2.2054045358752896,
+      "arc_snr": 1208.3214630940668,
+      "render_check_max_dev_sigma": 5.216723197625155e-13,
+      "render_check_pass": true
+    },
+    {
+      "seed": 2,
+      "theta_E": 1.3104975794841884,
+      "gamma": 1.8693128896298132,
+      "arc_snr": 1270.3995964322546,
+      "render_check_max_dev_sigma": 1.3839194703859287e-12,
+      "render_check_pass": true
+    },
+    {
+      "seed": 3,
+      "theta_E": 2.082092362624466,
+      "gamma": 1.3610837421714546,
+      "arc_snr": 5962.898175745674,
+      "render_check_max_dev_sigma": 6.048531683801723e-13,
+      "render_check_pass": true
+    },
+    {
+      "seed": 4,
+      "theta_E": 1.0620444353723049,
+      "gamma": 1.9563206769185557,
+      "arc_snr": 1578.7402987803398,
+      "render_check_max_dev_sigma": 1.0426754914926891e-12,
+      "render_check_pass": true
+    },
+    {
+      "seed": 5,
+      "theta_E": 1.0229193989914775,
+      "gamma": 1.6689102510929636,
+      "arc_snr": 984.1731654319734,
+      "render_check_max_dev_sigma": 2.0968804891113415e-12,
+      "render_check_pass": true
+    },
+    {
+      "seed": 6,
+      "theta_E": 1.62648702546878,
+      "gamma": 2.4441228259542482,
+      "arc_snr": 807.3842298625891,
+      "render_check_max_dev_sigma": 1.9306243844725087e-12,
+      "render_check_pass": true
+    },
+    {
+      "seed": 7,
+      "theta_E": 1.2503844820426675,
+      "gamma": 2.0746863843771175,
+      "arc_snr": 774.4659844406484,
+      "render_check_max_dev_sigma": 1.3247065756576845e-12,
+      "render_check_pass": true
+    }
+  ],
+  "worst_render_check_sigma": 2.0968804891113415e-12,
+  "all_gates_pass": true,
+  "wall_s": 3.769991159439087
+}

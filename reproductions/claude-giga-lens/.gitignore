@@ -1,7 +1,15 @@
-data/
+# data/* (not data/) so that negation exceptions below can re-include files
+data/*
 # gate-evidence exceptions: small provenance artifacts quoted by the report
 !data/parity_report.json
 !data/env_freeze_*.txt
+!data/zoo_freeze.json
+!data/zoo_validation.json
+!data/noise_kernel_report.json
+!data/whitener_report.json
+!data/exact_ref_report.json
+!data/mocks_report.json
+!data/mocks_report_3frame.json
 __pycache__/
 *.pyc
 *.egg-info/

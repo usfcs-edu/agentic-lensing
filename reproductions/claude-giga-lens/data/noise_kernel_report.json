@@ -1,0 +1,238 @@
+{
+  "generated_by": "02_fit_noise_kernels.py",
+  "native_pix": 0.1283,
+  "pixfrac": 1.0,
+  "n_frames": 3,
+  "drizzle_anchor": {
+    "r_fine": 3.2075,
+    "r_native": 0.9869230769230769,
+    "t1_analytic_fine": 0.7680487097709482,
+    "t1_enumerated_fine": 0.7679897185334978,
+    "t1_enumerated_native": 0.24512778272220662,
+    "t1_analytic_native_NOTE": "closed form (r-1)/(r-1/3) is only valid for r>=2; at r=0.987 the enumerated operator is the anchor",
+    "t1_enumerated_binned": 0.48336984644133085
+  },
+  "products": {
+    "v2d": {
+      "product": "/raid/benson/git/agentic-lensing/reproductions/foundry-i/data/cutout_v2d.npz",
+      "tag": "v2d",
+      "model_subtracted": true,
+      "model_source": "rendered here from foundry-i map_v11_v2d_cold.npz best_z (74-dim n_max=6 gated MAP, chi2_pp=1.234) via _data_lib.build_all('cutout_v2d.npz') + LensSimulator(bs=2), float32 paper mode on GPU \u2014 the 46_noise_audit.render_map convention; cached at data/model_map_v2d_cold.npy",
+      "detrend": {
+        "method": "background2d",
+        "box_px": 10
+      },
+      "sky_region": "keep & r>4.5\" & |img|<5*median(err) (46_noise_audit convention)",
+      "n_sky_px": 2040,
+      "chi2_sky_resid": 0.9403609400337617,
+      "acf_port_bitmatch_46": true,
+      "normalization": "ACF of (img-model)/err_map (Cov(v)=K convention)",
+      "family": "rho_model2: (1-w_d-w_b) delta + w_d norm(rho_drz (*) G2(sig_ey,sig_ex,c_e)) + w_b G2(sig_by,sig_bx,c_b); see script docstring for the documented deviation from the 1-Gaussian plan",
+      "fit_window_L": 3,
+      "kernel_half_width": 64,
+      "w_d": 0.9303090803904853,
+      "sig_ey": 0.5775521426847747,
+      "sig_ex": 0.41978848695924276,
+      "c_e": 0.6720506086221669,
+      "w_b": 0.06969091960951455,
+      "sig_by": 7.246191945866219,
+      "sig_bx": 2.8257332438799345,
+      "c_b": -0.7999999999999999,
+      "max_abs_resid": 0.04478289232076946,
+      "rms_resid": 0.020016133516721945,
+      "gate_le_0p05": true,
+      "fit_single_family": {
+        "w": 0.5817303026853982,
+        "sigma_e": 0.7474697331505146,
+        "max_abs_resid": 0.08953884723581586,
+        "rms_resid": 0.03795019932074049,
+        "gate_le_0p05": false
+      },
+      "drizzle": {
+        "scale_ratio": 0.9869230769230769,
+        "pixfrac": 1.0,
+        "n_frames": 3,
+        "t1": 0.24512778272220662,
+        "t1_analytic": -0.02000784621420168
+      },
+      "rho_axis_meas": [
+        1.0,
+        0.30466410956766926,
+        0.011018373410647127,
+        0.024452882758553098,
+        0.0019113328070110623,
+        -0.027166510489122806,
+        0.026432421262122918
+      ],
+      "rho_axis_fit": [
+        1.0,
+        0.3021684290637401,
+        0.03908954747958636,
+        0.014564622715011622
+      ]
+    },
+    "v3": {
+      "product": "/raid/benson/git/agentic-lensing/reproductions/foundry-i/data/cutout_v3.npz",
+      "tag": "v3",
+      "model_subtracted": true,
+      "model_source": "/raid/benson/git/agentic-lensing/reproductions/foundry-i/data/model_map_v3cold.npy",
+      "detrend": {
+        "method": "background2d",
+        "box_px": 26
+      },
+      "sky_region": "keep & r>4.5\" & |img|<5*median(err) (46_noise_audit convention)",
+      "n_sky_px": 27480,
+      "chi2_sky_resid": 0.291046225519853,
+      "acf_port_bitmatch_46": true,
+      "normalization": "ACF of (img-model)/err_map (Cov(v)=K convention)",
+      "family": "rho_model2: (1-w_d-w_b) delta + w_d norm(rho_drz (*) G2(sig_ey,sig_ex,c_e)) + w_b G2(sig_by,sig_bx,c_b); see script docstring for the documented deviation from the 1-Gaussian plan",
+      "fit_window_L": 8,
+      "kernel_half_width": 64,
+      "w_d": 0.6822870738158638,
+      "sig_ey": 0.7338046087016162,
+      "sig_ex": 0.5741637883876445,
+      "c_e": 0.7999999999999999,
+      "w_b": 0.2650534189461485,
+      "sig_by": 6.315845268020727,
+      "sig_bx": 8.398956739509819,
+      "c_b": 0.03296835878097155,
+      "max_abs_resid": 0.02700619999903975,
+      "rms_resid": 0.008835262307598714,
+      "gate_le_0p05": true,
+      "fit_single_family": {
+        "w": 0.5181580492977367,
+        "sigma_e": 4.184978530574973,
+        "max_abs_resid": 0.3110151906638471,
+        "rms_resid": 0.07135265153739799,
+        "gate_le_0p05": false
+      },
+      "drizzle": {
+        "scale_ratio": 3.2075,
+        "pixfrac": 1.0,
+        "n_frames": 3,
+        "t1": 0.7679897185334978,
+        "t1_analytic": 0.7680487097709482
+      },
+      "rho_axis_meas": [
+        1.0,
+        0.81466960066833,
+        0.5472916759566858,
+        0.35703280826343503,
+        0.25886149652686397,
+        0.229486700061072,
+        0.21134302662620202,
+        0.1922433358915941,
+        0.17352506419649913,
+        0.16014399527578418,
+        0.1484227608559964,
+        0.13349722411189327
+      ],
+      "rho_axis_fit": [
+        1.0,
+        0.8094958500889899,
+        0.56526621957759,
+        0.34245592694907484,
+        0.24643502630229697,
+        0.2220703747180938,
+        0.2053035626855682,
+        0.18721262356859697,
+        0.1683104827834775
+      ]
+    },
+    "v3b": {
+      "product": "/raid/benson/git/agentic-lensing/reproductions/foundry-i/data/cutout_v3b.npz",
+      "tag": "v3b",
+      "model_subtracted": true,
+      "model_source": "/raid/benson/git/agentic-lensing/reproductions/foundry-i/data/model_map_v3b_cold.npy",
+      "detrend": {
+        "method": "background2d",
+        "box_px": 13
+      },
+      "sky_region": "keep & r>4.5\" & |img|<5*median(err) (46_noise_audit convention)",
+      "n_sky_px": 6844,
+      "chi2_sky_resid": 0.9522393030717049,
+      "acf_port_bitmatch_46": true,
+      "normalization": "ACF of (img-model)/err_map (Cov(v)=K convention)",
+      "family": "rho_model2: (1-w_d-w_b) delta + w_d norm(rho_drz (*) G2(sig_ey,sig_ex,c_e)) + w_b G2(sig_by,sig_bx,c_b); see script docstring for the documented deviation from the 1-Gaussian plan",
+      "fit_window_L": 4,
+      "kernel_half_width": 64,
+      "w_d": 0.7333079916986377,
+      "sig_ey": 0.5362068966493481,
+      "sig_ex": 0.4274022365227114,
+      "c_e": 0.6756380752304078,
+      "w_b": 0.2483399367995993,
+      "sig_by": 3.2927492645413903,
+      "sig_bx": 4.389949218401051,
+      "c_b": -0.09583723708572339,
+      "max_abs_resid": 0.03263369661474866,
+      "rms_resid": 0.009410384194149805,
+      "gate_le_0p05": true,
+      "fit_single_family": {
+        "w": 0.5010356899380471,
+        "sigma_e": 2.170545373172368,
+        "max_abs_resid": 0.16639160116266888,
+        "rms_resid": 0.060505350149526016,
+        "gate_le_0p05": false
+      },
+      "drizzle": {
+        "scale_ratio": 1.60375,
+        "pixfrac": 1.0,
+        "n_frames": 3,
+        "t1": 0.48336984644133085,
+        "t1_analytic": null
+      },
+      "rho_axis_meas": [
+        1.0,
+        0.6150286582199108,
+        0.26815030620899116,
+        0.19346319802948939,
+        0.17163310066857285,
+        0.14301836803502033,
+        0.10686481588895543,
+        0.07977955382141227
+      ],
+      "rho_axis_fit": [
+        1.0,
+        0.6100283443756661,
+        0.2558760365569497,
+        0.19690119972643735,
+        0.16333988694699508
+      ]
+    }
+  },
+  "blocksum_crosscheck": {
+    "description": "binned_kernel_from_fine(fitted v3 kernel) vs the binned ACF measured from the block-summed fine detrended residual (commuting processing) over the L=4 window",
+    "max_abs_diff": 0.030783483836857875,
+    "gate": 0.05,
+    "gate_pass": true,
+    "pred_axis": [
+      1.0,
+      0.6492753701057513,
+      0.3131603679267812,
+      0.24459045627622494,
+      0.20077602755892057
+    ],
+    "meas_axis_commuting": [
+      1.0,
+      0.6353495967824134,
+      0.3129049595381849,
+      0.2372954656659529,
+      0.20349565212634982
+    ],
+    "meas_axis_v3b_product": [
+      1.0,
+      0.6150286582199108,
+      0.26815030620899116,
+      0.19346319802948939,
+      0.17163310066857285
+    ],
+    "info_vs_v3b_product_acf": {
+      "max_abs_diff": 0.05950148638654315,
+      "note": "systematically higher prediction (~0.03-0.06 at all lags): Background2D detrending does not commute with 2x2 block-summing \u2014 the per-product detrenders remove different pedestal fractions. The per-product KERNELS are fit to each product's own processed ACF (the object the likelihood needs), so this non-commutation does not enter the likelihood; the commuting-processing check above isolates and validates the block-sum transform itself."
+    },
+    "var_blocksum_inflation_measured": 3.353626637216528,
+    "var_blocksum_inflation_40c_naive_chi2": 3.766
+  },
+  "all_gates_pass": true,
+  "wall_s": 23.583653211593628
+}

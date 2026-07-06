@@ -41,6 +41,44 @@ Committed: 0.0 / 90 (hard stop 100).
 
 ## Stage log
 
+### P1a — 2026-07-06 (COMPLETE, all gates PASS)
+- 02 kernels (model-subtracted, guard-enforced): fit residual v2d 0.0448 / v3 0.0270 /
+  v3b 0.0326 (gate ≤0.05). Drizzle anchor: enumerated t(1)=0.76799 vs closed form 0.76805
+  at r=3.2075. Block-sum cross-check 0.0308 PASS (commuting processing); product-level 0.0595
+  informational (Background2D detrend does not commute with binning).
+- **DEVIATION 1 (accepted)**: plan's 2-param kernel family cannot pass (best 0.090–0.311);
+  residuals carry a medium-scale correlated pedestal + anisotropic core + v2d column stripes.
+  Adopted minimal PSD-by-construction extension: (1−w_d−w_b)δ + w_d·(ρ_drz⊛G₂) + w_b·G₂
+  (two-component bivariate). Single-family failure numbers on record in noise_kernel_report.
+- 03 whiteners: v2d M=14 e_op=0.0177; v3 M=20 e_op=0.0160; v3b M=10 e_op=0.0124.
+  MC/dense whiteness all PASS (Var(u)=1.000, off-diag ≤4e-5). Construction fixes: kernels
+  stored analytic to half-width 64 (truncation ringing); ADAPTIVE s_floor (hard 0.05 floor on
+  a PSD kernel biases Var(u) — 0.981 FAIL → adaptive PASS).
+- **OPEN FLAG → P1b decision**: v2d erosion loss 91.7% (5865→487 px; border-14 + mask blobs
+  × 29² stencil). DECISION (campaign lead, 2026-07-06): P1b builds a RELAXED v2d whitener
+  (target e_op ≤ 0.05, M≈6–8) alongside the strict one; mock recovery/coverage arbitrates;
+  E2c uses the relaxed one iff mock calibration holds. Ledgered as a pre-registered-exception
+  candidate, evidence-driven.
+- 04 HARD GATE: |ΔlogL| conv-whitened GPU vs dense-C CPU reference at 20 prior draws:
+  v2d worst 2.79e-9 nat, v3b worst 6.26e-7 (gate <0.1) — PASS. Gate semantics documented:
+  this certifies implementation-exactness of the whitened functional (C⁻¹ := G_eᵀG_e);
+  physical-C misspecification is bounded separately by e_op (0.1-nat exact-GLS equivalence
+  is mathematically unattainable at prior draws — analysis in 04 docstring). Constant
+  accounting closed: exact logdetC vs Szegő gap +27.30 (v2d) / +179.21 (v3b) — cross-whitener
+  evidence comparisons MUST use exact constants.
+- 05 mocks: 8 trios, render gate worst 2.1e-12σ (<0.05σ). Exact analytic covariances per
+  product (fine tent ρ(1)=2/3, binned 0.4, native iid).
+- **DEVIATION 2 (accepted, report-worthy)**: 3-dither Latin stack {(0,0),(1,2),(2,1)} is
+  provably SHIFT-VARIANT (no convolutional effective PSF exists; render check 2.1–26.7σ —
+  preserved at data/mocks_report_3frame.json). Mocks use all 9 phases → exact separable
+  3×3-tent convolution. NOTE FOR REPORT: the REAL v3 skycell (NDRIZIM=3) is likewise
+  shift-variant — its "effective PSF" is an approximation; discuss as a real-data caveat.
+- Real-data teaser (informational, NOT a result): on the v3 MAP residual,
+  RᵀC⁻¹R/n_kept = 0.458 under the correlated C (CG, rel-resid 1e-8) vs diagonal χ²_pp 0.4515.
+- Perf: conv-whitened logpost/grad ≤1.6× diagonal (v3 40/85ms vs 25/55ms on L4) — no
+  grouped-conv refactor needed. photutils 3.0.0 installed under constraints (Background2D).
+- Tests: 57 CPU + 10 GPU green; parity A–E re-verified fresh post-change.
+
 ### P0 — 2026-07-06 (campaign start)
 - Branch `claude-giga-lens`; work dir scaffolded per approved plan
   (`/home/benson/.claude/plans/this-repo-containes-astrophysics-radiant-sprout.md`).
