@@ -73,6 +73,10 @@ def emb_path(split: str, variant: str) -> Path:
     return OUT / f"embeddings_{split}{suffix}.npz"
 
 
+def heads_path(variant: str) -> Path:
+    return OUT / f"heads_{variant}.joblib"
+
+
 def _key(ra: float, dec: float) -> str:
     # identical to reproductions/lensjudge/common/hsc_fetch.py::_key
     return f"{float(ra):.6f}_{float(dec):+.6f}"
@@ -104,9 +108,9 @@ def _center_crop(a: np.ndarray, size: int = CROP) -> np.ndarray | None:
     return a[y0:y0 + size, x0:x0 + size]
 
 
-def _load_row_pixels(ra: float, dec: float):
+def _load_row_pixels(ra: float, dec: float, cache: Path = CACHE):
     """-> (stack (nb,96,96) float32, band_sig str) or (None, reason)."""
-    d = CACHE / _key(ra, dec)
+    d = cache / _key(ra, dec)
     if not d.is_dir():
         return None, "no_cache_dir"
     chans, sig = [], ""
@@ -140,12 +144,14 @@ def cmd_extract(args):
     cm = CodecManager(device=device)
     model = AION.from_pretrained(MODELS[args.variant]).to(device).eval()
 
+    cache = Path(args.cache) if args.cache else CACHE
     for split in args.splits.split(","):
         t0 = time.time()
-        rows = _read_csv(CORPUS / f"{split}.csv")
+        csv_path = Path(args.manifest) if args.manifest else CORPUS / f"{split}.csv"
+        rows = _read_csv(csv_path)
         pix, sigs, keep, skipped = [], [], [], {}
         for i, r in enumerate(rows):
-            stack, sig = _load_row_pixels(float(r["ra"]), float(r["dec"]))
+            stack, sig = _load_row_pixels(float(r["ra"]), float(r["dec"]), cache)
             if stack is None:
                 skipped[r["name"]] = sig      # sig is the reason string here
                 continue
@@ -176,9 +182,10 @@ def cmd_extract(args):
             emb=embs,
             name=np.array([rows[i]["name"] for i in keep]),
             label=np.array([rows[i]["label"] for i in keep]),
-            grade=np.array([rows[i]["grade"] for i in keep]),
-            src=np.array([rows[i]["src"] for i in keep]),
-            soft=np.array([float(rows[i]["soft"]) for i in keep], np.float32),
+            grade=np.array([rows[i].get("grade", "") for i in keep]),
+            src=np.array([rows[i].get("src", rows[i].get("kind", "")) for i in keep]),
+            soft=np.array([float(rows[i].get("soft") or "nan") for i in keep],
+                          np.float32),
             band_sig=np.array(sigs),
             skipped_name=np.array(list(skipped.keys())),
             skipped_reason=np.array(list(skipped.values())),
@@ -302,7 +309,38 @@ def cmd_probe(args):
     OUT.mkdir(parents=True, exist_ok=True)
     with open(OUT / f"results_{variant}.json", "w") as f:
         json.dump(res, f, indent=2)
-    print(f"[probe:{variant}] wrote results_{variant}.json")
+    import joblib
+
+    joblib.dump({"scaler": sc, "logreg": lr, "mlp256": mlp,
+                 "logreg_C": res["logreg"]["C"],
+                 "mlp_best_epoch": res["mlp256"]["best_epoch"]},
+                heads_path(variant))
+    print(f"[probe:{variant}] wrote results_{variant}.json + {heads_path(variant).name}")
+    return res
+
+
+def cmd_gate(args):
+    """Score ALREADY-TRAINED heads on a frozen held-out set (no retraining)."""
+    import joblib
+
+    variant = args.variant
+    heads = joblib.load(heads_path(variant))
+    X, lab, z = _load_split(args.split, variant)
+    y = (lab == "lens").astype(int)
+    Xs = heads["scaler"].transform(X)
+    res = {"variant": variant, "split": args.split, "rejection_target": args.rejection,
+           "n": len(y), "n_lens": int(y.sum()), "n_nonlens": int((1 - y).sum())}
+    for head in ("logreg", "mlp256"):
+        s = heads[head].predict_proba(Xs)[:, 1]
+        rec, rej, thr = _recovery_at_rejection(y, s, rejection=args.rejection)
+        res[head] = {"auc": round(_auc(y, s), 4),
+                     f"recovery@rej{args.rejection}": round(rec, 4),
+                     "rejection_achieved": round(rej, 4)}
+        print(f"  {head:<7} {args.split} AUC={res[head]['auc']:.4f}  "
+              f"recovery@{args.rejection}={rec:.3f} (rej achieved {rej:.3f})")
+    with open(OUT / f"results_{args.split}_{variant}.json", "w") as f:
+        json.dump(res, f, indent=2)
+    print(f"[gate:{variant}] wrote results_{args.split}_{variant}.json")
     return res
 
 
@@ -311,14 +349,24 @@ def main():
     sub = ap.add_subparsers(dest="cmd", required=True)
     ex = sub.add_parser("extract", help="AION embedding extraction (aion venv, GPU)")
     ex.add_argument("--variant", default="base", choices=list(MODELS))
-    ex.add_argument("--splits", default=",".join(SPLITS))
+    ex.add_argument("--splits", default=",".join(SPLITS),
+                    help="corpus splits, or the output tag when --manifest is given")
     ex.add_argument("--batch", type=int, default=None)
+    ex.add_argument("--manifest", default=None,
+                    help="CSV with name,ra,dec,label to embed instead of corpus splits")
+    ex.add_argument("--cache", default=None, help="alternate pdr3_wide cache root")
     pr = sub.add_parser("probe", help="LR + MLP probes (lensjudge venv, CPU)")
     pr.add_argument("--variant", default="base", choices=list(MODELS))
+    ga = sub.add_parser("gate", help="score saved heads on a frozen set (no retrain)")
+    ga.add_argument("--variant", default="base", choices=list(MODELS))
+    ga.add_argument("--split", default="gate", help="embeddings tag to score")
+    ga.add_argument("--rejection", type=float, default=0.89)
     args = ap.parse_args()
     if args.cmd == "extract":
         args.batch = args.batch or DEFAULT_BATCH[args.variant]
         cmd_extract(args)
+    elif args.cmd == "gate":
+        cmd_gate(args)
     else:
         cmd_probe(args)
 
