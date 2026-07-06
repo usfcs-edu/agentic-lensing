@@ -23,8 +23,9 @@ Decisions (locked 2026-07-06):
 
 | job id | phase | nodes × walltime | A100-h | cumulative | purpose |
 |---|---|---|---|---|---|
+| 55600587 | P0/staging | 1 × ≤30 min debug | ≤2.0 (est; sacct pending) | ≤2.0 | env staging smoke: env check + A100 parity + sampler smoke + priority-fusion A100 probe |
 
-Committed: 0.0 / 90 (hard stop 100).
+Committed: ≤2.0 / 90 (hard stop 100).
 
 ## Phoenix GPU ledger  (weekly rollup)
 
@@ -40,6 +41,29 @@ Committed: 0.0 / 90 (hard stop 100).
 | P0 sampler smoke | 2026-07-06 | PASS 8/8 | NUTS+window 12.6s, MCLMC(un+adj), adaptive tempered SMC (λ→1, finite logZ), TFP REMC, flowMC RQSpline_MALA, flowjax MAF fit, nautilus logZ within 1.0 | blackjax 1.3 fine on jax 0.6.2 — 1.2.5 fallback NOT needed. See XLA defect below |
 
 ## Stage log
+
+### P2b checkpoint — 2026-07-06T22:08Z (POLICY FREEZE — committed before any eval read)
+- data/policies_frozen.json + data/policy_tuning_log.json (33+ trials, ≤4 configs/method,
+  dev split only). Budgets: T0 2e5 / T1 1.5e6 grads (+692k billed init-cache for consumers).
+- **REGISTERED FAILURE**: flowMC 0.4.5 on T1 — scalar MALA step (no per-dim preconditioning
+  in 0.4.5) gives acceptance ≈0 on the ill-conditioned z-space at both 0.05 and 0.003 step
+  sizes. T0 works well (mix2 occupancy 0.816/0.184, 410 round trips). Benchmark datum.
+- MCLMC tuner produces NEGATIVE inverse-mass entries on cond-1e14 → all-NaN; frozen policy
+  uses svi_diag mass on T1 (ESS 6001, R̂ 1.004 in dev) with deterministic fallback on T0.
+- **GL-NT tier split (the recipe finding so far)**: T0 anneal-from-PRIOR recovers the
+  mixture (0.778/0.222 vs true 0.8/0.2 — inside the 0.05 bar, vs plain NeuTra total collapse
+  1.000/0.000 and baseline 0.951/0.049); T1 uses SVI→posterior anneal path (prior-path
+  infeasible: λ=0.198 after 100 steps). Flow-space ChEES still the weak stage on T1
+  (trial R̂ 1.65) — the matrix judges.
+- NUTS budget honesty: uncapped tree depth blows the grad budget 1.9× on T1 → frozen at
+  2^6 cap (weak on illcond by construction; recorded).
+- Stack findings #4-6: priority-fusion livelock ALSO in f32 (MCLMC tuner/NSF pipelines;
+  flag extended in 22_run_cell for bj_mclmc/neutra/glnt); SMC particle-with-grad memory
+  ceiling ~21MB/particle (384 particles on L4; 1200 = 24GiB OOM); nautilus jitted
+  log_like_x TracerArrayConversionError on new batch sizes → batch padding + bijector
+  template probe (the e2/e1 reorder trap again).
+- S5 pocoMC skipped (pre-approved). Matrix launching: 135 T0 + 54 dev-final + 162 eval
+  cells, frozen policies, resumable queues on CUDA 9 + A16 0-3.
 
 ### P2a — 2026-07-06 (COMPLETE, all 4 gates PASS)
 - Zoo frozen: 19 targets (5 T0 + 12 T1 + T2 + T3; T4 stub), 3 seeded z-points each with logp

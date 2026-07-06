@@ -8,14 +8,27 @@ under data/results/<sampler>/<target>/.
 One cell = one process (dtype isolation; GIGALENS_X64 and XLA flags are set
 from the registry's STATIC dtype before jax is imported).
 
-Only S0 (s0_baseline) is wired in P2a; P2b adds 7 more adapters against the
-same run_cell signature.
+P2b: all 9 adapters run through this driver against the same run_cell
+signature. P2b additions (all additive):
+  * per-tier Track-A gradient budgets (T0 2e5 / T1 1.5e6) exported to the
+    adapter as budget["n_grad_budget"] (gradient-free adapters get 2x that
+    in likelihood evals per protocol);
+  * --frozen: apply the (sampler, tier) policy from data/policies_frozen.json
+    (config + budget); REQUIRED once the freeze file exists for any
+    T0/T1 track-A/B cell (pre-registered eval discipline) -- the resolved
+    config/budget hash is asserted against the freeze;
+  * --track B: convergence track -- frozen config, frozen budget with the
+    adapter's SCALE_KEYS fields x4 (cap; time-to-convergence is measured by
+    prefix analysis in 25_pool_benchmark.py);
+  * --budget-json for pilot/tuning overrides (pre-freeze only).
 
 Run (GPU 9, the campaign L4):
   /raid/benson/.venvs/cgl/bin/python 22_run_cell.py \
       --sampler s0_baseline --target gu2022_sys000 --seed 0 --track A
 
-Track budgets: A = the gu-2022 defaults (50 chains x 750 draws, 250 burn).
+Track budgets: A = the gu-2022 defaults (50 chains x 750 draws, 250 burn)
+for s0_baseline; every other adapter carries its own DEFAULT_BUDGET and is
+sized by its frozen policy.
 """
 from __future__ import annotations
 
@@ -40,22 +53,43 @@ TRACK_CONFIGS = {
     "A5": dict(use_gbtla=False, init_l=5),
 }
 
+# pre-registered Track-A gradient budgets per tier (README section P2 / P2b
+# protocol); Track B = 4x cap. Informational for sizing + recorded per cell.
+GRAD_BUDGETS = {"T0": int(2e5), "T1": int(1.5e6)}
+TRACK_B_SCALE = 4
+
+# the pre-registered eval split (policies frozen before these cells run)
+EVAL_TARGETS = {f"gu2022_sys{i:03d}" for i in (6, 7, 8, 9, 10, 11)}
+
 
 def parse_args():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--sampler", required=True)
     ap.add_argument("--target", required=True)
     ap.add_argument("--seed", type=int, default=0)
-    ap.add_argument("--track", default="A", choices=sorted(TRACK_BUDGETS))
+    ap.add_argument("--track", default="A",
+                    choices=sorted(TRACK_BUDGETS) + ["B"])
     ap.add_argument("--gpu", default=None, help="CUDA index (default 9)")
     ap.add_argument("--n-chains", type=int, default=None)
     ap.add_argument("--burn", type=int, default=None)
     ap.add_argument("--keep", type=int, default=None)
     ap.add_argument("--config-json", default=None,
                     help="JSON dict of adapter config overrides")
+    ap.add_argument("--budget-json", default=None,
+                    help="JSON dict of adapter budget overrides "
+                         "(pilot/tuning only, pre-freeze)")
+    ap.add_argument("--frozen", action="store_true",
+                    help="apply the frozen policy from "
+                         "data/policies_frozen.json for (sampler, tier)")
+    ap.add_argument("--allow-unfrozen", action="store_true",
+                    help="LOUD escape hatch: skip the frozen-policy "
+                         "assertion (never valid for eval-split cells)")
     ap.add_argument("--allow-missing-freeze", action="store_true",
                     help="unit-test escape hatch ONLY; benchmark cells must "
                          "assert the freeze")
+    ap.add_argument("--results-root", default=None,
+                    help="alternate results root (policy-tuning runs write "
+                         "to data/results_tuning so matrix cells stay clean)")
     return ap.parse_args()
 
 
@@ -70,6 +104,24 @@ def main():
     if not info.available:
         print(f"target {args.target} unavailable: {info.note}")
         return 2
+    # STACK DEFECT #3b (P2b, 2026-07-06, extends the P0 priority-fusion
+    # record): jaxlib 0.6.2's XLA priority-fusion pass livelocks (~680
+    # spinning threads, infinite compile) in FLOAT32 too -- the P0 "f32
+    # unaffected" note only covered the minimal f64 repro, and the P0 smoke
+    # suite always ran with the pass disabled at module import, so the bare
+    # f32 paths were never exercised. Reproduced twice on this stack:
+    # (i) blackjax MCLMC tuner on t0_mix2 (f32, L4, 683 threads);
+    # (ii) neutra's flowjax-NSF pullback pipeline on gu2022_sys000 (f32,
+    # L4, 685 threads). Disable the pass for the affected adapters at ANY
+    # dtype BEFORE the first jax import (runtime.setup_process_env keeps a
+    # pre-existing --xla_disable_hlo_passes verbatim). S0 keeps its P2a
+    # environment untouched.
+    import os as _os
+    if args.sampler in ("bj_mclmc", "neutra", "glnt"):
+        _flags = _os.environ.get("XLA_FLAGS", "")
+        if "--xla_disable_hlo_passes" not in _flags:
+            _os.environ["XLA_FLAGS"] = (
+                _flags + " --xla_disable_hlo_passes=priority-fusion").strip()
     setup_process_env(info.dtype, args.gpu)
 
     import jax  # noqa: E402
@@ -88,16 +140,80 @@ def main():
           flush=True)
 
     # ---- budget/config ---------------------------------------------------------
-    budget = dict(TRACK_BUDGETS[args.track])
-    budget["track"] = args.track
+    from cgl.samplers import get_scale_keys  # noqa: E402
+    from cgl.samplers.common import (POLICIES_FROZEN,  # noqa: E402
+                                     assert_frozen_policy,
+                                     load_frozen_policies)
+
+    tier = info.tier
+    track = args.track
+    policies = None
+    if POLICIES_FROZEN.exists():
+        policies = load_frozen_policies()
+
+    if args.sampler == "s0_baseline" and track != "B" and not args.frozen:
+        budget = dict(TRACK_BUDGETS[track])
+        config = dict(TRACK_CONFIGS.get(track, {}))
+    else:
+        # contenders carry their own DEFAULT_BUDGET; frozen policies (or
+        # explicit --budget-json during tuning) size them.
+        budget = {}
+        config = {}
+
+    if args.frozen or track == "B":
+        if policies is None:
+            print(f"ERROR: --frozen/track B requires {POLICIES_FROZEN}")
+            return 4
+        try:
+            entry = policies["methods"][args.sampler][tier]
+        except KeyError:
+            print(f"ERROR: no frozen policy for {args.sampler}/{tier}")
+            return 4
+        config = dict(entry["config"])
+        budget = dict(entry["budget"])
+        if track == "B":
+            for k in get_scale_keys(args.sampler):
+                if budget.get(k):
+                    budget[k] = int(budget[k] * TRACK_B_SCALE)
+
+    # manual overrides (pilot/tuning; the freeze assertion below catches any
+    # attempt to modify an eval cell)
     if args.n_chains is not None:
         budget["n_chains"] = args.n_chains
     if args.burn is not None:
         budget["n_burn"] = args.burn
     if args.keep is not None:
         budget["n_keep"] = args.keep
-    config = dict(TRACK_CONFIGS.get(args.track, {}))
+    if args.budget_json:
+        budget.update(json.loads(args.budget_json))
     config.update(json.loads(args.config_json) if args.config_json else {})
+
+    budget["track"] = track
+    gb = GRAD_BUDGETS.get(tier)
+    if gb:
+        budget["n_grad_budget"] = gb * (TRACK_B_SCALE if track == "B" else 1)
+
+    # ---- frozen-policy assertion (pre-registered eval discipline) ----------------
+    if args.target in EVAL_TARGETS and track in ("A", "B"):
+        if policies is None:
+            print("ERROR: eval-split cells require data/policies_frozen.json"
+                  " (policy freeze first!)")
+            return 4
+        if args.allow_unfrozen:
+            print("ERROR: --allow-unfrozen is never valid for eval-split "
+                  "cells")
+            return 4
+    if (policies is not None and track in ("A", "B") and tier in ("T0", "T1")
+            and not args.allow_unfrozen
+            and args.sampler in policies.get("methods", {})
+            and tier in policies["methods"][args.sampler]):
+        assert_frozen_policy(policies, args.sampler, tier, config, budget,
+                             track)
+        print(f"frozen-policy hash OK ({args.sampler}/{tier}, track {track})",
+              flush=True)
+    elif args.allow_unfrozen:
+        print("WARNING: running UNFROZEN (tuning/diagnostic only; not an "
+              "eval cell)", flush=True)
 
     # ---- build target + assert the freeze ---------------------------------------
     t0 = time.time()
@@ -145,7 +261,8 @@ def main():
             round_trips=M.count_mode_round_trips(assign.reshape(T, C)),
             ref_weights_trusted=bool(ref.mode_weights_trusted))
 
-    npz_path, json_path = io.save_cell_result(result)
+    results_root = Path(args.results_root) if args.results_root else None
+    npz_path, json_path = io.save_cell_result(result, root=results_root)
 
     # ---- report -----------------------------------------------------------------
     m = result.metrics

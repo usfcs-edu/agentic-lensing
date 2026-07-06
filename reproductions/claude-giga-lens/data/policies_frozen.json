@@ -1,0 +1,428 @@
+{
+ "frozen_utc": "2026-07-06T22:08:27Z",
+ "protocol": "P2b pre-registered freeze: tuned ONLY on the dev split (T0 all five + gu2022 sys000-005 seed 0), <=8 configs per method, ledger data/policy_tuning_log.json. NO config changes for eval runs; Track B scales SCALE_KEYS x4 with config pinned.",
+ "grad_budgets": {
+  "T0": 200000.0,
+  "T1": 1500000.0
+ },
+ "track_b": "budget SCALE_KEYS x4, config frozen (sha_config)",
+ "s5_pocomc": "SKIPPED: pre-approved drop; S4 adaptive tempered SMC covers preconditioned SMC scientifically.",
+ "methods": {
+  "s0_baseline": {
+   "T0": {
+    "config": {
+     "n_map": 64,
+     "n_vi": 40,
+     "num_leapfrog": 8
+    },
+    "budget": {
+     "n_chains": 32,
+     "n_burn": 150,
+     "n_keep": 450
+    },
+    "sha_policy": "afb00fd7ec52e21e822ee5ada805099303ffe0dfac7e6af881f840e496e4e4ee",
+    "sha_config": "2ff5e23890180740c4bd28c0c71ef38c1d9ca36e3297b2103f3334f85757a406",
+    "rationale": "published recipe scaled to the 2e5 T0 cap: guard-floor SVI steps (150/dim) with n_vi=40, MAP 64x250; worst case t0_mix22 ~198k. illcond46 runs auto->precond_fixedL L=8 (32x600x8=154k)."
+   },
+   "T1": {
+    "config": {},
+    "budget": {
+     "n_chains": 50,
+     "n_burn": 250,
+     "n_keep": 750
+    },
+    "sha_policy": "37d003b772aaf12afb0fa6a0e2e8e755df60f7b52b443a60be48fb05304efb6c",
+    "sha_config": "46b68ac1696c3870d537f376868d9402400de28587e345264a77b65da09669be",
+    "rationale": "the published GIGA-Lens recipe verbatim (P2a-validated defaults; MAP 128x250, SVI 3300x200, 50-chain ChEES-PHMC): realized 0.83-1.0M grads on dev, under the 1.5M cap. The baseline anchor is intentionally untouched."
+   }
+  },
+  "bj_nuts": {
+   "T0": {
+    "config": {
+     "start": "svi",
+     "pool_params": "median",
+     "target_accept": 0.8,
+     "max_num_doublings": 6,
+     "is_mass_matrix_diagonal": true,
+     "initial_step_size": 0.1
+    },
+    "budget": {
+     "n_chains": 4,
+     "n_warmup": 400,
+     "n_keep": 400
+    },
+    "sha_policy": "d568f6946f326f2f5daeb3890532599c419f001cdd598383906d4fcbd518de7e",
+    "sha_config": "c68d9f9c62cf6b9e67fb2294a361d1b86f16627eb0737e4e13d927baa3b69c1b",
+    "rationale": "tree-depth cap 2^6 bounds worst-case grads at 4x800x63= 202k (uncapped illcond46 trial hit 6.1M); 4 deep chains beat more shallow ones on funnel/illcond geometry."
+   },
+   "T1": {
+    "config": {
+     "start": "svi",
+     "pool_params": "median",
+     "target_accept": 0.8,
+     "max_num_doublings": 6,
+     "is_mass_matrix_diagonal": true,
+     "initial_step_size": 0.1
+    },
+    "budget": {
+     "n_chains": 12,
+     "n_warmup": 400,
+     "n_keep": 450
+    },
+    "sha_policy": "a0fa16004b6841329752da3692ae0a5bfda3b7f4bd6c62da8ad5b54e6e8c4203",
+    "sha_config": "c68d9f9c62cf6b9e67fb2294a361d1b86f16627eb0737e4e13d927baa3b69c1b",
+    "rationale": "doublings-8 pilot: 2.82M grads (1.9x over cap, trees avg 126, ESS/grad 5.4e-4 = 15x below S0). Capped 2^6 x 12 chains x 850 steps bounds worst case at 643k + 692k init = 1.34M."
+   }
+  },
+  "bj_mclmc": {
+   "T0": {
+    "config": {
+     "adjusted": false,
+     "start": "svi",
+     "desired_energy_var": 0.0005,
+     "diagonal_preconditioning": true,
+     "mass": "auto",
+     "adj_step_scale": 1.0,
+     "adj_max_steps": 64,
+     "adj_target_min_steps": 2
+    },
+    "budget": {
+     "n_chains": 8,
+     "n_tune": 2000,
+     "n_steps": 11000
+    },
+    "sha_policy": "44b5349763bfb12ec7fba11875ee3ae95f55749f1b826398146f67f1c3338d3e",
+    "sha_config": "ed071bba1fecff95d24bded3f081bc7a5a807dc53e3b3219a335329020492a81",
+    "rationale": "unadjusted + tuner preconditioning, svi_diag fallback for the cond-1e14 tuner collapse (all-NaN trial); 2x8x11000+tune = 184-192k grads."
+   },
+   "T1": {
+    "config": {
+     "adjusted": false,
+     "start": "svi",
+     "desired_energy_var": 0.0005,
+     "diagonal_preconditioning": true,
+     "mass": "svi_diag",
+     "adj_step_scale": 1.0,
+     "adj_max_steps": 64,
+     "adj_target_min_steps": 2
+    },
+    "budget": {
+     "n_chains": 16,
+     "n_tune": 3000,
+     "n_steps": 25000
+    },
+    "sha_policy": "3749c675dd3afcda312bfec13348d225376e0148afd4550fdd655cd7eccef2b4",
+    "sha_config": "5f7bb18635253ce0b9a609b53186efbe3f486dfff5cef0236a1bdab4a7cd0e22",
+    "rationale": "tuner-preconditioned pilot FAILED (R-hat 8.0, ESS 16); svi_diag-seeded tuner: ESS 6001, R-hat 1.004, ESS/grad 4.0e-3 at exactly 1.5M grads."
+   }
+  },
+  "bj_smc": {
+   "T0": {
+    "config": {
+     "target_ess": 0.6,
+     "num_mcmc_steps": 3,
+     "hmc_num_integration_steps": 5,
+     "hmc_step_size": 0.15,
+     "mass": "svi",
+     "max_lambda_steps": 200,
+     "n_pseudo_chains": 8
+    },
+    "budget": {
+     "n_particles": 1000
+    },
+    "sha_policy": "790d3444447063a8f2256b700ce54b13c249be0557937455507f760a7dc81219",
+    "sha_config": "bbd8dc21432b1462ef9572b4e897032785d4b9e3bc1d1a6172d4160596ce814c",
+    "rationale": "M=3/L=5/ess0.6 halves the pilot's 561k (M4/L8/ess0.7) to ~190k; logZ err 0.02 on mix2 pilot; svi mass free on T0 analytic bundle per protocol."
+   },
+   "T1": {
+    "config": {
+     "target_ess": 0.7,
+     "num_mcmc_steps": 3,
+     "hmc_num_integration_steps": 4,
+     "hmc_step_size": 0.15,
+     "mass": "svi",
+     "max_lambda_steps": 250,
+     "n_pseudo_chains": 8
+    },
+    "budget": {
+     "n_particles": 384
+    },
+    "sha_policy": "fb3f3d8cc5d00d6c8ec623f2c2c05c846ebe13876ccf12da56bd4263aa7ffe7d",
+    "sha_config": "b06933c059efb2e4a017c4f85258d94862973a0c29b2ecc94022a6f33832a6ad",
+    "rationale": "particle count is MEMORY-bounded (~21MB/particle w/ grad; 1200 = 24.3GiB OOM); pilot at M=8/L=10 hit lambda=1 in 110 steps but 4.1M grads (2.7x over) -> M=3/L=4 lands ~550k-1.25M (cap 250 lambda-steps). logZ machine, not an ESS contender on T1."
+   }
+  },
+  "flowmc_runner": {
+   "T0": {
+    "config": {
+     "start": "prior",
+     "mala_step_size": 0.6,
+     "rq_spline_hidden_units": [
+      64,
+      64
+     ],
+     "rq_spline_n_bins": 8,
+     "rq_spline_n_layers": 4,
+     "n_epochs": 8,
+     "batch_size": 1024,
+     "n_max_examples": 30000,
+     "learning_rate": 0.001,
+     "verbose": false
+    },
+    "budget": {
+     "n_chains": 32,
+     "n_local_steps": 100,
+     "n_global_steps": 60,
+     "n_training_loops": 12,
+     "n_production_loops": 12
+    },
+    "sha_policy": "bef996bf2c4fde192c247c4450d425d9d0422b1e79a54380d0815066c28e71d8",
+    "sha_config": "c29d695544cad4da1a34ddd23ff82be09495c48efde38fee96dcf9f3edead44d",
+    "rationale": "prior starts + flow global moves recover both mix2 modes (410 round trips, trial); grads 77k << cap (flowMC cost is flow training wallclock, not target grads)."
+   },
+   "T1": {
+    "config": {
+     "start": "svi",
+     "mala_step_size": 0.003,
+     "rq_spline_hidden_units": [
+      64,
+      64
+     ],
+     "rq_spline_n_bins": 8,
+     "rq_spline_n_layers": 4,
+     "n_epochs": 8,
+     "batch_size": 1024,
+     "n_max_examples": 30000,
+     "learning_rate": 0.001,
+     "verbose": false
+    },
+    "budget": {
+     "n_chains": 50,
+     "n_local_steps": 150,
+     "n_global_steps": 50,
+     "n_training_loops": 15,
+     "n_production_loops": 15
+    },
+    "sha_policy": "5ddf8177d98d51bdca8e9a43d0c72fbac638579c5bc01643cca4711e05d68b89",
+    "sha_config": "26696f40dd17a02de4fde6b5a8a36e1083b9ed8f083d3c2a5cc50e5e3438bd5e",
+    "rationale": "HONEST FAILURE REGISTERED: scalar MALA acceptance ~0 at both 0.05 and 0.003 on the ill-conditioned 22-dim z-space (R-hat ~2, ESS/grad 7e-5, ~100x below S0); flowMC 0.4.5 exposes no per-dimension local preconditioning. Frozen at 0.003 (marginal best of the two ledgered trials)."
+   }
+  },
+  "nautilus_runner": {
+   "T0": {
+    "config": {
+     "n_live": 1000,
+     "n_networks": 4,
+     "n_batch": 256,
+     "f_live": 0.01,
+     "discard_exploration": false,
+     "n_pseudo_chains": 8,
+     "xz_check_tol": 0.002
+    },
+    "budget": {
+     "n_eff": 2000,
+     "n_like_max": 400000
+    },
+    "sha_policy": "1a6ef9b1bba32b52dfafa772a4a43b4197041b973bd086d045deaf9230f80de6",
+    "sha_config": "a941b7fb9d356704835d3677646253cd4f6933ea62e2db1d76d499358a1e25e4",
+    "rationale": "pilot: mix2 modes 0.799/0.201, logZ err 0.005 at 13.8k evals; cap = 2x grad budget per gradient-free protocol."
+   },
+   "T1": {
+    "config": {
+     "n_live": 1000,
+     "n_networks": 4,
+     "n_batch": 512,
+     "f_live": 0.01,
+     "discard_exploration": false,
+     "n_pseudo_chains": 8,
+     "xz_check_tol": 0.002
+    },
+    "budget": {
+     "n_eff": 2000,
+     "n_like_max": 3000000
+    },
+    "sha_policy": "72598e6eba45e1af5a4602f1c1a40d96c38f5b1af539b25f57c7247d2793771e",
+    "sha_config": "4c6425e316bb85ff8a7981c9e4752b7dde99863587c765863a6b0ddbdcd363cd",
+    "rationale": "WALLCLOCK-bounded: the n_live=2000 pilot exceeded 1.5h (sklearn network phases dominate); n_live=1000/n_eff=2000 halves the shell/posterior work. Like-eval cap = 2x grad budget per the gradient-free protocol."
+   }
+  },
+  "remc_pt": {
+   "T0": {
+    "config": {
+     "n_replicas": 6,
+     "beta_min": 0.01,
+     "num_leapfrog": 5,
+     "eps0": 0.3,
+     "eps_scale_power": -0.5,
+     "eps_max": 2.0,
+     "start": "svi",
+     "mass": "svi"
+    },
+    "budget": {
+     "n_chains": 8,
+     "n_burn": 200,
+     "n_keep": 600
+    },
+    "sha_policy": "4c3f565401787f82943c9c229f80b381ef5a3d5eb3d0704ae67ee6c71c451d47",
+    "sha_config": "3ef388da4b31559d899bddce8d6b2cffb44be8b5758f293defcff50f8ffa4e00",
+    "rationale": "pilot (L=8, 307k grads) -> L=5 lands 192k; mix2 occupancy 0.818/0.182 with 220 round trips, swap acc ~0.65."
+   },
+   "T1": {
+    "config": {
+     "n_replicas": 6,
+     "beta_min": 0.2,
+     "num_leapfrog": 8,
+     "eps0": 0.2,
+     "eps_scale_power": -0.5,
+     "eps_max": 2.0,
+     "start": "svi",
+     "mass": "svi"
+    },
+    "budget": {
+     "n_chains": 8,
+     "n_burn": 400,
+     "n_keep": 1700
+    },
+    "sha_policy": "d671ae314fea7d88ad5fdc62368e30a154f783b3c5ff22e6646f9bbf440c8d7b",
+    "sha_config": "bd414c24317dc932eb44f51ae7c48d3d3d98864ac5df4bff97fe806055ea4ac8",
+    "rationale": "beta_min=0.01 ladder: swap acc ~0.04 (too coarse vs the informative T1 likelihood); beta_min=0.2: swap acc ~0.46/pair, ESS 2736, R-hat 1.002, ESS/grad 1.8e-3 at 1.5M. Shallower tempering range = less basin-hopping reach (T3-class work should re-deepen the ladder with more replicas)."
+   }
+  },
+  "neutra": {
+   "T0": {
+    "config": {
+     "n_flow_train": 4096,
+     "flow_layers": 6,
+     "knots": 8,
+     "interval": 5.0,
+     "nn_width": 64,
+     "nn_depth": 1,
+     "max_epochs": 100,
+     "max_patience": 8,
+     "flow_batch": 256,
+     "flow_lr": 0.0003,
+     "eps0": 0.3,
+     "init_l": 3,
+     "max_leapfrog": 30,
+     "use_gbtla": true,
+     "target_accept": null,
+     "adapt_frac": 0.8,
+     "start_scale": 1.0
+    },
+    "budget": {
+     "n_chains": 32,
+     "n_burn": 250,
+     "n_keep": 1250
+    },
+    "sha_policy": "4ff71e594cec042a57e1afa85d5e0035e34f73760a7ac19e02c67a44e9dde775",
+    "sha_config": "b84e98f51ce1a4d689336e0c8c2f5f8b690401ca0cfae80014fe7ef53ff1bef4",
+    "rationale": "SVI-flow pullback ChEES; ~2 leapfrogs/step -> ~100-190k grads; known + accepted: inherits the SVI mode bias (mix2 trial 1.000/0.000 -- the documented NeuTra failure)."
+   },
+   "T1": {
+    "config": {
+     "n_flow_train": 8192,
+     "flow_layers": 4,
+     "knots": 6,
+     "interval": 5.0,
+     "nn_width": 64,
+     "nn_depth": 1,
+     "max_epochs": 60,
+     "max_patience": 8,
+     "flow_batch": 512,
+     "flow_lr": 0.0003,
+     "eps0": 0.3,
+     "init_l": 3,
+     "max_leapfrog": 20,
+     "use_gbtla": true,
+     "target_accept": null,
+     "adapt_frac": 0.8,
+     "start_scale": 1.0
+    },
+    "budget": {
+     "n_chains": 48,
+     "n_burn": 250,
+     "n_keep": 700
+    },
+    "sha_policy": "13c9e2c7b1de79d9c0734ba18177e199a18ff6149c9492dc88c4ad9dfce54ac7",
+    "sha_config": "a36cd35440c0d119a9927af4f5741eb644be546d0568b41f4ccca22a5eeebaa4",
+    "rationale": "trial 1 (6 layers/8 knots/4096 pts): spline roughness collapsed eps to 0.033, R-hat 1.32, ESS 159. Frozen: smoother flow (4 layers/6 knots/8192 pts/60 epochs) + leapfrog cap 20; best-of-ledgered-trials under the <=8 config cap."
+   }
+  },
+  "glnt": {
+   "T0": {
+    "config": {
+     "anneal_init": "prior",
+     "n_particles": 600,
+     "target_ess": 0.6,
+     "num_mcmc_steps": 3,
+     "hmc_num_integration_steps": 5,
+     "hmc_step_size": 0.2,
+     "mass": "svi",
+     "max_lambda_steps": 100,
+     "flow_layers": 6,
+     "knots": 8,
+     "interval": 5.0,
+     "nn_width": 64,
+     "nn_depth": 1,
+     "max_epochs": 100,
+     "max_patience": 8,
+     "flow_batch": 256,
+     "flow_lr": 0.0003,
+     "eps0": 0.3,
+     "init_l": 3,
+     "max_leapfrog": 12,
+     "use_gbtla": true,
+     "target_accept": null,
+     "adapt_frac": 0.8,
+     "start_scale": 1.0
+    },
+    "budget": {
+     "n_chains": 20,
+     "n_burn": 200,
+     "n_keep": 600,
+     "n_particles": 600
+    },
+    "sha_policy": "9840bd9d0ec63b68b9848e3e0cbc0abd1c4fe09c59d829ddc7a1e96d5a36970a",
+    "sha_config": "48ce7def1e6b474cc8b28f40016993f8155311f40e09ac87eede85025c4a00f1",
+    "rationale": "prior-path anneal (mode discovery: mix2 0.778/0.222 vs SVI-path collapse) -> NSF -> ChEES capped at 12 leapfrogs (bimodal pullback pushes ChEES long); ~180-250k grads."
+   },
+   "T1": {
+    "config": {
+     "anneal_init": "svi",
+     "n_particles": 384,
+     "target_ess": 0.6,
+     "num_mcmc_steps": 3,
+     "hmc_num_integration_steps": 5,
+     "hmc_step_size": 0.2,
+     "mass": "svi",
+     "max_lambda_steps": 100,
+     "flow_layers": 4,
+     "knots": 6,
+     "interval": 5.0,
+     "nn_width": 64,
+     "nn_depth": 1,
+     "max_epochs": 60,
+     "max_patience": 8,
+     "flow_batch": 128,
+     "flow_lr": 0.0003,
+     "eps0": 0.3,
+     "init_l": 3,
+     "max_leapfrog": 20,
+     "use_gbtla": true,
+     "target_accept": null,
+     "adapt_frac": 0.8,
+     "start_scale": 1.0
+    },
+    "budget": {
+     "n_chains": 40,
+     "n_burn": 250,
+     "n_keep": 750,
+     "n_particles": 384
+    },
+    "sha_policy": "54bc2647250b2128cdb0d4cb9c6ddd163bce01c18e19de1117bea62107f8ac9f",
+    "sha_config": "afb60ccf8007005dffed728927ab6cfa31c1e0d44ee0f10cc94e434e0a627005",
+    "rationale": "prior-path anneal is infeasible on T1 (lambda=0.198 after 100 steps / 54 min -- the likelihood is too informative for a SHORT prior anneal); svi-path anneal converges in 5 lambda-steps (valid logZ for the same integral). Flow smoothed like neutra (trial: 6L/8k flow gave eps 0.021, R-hat 1.65). T0 keeps anneal_init=prior for mode discovery -- the tier split is the recipe finding."
+   }
+  }
+ }
+}
