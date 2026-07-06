@@ -227,6 +227,26 @@ large ≈ base → signal mostly linear in AION space at ~3.9k train rows. Detai
 `outputs/aion_probe/RESULTS.md`; script `eval/aion_probe.py` (extract|probe). Committed c073b9e.
 Remaining for continuity: score the SAME probe on the frozen 72-gate (Claude bars 0.823/54%) — in flight.
 
+## Phase E CORRECTIVE — probe does NOT transfer to the frozen gate: pool-covariate contamination (2026-07-06)
+The AION probes scored on the frozen 72-gate (identical saved heads, leak-free, 72/72 pixels): **AUC
+0.59–0.66, recovery 3.8–19.2% — below BOTH frozen bars** (Claude 0.823/54%; zero-shot 27B 0.823/50%).
+Diagnostic (median scores, same head): separation collapses from BOTH sides — gate randoms score HIGHER
+than corpus hard negatives (0.32 vs 0.17) and gate lenses LOWER than corpus lenses (0.50 vs 0.60). That is
+the signature of the probe partially learning **corpus-construction covariates** (source-pool signatures of
+the XVI-reject negative pool / SuGOHI positive pool), not pure lens morphology.
+
+**Revised conclusions (apply to EVERYTHING trained on corpus_v5, incl. the VLM fine-tunes):**
+1. corpus_v5 carries genuine signal, but **test2/valsel numbers are upper bounds inflated by shared pool
+   construction** — within-corpus transfer ≠ deployment transfer.
+2. **New standing rule: CROSS-POOL evaluation is mandatory** — every corpus-trained model gates on the
+   frozen 72-gate (different pools by construction) in addition to test2; corpus-internal numbers are
+   selection metrics only.
+3. **Corpus v5.1 fix (launched):** dilute the negative pool — add random-field HSC negatives (offset
+   positions in-footprint) + GALAXY CRUISE mimics (a third, independent pool) to train; rebuild eval sets
+   with cross-pool composition. The XVI rejects stay (genuinely hard) but must not be the only negative
+   signature.
+4. The 9B/27B fine-tune verdicts must now be read primarily on the 72-gate, not valsel/test2.
+
 ## Phase C groundwork (2026-07-03; zero-GPU, catalogs in gitignored cache, curl-regenerable)
 HOLISMOKES tables pulled + profiled: paperVI 467 rows; paperXIII 162+384; **paperXVI 14,152 expert-graded
 rows: 598 A/B-like positives (G≥1.5) + 12,880 expert REJECTS (G<1.0) with continuous G scores (0–3,
