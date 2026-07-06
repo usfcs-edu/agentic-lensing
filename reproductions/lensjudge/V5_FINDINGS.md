@@ -205,6 +205,28 @@ HSC-native population is emerging from the corpus; the collapse fix (per-example
 validated as the enabling change. Next: run to completion → full AUC curve → merge best → test2 + frozen
 72-gate; 27B bf16 (queued) should start higher and go further; dihedral augmentation queued for run-3.
 
+## ★★ Phase E experiment №1 — AION-1 frozen-encoder probe: the corpus is GOLD (2026-07-06)
+AION-1 ran NATIVELY on our HSC cache (its released HSCImage codec expects exactly our pdr3_wide pixels;
+0/6,141 rows skipped; frozen encoder, mean-pooled tokens; gpu3 GPU 2). Linear + MLP probes trained on the
+corpus (1,382 lens vs 2,509 expert rejects; softmid excluded), selected on valsel:
+
+| encoder | probe | valsel AUC | test2 AUC | test2 recovery @ rej≈0.91 |
+|---|---|---|---|---|
+| aion-base | logreg | 0.751 | **0.840** | 55.0% |
+| aion-large | logreg | 0.773 | **0.841** | **59.2%** |
+| aion-base | MLP-256 | 0.795 | 0.823 | 55.8% |
+| *zero-shot Qwen3.5-27B* | — | — | *0.563* | *15%* |
+| *9B LoRA run-2b (interim)* | *0.572 valsel, rising* | — | — | — |
+
+**A LINEAR head on frozen domain embeddings beats every VLM number we have on the HSC-native population
+by a wide margin.** Consequences: (1) corpus/renders/labels validated — strong, linearly decodable signal
+(the VLM memorize-not-generalize is a training/representation problem, not data); (2) the decomposed
+architecture is now the LEADING tier-2 scorer candidate: AION+head p_lens (and kNN retrieval) as tools,
+the VLM as adjudicator/rationale-writer — exactly the plan's Phase E composition; (3) MLP ≤ linear and
+large ≈ base → signal mostly linear in AION space at ~3.9k train rows. Details/deviations in
+`outputs/aion_probe/RESULTS.md`; script `eval/aion_probe.py` (extract|probe). Committed c073b9e.
+Remaining for continuity: score the SAME probe on the frozen 72-gate (Claude bars 0.823/54%) — in flight.
+
 ## Phase C groundwork (2026-07-03; zero-GPU, catalogs in gitignored cache, curl-regenerable)
 HOLISMOKES tables pulled + profiled: paperVI 467 rows; paperXIII 162+384; **paperXVI 14,152 expert-graded
 rows: 598 A/B-like positives (G≥1.5) + 12,880 expert REJECTS (G<1.0) with continuous G scores (0–3,
