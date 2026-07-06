@@ -43,6 +43,21 @@ MAP_MARG_PD = FOUNDRY_I_DATA / "map_marg_pd.npz"                 # 46-dim PD mod
 HESS_MARG_PD = FOUNDRY_I_DATA / "hess_marg_pd.npz"
 HMC_V13_V3B = FOUNDRY_I_DATA / "hmc_v13_v3b.npz"                 # T3 bimodal reference chains
 
+# --- P2a additions (zoo/benchmark; constants only, per the P0 freeze) --------
+GU2022_MOCKS = GU2022 / "data" / "mocks"                 # system_XXX.npz (12 mocks)
+GU2022_FITS = GU2022 / "data" / "fits"                   # system_XXX_fit.npz (T1 reference)
+SVI_V12_V3BR = FOUNDRY_I_DATA / "svi_v12_v3br.npz"       # T3 SVI loc/cov (paper-scale run input)
+MAP_V11_V3B_COLD = FOUNDRY_I_DATA / "map_v11_v3b_cold.npz"     # 74-dim MAP, gamma~1.465
+MAP_V11_V3B_COLD2D = FOUNDRY_I_DATA / "map_v11_v3b_cold2d.npz"  # 74-dim MAP, gamma~1.369
+MAP_V11_V3B_WARM = FOUNDRY_I_DATA / "map_v11_v3b_warm.npz"     # 74-dim MAP, gamma~2.672
+LONG_DIAGRAW = tuple(FOUNDRY_I_DATA / f"long_diagraw_s{i}.npz" for i in range(8))
+                                                          # T2 long-chain reference (8 seeds)
+RESULTS = DATA / "results"                                # per-cell benchmark results (gitignored)
+ZOO_FREEZE = DATA / "zoo_freeze.json"                     # THE zoo freeze artifact (20_build_zoo)
+ZOO_FREEZE_PARTS = DATA / "zoo_freeze.parts"              # per-target worker outputs
+ZOO_VALIDATION = DATA / "zoo_validation.json"             # 21_validate_zoo report
+PARITY_REPORT = DATA / "parity_report.json"               # P0 gate evidence (stored T2 logp)
+
 
 def bootstrap_vendor() -> None:
     """Put the vendored gigalens-sean first on sys.path (shadows any pip install).

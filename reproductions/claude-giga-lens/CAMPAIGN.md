@@ -41,6 +41,36 @@ Committed: 0.0 / 90 (hard stop 100).
 
 ## Stage log
 
+### P2a — 2026-07-06 (COMPLETE, all 4 gates PASS)
+- Zoo frozen: 19 targets (5 T0 + 12 T1 + T2 + T3; T4 stub), 3 seeded z-points each with logp
+  + sha256 in data/zoo_freeze.json; cross-process re-checks bit-identical incl. f64 A16↔L4.
+- Validation gates: (i) T1 zoo vs direct construction BIT-LEVEL 0.0 (sys000+003, 8 pts);
+  (ii) T2 logp(qz_refined) = −45840.984005998456 = parity value exactly (L4); equals stored
+  npz bit-for-bit on A16 (the 6.5e-11 was pure L4↔A16 drift — now fully explained);
+  (iii) T3 mass_* bijector reproduction 0.0; basins measured from stored chains:
+  45 low (γ̄=1.2939) / 3 steep (γ̄=**2.4159** — CORRECTION: briefed "≈1.5" was wrong; zoo
+  Reference records the measured value), zero γ=1.8 crossings/round trips;
+  (iv) T0 analytics all pass (logZ to 4.2e-14 f64); (v) prior+like==prob worst 4.9e-8 f32.
+- S0 baseline validated end-to-end; documented pathologies visible: t0_mix2 occupancy
+  0.951/0.049 vs true 0.8/0.2 (the mode-collapse the recipe must fix); sys003 γ min-ESS 179
+  (ChEES) / 99 (stored-fit config) vs light-params ~1255.
+- **STACK DEFECT #3**: jaxlib 0.6.2 XLA triton GEMM aborts on tiny f32 dots (dim-2 SVI) on
+  L4 @ autotune-0 → all zoo processes set --xla_gpu_enable_triton_gemm=false
+  (cgl/zoo/runtime.py, f64 immune). Freeze rebuilt under final flags.
+- **METRICS BUG CAUGHT (would have corrupted the whole benchmark)**: arviz axes fed
+  (draw,chain) as (chain,draw) silently hides stuck chains (known-R̂-2.07 fit came back
+  1.00). Fixed in cgl/metrics.py + regression-pinned; all cell metrics recomputed.
+- **gu-2022 archive finding**: stored fit phys_labels are per-block REVERSED vs true z-leaf
+  order (block-contiguous, so archived mass-set aggregates fine; per-param attribution within
+  blocks reversed). Zoo uses probed labels. Flag upstream to gu-2022/foundry eventually.
+- sys003 pathology attribution: archived severity partly the SHORT-SVI preconditioner
+  (Bug-2 class); under guard-mandated schedule the pathology persists but milder — the P2b
+  baseline is therefore the HONEST (stronger) variant.
+- T2 reference wired: long_diagraw_s0..7 (8×8000, per-chain ess_min 3.5–7.4, mixing caveats
+  recorded). Adapter API frozen for P2b (run_cell + freeze-point fidelity assert; batch-size
+  warmup contract; single-dtype-per-process via cgl/zoo/runtime.setup_process_env).
+- Cost: ~2.3 L4-h + ~10 A16-min. Tests: 73 CPU + 10 GPU green.
+
 ### P1a — 2026-07-06 (COMPLETE, all gates PASS)
 - 02 kernels (model-subtracted, guard-enforced): fit residual v2d 0.0448 / v3 0.0270 /
   v3b 0.0326 (gate ≤0.05). Drizzle anchor: enumerated t(1)=0.76799 vs closed form 0.76805
