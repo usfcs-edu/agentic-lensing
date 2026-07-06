@@ -196,6 +196,15 @@ were caught and replaced first)**. Phase E's AION-1 frozen-encoder probe launche
 (GPU 2): a small head cannot memorize like LoRA — if it generalizes from the same corpus, the corpus is
 good and VLM-SFT is the bottleneck; if it also sits at ~0.55, investigate corpus/renders/labels.
 
+## Phase D run №2 UPDATE (2026-07-05 evening) — the unique-target recipe LEARNS
+Run-2b valsel AUC trajectory: 75: 0.481 · 150: 0.493 · 225: 0.508 · 300: **0.554** · 600: 0.563 ·
+750: **0.572 — monotonically rising, no peak yet, at 55% of training.** 0.572 already exceeds the
+zero-shot 27B's test2 0.563 on the same population construction — from a 9B trained on one Titan RTX.
+The ckpt-225 "all-D" snapshot was pre-signal (full LR from step 136 only). Generalization on the
+HSC-native population is emerging from the corpus; the collapse fix (per-example unique targets) is
+validated as the enabling change. Next: run to completion → full AUC curve → merge best → test2 + frozen
+72-gate; 27B bf16 (queued) should start higher and go further; dihedral augmentation queued for run-3.
+
 ## Phase C groundwork (2026-07-03; zero-GPU, catalogs in gitignored cache, curl-regenerable)
 HOLISMOKES tables pulled + profiled: paperVI 467 rows; paperXIII 162+384; **paperXVI 14,152 expert-graded
 rows: 598 A/B-like positives (G≥1.5) + 12,880 expert REJECTS (G<1.0) with continuous G scores (0–3,
