@@ -26,7 +26,8 @@ DTYPE="${DTYPE:-float16}"         # Turing: float16; A100: bfloat16
 FREEZE_VIT="${FREEZE_VIT:-true}"
 FREEZE_ALIGNER="${FREEZE_ALIGNER:-${FREEZE_VIT}}"
 VIT_LR="${VIT_LR:-}"
-QUANT_BITS="${QUANT_BITS:-4}"     # "" -> no quantization (e.g. bf16 LoRA on A100)
+QUANT_BITS="${QUANT_BITS-4}"      # unset -> 4; EMPTY ("") -> no quantization (bf16 LoRA on A100).
+                                  # NB: ${VAR-def} not ${VAR:-def} — ":-" would clobber the empty opt-out.
 SWIFT="${SWIFT:-/home2/benson/.venvs/ljtrain/bin/swift}"
 
 export CUDA_VISIBLE_DEVICES="${GPU}"
