@@ -271,6 +271,27 @@ corpus v5.1 cross-pool negatives (random-field fetched); (3) student+probe compo
 profiles are plausibly complementary); (4) WiSE-FT dial for the conservative bias (rejection 96–97% caps
 recovery).
 
+## ★★★ MILESTONE — the Claude-free student MATCHES the frozen Claude bar (2026-07-06)
+Scoring the SAME trained 9B (ckpt-825) with the PRE-SPECIFIED A0 logprob method (grade-token
+distribution; 72/72 coverage) instead of the generated p_lens:
+
+| scorer (72-gate, honest cross-pool) | AUC | recovery @ rej 0.89 |
+|---|---|---|
+| student ckpt-825, generated p_lens | 0.743 | 42% (@0.96) |
+| **student ckpt-825, LOGPROB score** | **0.858** | **50%** |
+| frozen Claude bar | 0.823 | 54% |
+| zero-shot 27B bf16 | 0.823 | 50% (@0.91) |
+| compositions (rank-mean with AION probe) | 0.80–0.85 | — (don't beat student-lp alone) |
+
+**A fully Claude-free 9B — trained on the human-labeled corpus on ONE Titan RTX, scored with the
+pre-registered logprob method — matches (nominally exceeds) the frozen Claude bar on the honest gate:
+AUC 0.858 vs 0.823, recovery 50% vs 54% at matched rejection.** Caveats stated plainly: n=72 (26 lenses)
+→ AUC s.e. ≈ ±0.06, so "matches within noise" is the defensible claim, and the logprob scorer, while
+pre-specified in A0 (not searched here), still deserves confirmation on the larger cross-pool bench that
+corpus v5.1 will provide. The +0.115 logprob-over-generated gap confirms the research finding that
+generated confidence floats discard signal the token distribution retains. This is plan milestone 2 at
+the "matches" level — with the 27B fine-tune, augmentation, and v5.1 still unplayed as upside.
+
 ## Phase C groundwork (2026-07-03; zero-GPU, catalogs in gitignored cache, curl-regenerable)
 HOLISMOKES tables pulled + profiled: paperVI 467 rows; paperXIII 162+384; **paperXVI 14,152 expert-graded
 rows: 598 A/B-like positives (G≥1.5) + 12,880 expert REJECTS (G<1.0) with continuous G scores (0–3,
