@@ -41,6 +41,10 @@ Charging note: debug QOS allocates the node exclusively (4 A100s billed even at
 | P0 env gate | 2026-07-06 | PASS | 147 pkgs frozen, jax 0.6.2 GPU, all sampler libs import | jax-upgrade incident fixed via constraints.txt |
 | P0 parity A–E | 2026-07-06 | PASS | A 6.2e-17 (thr 1e-12), B 0.0 (1e-8), C 0.0 (1e-8), D 0.0 (1e-10), E 0.0 (1e-10) | cgl vs foundry-i `_hmc_lib_marg`, both on vendored lib, L4, f64; data/parity_report.json. INFO: stored pip-era MAP logp reproduced to 6.5e-11; gu-2022 f32 forward image 1.5e-6 rel |
 | P0 sampler smoke | 2026-07-06 | PASS 8/8 | NUTS+window 12.6s, MCLMC(un+adj), adaptive tempered SMC (λ→1, finite logZ), TFP REMC, flowMC RQSpline_MALA, flowjax MAF fit, nautilus logZ within 1.0 | blackjax 1.3 fine on jax 0.6.2 — 1.2.5 fallback NOT needed. See XLA defect below |
+| E1a artifact | 2026-07-07 | **PASS** | median \|z(γ)\|=5.84 (gate >2), cov68=0 (gate <40%) | diag likelihood on drizzle-correlated fine mocks: ARTIFACT REPRODUCED — the pillar's motivating effect, demonstrated with known truth |
+| E1b recovery | 2026-07-07 | **FAIL (confounded)** | fine z̄=−0.654 / binned +1.22 (gate \|z̄\|<0.5); cov68 0.57/0.375 | outlier z's coincide with UNHEALTHY fits (R̂ ≤2.1, minESS 54–238 at reduced budget) — gate confounded by sampler depth; diagnosis pass launched before any Perlmutter spend |
+| E1c SBC | 2026-07-07 | **FAIL (γ only)** | γ rank p=6.5e-5 (16/44 first bin), γ cov68=0.34; other 5 params PASS rank gate; pooled cov68 0.49 vs [55,80] | candidate causes: under-mixing vs delta-regularized near-singular fine-kernel calibration (K_reg=(K+0.1δ)/1.1 QC remediation) — analytic-kernel arm + deep rerun will separate them |
+| E1d whitener arbitration | 2026-07-07 | **NOT RUN** | no fits in any arm | UNDECIDED; included in diagnosis pass |
 
 ## Stage log
 
@@ -80,6 +84,17 @@ Charging note: debug QOS allocates the node exclusively (4 A100s billed even at
   template probe (the e2/e1 reorder trap again).
 - S5 pocoMC skipped (pre-approved). Matrix launching: 135 T0 + 54 dev-final + 162 eval
   cells, frozen policies, resumable queues on CUDA 9 + A16 0-3.
+- Interim (94/351): structured failures all diagnosed — SMC/glnt PRIOR-anneal cannot bridge
+  cond-1e14 (~1e16-nat range) on t0_illcond46 (pre-registered failure flag, not a bug);
+  nautilus shells defeated by cond-1e14 (<8 equal-weight pts in 74 min → failure-flag guard).
+  Signal: nautilus dominates T0 ESS/grad (2.9–169×), mclmc 17× on funnel, S0-precond owns
+  illcond46; ON EVAL T1 NOTHING BEATS S0 YET under budget parity (mclmc-svidiag closest).
+  Mixture mode recovery: remc/flowmc/nautilus/glnt recover both modes; S0 collapses.
+- **DEVIATION (accepted 2026-07-07)**: Track-A wall-time ~12–16h (frozen T1 budgets ≈25–40
+  min/cell on A16 × 351 cells / 5 GPUs); Track B scope-reduced to S0 + 3 best contenders,
+  seed 0 only, T1 eval systems. Rationale: 3-seed ESS/grad medians already come from Track A;
+  Track B's until-converged story on the targets that matter most (T2/T3) is P2c's A100 job.
+  Perlmutter budget untouched.
 
 ### P2a — 2026-07-06 (COMPLETE, all 4 gates PASS)
 - Zoo frozen: 19 targets (5 T0 + 12 T1 + T2 + T3; T4 stub), 3 seeded z-points each with logp

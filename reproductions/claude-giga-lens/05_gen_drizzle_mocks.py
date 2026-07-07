@@ -70,7 +70,20 @@ CORE_MASK_ARC = 0.20              # mirrors 40/40b real-product core mask
 N_MOCKS = 8
 
 
-def build_sims(psf, psf_eff):
+def parse_range(spec):
+    """'8-63' -> [8..63]; '5' -> [5]; '1,3,7-9' -> [1,3,7,8,9]."""
+    out = []
+    for part in str(spec).split(","):
+        part = part.strip()
+        if "-" in part:
+            a, b = part.split("-")
+            out.extend(range(int(a), int(b) + 1))
+        elif part:
+            out.append(int(part))
+    return out
+
+
+def build_sims(psf, psf_eff, with_shapelets=False):
     bootstrap_vendor()
     import jax
 
@@ -99,11 +112,25 @@ def build_sims(psf, psf_eff):
                           supersample=1, kernel=psf)
     cfg_eff = SimulatorConfig(delta_pix=FINE_PIX, num_pix=FINE_RENDER,
                               supersample=1, kernel=psf_eff)
-    return dict(
+    sims = dict(
         full=LensSimulator(pm_full, cfg, bs=1),
         ll=LensSimulator(pm_ll, cfg, bs=1),
         full_eff=LensSimulator(pm_full, cfg_eff, bs=1),
     )
+    if with_shapelets:
+        # E1c marg arm: additive shapelet source component (n_max=4),
+        # rendered separately (linear) so the Sersic-only sims are untouched.
+        from gigalens.jax.profiles.light import shapelets as shp_profile
+
+        from cgl.e1 import SHAPELET_NMAX
+
+        pm_shp = PhysicalModel(
+            [epl.EPL(50), shear.Shear()], [],
+            [shp_profile.Shapelets(n_max=SHAPELET_NMAX, use_lstsq=False,
+                                   interpolate=False)])
+        sims["shp"] = LensSimulator(pm_shp, cfg, bs=1)
+        sims["shp_eff"] = LensSimulator(pm_shp, cfg_eff, bs=1)
+    return sims
 
 
 def arc_snr(arc_only, err_map):
@@ -114,12 +141,121 @@ def arc_snr(arc_only, err_map):
     return float(arc_only[mask].sum() / np.sqrt((err_map[mask] ** 2).sum()))
 
 
+def gen_e1d(seeds, out_json):
+    """E1d realism arm (P1b): 16 native-scale realizations with noise drawn
+    from the REAL v2d fitted kernel on the mock native scene, using the REAL
+    v2d keep-mask geometry (central 70^2 port) so whitener erosion loss is
+    realistic. Single frame at offset (2,2) — the exactly-centered frame,
+    matching the cropped v2d mask center (34.5, 34.5)."""
+    t0 = time.time()
+    outdir = DATA / "mocks"
+    outdir.mkdir(parents=True, exist_ok=True)
+
+    psf = np.load(Path(VENDOR_SRC) / "gigalens" / "assets" / "psf.npy")
+    psf = (psf / psf.sum()).astype(np.float64)
+    pipe = DrizzleMockPipeline()
+    psf_eff = effective_fine_psf(psf, pipe, half=(psf.shape[0] // 2) + 3)
+    sims = build_sims(psf, psf_eff)
+
+    from cgl import exact_ref
+    from cgl.paths import CUTOUT_V2D, load_product
+
+    kz = np.load(DATA / "noise_kernel_v2d.npz")
+    kmeta = json.loads(str(kz["meta"]))
+    guards.assert_model_subtracted_sky(kmeta)
+    rho = kz["rho_kernel"].astype(np.float64)
+
+    v2d = load_product(CUTOUT_V2D)
+    n_v2d = v2d["keep_mask"].shape[0]
+    c0 = (n_v2d - 70) // 2                       # 5: central 70^2 port
+    keep_port = v2d["keep_mask"][c0:c0 + 70, c0:c0 + 70].copy()
+    oy = ox = 2                                  # exactly-centered frame
+    c_glob = (FINE_RENDER - 1) / 2.0
+    cy = (c_glob - 1.0 - oy) / 3.0
+    cx = (c_glob - 1.0 - ox) / 3.0
+    yy, xx = np.indices((70, 70))
+    r_arc = np.hypot(yy - cy, xx - cx) * NATIVE_PIX
+    keep = keep_port & (r_arc > CORE_MASK_ARC)
+
+    import jax
+
+    report = dict(generated_by="05_gen_drizzle_mocks.py --e1d-seeds",
+                  kernel="data/noise_kernel_v2d.npz rho_kernel",
+                  mask=(f"real v2d keep_mask central 70^2 port "
+                        f"[{c0}:{c0+70})^2 & r>{CORE_MASK_ARC}\""),
+                  n_keep=int(keep.sum()), frame=[oy, ox], mocks=[])
+    for seed in seeds:
+        rng = np.random.default_rng(seed)
+        truth, flat = sample_truth(rng)
+        truth64 = jax.tree_util.tree_map(np.float64, truth)
+        scene = np.asarray(sims["full"].simulate(truth64),
+                           dtype=np.float64).reshape(FINE_RENDER, FINE_RENDER)
+        truth_ll = [truth64[0], truth64[1], []]
+        ll_only = np.asarray(sims["ll"].simulate(truth_ll),
+                             dtype=np.float64).reshape(FINE_RENDER,
+                                                       FINE_RENDER)
+        sub = scene[oy:oy + 210, ox:ox + 210]
+        model = block_sum(sub, 3)
+        err = np.sqrt(SIGMA_BKG ** 2 + np.clip(model, 0.0, None) / EXP_TIME)
+        u = exact_ref.sample_stationary_batch(rho, (70, 70), 1, rng,
+                                              grid=512)[0]
+        img = model + err * u
+        arc = block_sum(np.clip(scene - ll_only, 0.0, None)[oy:oy + 210,
+                                                            ox:ox + 210], 3)
+        snr = arc_snr(arc, err)
+        meta = dict(
+            e1d=True, seed=seed, generated_by="05_gen_drizzle_mocks.py",
+            delta_pix=NATIVE_PIX, frame_offset=[oy, ox],
+            psf_pixel_scale=FINE_PIX, model_subtracted=True,
+            noise_model=("stationary draw from the REAL v2d fitted kernel "
+                         "(exact_ref.sample_stationary_batch, grid 512) "
+                         "scaled by the exact per-pixel native err map — "
+                         "marginal variance exact, correlation = v2d"),
+            mask_port=report["mask"], n_keep=int(keep.sum()),
+            sigma_bkg=SIGMA_BKG, exp_time=EXP_TIME, arc_snr=snr,
+            truth_sampler="cgl.mocks.sample_truth (gu-2022 Eq.(8))",
+        )
+        np.savez(outdir / f"e1d_{seed:03d}.npz",
+                 img=img, err_map=err, keep_mask=keep, rho_kernel=rho,
+                 psf=psf, psf_eff=psf_eff,
+                 truth_json=json.dumps(truth),
+                 flat_keys=list(flat.keys()),
+                 flat_vals=np.array(list(flat.values()), dtype=np.float64),
+                 meta=json.dumps(meta))
+        print(f"[e1d {seed:03d}] theta_E={flat['theta_E']:.3f} "
+              f"gamma={flat['gamma']:.3f} arc_snr~{snr:7.1f} "
+              f"u_var={float(np.var(u)):.3f}", flush=True)
+        report["mocks"].append(dict(seed=seed, theta_E=flat["theta_E"],
+                                    gamma=flat["gamma"], arc_snr=snr,
+                                    u_var=float(np.var(u))))
+    report["wall_s"] = time.time() - t0
+    (REPRO / out_json).write_text(json.dumps(report, indent=2))
+    print(f"wrote {REPRO / out_json} ({report['wall_s']:.0f}s)")
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--n", type=int, default=N_MOCKS)
+    ap.add_argument("--seeds", default=None,
+                    help="explicit seed list/range (e.g. '8-63'); "
+                         "overrides --n")
+    ap.add_argument("--shapelet-seeds", default=None,
+                    help="seeds that get the ADDITIVE shapelet source "
+                         "component (E1c marg arm; n_max=4, ridge-prior amps)")
+    ap.add_argument("--e1d-seeds", default=None,
+                    help="generate E1d native realizations (real-v2d-kernel "
+                         "noise) instead of trios")
     ap.add_argument("--out-json", default="data/mocks_report.json")
     args = ap.parse_args()
     t0 = time.time()
+
+    if args.e1d_seeds:
+        return gen_e1d(parse_range(args.e1d_seeds), args.out_json)
+
+    seeds = parse_range(args.seeds) if args.seeds else list(range(args.n))
+    shp_seeds = set(parse_range(args.shapelet_seeds)) \
+        if args.shapelet_seeds else set()
 
     outdir = DATA / "mocks"
     outdir.mkdir(parents=True, exist_ok=True)
@@ -132,7 +268,7 @@ def main():
     rho_binned = pipe.binned_rho(rho_fine)
     psf_eff = effective_fine_psf(psf, pipe, half=(psf.shape[0] // 2) + 3)
 
-    sims = build_sims(psf, psf_eff)
+    sims = build_sims(psf, psf_eff, with_shapelets=bool(shp_seeds))
 
     # product geometry: scene (0,0) arcsec sits at global fine pixel
     # (FINE_RENDER-1)/2 = 106.5 -> product pixel 104.5 of 208 (center 103.5)
@@ -176,7 +312,9 @@ def main():
     )
 
     report = dict(generated_by="05_gen_drizzle_mocks.py",
-                  gate_sigma=GATE_SIGMA, n_mocks=args.n,
+                  gate_sigma=GATE_SIGMA, n_mocks=len(seeds),
+                  seeds=list(seeds),
+                  shapelet_seeds=sorted(shp_seeds),
                   rho_fine_axis=[float(rho_fine[4, 4 + d]) for d in range(3)],
                   psf_eff_shape=list(psf_eff.shape), mocks=[])
     worst_all = 0.0
@@ -184,9 +322,19 @@ def main():
 
     import jax
 
-    for seed in range(args.n):
+    for seed in seeds:
         rng = np.random.default_rng(seed)
         truth, flat = sample_truth(rng)
+        shp = None
+        if seed in shp_seeds:
+            from cgl.e1 import (SHAPELET_NMAX, SHAPELET_SIGMA0,
+                                sample_shapelet_truth)
+
+            beta, amps = sample_shapelet_truth(rng)
+            names = [f"amp{str(i).zfill(len(str(amps.size)))}"
+                     for i in range(amps.size)]
+            shp = dict(beta=beta, amps=amps, names=names,
+                       n_max=SHAPELET_NMAX, sigma0=SHAPELET_SIGMA0)
         # strong-f64 leaves force the f32 coordinate grids to promote (the
         # 01_parity_harness gu2022_forward_check recipe; grids are hardcoded
         # float32 in the vendored simulator)
@@ -194,6 +342,21 @@ def main():
 
         scene = np.asarray(sims["full"].simulate(truth64), dtype=np.float64)
         scene = scene.reshape(FINE_RENDER, FINE_RENDER)
+        if shp is not None:
+            # shapelet CENTER TIED to the source Sersic center (the E1c fit
+            # model's convention; see cgl.e1.build_truth_prior)
+            # amp leaves must be (bs,) arrays: the non-interpolating shapelet
+            # profile einsums the amp stack as (depth, bs)
+            shp_params = [truth64[0], [dict(
+                center_x=truth64[2][0]["center_x"],
+                center_y=truth64[2][0]["center_y"],
+                beta=np.full(1, shp["beta"], dtype=np.float64),
+                **{n: np.full(1, a, dtype=np.float64)
+                   for n, a in zip(shp["names"], shp["amps"])})]]
+            shp_scene = np.asarray(sims["shp"].simulate(shp_params),
+                                   dtype=np.float64).reshape(FINE_RENDER,
+                                                             FINE_RENDER)
+            scene = scene + shp_scene
         truth_ll = [truth64[0], truth64[1], []]
         ll_only = np.asarray(sims["ll"].simulate(truth_ll), dtype=np.float64)
         ll_only = ll_only.reshape(FINE_RENDER, FINE_RENDER)
@@ -218,6 +381,10 @@ def main():
         direct = np.asarray(sims["full_eff"].simulate(truth64),
                             dtype=np.float64).reshape(FINE_RENDER,
                                                       FINE_RENDER)
+        if shp is not None:
+            direct = direct + np.asarray(
+                sims["shp_eff"].simulate(shp_params),
+                dtype=np.float64).reshape(FINE_RENDER, FINE_RENDER)
         direct = direct[CROP0:CROP0 + N_FINE, CROP0:CROP0 + N_FINE]
         dev = (direct - fine_model) / fine_err
         worst = float(np.max(np.abs(dev[keep_fine])))
@@ -233,9 +400,20 @@ def main():
         meta.update(seed=seed,
                     render_check_max_abs_dev_sigma=worst,
                     render_check_pass=bool(ok), arc_snr=snr)
+        extra = {}
+        if shp is not None:
+            meta.update(has_shapelets=True, shapelet_beta=shp["beta"],
+                        shapelet_sigma0=shp["sigma0"],
+                        shapelet_n_max=shp["n_max"],
+                        shapelet_center="tied to source Sersic center",
+                        shapelet_amp_prior="N(0, sigma0/sqrt(i+1)) — the "
+                                           "exact ridge prior the E1c fit "
+                                           "marginalizes under")
+            extra["shp_amps"] = shp["amps"]
         path = outdir / f"mock_{seed:03d}.npz"
         np.savez(
             path,
+            **extra,
             img=fine_img.astype(np.float64),
             model=fine_model.astype(np.float64),
             err_map=fine_err.astype(np.float64),
@@ -263,13 +441,14 @@ def main():
         report["mocks"].append(dict(
             seed=seed, theta_E=flat["theta_E"], gamma=flat["gamma"],
             arc_snr=snr, render_check_max_dev_sigma=worst,
-            render_check_pass=bool(ok)))
+            render_check_pass=bool(ok),
+            has_shapelets=bool(shp is not None)))
 
     report["worst_render_check_sigma"] = worst_all
     report["all_gates_pass"] = bool(all_pass)
     report["wall_s"] = time.time() - t0
     (REPRO / args.out_json).write_text(json.dumps(report, indent=2))
-    print(f"\nworst render check over {args.n} mocks: "
+    print(f"\nworst render check over {len(seeds)} mocks: "
           f"{worst_all:.4f} sigma -> "
           f"{'PASS' if all_pass else 'FAIL'} (< {GATE_SIGMA})")
     print(f"wrote {REPRO / args.out_json} ({report['wall_s']:.0f}s)")
