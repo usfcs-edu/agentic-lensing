@@ -326,3 +326,11 @@ rows: 598 A/B-like positives (G≥1.5) + 12,880 expert REJECTS (G<1.0) with cont
 median 2 graders)** — the rejects are CNN-selected-but-expert-rejected = the ideal HSC hard-negative bank,
 and G/3 is a ready-made human-soft p_lens target. Remaining Phase C: SuGOHI DB scrape, GALAXY CRUISE,
 IRSA Euclid fetcher, dedup + `build_corpus_v5.py`.
+
+## Bench v5.1 (n=1,307; 142 lens / 1,165 neg across 6 pools) — first results (2026-07-07)
+**9B student ckpt-825: overall LOGPROB AUC 0.884 ± ~0.02, recovery 61% @ 89% rejection** (generated
+0.685 — the logprob advantage is +0.20 at scale). Per-pool: recovery desi_xmatch **88%** (23/26 — the
+same lenses where frozen Claude recovered 54%) / sugohi_heldout 54%; rejection random_field **99%**,
+gc_spiral 99%, gc_ring 95%, gc_tidal 87%, xvi_reject 62% (hardest, honestly), gate_mix 67%. **No
+covariate pathology: deployment-like negatives are rejected BEST** (opposite of the probe's failure
+signature). 27B student + zero-shot control gradings in flight (Perlmutter job 55649396).
