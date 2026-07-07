@@ -17,5 +17,5 @@ module load python
 source "$HOME/claude-giga-lens/venv/bin/activate"
 export GIGALENS_X64=1
 export XLA_FLAGS=--xla_gpu_autotune_level=0
-cd "$HOME/claude-giga-lens/repo"
+cd "$HOME/claude-giga-lens/repo/reproductions/claude-giga-lens"   # tree-shape layout (paths.py resolves ../foundry-i)
 srun -n 1 python "$@"

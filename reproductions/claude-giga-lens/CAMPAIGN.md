@@ -23,9 +23,11 @@ Decisions (locked 2026-07-06):
 
 | job id | phase | nodes × walltime | A100-h | cumulative | purpose |
 |---|---|---|---|---|---|
-| 55600587 | P0/staging | 1 × ≤30 min debug | ≤2.0 (est; sacct pending) | ≤2.0 | env staging smoke: env check + A100 parity + sampler smoke + priority-fusion A100 probe |
+| 55600587 | P0/staging | 1 × 00:18:03 debug (exclusive 4-GPU node) | 1.20 | 1.20 | staging smoke: env PASS; A100 parity A–E PASS (A 1.2e-16, B 0.0, C 4.9e-16, D 0.0, E 2.0e-13); priority-fusion livelock CONFIRMED on A100 (600s timeout without flag; 8/8 in 118.6s with) |
 
-Committed: ≤2.0 / 90 (hard stop 100).
+Committed: 1.20 / 90 (hard stop 100).
+Charging note: debug QOS allocates the node exclusively (4 A100s billed even at
+--gpus-per-node=1). Use shared QOS for small jobs to bill fractionally.
 
 ## Phoenix GPU ledger  (weekly rollup)
 
@@ -41,6 +43,20 @@ Committed: ≤2.0 / 90 (hard stop 100).
 | P0 sampler smoke | 2026-07-06 | PASS 8/8 | NUTS+window 12.6s, MCLMC(un+adj), adaptive tempered SMC (λ→1, finite logZ), TFP REMC, flowMC RQSpline_MALA, flowjax MAF fit, nautilus logZ within 1.0 | blackjax 1.3 fine on jax 0.6.2 — 1.2.5 fallback NOT needed. See XLA defect below |
 
 ## Stage log
+
+### Perlmutter staging — 2026-07-06 (COMPLETE)
+- Layout: /global/cfs/cdirs/deepsrch/gdbenson/claude-giga-lens (venv 6.2G + repo 187M with
+  tree-shape reproductions/{claude-giga-lens,foundry-i-data-subset,gu-2022-subset});
+  ~/claude-giga-lens is a SYMLINK to it ($HOME was over 40GiB quota — pip cache purged,
+  claudenet/foundry-i untouched). Venv pins exact, zero resolver drift vs phoenix.
+- **A100 parity A–E PASS** (fresh run, job 55600587): A 1.2e-16, B 0.0, C 4.9e-16, D 0.0,
+  E 2.0e-13; logp(z_ref) identical both stacks; |vs stored MAP logp| 7.3e-12. The campaign
+  stack is validated on BOTH architectures.
+- **Priority-fusion livelock CONFIRMED on A100** (not aarch64/L4-specific): sampler smoke
+  hung 600s-timeout without the flag, 8/8 in 118.6s with it. POLICY: the flag is DEFAULT in
+  all Perlmutter sampler processes (P2c). Watch item CLOSED.
+- Slurm templates: remote copies point cd at repo/reproductions/claude-giga-lens (one level
+  down); mirrored locally this commit. Remote smoke_staging.slurm kept remote-only.
 
 ### P2b checkpoint — 2026-07-06T22:08Z (POLICY FREEZE — committed before any eval read)
 - data/policies_frozen.json + data/policy_tuning_log.json (33+ trials, ≤4 configs/method,
