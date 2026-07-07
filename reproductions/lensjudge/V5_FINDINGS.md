@@ -306,10 +306,19 @@ Selection on valsel-180 picked **ckpt-600** (0.636 vs ckpt-750's 0.606 — and m
 | **trained 27B ckpt-600 (generated!)** | **0.861** | **81% (21/26)** |
 
 **Recovery 81% vs Claude's 54% at matched rejection (+27 pts, ~2σ at n=26), AUC nominally above the bar —
-on generated scores alone** (the Perlmutter job predated the p_lens_logprob column; the logprob variant
-gave the 9B +0.115, so a logprob re-gate may add more — queued). test2: 0.625/23% (vs zero-shot 0.563).
-Cost: one 6-h A100 walltime + ~$0 inference. **Plan milestone 2 achieved at the EXCEEDS level (recovery)
-subject to the small-n caveat; corpus v5.1's larger cross-pool bench will finalize the claim.**
+on generated scores alone.** test2: 0.625/23% (vs zero-shot 0.563). Cost: one 6-h A100 walltime.
+
+**LOGPROB RE-GATE (current code, 100% coverage, 19-min job):** 72-gate **AUC 0.892 / recovery 77%**
+(generated re-scored 0.861 — reproducible); test2 0.648/32%; valsel 0.644. Consolidated final verdict,
+robust to scorer choice and consistent across both students (9B-lp 0.858, 27B-gen 0.861, 27B-lp 0.892):
+
+| honest 72-gate | AUC | recovery @ rej 0.89 |
+|---|---|---|
+| frozen Claude bar | 0.823 | 54% |
+| **trained 27B ckpt-600 (logprob)** | **0.892** | **77%** |
+
+**Plan milestone 2 achieved at the EXCEEDS level** (recovery +23–27 pts at matched rejection, ~2σ;
+AUC +0.07), subject to the n=72 caveat; corpus v5.1's larger cross-pool bench finalizes the claim.
 
 ## Phase C groundwork (2026-07-03; zero-GPU, catalogs in gitignored cache, curl-regenerable)
 HOLISMOKES tables pulled + profiled: paperVI 467 rows; paperXIII 162+384; **paperXVI 14,152 expert-graded
