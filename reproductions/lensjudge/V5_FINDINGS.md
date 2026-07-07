@@ -292,6 +292,25 @@ corpus v5.1 will provide. The +0.115 logprob-over-generated gap confirms the res
 generated confidence floats discard signal the token distribution retains. This is plan milestone 2 at
 the "matches" level — with the 27B fine-tune, augmentation, and v5.1 still unplayed as upside.
 
+## ★★★★ Phase D 27B FINAL — the Claude-free 27B student EXCEEDS the frozen Claude bar (2026-07-07)
+27B bf16 + unfrozen-ViT, same recipe, 6-h A100-80 walltime (~1.1 epoch, ckpts through 750; the 80-min/ckpt
+`swift infer` selection path was replaced by merge→vLLM-serve→grade, 43 min for BOTH candidates × 3 sets).
+Selection on valsel-180 picked **ckpt-600** (0.636 vs ckpt-750's 0.606 — and mattered: 750 had collapsed to
+8% recovery; the AUC-selection procedure caught it).
+
+| model (honest 72-gate) | AUC | recovery @ rej 0.89 |
+|---|---|---|
+| frozen Claude bar | 0.823 | 54% |
+| zero-shot Qwen3.5-27B bf16 | 0.823 | 50% |
+| trained 9B ckpt-825 (logprob) | 0.858 | 50% |
+| **trained 27B ckpt-600 (generated!)** | **0.861** | **81% (21/26)** |
+
+**Recovery 81% vs Claude's 54% at matched rejection (+27 pts, ~2σ at n=26), AUC nominally above the bar —
+on generated scores alone** (the Perlmutter job predated the p_lens_logprob column; the logprob variant
+gave the 9B +0.115, so a logprob re-gate may add more — queued). test2: 0.625/23% (vs zero-shot 0.563).
+Cost: one 6-h A100 walltime + ~$0 inference. **Plan milestone 2 achieved at the EXCEEDS level (recovery)
+subject to the small-n caveat; corpus v5.1's larger cross-pool bench will finalize the claim.**
+
 ## Phase C groundwork (2026-07-03; zero-GPU, catalogs in gitignored cache, curl-regenerable)
 HOLISMOKES tables pulled + profiled: paperVI 467 rows; paperXIII 162+384; **paperXVI 14,152 expert-graded
 rows: 598 A/B-like positives (G≥1.5) + 12,880 expert REJECTS (G<1.0) with continuous G scores (0–3,
