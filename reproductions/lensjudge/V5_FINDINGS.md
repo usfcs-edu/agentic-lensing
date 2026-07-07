@@ -247,6 +247,30 @@ the XVI-reject negative pool / SuGOHI positive pool), not pure lens morphology.
    signature.
 4. The 9B/27B fine-tune verdicts must now be read primarily on the 72-gate, not valsel/test2.
 
+## ★ Phase D run-2b FINAL — the fine-tuned student TRANSFERS (2026-07-06)
+Full valsel curve (19 ckpts): 0.481 → 0.572 (epoch 1) → **0.664 @ ckpt-825** (early epoch 2) → plateau
+0.63–0.66 (ckpt-1360 ties at 0.664). Merged ckpt-825, gated honestly:
+
+| model | frozen 72-gate (cross-pool, PRIMARY) | test2 (corpus-internal) |
+|---|---|---|
+| frozen Claude bar | 0.823 / 54% / 89% rej | — |
+| zero-shot Qwen3.5-27B bf16 | 0.823 / 50% / 91% | 0.563 / 15% |
+| AION-large probe | 0.662 / 19% (collapsed from 0.84) | 0.841 / 59% |
+| **Qwen3.5-9B ckpt-825 (trained, Claude-free)** | **0.743 / 42% / 96%** | 0.591 / 16% |
+
+**Key evidence: the student runs OPPOSITE to the probe across pools** — better on the differently-built
+gate (0.743) than its own corpus test split (0.591). That is the signature of learned transferable lens
+MORPHOLOGY (gate lenses are DESI-bright/easier → a real-morphology model gains there), not pool
+covariates (the probe lost there). The v5 training recipe (unique human-soft targets + unfrozen ViT on
+the Claude-free corpus) is validated end-to-end on a 9B/one-Titan budget: zero-shot-9B ≈ chance at tier-2
+→ trained 0.743/42%, within 0.08 AUC of the frozen Claude bar with better rejection (96% vs 89%).
+
+**Nexts (ranked):** (1) the 27B fine-tune (same recipe; its zero-shot already ties the Claude bar — queued,
+images finally shipping after the silent-rsync root cause); (2) run-3 levers: dihedral augmentation +
+corpus v5.1 cross-pool negatives (random-field fetched); (3) student+probe composition (their error
+profiles are plausibly complementary); (4) WiSE-FT dial for the conservative bias (rejection 96–97% caps
+recovery).
+
 ## Phase C groundwork (2026-07-03; zero-GPU, catalogs in gitignored cache, curl-regenerable)
 HOLISMOKES tables pulled + profiled: paperVI 467 rows; paperXIII 162+384; **paperXVI 14,152 expert-graded
 rows: 598 A/B-like positives (G≥1.5) + 12,880 expert REJECTS (G<1.0) with continuous G scores (0–3,
