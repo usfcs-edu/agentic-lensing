@@ -56,6 +56,25 @@ Charging note: debug QOS allocates the node exclusively (4 A100s billed even at
 
 ## Stage log
 
+### P3 recon — 2026-07-08 (de-risk complete; plan at research/notes/p3-euclid-coolest-recon.md)
+- **SCOPING DECISION**: Euclid Q1 VIS is native 0.1″/px (NOT drizzle-resampled) → diagonal
+  RMS. So **P3-Euclid demonstrates the Pillar-2 SAMPLER recipe on independent real data, NOT
+  the P1 correlated likelihood** (correlated machinery applies only to resampled NIR, which we
+  don't fit). Cleaner story; runs on phoenix L4 — **no Perlmutter for Euclid**; P3 ≤15 A100-h
+  mostly unused. Correlated likelihood's real-data test remains the HST cross-scale P1c.
+- 185 grade-A Euclid systems with published SIE models; flagship trio picked (θ_E,eff
+  0.85/1.12/1.24″, clean single-plane, low shear, S/N 241–425). No multi-plane needed.
+- Only real code change: parameterize build_marg_model priors (theta_E_med≈1.0,
+  mass_center_sig~0.1) — defaults preserve HST parity bit-for-bit. PSF renormalize + verify
+  not oversampled. Comparison at MASS level (einstein_radius_effective; ~5–10% PyAutoLens-vs-
+  gigalens convention offset expected, not a digit-match).
+- COOLEST 0.1.11 API mapped (COOLEST('MAP') container, PEMD+ExternalShear+Sersic+Shapelets);
+  ridge-marginalized amps → MAP-mode file + chains sidecar + MAP model-image FITS.
+- Scripts: cgl/euclid_io.py, 30_recipe_e2e.py (HST recipe, reuse P1c infra), 31_fit_euclid.py
+  (diagonal), 32_coolest_export.py. No hard blockers.
+
+## Stage log
+
 ### P1c — 2026-07-08 (RUNNING on Perlmutter; smoke job 55678657)
 - Relaxed v2d whitener built: data/whitener_v2d_relaxed.npz M=10 e_op=0.0312, keeps 1466 px
   (3.0× strict; MC whiteness Var 1.0013 offdiag 0.0029). E1d mock kernel == real v2d kernel
