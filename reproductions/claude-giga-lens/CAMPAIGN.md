@@ -29,6 +29,7 @@ Decisions (locked 2026-07-06):
 
 | 55683612 | P1c preflight | 1 × shared QOS, 3m05s | 0.05 (actual) | ~1.39 | fine-low guard — result FAIL (see finding below); the guard did its job (production NOT spent on a bad start) |
 | 55688871 | P1c prod (Job 1) | 1 node × 4 A100, regular, -t 04:00 | ~14 (est; 16 worst-case cap) | ~15.4 | HEALTHY node: GPU0 v3-fine STEEP (keep 500), GPU1 v3b binned BOTH (keep 300, money product), GPU2 v2d native RELAXED both (keep 2000), GPU3 v2d STRICT native-low (keep 500). Sublinear 8→24ch scaling (~2.5×) → ~3.3h elapsed expected |
+| 55688960 | P1c fine-low disc (Job 2) | 1 × shared QOS, single A100 | ~0.05 | ~15.45 | discriminator: v3b-low MAP mass → fine light/source → polish + sanity. Verdict: γ∈[1.2,1.8]&χ²<5 curable / γ≤1.15 or χ²>10 pathology / else ambiguous |
 
 Committed: ~15.4 / 90 (hard stop 100). P1c-to-date: staging 1.2 + smoke 0.14 + preflight 0.05
 + prod ~14 ≈ 15.4; well under the ≤30 P1c envelope (fine-low diagnostic ~0.05 + any fine-low
