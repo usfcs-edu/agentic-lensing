@@ -24,9 +24,11 @@ Decisions (locked 2026-07-06):
 | job id | phase | nodes × walltime | A100-h | cumulative | purpose |
 |---|---|---|---|---|---|
 | 55600587 | P0/staging | 1 × 00:18:03 debug (exclusive 4-GPU node) | 1.20 | 1.20 | staging smoke: env PASS; A100 parity A–E PASS (A 1.2e-16, B 0.0, C 4.9e-16, D 0.0, E 2.0e-13); priority-fusion livelock CONFIRMED on A100 (600s timeout without flag; 8/8 in 118.6s with) |
-| 55678657 | P1c smoke | 1 × ≤30 min debug (4-GPU node) | ≤2.0 (est; sacct pending) | ≤3.2 | E2 pre-flight: build v3/v3b/v2d targets, validate basin starts (logp finite + render sanity), time ~50 HMC steps/product |
+| 55678657 | P1c smoke | CANCELLED (debug backlog ~75 min, 0 charged) | 0.0 | 1.20 | replaced by 55680126 on shared QOS |
+| 55680126 | P1c smoke | 1 × shared QOS, single A100 | ≤0.5 (est) | ≤1.7 | E2 pre-flight (3 products sequential in 1 process): build targets, validate basin starts, time HMC steps → production budgets |
 
-Committed: ≤3.2 / 90 (hard stop 100).
+Committed: ≤1.7 / 90 (hard stop 100). Budget lesson applied: shared QOS for small
+single-GPU work bills fractionally vs the debug node's exclusive 4-GPU charge.
 Charging note: debug QOS allocates the node exclusively (4 A100s billed even at
 --gpus-per-node=1). Use shared QOS for small jobs to bill fractionally.
 
@@ -75,6 +77,17 @@ Charging note: debug QOS allocates the node exclusively (4 A100s billed even at
   (P1b recipe); GBTLA dropped (meta-grad livelocked); metric = Laplace Hessian at seed via
   1/|eig| (near-zero eig flooring blew R̂ to 1e31 — must NOT floor to zero).
 - Agent reports smoke A100 timings + production plan (per-job A100-h) BEFORE production submit.
+- Production plan APPROVED: 1 node × 4 A100 regular QOS; GPU0=v3 fine / GPU1=v3b binned /
+  GPU2=v2d native (2 basins sequential each); GPU3 (else idle, node bills 4×) = 2nd
+  independent seed of v3 fine LOW basin → cross-seed robustness on γ_fine(corr), the
+  campaign's central number (fallback GPU3 = v2d strict-whitener native). Sized so
+  4×walltime ≤ 27 A100-h, ≥3 reserve. Gates H1/H2/H3 per 11_pool_e2.py, H2 anchored on
+  diagonal-native 1.433.
+- WHITENER CHECK (L4, budget-free): native prior-pull is INFORMATION-limited, not
+  whitener-misspecification — strict (487 px) γ_std=0.109 vs relaxed (1466 px) γ_std=0.051;
+  more px → tighter → closer to 1.433. Relaxed (D3-adopted) correctly the more informative
+  native choice; the real-data analog of E1b σ_fine/σ_native=2.45. Direction robust
+  (test-budget R̂ 5–25; converged runs give absolute γ).
 - **PRE-REGISTERED AMENDMENT (2026-07-08, before converged runs)**: the native relaxed
   whitener (1466 kept px) is likelihood-weak → correlated-native γ prior-pulled toward ~2.0.
   Therefore H2/H3 anchor on the DIAGONAL native fit (γ=1.433 [1.400,1.469], σ_native,diag),
