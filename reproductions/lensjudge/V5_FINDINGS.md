@@ -334,3 +334,27 @@ same lenses where frozen Claude recovered 54%) / sugohi_heldout 54%; rejection r
 gc_spiral 99%, gc_ring 95%, gc_tidal 87%, xvi_reject 62% (hardest, honestly), gate_mix 67%. **No
 covariate pathology: deployment-like negatives are rejected BEST** (opposite of the probe's failure
 signature). 27B student + zero-shot control gradings in flight (Perlmutter job 55649396).
+
+## ★★★★★ BENCH v5.1 FINAL — the claim is certified at high power (2026-07-07)
+All three graders on the 1,307-row cross-pool bench (142 lens / 1,165 neg over 6 pools; logprob scoring;
+parse 1306/1307 each; AUC s.e. ≈ ±0.02):
+
+| model | AUC | recovery @ 89% rejection |
+|---|---|---|
+| zero-shot Qwen3.5-27B (control) | 0.813 | 47% |
+| 9B student ckpt-825 | 0.884 | 61% |
+| **27B student ckpt-600** | **0.892** | **68%** |
+
+- **Training delta vs zero-shot control: +0.079 AUC, +21 pts recovery — decisive at this n.**
+- **Per-pool (27B student): rejection random_field 100%, gc_spiral 97%, gc_ring 97%, gc_tidal 92%,
+  xvi_reject 58% (near-miss rejects absorb the FP budget — the right place); recovery desi_xmatch 88%
+  (the same 26 lenses where frozen Claude recovered 54%), sugohi_heldout 64%.** No covariate pathology.
+- The frozen-72-gate number (0.892) reproduces exactly at 18× the sample.
+- Note the zero-shot control's 0.813 here vs 0.823 on the old gate — the bench is slightly harder;
+  the students' margins over it are the meaningful quantity.
+
+**PROGRAM CONCLUSION (v5 milestone 2, certified): a fully open, fully Claude-free student — trained on
+public human-labeled catalogs, one A100 walltime, scored by grade-token logprobs — decisively exceeds
+both the zero-shot frontier-open-model control and the frozen Claude reference on real confirmed-lens
+vetting at HSC resolution.** Remaining plan: Phase F (SDK-free completeness + no-Claude CI), optional
+run-3 levers (augmentation, WiSE-FT, epoch-2), DR11/HSC campaign deployment, PR to main.
