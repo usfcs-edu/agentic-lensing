@@ -25,10 +25,21 @@ Decisions (locked 2026-07-06):
 |---|---|---|---|---|---|
 | 55600587 | P0/staging | 1 × 00:18:03 debug (exclusive 4-GPU node) | 1.20 | 1.20 | staging smoke: env PASS; A100 parity A–E PASS (A 1.2e-16, B 0.0, C 4.9e-16, D 0.0, E 2.0e-13); priority-fusion livelock CONFIRMED on A100 (600s timeout without flag; 8/8 in 118.6s with) |
 | 55678657 | P1c smoke | CANCELLED (debug backlog ~75 min, 0 charged) | 0.0 | 1.20 | replaced by 55680126 on shared QOS |
-| 55680126 | P1c smoke | 1 × shared QOS, single A100 | ≤0.5 (est) | ≤1.7 | E2 pre-flight (3 products sequential in 1 process): build targets, validate basin starts, time HMC steps → production budgets |
+| 55680126 | P1c smoke | 1 × shared QOS, single A100, 8:26 | 0.14 (actual) | 1.34 | E2 pre-flight DONE: all 6 basin starts valid (logp finite, χ²_pp 1.4–2.5 good; v3-fine-LOW 30.7 FLAGGED); timings v3 1.35/v3b 1.00/v2d 0.22 s/step (8ch) |
 
-Committed: ≤1.7 / 90 (hard stop 100). Budget lesson applied: shared QOS for small
-single-GPU work bills fractionally vs the debug node's exclusive 4-GPU charge.
+Committed: 1.34 / 90 (hard stop 100). Budget lesson applied: shared QOS for small
+single-GPU work bills fractionally (0.14 vs the debug node's ~2 exclusive-4-GPU charge).
+
+### P1c smoke findings (2026-07-08)
+- Per-step (8ch): v3 fine 1.347s (37519 px) = walltime-setter, v3b 0.998s (9273), v2d
+  0.217s (1466). Production 24ch×16leap×2 basins comfortably fits 27 A100-h.
+- Basin start sanity: v3 steep χ²_pp 1.39 / v3b steep 2.17 low 2.47 / v2d low 1.87 — all good.
+  v2d steep 5.33 (steep disfavored at native — expected). **v3 fine LOW χ²_pp = 30.70 — BAD
+  start** (mass-override: v3cold steep-γ light/source + v3b_cold2d low mass = mismatched).
+  Feeds both primary fine-low AND GPU3 seed-2 replicate = the γ_fine(low) money number.
+  GUARD (instructed to babysitter): after map_polish assert χ²_pp<~3 AND γ<1.8 before
+  spending HMC budget; STOP+report if it drifts to steep or won't relax (fallbacks: fine-low
+  from v3b-low MAP mapped to fine, longer polish, or GPU3→strict-whitener native).
 Charging note: debug QOS allocates the node exclusively (4 A100s billed even at
 --gpus-per-node=1). Use shared QOS for small jobs to bill fractionally.
 
