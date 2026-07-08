@@ -373,6 +373,13 @@ def particles_to_chains(particles: np.ndarray, n_pseudo_chains: int,
     efficiency ESS with the importance-weight ESS.
     """
     p = np.asarray(particles)
+    if p.shape[0] < 1:
+        raise RuntimeError("particles_to_chains: empty particle set")
+    # degenerate posteriors (e.g. nautilus on cond-1e14 returning < C
+    # equal-weight points) fall back to fewer pseudo-chains rather than
+    # producing an empty (T=0) sample array (which crashes the uniform
+    # mode metrics downstream)
+    n_pseudo_chains = max(1, min(int(n_pseudo_chains), p.shape[0]))
     n = (p.shape[0] // n_pseudo_chains) * n_pseudo_chains
     idx = rng.permutation(p.shape[0])[:n]
     return p[idx].reshape(n // n_pseudo_chains, n_pseudo_chains, p.shape[1])

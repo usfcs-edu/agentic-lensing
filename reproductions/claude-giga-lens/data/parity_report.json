@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-07-06T15:44:56Z",
+  "generated_utc": "2026-07-08T10:21:17Z",
   "env": {
     "python": "3.13.13",
     "hostname": "phoenix.cs.usfca.edu",
@@ -44,7 +44,7 @@
     "C": {
       "description": "gradient rel-L2 foundry vs cgl, worst of 4 points",
       "threshold": 1e-08,
-      "achieved": 0.0,
+      "achieved": 7.095128971629047e-17,
       "pass": true
     },
     "D": {
@@ -94,7 +94,7 @@
       "abs_dlogp": 0.0,
       "grad_norm_foundry": 400.5805890781202,
       "grad_norm_cgl": 400.5805890781202,
-      "grad_rel_l2": 0.0,
+      "grad_rel_l2": 7.095128971629047e-17,
       "logp_cgl_convwhiten": -45840.984005998456,
       "abs_dlogp_conv_vs_diag": 0.0
     },
@@ -130,5 +130,5 @@
     }
   },
   "all_hard_gates_pass": true,
-  "wall_s": 207.31709599494934
+  "wall_s": 209.1025984287262
 }
