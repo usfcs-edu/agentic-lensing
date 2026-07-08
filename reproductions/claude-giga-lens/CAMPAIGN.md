@@ -27,9 +27,9 @@ Decisions (locked 2026-07-06):
 | 55678657 | P1c smoke | CANCELLED (debug backlog ~75 min, 0 charged) | 0.0 | 1.20 | replaced by 55680126 on shared QOS |
 | 55680126 | P1c smoke | 1 × shared QOS, single A100, 8:26 | 0.14 (actual) | 1.34 | E2 pre-flight DONE: all 6 basin starts valid (logp finite, χ²_pp 1.4–2.5 good; v3-fine-LOW 30.7 FLAGGED); timings v3 1.35/v3b 1.00/v2d 0.22 s/step (8ch) |
 
-| 55683612 | P1c preflight | 1 × shared QOS, single A100 | ~0.1 (est) | ~1.44 | fine-low guard: deterministic map_polish (rounds=4/iters=200) on the bad v3-fine-low start → gate χ²_pp<3.0 AND γ<1.8 before production spend; polishes fine-steep as healthy ref |
+| 55683612 | P1c preflight | 1 × shared QOS, 3m05s | 0.05 (actual) | ~1.39 | fine-low guard — result FAIL (see finding below); the guard did its job (production NOT spent on a bad start) |
 
-Committed: ~1.44 / 90 (hard stop 100). Budget lesson applied: shared QOS for small
+Committed: ~1.39 / 90 (hard stop 100). Budget lesson applied: shared QOS for small
 single-GPU work bills fractionally (0.14 vs the debug node's ~2 exclusive-4-GPU charge).
 
 ### P1c production plan FINALIZED (2026-07-08; pending fine-low gate 55683612)
@@ -43,6 +43,20 @@ single-GPU work bills fractionally (0.14 vs the debug node's ~2 exclusive-4-GPU 
 - Gate: PASS (χ²_pp<3, γ<1.8 post-polish) → babysitter submits production immediately + LEDGER
   message; FAIL → STOP, no fine-budget spend, report fallbacks (v3b-low MAP→fine start / longer
   multi-restart polish / GPU3→strict-whitener native).
+- **GATE FAILED 2026-07-08 → DECISION (main)**: run two jobs in parallel —
+  JOB 1 (bank healthy node NOW): v3-fine STEEP + v3b BOTH + v2d BOTH + GPU3=strict-native-low;
+  secures H1(v3b,v2d), H2(binned vs 1.433), H3, binned/native corr-vs-diag figures,
+  fine-steep, strict/relaxed native comparison; ~14 A100-h (fine now 1 basin), -t caps ≤16.
+  JOB 2 (fine-low diagnostic, parallel, ~0.05 A100-h): rebuild fine-low from v3b-low polished
+  MAP mass (scale-independent) + fine light/source → re-polish → gate. DISCRIMINATES genuine
+  fine-whitener pathology (sane start ALSO rails → report fine-low as characterized limitation,
+  no fine-low production) vs bad-start (polishes to γ~1.4 → green-light a separate fine-low run).
+- **PRE-REGISTERED HEADLINE REFRAME (2026-07-08, before any production result)**: money
+  comparison = **γ_binned(corr) vs diagonal-native 1.433** (binned 2× vs fine 3.2×-upsampled;
+  fine now MAP-level suspect — a whitener property independent of posteriors). γ_fine(steep) =
+  secondary characterization panel. Consistent w/ the H1 fork + foundry-i. This is
+  discovery-driven, recorded before the numbers; original γ_fine-vs-1.433 framing stands in the
+  log above (ledger discipline).
 
 ### P1c smoke findings (2026-07-08)
 - Per-step (8ch): v3 fine 1.347s (37519 px) = walltime-setter, v3b 0.998s (9273), v2d
@@ -77,6 +91,7 @@ Charging note: debug QOS allocates the node exclusively (4 A100s billed even at
 | E1c AMENDED (healthy-only, n=13) | 2026-07-08 | **PASS (low-n caveat)** | all 6 params rank p ≥ 0.19 (γ p=0.53); pooled cov68 0.615 ∈ [55,80] | γ pathology was sampler-induced (stuck chains → U-shaped ranks); definitive full-64 staged re-run (~35 GPU-h) queued post-P2b on phoenix |
 | E1 D2 kernel attribution | 2026-07-08 | **NEITHER** (kernels exonerated) | fitted arm z̄(γ)=−0.14 cov 0.83; analytic arm z̄=−0.47 cov 0.75 — both calibrate | original failures were sampler depth/metric, not kernel fitting or δ-regularization |
 | E1d AMENDED | 2026-07-08 | **RELAXED ADOPTED** | max\|z̄\|=0.492 (thin margin, flagged); cov68 0.594; kept 982 px = 4.9× strict | diag FAILS under real v2d kernel (z̄(γ)=−6.1) — artifact strong even at native scale. E2c uses relaxed whitener |
+| P1c fine-low guard | 2026-07-08 | **FAIL → FINDING** | polish railed γ 1.369→1.021, χ²_pp 30.7→**71.9**, corr logp −11410→**−6408** (as good as healthy steep −6163); fine-steep self-check polished sane (χ²_pp 1.39→4.24, γ stays 2.44) | The near-singular FINE (3.2×-upsampled) δ-reg whitener is GAMED: small whitened residuals at a real-space-garbage γ≈1.0 model → the correlated likelihood cannot constrain the fine low basin. Manifestation of the E1b σ_fine/σ_native=2.45 spectral-zeros characterization as an outright MAP pathology; consistent w/ foundry-i "native/binned is the defensible headline". Diagnostic (v3b-low→fine-scale start) queued to confirm genuine-pathology vs bad-start |
 | E1b width-ratio sub-gate | 2026-07-08 | **FAIL (characterized)** | median σ_fine/σ_native = 2.45 (gate [0.7,1.5]), incl. fully-healthy pairs | fine posterior is CONSERVATIVE, not biased (z̄+cross-scale pass): δ-reg whitener (λ=0.1) discards information at the tent kernel's spectral zeros. Pre-registered amendment: λ-sensitivity arm added to E3; H3 (real-data honesty gate) unchanged |
 
 ## Stage log
