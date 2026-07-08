@@ -85,6 +85,35 @@ Charging note: debug QOS allocates the node exclusively (4 A100s billed even at
 - Slurm templates: remote copies point cd at repo/reproductions/claude-giga-lens (one level
   down); mirrored locally this commit. Remote smoke_staging.slurm kept remote-only.
 
+### P2b — 2026-07-08 (COMPLETE; benchmark delivered)
+- Track A 345/351 (6 = pre-registered structured failures) + Track B 24 cells. Pool = 370
+  cells, data/bench_report.json + figs/bench_matrix.png. 202.4 phoenix GPU-h; Perlmutter 0.
+- **Headline (two-sided, publishable):** nautilus dominates ESS/grad everywhere it applies
+  (2.6×–307×, best logZ, recovers modes) BUT is DISQUALIFIED on cond-1e14 (t0_illcond46
+  shells collapse) — i.e. on the real-lens 46-dim marg regime; its ESS is importance-weight
+  ESS + weak pseudo-R̂ (semantics caveat recorded). Under budget parity NO gradient method
+  beats S0 on eval-T1. Under until-converged, reliability inverts: remc_pt (PT-HMC) converges
+  5/6 incl. sys006 where S0 fails; S0 uniquely OWNS cond-1e14 (only healthy gradient method
+  there besides bj_mclmc).
+- **flowMC = structural failure on lens posteriors** (scalar MALA, no per-dim precond in
+  0.4.5): R̂ 1.9–2.1, converges 0/6 even at 4× budget, inverts modes on t0_mix22. Benchmark
+  datum, not a bug.
+- **GL-NT recipe verdict @ Track-A budget: FAILS its own bars** — T1-hard 0.03–0.05×
+  (target ≥3×), easy-target regression, R̂ 1.4–2.0 (flow-space ChEES is the weak stage).
+  Mode recovery real but partial (clears 0.05 bar only in f64) and not unique. T2/T3 not yet
+  evaluated (P2c). Lowest P2c priority; flow-space HMC needs re-tuning or A100 budget.
+- Mode collapse reproduced (S0/NUTS/neutra → 1.000/0.000 on t0_mix2); nautilus + remc_pt
+  most reliable recoverers; flowMC inverts on t0_mix22.
+- Freeze GENERALIZES: no dev→eval overfit (ratios ~1.0; flowmc/glnt consistently poor, not
+  overfit) — validates the pre-registration protocol.
+- **Contender-pick honesty flag**: Track-B set {flowmc,neutra,remc_pt} ≠ "3 best by ESS/grad"
+  {remc_pt, bj_mclmc, neutra}; not re-run (valid data, deliver-now). bj_mclmc (only
+  cond-1e14-safe gradient method) added to P2c picks below.
+- **P2c picks (corrected):** T3 bimodal → nautilus (within-mode ESS + mode sensitivity, NOT
+  R̂) + remc_pt (RE-TUNE β-ladder first — it blew up R̂ 1e16 on cond-1e14) + S0 reference;
+  T2 cond-1e14 → bj_mclmc (auto SVI-diag mass = honest "no hand-built matrix" challenger) +
+  S0 (incumbent, owns it). glnt = recipe-under-test on T3 only, drop-first if time-tight.
+
 ### P2b checkpoint — 2026-07-06T22:08Z (POLICY FREEZE — committed before any eval read)
 - data/policies_frozen.json + data/policy_tuning_log.json (33+ trials, ≤4 configs/method,
   dev split only). Budgets: T0 2e5 / T1 1.5e6 grads (+692k billed init-cache for consumers).
