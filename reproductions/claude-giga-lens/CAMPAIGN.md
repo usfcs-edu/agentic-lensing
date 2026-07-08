@@ -75,6 +75,15 @@ Charging note: debug QOS allocates the node exclusively (4 A100s billed even at
   (P1b recipe); GBTLA dropped (meta-grad livelocked); metric = Laplace Hessian at seed via
   1/|eig| (near-zero eig flooring blew R̂ to 1e31 — must NOT floor to zero).
 - Agent reports smoke A100 timings + production plan (per-job A100-h) BEFORE production submit.
+- **PRE-REGISTERED AMENDMENT (2026-07-08, before converged runs)**: the native relaxed
+  whitener (1466 kept px) is likelihood-weak → correlated-native γ prior-pulled toward ~2.0.
+  Therefore H2/H3 anchor on the DIAGONAL native fit (γ=1.433 [1.400,1.469], σ_native,diag),
+  NOT the correlated-native fit. Money comparison = γ_fine(corr) vs 1.433 (does corr pull the
+  fine artifact γ=2.585 back to the trustworthy native anchor). H3 denominator re-spec'd to
+  σ_γ(native,diag); correlated-native σ reported separately as pixel-loss information-cost
+  diagnostic. Rationale: native is where the diagonal likelihood is least wrong (ρ(1)≈0.5 vs
+  0.8 fine); corr's value-add is largest on fine (37519 px) / binned (9273 px). Local L4
+  check queued: does stricter-e_op/larger-M native whitener recover data-drivenness.
 
 ### P1b diagnosis — 2026-07-08 (COMPLETE; P1c GREEN-LIT)
 - ROOT CAUSE of E1b/E1c failures: floored-SVI covariance is too poor a momentum metric for
