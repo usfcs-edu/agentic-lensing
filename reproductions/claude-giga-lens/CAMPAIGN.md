@@ -28,8 +28,11 @@ Decisions (locked 2026-07-06):
 | 55680126 | P1c smoke | 1 × shared QOS, single A100, 8:26 | 0.14 (actual) | 1.34 | E2 pre-flight DONE: all 6 basin starts valid (logp finite, χ²_pp 1.4–2.5 good; v3-fine-LOW 30.7 FLAGGED); timings v3 1.35/v3b 1.00/v2d 0.22 s/step (8ch) |
 
 | 55683612 | P1c preflight | 1 × shared QOS, 3m05s | 0.05 (actual) | ~1.39 | fine-low guard — result FAIL (see finding below); the guard did its job (production NOT spent on a bad start) |
+| 55688871 | P1c prod (Job 1) | 1 node × 4 A100, regular, -t 04:00 | ~14 (est; 16 worst-case cap) | ~15.4 | HEALTHY node: GPU0 v3-fine STEEP (keep 500), GPU1 v3b binned BOTH (keep 300, money product), GPU2 v2d native RELAXED both (keep 2000), GPU3 v2d STRICT native-low (keep 500). Sublinear 8→24ch scaling (~2.5×) → ~3.3h elapsed expected |
 
-Committed: ~1.39 / 90 (hard stop 100). Budget lesson applied: shared QOS for small
+Committed: ~15.4 / 90 (hard stop 100). P1c-to-date: staging 1.2 + smoke 0.14 + preflight 0.05
++ prod ~14 ≈ 15.4; well under the ≤30 P1c envelope (fine-low diagnostic ~0.05 + any fine-low
+production TBD from the diagnostic still leave large margin). Budget lesson applied: shared QOS for small
 single-GPU work bills fractionally (0.14 vs the debug node's ~2 exclusive-4-GPU charge).
 
 ### P1c production plan FINALIZED (2026-07-08; pending fine-low gate 55683612)
