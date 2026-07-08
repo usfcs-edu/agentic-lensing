@@ -27,8 +27,22 @@ Decisions (locked 2026-07-06):
 | 55678657 | P1c smoke | CANCELLED (debug backlog ~75 min, 0 charged) | 0.0 | 1.20 | replaced by 55680126 on shared QOS |
 | 55680126 | P1c smoke | 1 × shared QOS, single A100, 8:26 | 0.14 (actual) | 1.34 | E2 pre-flight DONE: all 6 basin starts valid (logp finite, χ²_pp 1.4–2.5 good; v3-fine-LOW 30.7 FLAGGED); timings v3 1.35/v3b 1.00/v2d 0.22 s/step (8ch) |
 
-Committed: 1.34 / 90 (hard stop 100). Budget lesson applied: shared QOS for small
+| 55683612 | P1c preflight | 1 × shared QOS, single A100 | ~0.1 (est) | ~1.44 | fine-low guard: deterministic map_polish (rounds=4/iters=200) on the bad v3-fine-low start → gate χ²_pp<3.0 AND γ<1.8 before production spend; polishes fine-steep as healthy ref |
+
+Committed: ~1.44 / 90 (hard stop 100). Budget lesson applied: shared QOS for small
 single-GPU work bills fractionally (0.14 vs the debug node's ~2 exclusive-4-GPU charge).
+
+### P1c production plan FINALIZED (2026-07-08; pending fine-low gate 55683612)
+- Prod extrapolation (conservative linear 8→24 chain × leapfrog): v3 fine 7.64 s/step,
+  v3b 5.66, v2d 1.23. Budgets (two-stage re-precond PHMC, 24ch×16leap×step 0.1, lean
+  300/300 stages): v3 fine 2 basins KEEP=500 ~3.04h/basin (money = 12000 draws); v3b KEEP=900;
+  v2d KEEP=2000 (cheap); GPU3 = v3-fine-LOW seed-7 cross-seed replicate (same budget, 1 basin).
+- Walltime W = GPU0 v3 (2 basins) ~6.08h; submit `-t 06:45:00` → HARD-CAPS worst-case A100-h
+  at 4×6.75 = 27 regardless of extrapolation error. Projected 4×6.08 = 24.3 A100-h; reserve
+  5.7 predicted / 3.0 worst-case. Within the ≤30 P1c envelope; P1c total after prod ~25.7.
+- Gate: PASS (χ²_pp<3, γ<1.8 post-polish) → babysitter submits production immediately + LEDGER
+  message; FAIL → STOP, no fine-budget spend, report fallbacks (v3b-low MAP→fine start / longer
+  multi-restart polish / GPU3→strict-whitener native).
 
 ### P1c smoke findings (2026-07-08)
 - Per-step (8ch): v3 fine 1.347s (37519 px) = walltime-setter, v3b 0.998s (9273), v2d
