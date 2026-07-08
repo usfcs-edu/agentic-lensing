@@ -24,8 +24,9 @@ Decisions (locked 2026-07-06):
 | job id | phase | nodes × walltime | A100-h | cumulative | purpose |
 |---|---|---|---|---|---|
 | 55600587 | P0/staging | 1 × 00:18:03 debug (exclusive 4-GPU node) | 1.20 | 1.20 | staging smoke: env PASS; A100 parity A–E PASS (A 1.2e-16, B 0.0, C 4.9e-16, D 0.0, E 2.0e-13); priority-fusion livelock CONFIRMED on A100 (600s timeout without flag; 8/8 in 118.6s with) |
+| 55678657 | P1c smoke | 1 × ≤30 min debug (4-GPU node) | ≤2.0 (est; sacct pending) | ≤3.2 | E2 pre-flight: build v3/v3b/v2d targets, validate basin starts (logp finite + render sanity), time ~50 HMC steps/product |
 
-Committed: 1.20 / 90 (hard stop 100).
+Committed: ≤3.2 / 90 (hard stop 100).
 Charging note: debug QOS allocates the node exclusively (4 A100s billed even at
 --gpus-per-node=1). Use shared QOS for small jobs to bill fractionally.
 
@@ -52,6 +53,28 @@ Charging note: debug QOS allocates the node exclusively (4 A100s billed even at
 | E1b width-ratio sub-gate | 2026-07-08 | **FAIL (characterized)** | median σ_fine/σ_native = 2.45 (gate [0.7,1.5]), incl. fully-healthy pairs | fine posterior is CONSERVATIVE, not biased (z̄+cross-scale pass): δ-reg whitener (λ=0.1) discards information at the tent kernel's spectral zeros. Pre-registered amendment: λ-sensitivity arm added to E3; H3 (real-data honesty gate) unchanged |
 
 ## Stage log
+
+### P1c — 2026-07-08 (RUNNING on Perlmutter; smoke job 55678657)
+- Relaxed v2d whitener built: data/whitener_v2d_relaxed.npz M=10 e_op=0.0312, keeps 1466 px
+  (3.0× strict; MC whiteness Var 1.0013 offdiag 0.0029). E1d mock kernel == real v2d kernel
+  bit-identical (validated).
+- 74→46 start mapping (foundry-i R8): forward map_v11 z through paper bijector, drop 28
+  shapelet amps, scale 5 Sérsic Ie by conversion_factor=delta_pix²; γ round-trips exact,
+  logp finite, diagnostic χ²_pp 2.2–2.5.
+- **DEVIATION (start labels, real error caught)**: pre-reg brief mislabeled the v3b basins —
+  map_v11_v3b_cold measures γ=1.465 (LOW), cold2d γ=1.369 (LOW); the genuinely STEEP v3b MAP
+  is map_v11_v3b_WARM (γ=2.672). E2b now seeds warm=steep / cold2d=low. Fine (v3) low basin
+  has no own-scale MAP → built from v3cold light/source + cold2d mass override (mass is
+  scale-independent). Noted in cgl/e2.py.
+- **STACK DEFECT #7 (found + fixed)**: correlated-marg batched grad (vmap over chains of 28
+  per-column conv-whitening ops) LIVELOCKS XLA compile (100% CPU, GPU idle, 20+ min;
+  priority-fusion-off alone did NOT fix). FIX: collapse 28 per-column convs → ONE
+  depthwise/grouped conv (build_marg_model_grouped in cgl/e2.py) — logp BIT-IDENTICAL
+  (absdiff 0.0), batched grad compiles in 13.8s. Both XLA flags set in e2 slurm templates.
+- Sampler: fixed-leapfrog PHMC (num_leapfrog=16) + DualAveraging, two-stage re-preconditioned
+  (P1b recipe); GBTLA dropped (meta-grad livelocked); metric = Laplace Hessian at seed via
+  1/|eig| (near-zero eig flooring blew R̂ to 1e31 — must NOT floor to zero).
+- Agent reports smoke A100 timings + production plan (per-job A100-h) BEFORE production submit.
 
 ### P1b diagnosis — 2026-07-08 (COMPLETE; P1c GREEN-LIT)
 - ROOT CAUSE of E1b/E1c failures: floored-SVI covariance is too poor a momentum metric for
