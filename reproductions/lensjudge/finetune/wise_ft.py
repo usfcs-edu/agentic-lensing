@@ -56,8 +56,13 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     base_map = _key_map(base_dir)
     stu_map = _key_map(stu_dir)
-    missing = set(stu_map) ^ set(base_map)
-    assert not missing, f"key sets differ ({len(missing)}), e.g. {sorted(missing)[:5]}"
+    stu_only = set(stu_map) - set(base_map)
+    assert not stu_only, f"student has keys absent from base ({len(stu_only)}): {sorted(stu_only)[:5]}"
+    base_only = set(base_map) - set(stu_map)
+    if base_only:
+        # e.g. Qwen3.5 `mtp.*` speculative-decoding head — swift export drops it at merge time and
+        # the student's config doesn't reference it, so it plays no role in serving. Skip it.
+        print(f"[wise] skipping {len(base_only)} base-only keys (e.g. {sorted(base_only)[:3]})")
 
     # group student keys by their shard so each shard is written once, layout preserved
     by_shard: dict[Path, list[str]] = {}
