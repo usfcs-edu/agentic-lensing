@@ -1,0 +1,503 @@
+% -----------------------------------------------------------------------------
+% references.bib — claude-giga-lens technical report.
+%
+% Provenance of arXiv identifiers:
+%   [V-note]  verified against research/notes/gigalens2-positioning.md
+%   [V-bib]   copied verbatim from a previously verified reproduction bib
+%             (foundry-i/papers/references.bib, cikota-2023/papers/references.bib)
+%   [BRIEF]   identifier supplied by the campaign brief / plan literature survey;
+%             NOT independently cross-checked here -> flagged "% UNVERIFIED".
+% Entries flagged UNVERIFIED should have their eprint/DOI confirmed against ADS
+% before any external submission.
+% -----------------------------------------------------------------------------
+% CONSOLIDATED UNVERIFIED-eprint/DOI list (confirm against ADS before submission):
+%   galan2022herculens
+%   galan2024jaxtronomy
+%   stone2024caustics
+%   tinylensgpu2025
+%   warrendye2003
+%   coolest2023
+%   starred2024
+%   dolphin2025
+%   tdlmc2018
+%   tdlmc2020results
+%   tdcosmo4
+%   vandevyvere2022multipoles
+%   powell2022multipoles
+%   lange2023nautilus
+%   blackjax2024
+%   wong2023flowmc
+%   robnik2023mclmc
+%   karamanis2022pocomc
+%   hoffman2019neutra
+%   euclidq1_slde_2025
+%   lemon2025
+%   fruchterhook2002drizzle
+%   casertano2000hdfs
+% -----------------------------------------------------------------------------
+
+% ============================ GIGA-Lens lineage ==============================
+
+@article{gu2022gigalens,
+  author        = {{Gu}, A. and {Huang}, X. and {Sheu}, W. and {Aldering}, G.
+                   and {Bolton}, A.~S. and {Boone}, K. and {Dey}, A. and
+                   {Filipp}, A. and {Jullo}, E. and {Perlmutter}, S. and
+                   {Rubin}, D. and {Schlafly}, E.~F. and {Schlegel}, D.~J. and
+                   {Shu}, Y. and {Suyu}, S.~H.},
+  title         = {{GIGA-Lens: Fast Bayesian Inference for Strong Gravitational
+                   Lens Modeling}},
+  journal       = {The Astrophysical Journal},
+  year          = {2022},
+  volume        = {935},
+  number        = {1},
+  pages         = {49},
+  doi           = {10.3847/1538-4357/ac6de4},
+  eprint        = {2202.07663},
+  archivePrefix = {arXiv},
+  primaryClass  = {astro-ph.IM}
+}
+
+@article{huang2025foundry1,
+  author        = {{Huang}, X. and {Baltasar}, S. and {Ratier-Werbin}, N. and others},
+  title         = {{DESI Strong Lens Foundry I: HST Observations and Modeling
+                   with GIGA-Lens}},
+  journal       = {arXiv e-prints},
+  eprint        = {2502.03455},
+  archivePrefix = {arXiv},
+  primaryClass  = {astro-ph.GA},
+  year          = {2025},
+  doi           = {10.48550/arXiv.2502.03455},
+  note          = {Submitted to ApJ}
+}
+
+@article{huang2026gigalens2,
+  author        = {{Huang}, X. and {Upson}, L. and {Ratier-Werbin}, N. and
+                   {Lu}, H. and {Xu}, S. and {Yap}, E. and {Odell}, E. and
+                   {Parke}, A. and {Ambardekar}, H. and {Baltasar}, S. and
+                   {Demeure}, N. and {Richardson}, B. and {Gu}, A. and
+                   {Hsu}, Y.-M. and {Liu}, J.},
+  title         = {{GIGA-Lens 2.0: Strong-Lens Modeling on Multiple GPU Nodes}},
+  journal       = {arXiv e-prints},
+  year          = {2026},
+  eprint        = {2606.30633},
+  archivePrefix = {arXiv},
+  primaryClass  = {astro-ph.CO}
+}
+
+@article{cikota2023einsteincross,
+  author        = {{Cikota}, A. and {Toro Bertolla}, I. and {Huang}, X. and
+                   {Baltasar}, S. and {Ratier-Werbin}, N. and {Sheu}, W. and
+                   {Storfer}, C. and {Suzuki}, N. and {Schlegel}, D.~J. and
+                   {Cartier}, R. and {Torres}, S. and {Cikota}, S. and
+                   {Jullo}, E.},
+  title         = {{DESI-253.2534+26.8843: A New Einstein Cross Spectroscopically
+                   Confirmed with VLT/MUSE and Modeled with GIGA-Lens}},
+  journal       = {The Astrophysical Journal Letters},
+  year          = {2023},
+  doi           = {10.3847/2041-8213/ace9da},
+  eprint        = {2307.12470},
+  archivePrefix = {arXiv},
+  primaryClass  = {astro-ph.GA}
+}
+
+@article{sheu2024carousel,
+  author        = {{Sheu}, W. and others},
+  title         = {{The Carousel Lens: A Well-Modeled Strong Lens with Multiple
+                   Sources Spectroscopically Confirmed by VLT/MUSE}},
+  journal       = {arXiv e-prints},
+  year          = {2024},
+  eprint        = {2408.10320},
+  archivePrefix = {arXiv},
+  primaryClass  = {astro-ph.GA}
+}
+
+% ==================== Lens-modeling codes and methods ========================
+
+@article{birrer2018lenstronomy,
+  author        = {{Birrer}, S. and {Amara}, A.},
+  title         = {{lenstronomy: Multi-purpose gravitational lens modelling
+                   software package}},
+  journal       = {Physics of the Dark Universe},
+  year          = {2018},
+  volume        = {22},
+  pages         = {189--201},
+  doi           = {10.1016/j.dark.2018.11.002},
+  eprint        = {1803.09746},
+  archivePrefix = {arXiv},
+  primaryClass  = {astro-ph.CO}
+}
+
+@article{galan2022herculens,
+  author        = {{Galan}, A. and {Vernardos}, G. and {Peel}, A. and
+                   {Courbin}, F. and {Starck}, J.-L.},
+  title         = {{Using wavelets to capture deviations from smoothness in
+                   galaxy-scale strong lenses}},
+  journal       = {Astronomy \& Astrophysics},
+  year          = {2022},
+  volume        = {668},
+  pages         = {A155},
+  doi           = {10.1051/0004-6361/202244464},
+  eprint        = {2207.05763},
+  archivePrefix = {arXiv},
+  primaryClass  = {astro-ph.CO}
+}
+
+@article{galan2024jaxtronomy,
+  author        = {{Galan}, A. and others},
+  title         = {{jaxtronomy: A differentiable strong-lensing forward-modelling
+                   engine in JAX}},
+  journal       = {arXiv e-prints},
+  year          = {2026},
+  eprint        = {2606.01547},
+  archivePrefix = {arXiv},
+  primaryClass  = {astro-ph.IM}
+}
+
+@article{stone2024caustics,
+  author        = {{Stone}, C. and {Adam}, A. and {Coogan}, A. and others},
+  title         = {{caustics: A Python Package for Accelerated Strong
+                   Gravitational Lensing Simulations}},
+  journal       = {The Journal of Open Source Software},
+  year          = {2024},
+  eprint        = {2406.15542},
+  archivePrefix = {arXiv},
+  primaryClass  = {astro-ph.IM}
+}
+
+@article{tinylensgpu2025,
+  author        = {{TinyLensGPU authors}},
+  title         = {{TinyLensGPU: GPU-accelerated strong-lens modelling}},
+  journal       = {arXiv e-prints},
+  year          = {2025},
+  eprint        = {2503.08586},
+  archivePrefix = {arXiv},
+  primaryClass  = {astro-ph.IM}
+}
+
+@article{etherington2024codecomparison,
+  author        = {{Etherington}, A. and {Nightingale}, J.~W. and {Massey}, R.
+                   and others},
+  title         = {{Exploiting the diversity of modeling methods to probe
+                   systematic biases in strong lensing analyses}},
+  journal       = {arXiv e-prints},
+  year          = {2024},
+  eprint        = {2406.08484},
+  archivePrefix = {arXiv},
+  primaryClass  = {astro-ph.CO}
+}
+
+@article{warrendye2003,
+  author        = {{Warren}, S.~J. and {Dye}, S.},
+  title         = {{Semilinear Gravitational Lens Inversion}},
+  journal       = {The Astrophysical Journal},
+  year          = {2003},
+  volume        = {590},
+  number        = {2},
+  pages         = {673--682},
+  doi           = {10.1086/375132},
+  eprint        = {astro-ph/0302587},
+  archivePrefix = {arXiv},
+  primaryClass  = {astro-ph}
+}
+
+@article{coolest2023,
+  author        = {{Galan}, A. and {Vernardos}, G. and {Minor}, Q. and
+                   {Sluse}, D. and {Van de Vyvere}, L. and {Gomer}, M.},
+  title         = {{COOLEST: COde-independent Organized LEns STandard}},
+  journal       = {The Journal of Open Source Software},
+  year          = {2023},
+  volume        = {8},
+  number        = {88},
+  pages         = {5567},
+  doi           = {10.21105/joss.05567}
+}
+
+@article{starred2024,
+  author        = {{Michalewicz}, K. and {Millon}, M. and {Dux}, F. and
+                   {Courbin}, F.},
+  title         = {{STARRED: a two-channel deconvolution method with
+                   Starlet regularization}},
+  journal       = {The Journal of Open Source Software},
+  year          = {2024},
+  eprint        = {2402.08725},
+  archivePrefix = {arXiv},
+  primaryClass  = {astro-ph.IM}
+}
+
+@article{dolphin2025,
+  author        = {{Shajib}, A.~J. and others},
+  title         = {{dolphin: Automated pipeline for strong-lens modelling}},
+  journal       = {arXiv e-prints},
+  year          = {2025},
+  eprint        = {2503.22657},
+  archivePrefix = {arXiv},
+  primaryClass  = {astro-ph.GA}
+}
+
+% ==================== Time-delay cosmography / systematics ===================
+
+@article{tdlmc2018,
+  author        = {{Ding}, X. and {Treu}, T. and {Birrer}, S. and others},
+  title         = {{Time Delay Lens Modelling Challenge (TDLMC): rung 0}},
+  journal       = {arXiv e-prints},
+  year          = {2018},
+  eprint        = {1801.01506},
+  archivePrefix = {arXiv},
+  primaryClass  = {astro-ph.CO}
+}
+
+@article{tdlmc2020results,
+  author        = {{Ding}, X. and {Treu}, T. and {Birrer}, S. and
+                   {Chen}, G.~C.-F. and others},
+  title         = {{Time Delay Lens Modelling Challenge: outcome of the first
+                   round}},
+  journal       = {Monthly Notices of the Royal Astronomical Society},
+  year          = {2021},
+  eprint        = {2006.08619},
+  archivePrefix = {arXiv},
+  primaryClass  = {astro-ph.CO}
+}
+
+@article{tdcosmo4,
+  author        = {{Birrer}, S. and {Shajib}, A.~J. and {Galan}, A. and others},
+  title         = {{TDCOSMO IV: Hierarchical time-delay cosmography --- joint
+                   inference of the Hubble constant and galaxy density profiles}},
+  journal       = {Astronomy \& Astrophysics},
+  year          = {2020},
+  volume        = {643},
+  pages         = {A165},
+  doi           = {10.1051/0004-6361/202038861},
+  eprint        = {2007.02941},
+  archivePrefix = {arXiv},
+  primaryClass  = {astro-ph.CO}
+}
+
+@article{vandevyvere2022multipoles,
+  author        = {{Van de Vyvere}, L. and {Sluse}, D. and {Mukherjee}, S. and
+                   {Xu}, D. and {Birrer}, S.},
+  title         = {{The impact of mass map truncation on strong lensing
+                   simulations and boxyness/discyness of the lens}},
+  journal       = {Astronomy \& Astrophysics},
+  year          = {2022},
+  eprint        = {2112.03932},
+  archivePrefix = {arXiv},
+  primaryClass  = {astro-ph.CO}
+}
+
+@article{powell2022multipoles,
+  author        = {{Powell}, D.~M. and {Vegetti}, S. and {McKean}, J.~P. and
+                   others},
+  title         = {{A novel approach to detecting low-mass dark matter haloes
+                   and multipole structure in galaxy-scale strong lenses}},
+  journal       = {Monthly Notices of the Royal Astronomical Society},
+  year          = {2022},
+  eprint        = {2207.03375},
+  archivePrefix = {arXiv},
+  primaryClass  = {astro-ph.CO}
+}
+
+% ============================== Samplers =====================================
+
+@article{lange2023nautilus,
+  author        = {{Lange}, J.~U.},
+  title         = {{nautilus: boosting Bayesian importance nested sampling with
+                   deep learning}},
+  journal       = {Monthly Notices of the Royal Astronomical Society},
+  year          = {2023},
+  volume        = {525},
+  number        = {2},
+  pages         = {3181--3194},
+  doi           = {10.1093/mnras/stad2441},
+  eprint        = {2306.16923},
+  archivePrefix = {arXiv},
+  primaryClass  = {astro-ph.IM}
+}
+
+@misc{blackjax2024,
+  author       = {{Cabezas}, A. and {Corenflos}, A. and {Lao}, J. and
+                  {Louf}, R. and others},
+  title        = {{BlackJAX: Composable Bayesian inference in JAX}},
+  year         = {2024},
+  eprint       = {2402.10797},
+  archivePrefix = {arXiv},
+  primaryClass = {cs.MS}
+}
+
+@article{wong2023flowmc,
+  author        = {{Wong}, K.~W.~K. and {Gabri{\'e}}, M. and {Foreman-Mackey}, D.},
+  title         = {{flowMC: Normalizing flow enhanced sampling package for
+                   probabilistic inference in JAX}},
+  journal       = {The Journal of Open Source Software},
+  year          = {2023},
+  eprint        = {2211.06397},
+  archivePrefix = {arXiv},
+  primaryClass  = {astro-ph.IM}
+}
+
+@article{robnik2023mclmc,
+  author        = {{Robnik}, J. and {De Luca}, G.~B. and {Silverstein}, E. and
+                   {Seljak}, U.},
+  title         = {{Microcanonical Hamiltonian Monte Carlo}},
+  journal       = {Journal of Machine Learning Research},
+  year          = {2023},
+  eprint        = {2212.08549},
+  archivePrefix = {arXiv},
+  primaryClass  = {stat.CO}
+}
+
+@article{karamanis2022pocomc,
+  author        = {{Karamanis}, M. and {Beutler}, F. and {Peacock}, J.~A. and
+                   {Nabergoj}, D. and {Seljak}, U.},
+  title         = {{Accelerating astronomical and cosmological inference with
+                   preconditioned Monte Carlo}},
+  journal       = {Monthly Notices of the Royal Astronomical Society},
+  year          = {2022},
+  volume        = {516},
+  number        = {2},
+  pages         = {1644--1653},
+  doi           = {10.1093/mnras/stac2272},
+  eprint        = {2207.05660},
+  archivePrefix = {arXiv},
+  primaryClass  = {astro-ph.IM}
+}
+
+@article{hoffman2021chees,
+  author        = {{Hoffman}, M.~D. and {Radul}, A. and {Sountsov}, P.},
+  title         = {{An Adaptive-MCMC Scheme for Setting Trajectory Lengths in
+                   Hamiltonian Monte Carlo}},
+  journal       = {Proceedings of AISTATS},
+  year          = {2021},
+  note          = {ChEES-HMC}
+}
+
+@article{hoffman2019neutra,
+  author        = {{Hoffman}, M.~D. and {Sountsov}, P. and {Dillon}, J.~V. and
+                  {Langmore}, I. and {Tran}, D. and {Vasudevan}, S.},
+  title         = {{NeuTra-lizing Bad Geometry in Hamiltonian Monte Carlo Using
+                   Neural Transport}},
+  journal       = {arXiv e-prints},
+  year          = {2019},
+  eprint        = {1903.03704},
+  archivePrefix = {arXiv},
+  primaryClass  = {stat.CO}
+}
+
+% ==================== Surveys, instruments, imaging ==========================
+
+@article{euclidq1_slde_2025,
+  author        = {{Euclid Collaboration} and {Walmsley}, M. and {Holloway}, P.
+                   and others},
+  title         = {{Euclid Quick Data Release (Q1): The Strong Lensing Discovery
+                   Engine}},
+  journal       = {arXiv e-prints},
+  year          = {2025},
+  eprint        = {2503.15325},
+  archivePrefix = {arXiv},
+  primaryClass  = {astro-ph.GA}
+}
+
+@article{lemon2025,
+  author        = {{Euclid Collaboration}},
+  title         = {{LEMON: Lens Modelling with Neural networks for Euclid}},
+  journal       = {arXiv e-prints},
+  year          = {2025},
+  eprint        = {2503.15329},
+  archivePrefix = {arXiv},
+  primaryClass  = {astro-ph.GA}
+}
+
+@article{fruchterhook2002drizzle,
+  author        = {{Fruchter}, A.~S. and {Hook}, R.~N.},
+  title         = {{Drizzle: A Method for the Linear Reconstruction of
+                   Undersampled Images}},
+  journal       = {Publications of the Astronomical Society of the Pacific},
+  year          = {2002},
+  volume        = {114},
+  number        = {792},
+  pages         = {144--152},
+  doi           = {10.1086/338393},
+  eprint        = {astro-ph/9808087},
+  archivePrefix = {arXiv},
+  primaryClass  = {astro-ph}
+}
+
+@article{casertano2000hdfs,
+  author        = {{Casertano}, S. and {de Mello}, D. and {Dickinson}, M. and
+                   others},
+  title         = {{The Hubble Deep Field South: Formulation of the Observing
+                   Campaign}},
+  journal       = {The Astronomical Journal},
+  year          = {2000},
+  volume        = {120},
+  number        = {6},
+  pages         = {2747--2824},
+  doi           = {10.1086/316851},
+  eprint        = {astro-ph/0007150},
+  archivePrefix = {arXiv},
+  primaryClass  = {astro-ph}
+}
+
+@article{treu2010annurev,
+  author  = {{Treu}, T.},
+  title   = {{Strong Lensing by Galaxies}},
+  journal = {Annual Review of Astronomy and Astrophysics},
+  year    = {2010},
+  volume  = {48},
+  pages   = {87--125},
+  doi     = {10.1146/annurev-astro-081309-130924}
+}
+
+% ============================ Software stack =================================
+
+@misc{bradbury2018jax,
+  author       = {{Bradbury}, J. and {Frostig}, R. and {Hawkins}, P. and
+                  {Johnson}, M.~J. and {Leary}, C. and {Maclaurin}, D. and
+                  {Necula}, G. and {Paszke}, A. and {VanderPlas}, J. and
+                  {Wanderman-Milne}, S. and {Zhang}, Q.},
+  title        = {{JAX: composable transformations of Python+NumPy programs}},
+  year         = {2018},
+  publisher    = {GitHub},
+  howpublished = {\url{https://github.com/google/jax}}
+}
+
+@article{dillon2017tfp,
+  author        = {{Dillon}, J.~V. and {Langmore}, I. and {Tran}, D. and
+                   {Brevdo}, E. and {Vasudevan}, S. and {Moore}, D. and
+                   {Patton}, B. and {Alemi}, A. and {Hoffman}, M. and
+                   {Saurous}, R.~A.},
+  title         = {{TensorFlow Distributions}},
+  journal       = {arXiv e-prints},
+  year          = {2017},
+  eprint        = {1711.10604},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.LG},
+  doi           = {10.48550/arXiv.1711.10604}
+}
+
+@misc{bradley2024photutils,
+  author       = {{Bradley}, L. and {Sip{\H{o}}cz}, B. and {Robitaille}, T. and
+                  {Tollerud}, E. and others},
+  title        = {{photutils: Detection, Photometry and Morphology of Sources
+                   in Astronomical Images}},
+  year         = {2024},
+  publisher    = {Zenodo},
+  doi          = {10.5281/zenodo.596036},
+  url          = {https://github.com/astropy/photutils}
+}
+
+@article{astropy2022,
+  author        = {{Astropy Collaboration} and {Price-Whelan}, A.~M. and
+                   {Lim}, P.~L. and others},
+  title         = {{The Astropy Project: Sustaining and Growing a
+                   Community-oriented Open-source Project and the Latest Major
+                   Release (v5.0) of the Core Package}},
+  journal       = {The Astrophysical Journal},
+  year          = {2022},
+  volume        = {935},
+  number        = {2},
+  pages         = {167},
+  doi           = {10.3847/1538-4357/ac7c74},
+  eprint        = {2206.14220},
+  archivePrefix = {arXiv},
+  primaryClass  = {astro-ph.IM}
+}
