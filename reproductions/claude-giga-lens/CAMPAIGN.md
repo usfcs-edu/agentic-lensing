@@ -45,8 +45,31 @@ Charging note: debug QOS allocates the node exclusively (4 A100s billed even at
 | E1b recovery | 2026-07-07 | **FAIL (confounded)** | fine z̄=−0.654 / binned +1.22 (gate \|z̄\|<0.5); cov68 0.57/0.375 | outlier z's coincide with UNHEALTHY fits (R̂ ≤2.1, minESS 54–238 at reduced budget) — gate confounded by sampler depth; diagnosis pass launched before any Perlmutter spend |
 | E1c SBC | 2026-07-07 | **FAIL (γ only)** | γ rank p=6.5e-5 (16/44 first bin), γ cov68=0.34; other 5 params PASS rank gate; pooled cov68 0.49 vs [55,80] | candidate causes: under-mixing vs delta-regularized near-singular fine-kernel calibration (K_reg=(K+0.1δ)/1.1 QC remediation) — analytic-kernel arm + deep rerun will separate them |
 | E1d whitener arbitration | 2026-07-07 | **NOT RUN** | no fits in any arm | UNDECIDED; included in diagnosis pass |
+| E1b AMENDED (depth-controlled) | 2026-07-08 | **PASS** | z̄(γ) fine −0.359 / binned −0.331 / native −0.045 (gate <0.5); cross-scale 7/8 | two-stage PHMC (re-preconditioned from pooled stage-1 draws) is the production recipe: R̂ 2.11→1.003, ESS 13–22k. Original FAIL row stands above (ledger discipline) |
+| E1c AMENDED (healthy-only, n=13) | 2026-07-08 | **PASS (low-n caveat)** | all 6 params rank p ≥ 0.19 (γ p=0.53); pooled cov68 0.615 ∈ [55,80] | γ pathology was sampler-induced (stuck chains → U-shaped ranks); definitive full-64 staged re-run (~35 GPU-h) queued post-P2b on phoenix |
+| E1 D2 kernel attribution | 2026-07-08 | **NEITHER** (kernels exonerated) | fitted arm z̄(γ)=−0.14 cov 0.83; analytic arm z̄=−0.47 cov 0.75 — both calibrate | original failures were sampler depth/metric, not kernel fitting or δ-regularization |
+| E1d AMENDED | 2026-07-08 | **RELAXED ADOPTED** | max\|z̄\|=0.492 (thin margin, flagged); cov68 0.594; kept 982 px = 4.9× strict | diag FAILS under real v2d kernel (z̄(γ)=−6.1) — artifact strong even at native scale. E2c uses relaxed whitener |
+| E1b width-ratio sub-gate | 2026-07-08 | **FAIL (characterized)** | median σ_fine/σ_native = 2.45 (gate [0.7,1.5]), incl. fully-healthy pairs | fine posterior is CONSERVATIVE, not biased (z̄+cross-scale pass): δ-reg whitener (λ=0.1) discards information at the tent kernel's spectral zeros. Pre-registered amendment: λ-sensitivity arm added to E3; H3 (real-data honesty gate) unchanged |
 
 ## Stage log
+
+### P1b diagnosis — 2026-07-08 (COMPLETE; P1c GREEN-LIT)
+- ROOT CAUSE of E1b/E1c failures: floored-SVI covariance is too poor a momentum metric for
+  near-degenerate 22-dim posteriors (3× depth alone still R̂=3.11). FIX (production recipe,
+  pre-registered for P1c): **two-stage PHMC** — stage-2 re-preconditioned from pooled
+  cross-chain stage-1 draws; same fit → R̂ 1.003, ESS 13–22k, ~1.9× cost (34 min fine/L4).
+  63/63 deep re-runs clean.
+- Depth-controlled gates: E1b PASS all scales; E1c healthy-only PASS all params; D2 kernels
+  exonerated (both arms calibrate); D3 relaxed v2d whitener ADOPTED (4.9× pixels).
+- Honest standing finding: σ_fine/σ_native = 2.45 — the δ-regularized fine whitener is
+  conservative (information discarded at spectral zeros), not biased. λ-sensitivity arm
+  added to E3 (pre-registered BEFORE P1c). Report will present this as a characterized
+  cost of near-singular drizzle covariances, with exact-GLS information loss quantified.
+- Mid-run QC (documented in e1_report deviations): δ-reg fallback extended to e_op-gate
+  failure; diag-shapelet marg crash fixed; quarantines re-run; evidence in e1_quarantine/.
+- P1c conditions adopted: (1) staged sampler default; (2) width gate re-specified as above;
+  (3) definitive full-64 E1c staged re-run queued on phoenix post-P2b (non-gating).
+- Diagnosis cost ≈95 phoenix GPU-h (campaign local total ≈165 GPU-h; Perlmutter still 1.2).
 
 ### Perlmutter staging — 2026-07-06 (COMPLETE)
 - Layout: /global/cfs/cdirs/deepsrch/gdbenson/claude-giga-lens (venv 6.2G + repo 187M with

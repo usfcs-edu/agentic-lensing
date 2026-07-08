@@ -1,0 +1,63 @@
+mock002_fine_corr_fitted_deep	--seed 2 --scale fine --likelihood corr --kernel fitted --out data/e1_fits/mock002_fine_corr_fitted_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+e1d100_diag_deep	--e1d --seed 100 --whitener-arm diag --out data/e1_fits/e1d100_diag_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+e1d101_relaxed_deep	--e1d --seed 101 --whitener-arm relaxed --out data/e1_fits/e1d101_relaxed_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+e1d101_strict_deep	--e1d --seed 101 --whitener-arm strict --out data/e1_fits/e1d101_strict_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+e1d102_diag_deep	--e1d --seed 102 --whitener-arm diag --out data/e1_fits/e1d102_diag_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+e1d102_relaxed_deep	--e1d --seed 102 --whitener-arm relaxed --out data/e1_fits/e1d102_relaxed_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+e1d104_relaxed_deep	--e1d --seed 104 --whitener-arm relaxed --out data/e1_fits/e1d104_relaxed_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+e1d106_relaxed_deep	--e1d --seed 106 --whitener-arm relaxed --out data/e1_fits/e1d106_relaxed_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+e1d107_relaxed_deep	--e1d --seed 107 --whitener-arm relaxed --out data/e1_fits/e1d107_relaxed_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+e1d108_relaxed_deep	--e1d --seed 108 --whitener-arm relaxed --out data/e1_fits/e1d108_relaxed_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+e1d108_strict_deep	--e1d --seed 108 --whitener-arm strict --out data/e1_fits/e1d108_strict_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+e1d109_diag_deep	--e1d --seed 109 --whitener-arm diag --out data/e1_fits/e1d109_diag_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+e1d109_relaxed_deep	--e1d --seed 109 --whitener-arm relaxed --out data/e1_fits/e1d109_relaxed_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+e1d110_relaxed_deep	--e1d --seed 110 --whitener-arm relaxed --out data/e1_fits/e1d110_relaxed_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+e1d112_relaxed_deep	--e1d --seed 112 --whitener-arm relaxed --out data/e1_fits/e1d112_relaxed_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+e1d113_diag_deep	--e1d --seed 113 --whitener-arm diag --out data/e1_fits/e1d113_diag_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+e1d113_relaxed_deep	--e1d --seed 113 --whitener-arm relaxed --out data/e1_fits/e1d113_relaxed_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+e1d113_strict_deep	--e1d --seed 113 --whitener-arm strict --out data/e1_fits/e1d113_strict_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+e1d114_diag_deep	--e1d --seed 114 --whitener-arm diag --out data/e1_fits/e1d114_diag_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+e1d114_relaxed_deep	--e1d --seed 114 --whitener-arm relaxed --out data/e1_fits/e1d114_relaxed_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+e1d115_diag_deep	--e1d --seed 115 --whitener-arm diag --out data/e1_fits/e1d115_diag_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+e1d115_relaxed_deep	--e1d --seed 115 --whitener-arm relaxed --out data/e1_fits/e1d115_relaxed_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+e1d115_strict_deep	--e1d --seed 115 --whitener-arm strict --out data/e1_fits/e1d115_strict_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock000_binned_corr_fitted_deep	--seed 0 --scale binned --likelihood corr --kernel fitted --out data/e1_fits/mock000_binned_corr_fitted_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock002_binned_corr_fitted_deep	--seed 2 --scale binned --likelihood corr --kernel fitted --out data/e1_fits/mock002_binned_corr_fitted_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock003_binned_corr_fitted_deep	--seed 3 --scale binned --likelihood corr --kernel fitted --out data/e1_fits/mock003_binned_corr_fitted_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock004_binned_corr_fitted_deep	--seed 4 --scale binned --likelihood corr --kernel fitted --out data/e1_fits/mock004_binned_corr_fitted_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock005_binned_corr_fitted_deep	--seed 5 --scale binned --likelihood corr --kernel fitted --out data/e1_fits/mock005_binned_corr_fitted_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock006_binned_corr_fitted_deep	--seed 6 --scale binned --likelihood corr --kernel fitted --out data/e1_fits/mock006_binned_corr_fitted_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock007_binned_corr_fitted_deep	--seed 7 --scale binned --likelihood corr --kernel fitted --out data/e1_fits/mock007_binned_corr_fitted_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock000_native_corr_fitted_deep	--seed 0 --scale native --likelihood corr --kernel fitted --out data/e1_fits/mock000_native_corr_fitted_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock002_native_corr_fitted_deep	--seed 2 --scale native --likelihood corr --kernel fitted --out data/e1_fits/mock002_native_corr_fitted_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock003_native_corr_fitted_deep	--seed 3 --scale native --likelihood corr --kernel fitted --out data/e1_fits/mock003_native_corr_fitted_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock004_native_corr_fitted_deep	--seed 4 --scale native --likelihood corr --kernel fitted --out data/e1_fits/mock004_native_corr_fitted_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock006_native_corr_fitted_deep	--seed 6 --scale native --likelihood corr --kernel fitted --out data/e1_fits/mock006_native_corr_fitted_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock007_native_corr_fitted_deep	--seed 7 --scale native --likelihood corr --kernel fitted --out data/e1_fits/mock007_native_corr_fitted_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock000_fine_corr_analytic_deep	--seed 0 --scale fine --likelihood corr --kernel analytic --out data/e1_fits/mock000_fine_corr_analytic_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock001_fine_corr_analytic_deep	--seed 1 --scale fine --likelihood corr --kernel analytic --out data/e1_fits/mock001_fine_corr_analytic_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock002_fine_corr_analytic_deep	--seed 2 --scale fine --likelihood corr --kernel analytic --out data/e1_fits/mock002_fine_corr_analytic_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock003_fine_corr_analytic_deep	--seed 3 --scale fine --likelihood corr --kernel analytic --out data/e1_fits/mock003_fine_corr_analytic_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock004_fine_corr_analytic_deep	--seed 4 --scale fine --likelihood corr --kernel analytic --out data/e1_fits/mock004_fine_corr_analytic_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock005_fine_corr_analytic_deep	--seed 5 --scale fine --likelihood corr --kernel analytic --out data/e1_fits/mock005_fine_corr_analytic_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock006_fine_corr_analytic_deep	--seed 6 --scale fine --likelihood corr --kernel analytic --out data/e1_fits/mock006_fine_corr_analytic_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock007_fine_corr_analytic_deep	--seed 7 --scale fine --likelihood corr --kernel analytic --out data/e1_fits/mock007_fine_corr_analytic_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock000_fine_corr_fitted_deep	--seed 0 --scale fine --likelihood corr --kernel fitted --out data/e1_fits/mock000_fine_corr_fitted_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock003_fine_corr_fitted_deep	--seed 3 --scale fine --likelihood corr --kernel fitted --out data/e1_fits/mock003_fine_corr_fitted_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock004_fine_corr_fitted_deep	--seed 4 --scale fine --likelihood corr --kernel fitted --out data/e1_fits/mock004_fine_corr_fitted_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock005_fine_corr_fitted_deep	--seed 5 --scale fine --likelihood corr --kernel fitted --out data/e1_fits/mock005_fine_corr_fitted_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock006_fine_corr_fitted_deep	--seed 6 --scale fine --likelihood corr --kernel fitted --out data/e1_fits/mock006_fine_corr_fitted_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock007_fine_corr_fitted_deep	--seed 7 --scale fine --likelihood corr --kernel fitted --out data/e1_fits/mock007_fine_corr_fitted_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock013_fine_corr_fitted_deep	--seed 13 --scale fine --likelihood corr --kernel fitted --out data/e1_fits/mock013_fine_corr_fitted_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock017_fine_corr_fitted_deep	--seed 17 --scale fine --likelihood corr --kernel fitted --out data/e1_fits/mock017_fine_corr_fitted_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock027_fine_corr_fitted_deep	--seed 27 --scale fine --likelihood corr --kernel fitted --out data/e1_fits/mock027_fine_corr_fitted_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock029_fine_corr_fitted_deep	--seed 29 --scale fine --likelihood corr --kernel fitted --out data/e1_fits/mock029_fine_corr_fitted_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock030_fine_corr_fitted_deep	--seed 30 --scale fine --likelihood corr --kernel fitted --out data/e1_fits/mock030_fine_corr_fitted_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock033_fine_corr_fitted_deep	--seed 33 --scale fine --likelihood corr --kernel fitted --out data/e1_fits/mock033_fine_corr_fitted_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock041_fine_corr_fitted_deep	--seed 41 --scale fine --likelihood corr --kernel fitted --out data/e1_fits/mock041_fine_corr_fitted_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock044_fine_corr_fitted_deep	--seed 44 --scale fine --likelihood corr --kernel fitted --out data/e1_fits/mock044_fine_corr_fitted_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock045_fine_corr_fitted_deep	--seed 45 --scale fine --likelihood corr --kernel fitted --out data/e1_fits/mock045_fine_corr_fitted_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock050_fine_corr_fitted_deep	--seed 50 --scale fine --likelihood corr --kernel fitted --out data/e1_fits/mock050_fine_corr_fitted_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock051_fine_corr_fitted_deep	--seed 51 --scale fine --likelihood corr --kernel fitted --out data/e1_fits/mock051_fine_corr_fitted_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock053_fine_corr_fitted_deep	--seed 53 --scale fine --likelihood corr --kernel fitted --out data/e1_fits/mock053_fine_corr_fitted_deep.npz --sampler-stages 2 --burn 500 --keep 2250
+mock062_fine_corr_fitted_deep	--seed 62 --scale fine --likelihood corr --kernel fitted --out data/e1_fits/mock062_fine_corr_fitted_deep.npz --sampler-stages 2 --burn 500 --keep 2250

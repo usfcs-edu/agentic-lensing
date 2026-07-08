@@ -920,9 +920,12 @@ def run_svi(model, start_z, n_vi=300, steps=500, lr=1e-3, seed=1):
 
 
 def run_chees(model, loc, cov, chains=24, burn=250, keep=750, step_size=0.3,
-              init_leapfrog=3, max_leapfrog=30, seed=2):
+              init_leapfrog=3, max_leapfrog=30, seed=2, start_override=None):
     """Batched single-device PHMC + ChEES (GBTLA) + dual-averaging step size
     (the gu-2022 02_fit_system --gbtla stack; guards.floor_svi_covariance).
+
+    start_override: optional (chains, ndim) array of chain start states
+    (used by run_chees_staged to warm-start stage 2 from stage-1 ends).
 
     Returns dict(draws (keep, chains, ndim) f32, leapfrogs traced (or None),
     step_size_final, n_floored, wall_s)."""
@@ -949,9 +952,12 @@ def run_chees(model, loc, cov, chains=24, burn=250, keep=750, step_size=0.3,
 
     key = jax.random.PRNGKey(seed)
     k_start, k_chain = jax.random.split(key)
-    eps = jax.random.normal(k_start, (chains, model.ndim), dtype=dt)
-    start = jnp.asarray(loc, dtype=dt)[None] + eps @ jnp.asarray(
-        chol.T, dtype=dt)
+    if start_override is not None:
+        start = jnp.asarray(np.asarray(start_override), dtype=dt)
+    else:
+        eps = jax.random.normal(k_start, (chains, model.ndim), dtype=dt)
+        start = jnp.asarray(loc, dtype=dt)[None] + eps @ jnp.asarray(
+            chol.T, dtype=dt)
 
     kernel = tfe.mcmc.PreconditionedHamiltonianMonteCarlo(
         target_log_prob_fn=lp_only, momentum_distribution=momentum,
@@ -988,6 +994,46 @@ def run_chees(model, loc, cov, chains=24, burn=250, keep=750, step_size=0.3,
     return dict(draws=draws, max_traj=max_traj, step_size_hist=step_hist,
                 n_floored=int(n_floored), wall_s=time.time() - t0,
                 num_adapt=num_adapt)
+
+
+def run_chees_staged(model, loc, cov, chains=24, burn=500, keep=2250,
+                     step_size=0.3, init_leapfrog=3, max_leapfrog=30, seed=2,
+                     stage1_burn=500, stage1_keep=500):
+    """Two-stage PHMC: stage 1 samples with the SVI-derived metric, then the
+    momentum metric is RE-PRECONDITIONED from the pooled cross-chain stage-1
+    draws and stage 2 (the reported run) warm-starts from the stage-1 chain
+    end states.
+
+    DIAGNOSIS-PASS ADDITION (2026-07-07): the E1 batch showed the floored
+    SVI covariance is too poor a metric for the near-degenerate 22-dim
+    posteriors — chains disagree (R-hat up to 21) and a 3x-depth canary
+    (mock002 fine) still had R-hat 3.1. The pooled cross-chain covariance is
+    conservative (over-dispersed when chains disagree) which is exactly the
+    right property for a metric re-estimate. Standard-budget fits are
+    unchanged (06 default --sampler-stages 1).
+
+    Returns the stage-2 dict plus stage1_* diagnostic fields."""
+    s1 = run_chees(model, loc, cov, chains=chains, burn=stage1_burn,
+                   keep=stage1_keep, step_size=step_size,
+                   init_leapfrog=init_leapfrog, max_leapfrog=max_leapfrog,
+                   seed=seed)
+    d1 = s1["draws"].astype(np.float64)             # (T1, C, ndim)
+    ess1, rhat1 = diagnostics(d1)
+    pooled = d1.reshape(-1, d1.shape[-1])
+    loc2 = pooled.mean(axis=0)
+    cov2 = np.cov(pooled.T)
+    # step size re-adapts in stage 2 (DA); keep the CLI initial value
+    s2 = run_chees(model, loc2, cov2, chains=chains, burn=burn, keep=keep,
+                   step_size=step_size, init_leapfrog=init_leapfrog,
+                   max_leapfrog=max_leapfrog, seed=seed + 1,
+                   start_override=d1[-1])
+    s2["stage1_rhat_max"] = float(np.max(rhat1))
+    s2["stage1_ess_min"] = float(np.min(ess1))
+    s2["stage1_wall_s"] = s1["wall_s"]
+    s2["stage1_n_floored"] = int(s1["n_floored"])
+    s2["wall_s"] = s1["wall_s"] + s2["wall_s"]
+    s2["stages"] = 2
+    return s2
 
 
 def diagnostics(draws):

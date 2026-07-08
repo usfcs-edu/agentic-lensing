@@ -58,6 +58,13 @@ def parse_args(argv=None):
     ap.add_argument("--chains", type=int, default=24)
     ap.add_argument("--burn", type=int, default=250)
     ap.add_argument("--keep", type=int, default=750)
+    ap.add_argument("--sampler-stages", type=int, default=1,
+                    choices=(1, 2),
+                    help="2 = re-preconditioned second PHMC stage (metric "
+                         "from pooled cross-chain stage-1 draws; diagnosis "
+                         "pass). --burn/--keep apply to the final stage.")
+    ap.add_argument("--stage1-burn", type=int, default=500)
+    ap.add_argument("--stage1-keep", type=int, default=500)
     ap.add_argument("--step-size", type=float, default=0.3)
     ap.add_argument("--max-leapfrog", type=int, default=30)
     ap.add_argument("--fit-seed", type=int, default=0)
@@ -236,11 +243,23 @@ def main():
     print(f"[06] SVI: -ELBO={svi['neg_elbo']:.2f} [{svi['wall_s']:.0f}s]",
           flush=True)
 
-    hmc = e1.run_chees(model, svi["loc"], svi["cov"], chains=args.chains,
-                       burn=args.burn, keep=args.keep,
-                       step_size=args.step_size,
-                       max_leapfrog=args.max_leapfrog,
-                       seed=args.fit_seed + 2)
+    if args.sampler_stages == 2:
+        hmc = e1.run_chees_staged(model, svi["loc"], svi["cov"],
+                                  chains=args.chains, burn=args.burn,
+                                  keep=args.keep, step_size=args.step_size,
+                                  max_leapfrog=args.max_leapfrog,
+                                  seed=args.fit_seed + 2,
+                                  stage1_burn=args.stage1_burn,
+                                  stage1_keep=args.stage1_keep)
+        print(f"[06] HMC stage1: rhat_max={hmc['stage1_rhat_max']:.2f} "
+              f"ess_min={hmc['stage1_ess_min']:.0f} "
+              f"[{hmc['stage1_wall_s']:.0f}s]", flush=True)
+    else:
+        hmc = e1.run_chees(model, svi["loc"], svi["cov"], chains=args.chains,
+                           burn=args.burn, keep=args.keep,
+                           step_size=args.step_size,
+                           max_leapfrog=args.max_leapfrog,
+                           seed=args.fit_seed + 2)
     print(f"[06] HMC: draws {hmc['draws'].shape} "
           f"[{hmc['wall_s']:.0f}s, {hmc['n_floored']} floored eigs]",
           flush=True)
@@ -276,7 +295,15 @@ def main():
                      svi_steps=args.svi_steps, chains=args.chains,
                      burn=args.burn, keep=args.keep,
                      step_size=args.step_size,
-                     max_leapfrog=args.max_leapfrog),
+                     max_leapfrog=args.max_leapfrog,
+                     sampler_stages=args.sampler_stages,
+                     stage1_burn=(args.stage1_burn
+                                  if args.sampler_stages == 2 else None),
+                     stage1_keep=(args.stage1_keep
+                                  if args.sampler_stages == 2 else None)),
+        stage1_diag=(dict(rhat_max=hmc.get("stage1_rhat_max"),
+                          ess_min=hmc.get("stage1_ess_min"))
+                     if args.sampler_stages == 2 else None),
         n_data=int(model.n_data), n_keep=model.n_keep,
         n_keep_w=model.n_keep_w,
         timing=dict(kernel_s=t_kernel,

@@ -29,13 +29,23 @@ mkdir -p "$HERE/data/logs/e1" "$HERE/data/e1_fits" "$HERE/data/e1_kernels"
 QUEUE=$(mktemp "${TMPDIR:-/tmp}/e1_queue_XXXXXX")
 trap 'rm -f "$QUEUE" "$QUEUE.idx" "$QUEUE.lock"' EXIT
 
-"$PY" - "$EXP" > "$QUEUE" <<'PYEOF'
+if [ -f "$EXP" ]; then
+  # file-based queue: TSV of "name<TAB>args" (e.g. the diagnosis pass);
+  # resumable -- lines whose --out target already exists are skipped
+  while IFS=$'\t' read -r name args; do
+    out=$(echo "$args" | sed -n 's/.*--out \([^ ]*\).*/\1/p')
+    if [ -n "$out" ] && [ -e "$out" ]; then continue; fi
+    printf '%s\t%s\n' "$name" "$args"
+  done < "$EXP" > "$QUEUE"
+else
+  "$PY" - "$EXP" > "$QUEUE" <<'PYEOF'
 import sys
 sys.path.insert(0, ".")
 from cgl.e1 import build_job_manifest
 for j in build_job_manifest(sys.argv[1]):
     print(j["name"] + "\t" + " ".join(j["args"]))
 PYEOF
+fi
 
 N_JOBS=$(wc -l < "$QUEUE")
 echo "experiment=$EXP jobs=$N_JOBS gpus=${GPUS[*]} (existing outputs skipped)"
