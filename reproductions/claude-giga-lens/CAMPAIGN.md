@@ -28,8 +28,17 @@ Decisions (locked 2026-07-06):
 | 55680126 | P1c smoke | 1 × shared QOS, single A100, 8:26 | 0.14 (actual) | 1.34 | E2 pre-flight DONE: all 6 basin starts valid (logp finite, χ²_pp 1.4–2.5 good; v3-fine-LOW 30.7 FLAGGED); timings v3 1.35/v3b 1.00/v2d 0.22 s/step (8ch) |
 
 | 55683612 | P1c preflight | 1 × shared QOS, 3m05s | 0.05 (actual) | ~1.39 | fine-low guard — result FAIL (see finding below); the guard did its job (production NOT spent on a bad start) |
-| 55688871 | P1c prod (Job 1) | 1 node × 4 A100, regular, -t 04:00 | ~14 (est; 16 worst-case cap) | ~15.4 | HEALTHY node: GPU0 v3-fine STEEP (keep 500), GPU1 v3b binned BOTH (keep 300, money product), GPU2 v2d native RELAXED both (keep 2000), GPU3 v2d STRICT native-low (keep 500). Sublinear 8→24ch scaling (~2.5×) → ~3.3h elapsed expected |
-| 55688960 | P1c fine-low disc (Job 2) | 1 × shared QOS, single A100 | ~0.05 | ~15.45 | discriminator: v3b-low MAP mass → fine light/source → polish + sanity. Verdict: γ∈[1.2,1.8]&χ²<5 curable / γ≤1.15 or χ²>10 pathology / else ambiguous |
+| ~~55688871~~ | P1c prod (Job 1) | CANCELLED (never ran, 0 charged) | 0.0 | — | VOIDED: resubmitted as 55703707 on cosmo_g (deepsrch_g congested by LensJudge) |
+| 55688960 | P1c fine-low disc (Job 2) | 1 × shared QOS deepsrch_g | ~0.05 | ~1.44 | discriminator (done): GENUINE PATHOLOGY verdict |
+| 55703707 | P1c prod (Job 1, **cosmo_g**) | 1 node × 4 A100, regular, -t 04:00 | ~14 (est; 16 cap) | ~15.44 | HEALTHY node resubmitted on cosmo_g for scheduling (fairshare 0.298 vs deepsrch 0.145; cosmo_g accepted, balance OK for 14h). Config identical: GPU0 v3-fine STEEP k500, GPU1 v3b BOTH k300 (money), GPU2 v2d RELAXED both k2000, GPU3 v2d STRICT low k500 |
+
+**Account strategy (user-directed 2026-07-08)**: deepsrch_g is over-subscribed at the account
+level (RawUsage 427M vs cosmo_g 35M) + flooded by LensJudge (4+ ljv5 jobs) → gdbenson fairshare
+0.145 there vs 0.298 on cosmo_g. So Perlmutter GPU jobs now go to **cosmo_g** while deepsrch_g is
+congested (reverses the earlier "deepsrch_g for more hours" default — a scheduling-latency
+exception). P1c on cosmo_g. P2c (user: "cosmo_g if balance allows") — verifying cosmo_g has
+≥~60 A100-h headroom before committing the 45 A100-h matrix; else fall back to deepsrch_g.
+Diagnostics (preflight/discriminator, ~0.1 A100-h) already ran on deepsrch_g, left as-is.
 
 Committed: ~15.4 / 90 (hard stop 100). P1c-to-date: staging 1.2 + smoke 0.14 + preflight 0.05
 + prod ~14 ≈ 15.4; well under the ≤30 P1c envelope (fine-low diagnostic ~0.05 + any fine-low
