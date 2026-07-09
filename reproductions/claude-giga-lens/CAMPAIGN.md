@@ -48,7 +48,8 @@ run on cosmo_g; diagnostics (preflight/discriminator, ~0.1 A100-h) already ran o
 left as-is. Note: NERSC does not kill running jobs for balance (overdrawn = reduced priority),
 so no mid-run-failure risk.
 
-| 55712538 | P2c pre-flight | 1 node × 4 A100 cosmo_g, -t 03:30 | ~14 (16 cap) | ~29.4 | P2C_KIND=all seed 0: 4 T2 (s0/bj_mclmc ×{A,B}) + 4 T3 (s0/remc_pt/nautilus/glnt) + 1 PT-ref + 1 SMC-evidence. Calibrates A100 timings before the full matrix. Queued behind P1c (prio 67679 < P1c 68143 → P1c first) |
+| ~~55712538~~ | P2c pre-flight (node) | CANCELLED unrun (queue-stuck) | 0.0 | — | VOIDED → re-architected into 10 shared jobs below |
+| 55712738-49 | P2c pre-flight (10 SHARED) | 10× 1-GPU shared cosmo_g | ~15.6 | ~28 | seed-0 calibration: T2 s0/mclmc ×{A,B} (55712738/40/45/46), T3 s0-svi/nautilus/remc/glnt (41/43/47/49), SMC-evidence-24 (44, PRIMARY mode ref), PT-ref-23 (48, expected non-mixing). Priority: calibration+SMC first. -t ceilings sum 34h but bill = elapsed. Queued behind P1c's 4 jobs |
 
 **QOS RE-ARCHITECTURE (2026-07-09, verified via sbatch --test-only)**: the 4-GPU NODE
 reservations were queue-stuck — worst-case start ~2026-07-17 (8 days out) under gpu_regular
