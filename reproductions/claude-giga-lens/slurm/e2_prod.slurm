@@ -40,11 +40,15 @@ for tag in $E2_TAGS; do
   BURN=$(pertag BURN "$tag" "${BURN:-500}")
   S1B=$(pertag STAGE1BURN "$tag" "${STAGE1BURN:-500}")
   S1K=$(pertag STAGE1KEEP "$tag" "${STAGE1KEEP:-500}")
+  # per-tag basin control (e.g. BASINS_V3=steep to skip a blocked low basin);
+  # default both basins. 10_run_e2.py --basins already supports single-basin runs.
+  BASINS=$(pertag BASINS "$tag" "${BASINS:-low,steep}")
   echo "[e2_prod] $tag on GPU$i: chains=$CHAINS nleap=$NLEAP step=$STEP "\
-"stage1=${S1B}+${S1K} stage2=${BURN}+${KEEP}"
+"stage1=${S1B}+${S1K} stage2=${BURN}+${KEEP} basins=${BASINS}"
   CUDA_VISIBLE_DEVICES=$i python 10_run_e2.py --mode prod --tag "$tag" \
       --chains "$CHAINS" --num-leapfrog "$NLEAP" --step-size "$STEP" \
       --keep "$KEEP" --burn "$BURN" --stage1-burn "$S1B" --stage1-keep "$S1K" \
+      --basins "$BASINS" \
       --out "data/results/e2_${tag}.json" \
       > "data/results/e2_${tag}_run.log" 2>&1 &
   pids+=($!); i=$((i+1))

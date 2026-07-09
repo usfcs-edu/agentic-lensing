@@ -92,33 +92,48 @@ def _sersic_prior_ie(R_med, R_sig, Ie_med, Ie_sig, n_lo=0.5, n_hi=8.0,
     ))
 
 
-def _build_prior(near_x, near_y):
+def _build_prior(near_x, near_y, *, theta_E_med=2.5, theta_E_sig=0.25,
+                 mass_center_sig=0.02, light_scale=1.0,
+                 gamma_med=2.0, gamma_sig=0.25, mass_e_sig=0.1):
     """46-dim prior: 5 Sersic Ie present (LogNormal), shapelet amps ABSENT
-    (marginalized). Hyperparameters verbatim from _hmc_lib_marg._build_prior."""
+    (marginalized). Hyperparameters verbatim from _hmc_lib_marg._build_prior.
+
+    The keyword-only overrides re-center the prior for a NON-v2-class target
+    (e.g. a native-0.1" Euclid VIS lens) WITHOUT touching the HST parity path:
+    every default reproduces the original hyperparameters bit-for-bit
+    (theta_E_med=2.5 -> LogNormal(log 2.5, 0.25); mass_center_sig=0.02 ->
+    Normal(0, 0.02); light_scale=1.0 -> Ie medians 5/2/1/0.5/2 unchanged since
+    x*1.0==x in IEEE). Overrides: theta_E_med/theta_E_sig re-center the mass
+    Einstein-radius LogNormal; mass_center_sig widens the mass-center prior for
+    the ~0.1" cutout-centering offset; light_scale multiplies all five Sersic
+    amplitude (Ie) medians for a different flux zeropoint. (near_x/near_y are
+    the LL2/LL3 centers; build_marg_model exposes them as near_xy — park them
+    off-field for an isolated target.)"""
     lens_mass_prior = tfd.JointDistributionSequential([
         tfd.JointDistributionNamed(dict(
-            theta_E=tfd.LogNormal(jnp.log(2.5), 0.25),
-            gamma=tfd.TruncatedNormal(2.0, 0.25, 1.0, 2.7),
-            e1=tfd.Normal(0.0, 0.1), e2=tfd.Normal(0.0, 0.1),
-            center_x=tfd.Normal(0.0, 0.02), center_y=tfd.Normal(0.0, 0.02),
+            theta_E=tfd.LogNormal(jnp.log(theta_E_med), theta_E_sig),
+            gamma=tfd.TruncatedNormal(gamma_med, gamma_sig, 1.0, 2.7),
+            e1=tfd.Normal(0.0, mass_e_sig), e2=tfd.Normal(0.0, mass_e_sig),
+            center_x=tfd.Normal(0.0, mass_center_sig),
+            center_y=tfd.Normal(0.0, mass_center_sig),
         )),
         tfd.JointDistributionNamed(dict(gamma1=tfd.Normal(0.0, 0.05),
                                         gamma2=tfd.Normal(0.0, 0.05))),
     ])
     lens_light_prior = tfd.JointDistributionSequential([
-        _sersic_prior_ie(0.4, 0.3, 5.0, 0.5, c_sig=0.02),
-        _sersic_prior_ie(2.0, 0.3, 2.0, 0.5, c_sig=0.02),
-        _sersic_prior_ie(0.3, 0.3, 1.0, 0.5, cx_mean=near_x, cy_mean=near_y,
-                         c_sig=0.1),
-        _sersic_prior_ie(0.6, 0.3, 0.5, 0.5, cx_mean=near_x, cy_mean=near_y,
-                         c_sig=0.1),
+        _sersic_prior_ie(0.4, 0.3, 5.0 * light_scale, 0.5, c_sig=0.02),
+        _sersic_prior_ie(2.0, 0.3, 2.0 * light_scale, 0.5, c_sig=0.02),
+        _sersic_prior_ie(0.3, 0.3, 1.0 * light_scale, 0.5, cx_mean=near_x,
+                         cy_mean=near_y, c_sig=0.1),
+        _sersic_prior_ie(0.6, 0.3, 0.5 * light_scale, 0.5, cx_mean=near_x,
+                         cy_mean=near_y, c_sig=0.1),
     ])
     src_sersic_prior = tfd.JointDistributionNamed(dict(
         R_sersic=tfd.LogNormal(jnp.log(0.5), 0.3), n_sersic=tfd.Uniform(0.5, 6.0),
         e1=tfd.TruncatedNormal(0.0, 0.15, -0.5, 0.5),
         e2=tfd.TruncatedNormal(0.0, 0.15, -0.5, 0.5),
         center_x=tfd.Normal(0.0, 0.1), center_y=tfd.Normal(0.0, 0.1),
-        Ie=tfd.LogNormal(jnp.log(2.0), 0.5),
+        Ie=tfd.LogNormal(jnp.log(2.0 * light_scale), 0.5),
     ))
     src_shp_prior = tfd.JointDistributionNamed(dict(
         beta=tfd.LogNormal(jnp.log(0.1), 0.1),
@@ -192,7 +207,10 @@ _LSTSQ_REDUCED_LABELS = [
 # --------------------------------------------------------------------------- #
 def build_marg_model(product: dict, *, n_max=6, supersample=2, delta_pix=0.13,
                      exp_time=DEFAULT_EXP_TIME, whiten_fn=None, near_xy=None,
-                     shapelet_sigma0=5.0, mask_err=1e10):
+                     shapelet_sigma0=5.0, mask_err=1e10,
+                     theta_E_med=2.5, theta_E_sig=0.25, mass_center_sig=0.02,
+                     light_scale=1.0, gamma_med=2.0, gamma_sig=0.25,
+                     mass_e_sig=0.1):
     """Ridge-marginalized model for a Stage-A product dict. ndim = 46.
 
     Args:
@@ -211,6 +229,17 @@ def build_marg_model(product: dict, *, n_max=6, supersample=2, delta_pix=0.13,
         shapelet_sigma0: shapelet amp prior scale sigma_i = sigma0/sqrt(i+1)
             -> Lambda_ii = (i+1)/sigma0^2 (original: 5.0 -> (i+1)/25).
         mask_err: inflated err value inside the mask (original 1e10).
+        theta_E_med, theta_E_sig: mass Einstein-radius LogNormal(log med, sig);
+            defaults (2.5, 0.25) reproduce the HST-parity prior bit-for-bit.
+        mass_center_sig: mass-center Normal(0, sig); default 0.02 (parity).
+            Widen (~0.1) for the ~0.1" cutout-centering offset of a new target.
+        light_scale: multiply all five Sersic amplitude (Ie) medians (default
+            1.0 = parity; x*1.0==x). Rescales for a different flux zeropoint.
+        gamma_med, gamma_sig: mass slope TruncatedNormal(med, sig, 1.0, 2.7);
+            defaults (2.0, 0.25) reproduce parity. Tighten sig (~0.05) to pin
+            gamma ~ 2 for an isothermal-equivalent fit that is comparable to a
+            published SIE (fixed gamma=2) model.
+            (See _build_prior; all defaults preserve gates A-E bit-for-bit.)
 
     Returns a SimpleNamespace: target_log_prob_fn(z), bij, prior, ndim,
     labels/index_labels, to_physical/to_physical_mass, shapelet_amps(z),
@@ -252,7 +281,11 @@ def build_marg_model(product: dict, *, n_max=6, supersample=2, delta_pix=0.13,
     if near_xy is None:
         nb = np.load(NEARBY_GALAXY_LOC)
         near_xy = (float(nb["arcsec_x"]), float(nb["arcsec_y"]))
-    prior = _build_prior(float(near_xy[0]), float(near_xy[1]))
+    prior = _build_prior(float(near_xy[0]), float(near_xy[1]),
+                         theta_E_med=theta_E_med, theta_E_sig=theta_E_sig,
+                         mass_center_sig=mass_center_sig, light_scale=light_scale,
+                         gamma_med=gamma_med, gamma_sig=gamma_sig,
+                         mass_e_sig=mass_e_sig)
     example = prior.sample(seed=jax.random.PRNGKey(0))
     pack_bij = tfb.pack_sequence_as(example)
     bij = tfb.Chain([prior.experimental_default_event_space_bijector(), pack_bij])
