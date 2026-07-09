@@ -30,7 +30,11 @@ Decisions (locked 2026-07-06):
 | 55683612 | P1c preflight | 1 × shared QOS, 3m05s | 0.05 (actual) | ~1.39 | fine-low guard — result FAIL (see finding below); the guard did its job (production NOT spent on a bad start) |
 | ~~55688871~~ | P1c prod (Job 1) | CANCELLED (never ran, 0 charged) | 0.0 | — | VOIDED: resubmitted as 55703707 on cosmo_g (deepsrch_g congested by LensJudge) |
 | 55688960 | P1c fine-low disc (Job 2) | 1 × shared QOS deepsrch_g | ~0.05 | ~1.44 | discriminator (done): GENUINE PATHOLOGY verdict |
-| 55703707 | P1c prod (Job 1, **cosmo_g**) | 1 node × 4 A100, regular, -t 04:00 | ~14 (est; 16 cap) | ~15.44 | HEALTHY node resubmitted on cosmo_g for scheduling (fairshare 0.298 vs deepsrch 0.145; cosmo_g accepted, balance OK for 14h). Config identical: GPU0 v3-fine STEEP k500, GPU1 v3b BOTH k300 (money), GPU2 v2d RELAXED both k2000, GPU3 v2d STRICT low k500 |
+| ~~55703707~~ | P1c prod (node) | CANCELLED unrun (queue-stuck ~07-17) | 0.0 | — | VOIDED: re-architected into 4 shared jobs below (8 days faster + cheaper) |
+| 55712711 | P1c v3b (SHARED) | 1 GPU shared cosmo_g, -t 4:00 | ~3.5 | — | **MONEY product**: v3b binned BOTH basins k300 → γ_binned vs 1.433 (submitted first) |
+| 55712712 | P1c v3-fine (SHARED) | 1 GPU shared, -t 3:30 | ~3.0 | — | v3 fine STEEP only k500 (corr vs diagonal 2.585 artifact) |
+| 55712713 | P1c v2d (SHARED) | 1 GPU shared, -t 2:30 | ~2.0 | — | v2d native RELAXED both k2000 (H1/H2/H3) |
+| 55712714 | P1c v2d-strict (SHARED) | 1 GPU shared, -t 1:30 | ~1.0 | ~24 | v2d STRICT whitener low k500 (strict-vs-relaxed info-cost) |
 
 **Account strategy (user-directed 2026-07-08)**: deepsrch_g is over-subscribed at the account
 level (RawUsage 427M vs cosmo_g 35M) + flooded by LensJudge (4+ ljv5 jobs) → gdbenson fairshare
