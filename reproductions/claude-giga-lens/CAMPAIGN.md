@@ -46,8 +46,18 @@ so no mid-run-failure risk.
 
 | 55712538 | P2c pre-flight | 1 node × 4 A100 cosmo_g, -t 03:30 | ~14 (16 cap) | ~29.4 | P2C_KIND=all seed 0: 4 T2 (s0/bj_mclmc ×{A,B}) + 4 T3 (s0/remc_pt/nautilus/glnt) + 1 PT-ref + 1 SMC-evidence. Calibrates A100 timings before the full matrix. Queued behind P1c (prio 67679 < P1c 68143 → P1c first) |
 
-Committed: ~29.4 / 90 (hard stop 100). P1c-to-date ≈15.4 (≤30 envelope); P2c pre-flight ~14
-(≤45 envelope, remainder ≤31 to be sized from pre-flight timings). Both on cosmo_g. Budget lesson applied: shared QOS for small
+**QOS RE-ARCHITECTURE (2026-07-09, verified via sbatch --test-only)**: the 4-GPU NODE
+reservations were queue-stuck — worst-case start ~2026-07-17 (8 days out) under gpu_regular
+congestion. Single-GPU **shared** QOS jobs start ~TONIGHT 23:09 (backfill into partial nodes)
+AND bill fractionally (cheaper). So both P1c and P2c re-submitted as PER-PRODUCT / PER-CELL
+`-q shared -C gpu --gpus 1` jobs on cosmo_g: P1c → 4 shared jobs (v3b-money first, then
+fine-steep, v2d-relaxed, v2d-strict; ~11 A100-h total), P2c pre-flight → per-cell shared jobs.
+Node jobs 55703707 + 55712538 cancelled (never ran, 0 lost). Products/cells independent →
+partial results as they land. Lesson: during GPU-partition congestion, unpack node jobs into
+shared single-GPU jobs — faster (backfill) AND cheaper (fractional bill).
+
+Committed (pre-rearchitecture): P1c diagnostics ~1.44 + P1c prod ~11 (shared) + P2c pre-flight
+~11 (shared) ≈ ~23 / 90. New shared job IDs ledgered as the babysitters report them. Budget lesson applied: shared QOS for small
 single-GPU work bills fractionally (0.14 vs the debug node's ~2 exclusive-4-GPU charge).
 
 ### P1c production plan FINALIZED (2026-07-08; pending fine-low gate 55683612)
