@@ -133,16 +133,20 @@ def main() -> int:
     print(f"  gigalens from {gl_path}")
     print(f"  vendored ref {EXPECTED_VENDOR_REF[:12]} OK")
 
-    # Perlmutter-specific: slurm account
+    # Perlmutter-specific: slurm account must be an APPROVED account.
+    # deepsrch_g (default, more hours) OR cosmo_g (better fairshare when deepsrch_g
+    # is LensJudge-congested; both verified with ample balance for this campaign).
     if host.startswith("perlmutter") or host.startswith("login") or host.startswith("nid"):
         print("-- perlmutter account --")
+        approved = ("deepsrch_g", "cosmo_g")
         templates = sorted((REPRO / "slurm").glob("*.slurm"))
         bad = [t.name for t in templates
-               if "-A deepsrch_g" not in t.read_text() and "--account=deepsrch_g" not in t.read_text()]
+               if not any(f"-A {a}" in t.read_text() or f"--account={a}" in t.read_text()
+                          for a in approved)]
         if bad:
-            FAIL.append(f"slurm templates missing '#SBATCH -A deepsrch_g': {bad}")
+            FAIL.append(f"slurm templates charge no approved account {approved}: {bad}")
         else:
-            print(f"  {len(templates)} slurm templates all charge deepsrch_g OK")
+            print(f"  {len(templates)} slurm templates all charge an approved account OK")
 
     # freeze
     (REPRO / "data").mkdir(exist_ok=True)

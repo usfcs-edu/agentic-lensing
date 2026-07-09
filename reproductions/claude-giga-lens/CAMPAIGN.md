@@ -44,9 +44,10 @@ run on cosmo_g; diagnostics (preflight/discriminator, ~0.1 A100-h) already ran o
 left as-is. Note: NERSC does not kill running jobs for balance (overdrawn = reduced priority),
 so no mid-run-failure risk.
 
-Committed: ~15.4 / 90 (hard stop 100). P1c-to-date: staging 1.2 + smoke 0.14 + preflight 0.05
-+ prod ~14 ≈ 15.4; well under the ≤30 P1c envelope (fine-low diagnostic ~0.05 + any fine-low
-production TBD from the diagnostic still leave large margin). Budget lesson applied: shared QOS for small
+| 55712538 | P2c pre-flight | 1 node × 4 A100 cosmo_g, -t 03:30 | ~14 (16 cap) | ~29.4 | P2C_KIND=all seed 0: 4 T2 (s0/bj_mclmc ×{A,B}) + 4 T3 (s0/remc_pt/nautilus/glnt) + 1 PT-ref + 1 SMC-evidence. Calibrates A100 timings before the full matrix. Queued behind P1c (prio 67679 < P1c 68143 → P1c first) |
+
+Committed: ~29.4 / 90 (hard stop 100). P1c-to-date ≈15.4 (≤30 envelope); P2c pre-flight ~14
+(≤45 envelope, remainder ≤31 to be sized from pre-flight timings). Both on cosmo_g. Budget lesson applied: shared QOS for small
 single-GPU work bills fractionally (0.14 vs the debug node's ~2 exclusive-4-GPU charge).
 
 ### P1c production plan FINALIZED (2026-07-08; pending fine-low gate 55683612)
