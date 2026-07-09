@@ -114,6 +114,19 @@ Charging note: debug QOS allocates the node exclusively (4 A100s billed even at
 
 ## Stage log
 
+### P3 Euclid converged results — 2026-07-09 (phoenix, diagonal ss1, secondary deliverable)
+Mixed/HONEST outcome (not a clean 3/3), a native-resolution characterization:
+- 102157952 (θ_E,pub 1.11″, q 0.82, high S/N): CONVERGED (R̂_θE 1.08, ESS 449) → **−1.4%** CLEAN ✓
+- 102157958 (θ_E,pub 0.85″, q 0.56 elliptical): **CONVERGED** (R̂_θE 1.04, ESS 2905) but **−32%** →
+  genuine per-system discrepancy, NOT non-convergence (converged to a biased/degenerate θ_E)
+- 102020061 (θ_E,pub 1.24″): NON-converged even at 48 chains (R̂_θE 18.8) → multimodal θ_E posterior
+- Interpretation (to verify): native-resolution ss1 single-band VIS modeling works for
+  well-resolved round high-S/N systems, but is biased/multimodal for small/elliptical ones —
+  the PSF/pixel-undersampling (foundry-i R0c) + source-model-choice (2406.08484) themes.
+  Recipe + COOLEST export are the WORKING P3 deliverables; Euclid θ_E is an honest limitation.
+- Refit budget over-specified by finalizer (48ch × 3400 steps × 12 leap ≈ 11× working config
+  → ~4-5h on A16; secondary, not re-run). Fresh finalizer diagnosing why 1&3 fail + closing P3.
+
 ### P3 recon — 2026-07-08 (de-risk complete; plan at research/notes/p3-euclid-coolest-recon.md)
 - **SCOPING DECISION**: Euclid Q1 VIS is native 0.1″/px (NOT drizzle-resampled) → diagonal
   RMS. So **P3-Euclid demonstrates the Pillar-2 SAMPLER recipe on independent real data, NOT
