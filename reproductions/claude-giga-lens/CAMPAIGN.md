@@ -140,6 +140,25 @@ Charging note: debug QOS allocates the node exclusively (4 A100s billed even at
 
 ## Stage log
 
+### P2c partial #1 — 2026-07-09 (A100, shared jobs backfilled same-day — re-arch worked)
+Calibration + first results (a RESULT, reinforces P2b):
+- **T2 bj_mclmc** (real 46-dim marg, f64, cond-1e14): auto-SVI-diag mass ("no hand-built
+  matrix" challenger) does NOT converge — R̂ 5.90, ESS 9 (build 103s + MCLMC 2955s = 0.86
+  A100-h). Confirms P2b MCLMC-on-illcond, now on REAL data.
+- **T3 s0-SVI** (v3b 74-dim, f32): R̂ 9.7, occupancy [0,1] — s0 COLLAPSED into the steep
+  minority basin (vs ref w_low 0.9375). The mode-collapse baseline the recipe must beat,
+  confirmed on real data. (build 81s + 1364s, SVI-dominated, 0.41 A100-h.)
+- **T2 s0 walltime bomb**: s0's precond_fixedL (fixed L=16 × 5000 draws × 24ch ≈ 1.9M f64
+  grads = 8-14h/A100) TIMED OUT at -t 2:30 with no output (~2.5 A100-h lost). s0-B cancelled
+  (would timeout). DECISION (main): (1) short s0-T2 diagnostic (keep 300, -t 1:30) AUTHORIZED
+  — likely the REAL result since diagraw mixed synthetic cond-1e14 to ESS 21k in P2b, so <<5000
+  draws needed; (2) DECLINED full s0-T2 × 3seed×{A,B} (~48 A100-h, blows budget, no insight);
+  (3) T2 reframe = s0+mclmc right-sized, 2 seeds, Track-A + 1 Track-B s0 for the cost. **T2
+  RESULT: on the real cond-1e14 lens posterior, auto-mass (mclmc) fails to converge; only s0's
+  hand-tuned diagraw works → the ill-conditioning is intrinsic, the GIGA-Lens hand-built mass
+  matrix is essential.** T3 mode-weight deliverables (SMC-24 primary, nautilus, remc, glnt,
+  PT-23) running healthy — partial #2 pending.
+
 ### P3 Euclid converged results — 2026-07-09 (phoenix, diagonal ss1, secondary deliverable)
 Mixed/HONEST outcome (not a clean 3/3), a native-resolution characterization:
 - 102157952 (θ_E,pub 1.11″, q 0.82, high S/N): CONVERGED (R̂_θE 1.08, ESS 449) → **−1.4%** CLEAN ✓
