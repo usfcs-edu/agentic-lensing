@@ -36,9 +36,13 @@ Decisions (locked 2026-07-06):
 level (RawUsage 427M vs cosmo_g 35M) + flooded by LensJudge (4+ ljv5 jobs) → gdbenson fairshare
 0.145 there vs 0.298 on cosmo_g. So Perlmutter GPU jobs now go to **cosmo_g** while deepsrch_g is
 congested (reverses the earlier "deepsrch_g for more hours" default — a scheduling-latency
-exception). P1c on cosmo_g. P2c (user: "cosmo_g if balance allows") — verifying cosmo_g has
-≥~60 A100-h headroom before committing the 45 A100-h matrix; else fall back to deepsrch_g.
-Diagnostics (preflight/discriminator, ~0.1 A100-h) already ran on deepsrch_g, left as-is.
+exception). P1c on cosmo_g. **P2c → cosmo_g CONFIRMED** (user approved 2026-07-08). Balance verified via iris:
+cosmo_g gdbenson ~936 node-h user-remaining / ~3620 project-remaining; the ENTIRE remaining
+campaign (P1c ~3.5 + P2c ~11 + P3 ~0 node-h ≈ 15) is ~60× under that margin. deepsrch_g has
+more total (~1473 user / ~7943 project) but cosmo_g is uncongested + ample. Both P1c and P2c
+run on cosmo_g; diagnostics (preflight/discriminator, ~0.1 A100-h) already ran on deepsrch_g,
+left as-is. Note: NERSC does not kill running jobs for balance (overdrawn = reduced priority),
+so no mid-run-failure risk.
 
 Committed: ~15.4 / 90 (hard stop 100). P1c-to-date: staging 1.2 + smoke 0.14 + preflight 0.05
 + prod ~14 ≈ 15.4; well under the ≤30 P1c envelope (fine-low diagnostic ~0.05 + any fine-low
