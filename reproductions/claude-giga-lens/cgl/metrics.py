@@ -194,6 +194,68 @@ def count_mode_round_trips(assign_tc: np.ndarray) -> dict:
 
 
 # --------------------------------------------------------------------------- #
+# parallel-tempering round trips (P2c PT reference)
+# --------------------------------------------------------------------------- #
+def pt_walker_temps_from_adjacent(accepted_adjacent: np.ndarray) -> np.ndarray:
+    """Reconstruct a SINGLE chain's walker temperature-slot trajectory from the
+    TFP ReplicaExchangeMC per-step ACCEPTED adjacent swaps.
+
+    accepted_adjacent: (T, R-1) bool; entry [t, j] = the swap between
+    temperature slots j and j+1 was accepted (and therefore applied) at step t.
+    Using the *accepted* (not proposed) swaps makes the reconstruction
+    per-chain-correct: TFP proposes a shared even/odd parity but each batch
+    chain accepts/rejects independently. Even/odd parity means the accepted
+    transpositions within one step are NON-OVERLAPPING, so applying them in
+    slot order is unambiguous. Returns (T, R) int where entry [t, w] = the
+    temperature slot (0 = coldest / beta=1, R-1 = hottest / beta_min) occupied
+    by walker w after step t.
+    """
+    acc = np.asarray(accepted_adjacent, dtype=bool)
+    assert acc.ndim == 2, f"accepted_adjacent must be (T, R-1), got {acc.shape}"
+    T, Rm1 = acc.shape
+    R = Rm1 + 1
+    occupant = np.arange(R)                    # occupant[slot] = walker id
+    temps = np.empty((T, R), dtype=int)
+    ident = np.arange(R)
+    for t in range(T):
+        for j in np.nonzero(acc[t])[0]:
+            occupant[j], occupant[j + 1] = occupant[j + 1], occupant[j]
+        temps[t, occupant] = ident             # invert: temp slot of each walker
+    return temps
+
+
+def count_pt_round_trips(temp_of_walker: np.ndarray) -> dict:
+    """beta=1 round trips from a walker temperature-slot trajectory.
+
+    temp_of_walker: (T, R) int, entry [t, w] = temperature slot of walker w
+    (0 = coldest / beta=1, R-1 = hottest / beta_min). A ROUND TRIP for a walker
+    is a completed coldest -> hottest -> coldest excursion (the standard PT
+    mixing yardstick; total across walkers is the 23_pt_reference stop signal).
+    """
+    a = np.asarray(temp_of_walker, dtype=int)
+    T, R = a.shape
+    hot = R - 1
+    round_trips = np.zeros(R, dtype=int)
+    reached_hot = np.zeros(R, dtype=int)       # per-walker upper-end touches
+    for w in range(R):
+        last = 0                               # -1 cold end, +1 hot end, 0 none
+        for v in a[:, w]:
+            if v == 0:
+                if last == 1:
+                    round_trips[w] += 1
+                last = -1
+            elif v == hot:
+                reached_hot[w] += 1
+                last = 1
+    return dict(
+        round_trips_per_walker=round_trips.tolist(),
+        total_round_trips=int(round_trips.sum()),
+        n_walkers=int(R),
+        n_walkers_reaching_hot=int((reached_hot > 0).sum()),
+    )
+
+
+# --------------------------------------------------------------------------- #
 # evidence comparison
 # --------------------------------------------------------------------------- #
 def compare_logZ(logz_est: float, logz_ref: Optional[float],

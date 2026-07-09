@@ -70,3 +70,23 @@ def get_scale_keys(name: str):
     if name not in _ADAPTERS:
         raise KeyError(f"unknown sampler {name!r}; known: {list_samplers()}")
     return SCALE_KEYS.get(name, ())
+
+
+def get_default_budget(name: str) -> dict:
+    """The adapter's DEFAULT_BUDGET (used to seed Track-B scaling on the
+    non-frozen T2/T3 tiers, which have no policies_frozen.json entry).
+    s0_baseline predates the module-constant convention -> uses the driver's
+    Track-A default."""
+    if name not in _ADAPTERS:
+        raise KeyError(f"unknown sampler {name!r}; known: {list_samplers()}")
+    module, _ = _ADAPTERS[name]
+    mod = importlib.import_module(module)
+    return dict(getattr(mod, "DEFAULT_BUDGET", {}))
+
+
+def get_default_config(name: str) -> dict:
+    if name not in _ADAPTERS:
+        raise KeyError(f"unknown sampler {name!r}; known: {list_samplers()}")
+    module, _ = _ADAPTERS[name]
+    mod = importlib.import_module(module)
+    return dict(getattr(mod, "DEFAULT_CONFIG", {}))

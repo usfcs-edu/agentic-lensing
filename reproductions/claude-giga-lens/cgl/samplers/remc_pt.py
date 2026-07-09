@@ -43,7 +43,11 @@ DEFAULT_CONFIG = dict(
     eps_scale_power=-0.5,
     eps_max=2.0,
     start="svi",                  # "svi" | "prior"
-    mass="svi",                   # "svi" | "identity"
+    mass="svi",                   # "svi" (full inv SVI cov) | "svi_diag"
+                                  # (diagonal precision -- far healthier swaps
+                                  # on high-dim f32 targets like T3/v3b where
+                                  # the full 74x74 precond gives dead swaps;
+                                  # P2c finding 2026-07-09) | "identity"
 )
 
 DEFAULT_BUDGET = dict(n_chains=8, n_burn=300, n_keep=900)
@@ -123,6 +127,13 @@ def run_cell(target: LensPosterior, seed: int, budget: Optional[dict] = None,
         momentum = tfd.MultivariateNormalFullCovariance(
             loc=jnp.zeros(dim, dtype=fdtype),
             covariance_matrix=jnp.asarray(prec, dtype=fdtype))
+    elif cfg["mass"] == "svi_diag":
+        # diagonal precision (momentum cov = 1/diag(SVI cov)); the full-cov
+        # preconditioner gives DEAD adjacent swaps on the 74-dim v3b target.
+        scale = 1.0 / np.sqrt(np.maximum(np.diag(ginit.cov_reg), 1e-30))
+        momentum = tfd.MultivariateNormalDiag(
+            loc=jnp.zeros(dim, dtype=fdtype),
+            scale_diag=jnp.asarray(scale, dtype=fdtype))
     else:
         momentum = tfd.MultivariateNormalDiag(
             loc=jnp.zeros(dim, dtype=fdtype),

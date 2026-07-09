@@ -140,7 +140,7 @@ def main():
           flush=True)
 
     # ---- budget/config ---------------------------------------------------------
-    from cgl.samplers import get_scale_keys  # noqa: E402
+    from cgl.samplers import get_default_budget, get_scale_keys  # noqa: E402
     from cgl.samplers.common import (POLICIES_FROZEN,  # noqa: E402
                                      assert_frozen_policy,
                                      load_frozen_policies)
@@ -160,21 +160,36 @@ def main():
         budget = {}
         config = {}
 
+    scale_after_overrides = False   # P2c non-frozen track-B (see below)
     if args.frozen or track == "B":
-        if policies is None:
-            print(f"ERROR: --frozen/track B requires {POLICIES_FROZEN}")
-            return 4
-        try:
+        has_policy = (policies is not None
+                      and args.sampler in policies.get("methods", {})
+                      and tier in policies["methods"].get(args.sampler, {}))
+        if has_policy:
             entry = policies["methods"][args.sampler][tier]
-        except KeyError:
-            print(f"ERROR: no frozen policy for {args.sampler}/{tier}")
+            config = dict(entry["config"])
+            budget = dict(entry["budget"])
+            if track == "B":
+                for k in get_scale_keys(args.sampler):
+                    if budget.get(k):
+                        budget[k] = int(budget[k] * TRACK_B_SCALE)
+        elif args.frozen or tier in ("T0", "T1"):
+            # frozen policy is REQUIRED for T0/T1 (eval discipline) and for any
+            # explicit --frozen; a missing entry is a hard error.
+            print(f"ERROR: no frozen policy for {args.sampler}/{tier}"
+                  + ("" if policies is not None
+                     else f" ({POLICIES_FROZEN} missing)"))
             return 4
-        config = dict(entry["config"])
-        budget = dict(entry["budget"])
-        if track == "B":
-            for k in get_scale_keys(args.sampler):
-                if budget.get(k):
-                    budget[k] = int(budget[k] * TRACK_B_SCALE)
+        else:
+            # P2c: the hard targets (T2/T3) have NO frozen policy (policies
+            # were frozen for T0/T1 in P2b). The convergence track is still
+            # well defined: seed the adapter DEFAULT_BUDGET, let the explicit
+            # overrides below apply, then scale the adapter SCALE_KEYS x4 (same
+            # pre-registered Track-B rule, config held). Track A on T2/T3 just
+            # uses the adapter default + explicit overrides (no scaling).
+            budget = get_default_budget(args.sampler)
+            config = {}
+            scale_after_overrides = (track == "B")
 
     # manual overrides (pilot/tuning; the freeze assertion below catches any
     # attempt to modify an eval cell)
@@ -187,6 +202,14 @@ def main():
     if args.budget_json:
         budget.update(json.loads(args.budget_json))
     config.update(json.loads(args.config_json) if args.config_json else {})
+
+    # P2c non-frozen track-B (T2/T3): scale the adapter SCALE_KEYS x4 AFTER the
+    # explicit budget overrides, so the convergence track is 4x the actual
+    # Track-A budget the same cell ran (config held fixed).
+    if scale_after_overrides:
+        for k in get_scale_keys(args.sampler):
+            if budget.get(k):
+                budget[k] = int(budget[k] * TRACK_B_SCALE)
 
     budget["track"] = track
     gb = GRAD_BUDGETS.get(tier)

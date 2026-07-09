@@ -138,6 +138,50 @@ def build() -> LensPosterior:
         Z = np.atleast_2d(np.asarray(Z, dtype=np.float32))
         return D.mass_params_from_z(prob, Z.reshape(-1, ndim))
 
+    # ---- nautilus unit-cube face (P2c: enables the T3 nautilus track) --------
+    # The v3b prior is a nested JointDistributionSequential of
+    # JointDistributionNamed leaves, ALL independent 1-D marginals (LogNormal /
+    # TruncatedNormal / Normal / Uniform incl. the 28 shapelet-amp Normals), so
+    # a leaf-wise quantile transform is exact. Marginals are read GENERICALLY
+    # from the built prior tree (no hyperparameters duplicated), keyed by the
+    # SAME probed labels, then ordered into the z-leaf order. log_like_x uses
+    # prob.pack_bij (physical -> nested, NO unconstraining bijector). The
+    # nautilus adapter's own 8-point x<->z self-check (log_like_x vs
+    # log_like_batch, plus its probe-based permutation) is the safety net: a
+    # mis-ordered face fails LOUDLY before the run.
+    def _leaf_marginals() -> dict:
+        marg = {}
+        for block, block_prefixes in zip(prior.model, prefixes):
+            for jdn, prefix in zip(block.model, block_prefixes):
+                for key, dist in jdn.model.items():
+                    marg[prefix + key] = dist
+        return marg
+
+    _marg = _leaf_marginals()
+    _missing = [lab for lab in labels if lab not in _marg]
+    assert not _missing, f"nautilus face: no prior marginal for {_missing[:6]}"
+    dists_in_leaf_order = [_marg[lab] for lab in labels]
+    pack_bij = prob.pack_bij
+
+    def prior_transform(u):
+        u = np.clip(np.atleast_2d(np.asarray(u, dtype=np.float32)),
+                    1e-7, 1.0 - 1e-7)
+        cols = [np.asarray(dists_in_leaf_order[i].quantile(u[:, i]))
+                for i in range(ndim)]
+        return np.stack(cols, axis=1).squeeze()
+
+    def _log_like_x_impl(X):
+        """Data log-likelihood at PHYSICAL x (leaf order); no bijector."""
+        nested = pack_bij.forward(list(X.T))
+        im_sim = _sim(int(X.shape[0])).simulate(nested).reshape((-1, *obs.shape))
+        return observed_dist.log_prob(im_sim[:, mask_j])
+
+    _log_like_x_jit = jax.jit(_log_like_x_impl)
+
+    def log_like_x(x):
+        x = jnp.atleast_2d(jnp.asarray(x, dtype=jnp.float32))
+        return np.asarray(_log_like_x_jit(x))
+
     # ---- init: multi-basin MAP starts + the SVI the stored chains used -------
     def _best_z(path):
         z = np.load(path, allow_pickle=True)
@@ -216,8 +260,8 @@ def build() -> LensPosterior:
         labels=labels, mass_labels=MASS_LABELS,
         to_physical=to_physical,
         init=init, bijector=bij,
-        prior_transform=None,   # 74-dim multimodal: not a nautilus track in P2a
-        log_like_x=None,
+        prior_transform=prior_transform,  # P2c: T3 nautilus track (self-checked)
+        log_like_x=log_like_x,
         chi2_fn=chi2_batch,
         reference=reference,
         meta={"data_file": "cutout_v3b.npz", "n_max": 6,

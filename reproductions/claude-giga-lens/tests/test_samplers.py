@@ -152,6 +152,54 @@ def test_remc_per_replica_target_vs_handbuilt():
 
 
 # --------------------------------------------------------------------------- #
+# P2c PT-reference helpers (metrics) + default-budget registry
+# --------------------------------------------------------------------------- #
+def test_pt_walker_temps_and_round_trips():
+    """A hand-built accepted-adjacent-swap trace on R=3 slots must move one
+    walker cold(0)->hot(2)->cold(0) for exactly one beta=1 round trip."""
+    from cgl import metrics
+
+    # pairs: col0 = swap slots(0,1), col1 = swap slots(1,2)
+    acc = np.array([[True, False],   # occupant [0,1,2]->[1,0,2]: w0 -> slot1
+                    [False, True],   #          [1,0,2]->[1,2,0]: w0 -> slot2 (hot)
+                    [False, True],   #          [1,2,0]->[1,0,2]: w0 -> slot1
+                    [True, False]])  #          [1,0,2]->[0,1,2]: w0 -> slot0 (cold)
+    temps = metrics.pt_walker_temps_from_adjacent(acc)
+    assert temps.shape == (4, 3)
+    assert temps[:, 0].tolist() == [1, 2, 1, 0]        # walker 0 trajectory
+    # every row is a valid permutation (walker<->slot bijection)
+    for t in range(4):
+        assert sorted(temps[t].tolist()) == [0, 1, 2]
+    rt = metrics.count_pt_round_trips(temps)
+    assert rt["total_round_trips"] == 1
+    assert rt["n_walkers"] == 3
+    assert rt["round_trips_per_walker"][0] == 1
+    assert rt["n_walkers_reaching_hot"] >= 1
+
+
+def test_pt_round_trips_no_swaps_is_zero():
+    from cgl import metrics
+
+    acc = np.zeros((10, 4), dtype=bool)                # R=5, never swap
+    temps = metrics.pt_walker_temps_from_adjacent(acc)
+    # occupancy frozen at the identity -> each walker pinned to its slot
+    assert np.all(temps == np.arange(5)[None, :])
+    rt = metrics.count_pt_round_trips(temps)
+    assert rt["total_round_trips"] == 0
+    assert rt["n_walkers_reaching_hot"] == 1           # walker 4 sits at hot end
+
+
+def test_get_default_budget():
+    from cgl.samplers import get_default_budget
+
+    assert "n_keep" in get_default_budget("remc_pt")
+    assert "n_steps" in get_default_budget("bj_mclmc")
+    assert "n_eff" in get_default_budget("nautilus_runner")
+    with pytest.raises(KeyError):
+        get_default_budget("does_not_exist")
+
+
+# --------------------------------------------------------------------------- #
 # flow pullback logp
 # --------------------------------------------------------------------------- #
 def test_pullback_logp_2d_flow():
