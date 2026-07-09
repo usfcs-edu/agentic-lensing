@@ -59,7 +59,8 @@ left as-is. Note: NERSC does not kill running jobs for balance (overdrawn = redu
 so no mid-run-failure risk.
 
 | ~~55712538~~ | P2c pre-flight (node) | CANCELLED unrun (queue-stuck) | 0.0 | — | VOIDED → re-architected into 10 shared jobs below |
-| 55712738-49 | P2c pre-flight (10 SHARED) | 10× 1-GPU shared cosmo_g | ~15.6 | ~28 | seed-0 calibration: T2 s0/mclmc ×{A,B} (55712738/40/45/46), T3 s0-svi/nautilus/remc/glnt (41/43/47/49), SMC-evidence-24 (44, PRIMARY mode ref), PT-ref-23 (48, expected non-mixing). Priority: calibration+SMC first. -t ceilings sum 34h but bill = elapsed. Queued behind P1c's 4 jobs |
+| 55712738-49 | P2c pre-flight (10 SHARED) | 10× 1-GPU shared cosmo_g | ~15.6 | ~28 | seed-0 calibration: T2 s0/mclmc ×{A,B} (55712738/40/45/46), T3 s0-svi/nautilus/remc/glnt (41/43/47/49), SMC-evidence-24 (44, PRIMARY mode ref), PT-ref-23 (48, expected non-mixing). Priority: calibration+SMC first. -t ceilings sum 34h but bill = elapsed. Queued behind P1c's 4 jobs. NOTE: s0-A timed out ~2.5 A100-h (walltime bomb); s0-B cancelled |
+| 55718948 | P2c s0-T2 diagnostic | 1 GPU shared cosmo_g, -t 1:30 | ~1.0 (1.5 cap) | ~29 | short s0_baseline marg46 (24ch, burn300+keep300) — likely the REAL s0-T2 result (diagraw mixes cond-1e14 fast per P2b); recovers the calibration the timeout lost |
 
 **QOS RE-ARCHITECTURE (2026-07-09, verified via sbatch --test-only)**: the 4-GPU NODE
 reservations were queue-stuck — worst-case start ~2026-07-17 (8 days out) under gpu_regular
