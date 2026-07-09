@@ -151,6 +151,30 @@ DONE**; nautilus/remc/mclmc-B running.
 
 ## Stage log
 
+### P2c partial #2a — 2026-07-09 (the T3 SMC mode-weight reference — a CROSS-PILLAR headline)
+SMC basin evidence on foundry_v3b74 (DIAGONAL likelihood, 300 particles, 5 reps/basin, clean
+containment, n_floored 0): logZ_low = 38351.17±0.66 (γ→1.24), logZ_steep = 38513.37±1.71
+(γ→2.50). **ΔlogZ = +162.2±1.8 nats favoring STEEP → w_steep ≈ 1.0, w_low ≈ 3.6e-71.**
+- **The stored-chain 45-low/3-steep split (naive w_low=0.9375) is a START ARTIFACT** — zero
+  inter-basin migrations; occupancy ≠ posterior mass. The evidence method (SMC) exposes it;
+  no gradient sampler (s0/PT) can, because they don't migrate. Report ΔlogZ (interpretable),
+  not the 1e-71.
+- **CROSS-PILLAR SIGNIFICANCE**: this is the DIAGONAL likelihood on the 2×-upsampled binned
+  product. At NATIVE scale foundry-i found the steep basin is not even metastable (MAP drains
+  to γ≈1.17). So the diagonal likelihood's ~100% STEEP mass IS the upsampling artifact —
+  the strongest quantification yet of exactly what Pillar-1's correlated likelihood must
+  remove. LINCHPIN follow-on: does the CORRELATED v3b (P1c job 55713240 H1, running) flip the
+  basin evidence back toward LOW (γ→1.29, native-consistent)? That comparison — diagonal
+  ΔlogZ=+162 steep vs correlated ΔlogZ=? — is now a KEY Pillar-1 headline. Consider running
+  24_basin_evidence on the CORRELATED v3b for an apples-to-apples evidence comparison once
+  P1c v3b lands.
+- **P2c multimodality reinterpretation**: T3's real posterior is ~UNIMODAL in mass (steep
+  dominant), NOT a genuine two-mass-mode target. The clean bimodal-MASS demonstration is the
+  SYNTHETIC T0 mixture (P2b: recipe recovers 0.8/0.2 vs baseline collapse). T3's value is now
+  the cautionary finding: apparent bimodality from stuck chains is not posterior bimodality;
+  evidence is required to weight it. s0's "collapse to steep" was landing in the DOMINANT
+  basin (right basin, but s0 can't quantify the weight). SMC ≈ 1.11 A100-h/seed (cheap workhorse).
+
 ### P2c partial #1 — 2026-07-09 (A100, shared jobs backfilled same-day — re-arch worked)
 Calibration + first results (a RESULT, reinforces P2b):
 - **T2 bj_mclmc** (real 46-dim marg, f64, cond-1e14): auto-SVI-diag mass ("no hand-built
