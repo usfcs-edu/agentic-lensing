@@ -358,3 +358,21 @@ public human-labeled catalogs, one A100 walltime, scored by grade-token logprobs
 both the zero-shot frontier-open-model control and the frozen Claude reference on real confirmed-lens
 vetting at HSC resolution.** Remaining plan: Phase F (SDK-free completeness + no-Claude CI), optional
 run-3 levers (augmentation, WiSE-FT, epoch-2), DR11/HSC campaign deployment, PR to main.
+
+## Run-3 lever 1: WiSE-FT dial — smooth but MONOTONIC, pure student stays best (2026-07-09)
+alpha-interpolation student600<->base, each graded on bench v5.1 (logprob):
+
+| alpha | AUC | rec@0.89 | xvi_rej | sugohi_rec |
+|---|---|---|---|---|
+| 0.0 (base) | 0.813 | 47% | 74% | 41% |
+| 0.5 | 0.869 | 61% | 65% | 55% |
+| 0.7 | 0.880 | 66% | 60% | 61% |
+| 1.0 (student600) | **0.892** | **68%** | 58% | 64% |
+
+No intermediate point dominates: the trade is ~linear (alpha 0.7 buys +6 pts near-miss rejection for
+-2 rec / -1.2 AUC). Consistent with the clean per-pool diagnostics — the fine-tune sacrificed no
+covariate-washable robustness for WiSE to recover. **Deployment default stays student600 (alpha=1.0);
+alpha~0.7 documented as the knob if a campaign's cost model prioritizes near-miss rejection.** (alpha=0.3
+still queued; it sits between known points and cannot change the verdict.) Ops: hbm80g had a 288-job
+backlog — the sweep ran via TP2 on 2xA100-40 shared QOS (~instant scheduling, cheaper per-GPU billing);
+NERSC shared rule: request 32 cores per GPU.
