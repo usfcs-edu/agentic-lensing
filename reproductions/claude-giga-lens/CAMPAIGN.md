@@ -31,10 +31,20 @@ Decisions (locked 2026-07-06):
 | ~~55688871~~ | P1c prod (Job 1) | CANCELLED (never ran, 0 charged) | 0.0 | — | VOIDED: resubmitted as 55703707 on cosmo_g (deepsrch_g congested by LensJudge) |
 | 55688960 | P1c fine-low disc (Job 2) | 1 × shared QOS deepsrch_g | ~0.05 | ~1.44 | discriminator (done): GENUINE PATHOLOGY verdict |
 | ~~55703707~~ | P1c prod (node) | CANCELLED unrun (queue-stuck ~07-17) | 0.0 | — | VOIDED: re-architected into 4 shared jobs below (8 days faster + cheaper) |
-| 55712711 | P1c v3b (SHARED) | 1 GPU shared cosmo_g, -t 4:00 | ~3.5 | — | **MONEY product**: v3b binned BOTH basins k300 → γ_binned vs 1.433 (submitted first) |
-| 55712712 | P1c v3-fine (SHARED) | 1 GPU shared, -t 3:30 | ~3.0 | — | v3 fine STEEP only k500 (corr vs diagonal 2.585 artifact) |
-| 55712713 | P1c v2d (SHARED) | 1 GPU shared, -t 2:30 | ~2.0 | — | v2d native RELAXED both k2000 (H1/H2/H3) |
-| 55712714 | P1c v2d-strict (SHARED) | 1 GPU shared, -t 1:30 | ~1.0 | ~24 | v2d STRICT whitener low k500 (strict-vs-relaxed info-cost) |
+| ~~55712711-14~~ | P1c 4 shared (v1) | FAILED 17s / cancelled (stale remote e2.py) | 0.0 | — | VOIDED: remote cgl/e2.py lagged committed source (missing whitener_file kwarg; prod path is first to pass it). Deploy bug, 0 budget lost |
+| 55713240 | P1c v3b (SHARED, resubmit) | 1 GPU shared cosmo_g, -t 4:00 | ~3.5 | — | **MONEY product**: v3b binned BOTH basins k300 → γ_binned vs 1.433 |
+| 55713241 | P1c v3-fine (SHARED) | 1 GPU shared, -t 3:30 | ~3.0 | — | v3 fine STEEP only k500 |
+| 55713251 | P1c v2d (SHARED) | 1 GPU shared, -t 2:30 | ~2.0 | — | v2d native RELAXED both k2000 |
+| 55713252 | P1c v2d-strict (SHARED) | 1 GPU shared, -t 1:30 | ~1.0 | ~24 | v2d STRICT whitener low k500 seed11 |
+
+**DEPLOY LESSON (2026-07-09)**: the Perlmutter repo is a NON-GIT rsync'd staged copy → it can
+silently lag the committed source. The stale remote e2.py (missing whitener_file, added
+post-staging) failed the prod path fast (17s, 0 budget). Caught by watching the first/money
+job. FIX + POLICY: before any Perlmutter production, rsync the committed source AND md5-audit
+all campaign .py remote-vs-local; the only intentional remote-vs-local delta is likelihood.py
+(remote = the parity-A–E-validated version; e2.py's interface to it is unchanged) and unused
+e1.py. laplace_evidence + run_staged (E2-prod-only) were validated on phoenix L4 but not in
+the Perlmutter smoke — v3b (first job) is the canary.
 
 **Account strategy (user-directed 2026-07-08)**: deepsrch_g is over-subscribed at the account
 level (RawUsage 427M vs cosmo_g 35M) + flooded by LensJudge (4+ ljv5 jobs) → gdbenson fairshare
