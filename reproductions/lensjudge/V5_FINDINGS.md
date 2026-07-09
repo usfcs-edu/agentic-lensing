@@ -365,6 +365,7 @@ alpha-interpolation student600<->base, each graded on bench v5.1 (logprob):
 | alpha | AUC | rec@0.89 | xvi_rej | sugohi_rec |
 |---|---|---|---|---|
 | 0.0 (base) | 0.813 | 47% | 74% | 41% |
+| 0.3 | 0.853 | 57% | 71% | 51% |
 | 0.5 | 0.869 | 61% | 65% | 55% |
 | 0.7 | 0.880 | 66% | 60% | 61% |
 | 1.0 (student600) | **0.892** | **68%** | 58% | 64% |
@@ -372,7 +373,7 @@ alpha-interpolation student600<->base, each graded on bench v5.1 (logprob):
 No intermediate point dominates: the trade is ~linear (alpha 0.7 buys +6 pts near-miss rejection for
 -2 rec / -1.2 AUC). Consistent with the clean per-pool diagnostics — the fine-tune sacrificed no
 covariate-washable robustness for WiSE to recover. **Deployment default stays student600 (alpha=1.0);
-alpha~0.7 documented as the knob if a campaign's cost model prioritizes near-miss rejection.** (alpha=0.3
-still queued; it sits between known points and cannot change the verdict.) Ops: hbm80g had a 288-job
+alpha~0.7 documented as the knob if a campaign's cost model prioritizes near-miss rejection.** (alpha=0.3 confirmed the
+monotone curve: 0.853/57%/71%.) Ops: hbm80g had a 288-job
 backlog — the sweep ran via TP2 on 2xA100-40 shared QOS (~instant scheduling, cheaper per-GPU billing);
 NERSC shared rule: request 32 cores per GPU.
