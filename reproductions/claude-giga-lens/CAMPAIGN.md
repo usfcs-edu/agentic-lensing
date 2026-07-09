@@ -175,6 +175,29 @@ containment, n_floored 0): logZ_low = 38351.17±0.66 (γ→1.24), logZ_steep = 3
   evidence is required to weight it. s0's "collapse to steep" was landing in the DOMINANT
   basin (right basin, but s0 can't quantify the weight). SMC ≈ 1.11 A100-h/seed (cheap workhorse).
 
+### P2c partial #2b — 2026-07-09 (T3 mode-recovery: ALL direct samplers FAIL → evidence needed)
+Judged vs the SMC reference (w_steep≈1.0):
+- **NO direct sampler recovers the weight** — each freezes into a start-determined basin or fails:
+  s0-SVI froze STEEP (correct-by-luck, R̂ 9.7, can't quantify weight); remc_pt froze WRONG (LOW),
+  R̂ 6.6e15, inner-HMC frozen at eps0=0.15 (the warned pathology, 0 migrations); **nautilus
+  TIMED OUT @4h with NO output** (stalled in the 74-dim live-point phase; ~4 A100-h, zero
+  science). glnt/PT-23 pending (niced, may slip cert).
+- **HEADLINE: the samplers' failure IS the result** — on a real 74-dim bimodal lens posterior,
+  direct samplers can't weight the modes (stuck-chain occupancy ≠ mass); only per-basin SMC
+  evidence yields the trustworthy w_steep≈1.0, overturning the stored-chain 93.75%-low artifact.
+- **Nautilus arc complete**: P2b-dominant on easy/mid targets, but FAILS on both hard real
+  regimes (cond-1e14 shells collapse; 74-dim bimodal times out). DROP the retry — report the
+  timeout as the scaling-limit datum (nautilus infeasible on 74-dim real posteriors at ≤4h/GPU).
+- Correlated-SMC feasibility CONFIRMED (HOLD item #2): ~1 A100-h, ~40-80 lines, only the
+  RESIDUAL whitener needed (no design-col livelock), parameterization identical → clean
+  SMC-vs-SMC, log-det cancels in the ratio. Banked; decide after P1c v3b H1.
+- Seed-0 pre-flight actual ~16-18 A100-h (inflated by 2 NULL timeouts: s0-A ~2.5 + nautilus
+  ~4.0 — lesson: right-size walltimes). Full P2c est ≈31-35 (≤45 cap) IF drop nautilus +
+  right-size s0-T2. SEED-1,2 STRUCTURE approved (T2 s0+mclmc 2 seeds right-sized + 1 Track-B
+  s0; T3 SMC+s0+remc 2 seeds + PT×1; drop nautilus; glnt drop-first) but SUBMISSION HELD until
+  the s0-T2 diagnostic sizes s0-T2 AND P1c v3b H1 lands (correlated-SMC decision) — avoids
+  piling jobs into the congested queue; finalize sizing from real data (likely post-cert-refresh).
+
 ### P2c partial #1 — 2026-07-09 (A100, shared jobs backfilled same-day — re-arch worked)
 Calibration + first results (a RESULT, reinforces P2b):
 - **T2 bj_mclmc** (real 46-dim marg, f64, cond-1e14): auto-SVI-diag mass ("no hand-built
