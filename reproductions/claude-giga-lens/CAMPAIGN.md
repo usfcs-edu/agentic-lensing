@@ -120,6 +120,16 @@ Charging note: debug QOS allocates the node exclusively (4 A100s billed even at
 | week | phase | script family | GPU-h (A16/L4) |
 |---|---|---|---|
 
+### Queue re-prioritization — 2026-07-09
+The P1c deploy-bug resubmit gave the 4 P1c jobs NEWER timestamps than the P2c cells, so the
+older P2c calibration cells were winning shared slots and the v3b MONEY product was stuck
+PENDING behind them (bad, with the 21:58 cert deadline). Fixed with `scontrol update ... nice`:
+P1c jobs stay top (prio 67679); s0-T2 diagnostic niced to 17679 (below P1c, above extras);
+drop-first glnt (55712749) + PT-23 (55712748) niced to prio 1. Result: v3b money product gets
+the next freed slot; then the other P1c products; then the T2 diagnostic; then glnt/PT last.
+P2c partial #1 completions so far: mclmc-A, s0svi, **SMC-evid-24 (primary T3 mode-weight ref)
+DONE**; nautilus/remc/mclmc-B running.
+
 ## Gate record
 
 | gate | date | verdict | numbers | notes/retractions |
