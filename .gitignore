@@ -90,3 +90,6 @@ site/docs/reproductions/
 site/docs/other/apple-silicon/huang-2020.md
 site/docs/other/apple-silicon/huang-2021.md
 site/docs/other/apple-silicon/redshifty.md
+
+# Office lock files (created while a .pptx/.docx is open; contain the username)
+~$*
