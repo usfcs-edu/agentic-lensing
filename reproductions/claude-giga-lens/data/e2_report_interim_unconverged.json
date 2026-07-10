@@ -1,0 +1,320 @@
+{
+ "generated_by": "11_pool_e2.py",
+ "headline_reframe": "PRIMARY money number = gamma_binned(corr, LOW) vs diagonal-native anchor 1.433. The fine (v3, 3.2x) LOW basin is EXCLUDED as a characterized near-singular-whitener pathology (fine-low MAP rails to gamma~1.0 with real-space chi2_pp~72 while whitened logL improves; see the fine-low pre-flight + discriminator diagnostics). Fine reported as a secondary panel: fine-STEEP(corr) vs the diagonal-fine 2.585 artifact. Binned (2x) is less near-singular and is the defensible cross-scale headline.",
+ "pre_registered_amendments": [
+  "H2/H3 anchor = gamma_native(DIAGONAL) = 1.433 [1.400,1.469], NOT the correlated-native relaxed fit (native is where the diagonal likelihood is least wrong; the correlated value-add is largest on the fine/binned).",
+  "H2 PRIMARY re-pointed from fine-low to BINNED-low (fine-low excluded, whitener pathology). Fine-steep vs 2.585 is a secondary characterization.",
+  "H3 RE-SPEC: reference sigma = sigma_gamma(native, DIAGONAL) ~ 0.0345, NOT the prior-pulled correlated-native sigma. Correlated-native (relaxed & strict) sigma reported as the pixel-loss information-cost diagnostic."
+ ],
+ "anchors": {
+  "gamma_native_diag": 1.433,
+  "gamma_native_diag_ci": [
+   1.4,
+   1.469
+  ],
+  "sigma_native_diag": 0.034500000000000086,
+  "gamma_fine_diag_map": 2.585
+ },
+ "diagonal_refs": {
+  "binned": {
+   "n": 168000,
+   "median_all": 1.2940982580184937,
+   "low_median": 1.293250560760498,
+   "low_sigma": 0.01179152075201273,
+   "steep_median": 2.422957181930542,
+   "steep_sigma": 0.026965027675032616,
+   "steep_mass": 0.0625
+  }
+ },
+ "products": {
+  "v3": {
+   "label": "fine 260^2",
+   "whiten": {
+    "whitener": "whitener_v3.npz",
+    "M": 20,
+    "e_op": 0.016013064680849398,
+    "n_keep_w": 37519
+   },
+   "basins_present": [
+    "steep"
+   ],
+   "basins": {
+    "steep": {
+     "gamma_median": 1.8155024486038442,
+     "gamma_ci": [
+      1.7028276465501355,
+      1.9295909229732255
+     ],
+     "gamma_std": 0.1172233152824427,
+     "rhat_max": 1.0248223808451171,
+     "ess_min": 2046.6101661405917,
+     "ess_gamma": 2046.6101661405917,
+     "rhat_gamma": 1.0248223808451171,
+     "logp_best": -6157.263729424549,
+     "gamma_best": 1.6414093557268745,
+     "thetaE_median": 2.586220956919603,
+     "thetaE_std": 0.014360431359947533,
+     "n_draws": 12000
+    }
+   },
+   "converged": false,
+   "note": "single-basin (fine-low blocked by near-singular-whitener pathology; see fine-low discriminator diagnostic)"
+  },
+  "v3b": {
+   "label": "binned 130^2",
+   "whiten": {
+    "whitener": "whitener_v3b.npz",
+    "M": 10,
+    "e_op": 0.012425006797051719,
+    "n_keep_w": 9273
+   },
+   "basins_present": [
+    "low",
+    "steep"
+   ],
+   "basins": {
+    "low": {
+     "gamma_median": 1.0981737918857901,
+     "gamma_ci": [
+      1.087662908178017,
+      1.1115446343176323
+     ],
+     "gamma_std": 0.033053420283726674,
+     "rhat_max": 5.94465318019048,
+     "ess_min": 34.13479298956864,
+     "ess_gamma": 36.352872489933176,
+     "rhat_gamma": 4.283220544920673,
+     "logp_best": -4682.441478614305,
+     "gamma_best": 1.095281244586699,
+     "thetaE_median": 2.6244949623895137,
+     "thetaE_std": 0.006438943357845509,
+     "n_draws": 7200
+    },
+    "steep": {
+     "gamma_median": 2.669582643309278,
+     "gamma_ci": [
+      2.6671342212043836,
+      2.672068627169522
+     ],
+     "gamma_std": 0.002477043337857231,
+     "rhat_max": 14.245017219320818,
+     "ess_min": 27.617222307003665,
+     "ess_gamma": 28.104458927825622,
+     "rhat_gamma": 13.645924688511709,
+     "logp_best": -4745.327717015362,
+     "gamma_best": 2.66691764961189,
+     "thetaE_median": 2.592078221862545,
+     "thetaE_std": 0.008854541992267186,
+     "n_draws": 7200
+    }
+   },
+   "converged": false,
+   "note": ""
+  },
+  "v2d": {
+   "label": "native 80^2 (relaxed)",
+   "whiten": {
+    "whitener": "whitener_v2d_relaxed.npz",
+    "M": 10,
+    "e_op": 0.031196071701300898,
+    "n_keep_w": 1466
+   },
+   "basins_present": [
+    "low",
+    "steep"
+   ],
+   "basins": {
+    "low": {
+     "gamma_median": 2.3529688981316648,
+     "gamma_ci": [
+      2.257479489309625,
+      2.45025625565511
+     ],
+     "gamma_std": 0.09647671811411145,
+     "rhat_max": 1.1010084374561768,
+     "ess_min": 451.65724418715195,
+     "ess_gamma": 4396.955417575901,
+     "rhat_gamma": 1.0143123940536938,
+     "logp_best": -654.6294743512792,
+     "gamma_best": 2.402065751699408,
+     "thetaE_median": 2.646450688333859,
+     "thetaE_std": 0.007258050706170716,
+     "n_draws": 48000
+    },
+    "steep": {
+     "gamma_median": 2.524731128519993,
+     "gamma_ci": [
+      2.408498908063657,
+      2.5844034516866774
+     ],
+     "gamma_std": 0.09154933409734192,
+     "rhat_max": 5.516627666975154,
+     "ess_min": 34.564083778960985,
+     "ess_gamma": 55.23419923224316,
+     "rhat_gamma": 4.394878685488777,
+     "logp_best": -656.54905546494,
+     "gamma_best": 2.388864685041305,
+     "thetaE_median": 2.6477452878654453,
+     "thetaE_std": 0.011887329486610518,
+     "n_draws": 48000
+    }
+   },
+   "converged": false,
+   "note": ""
+  },
+  "v2d_strict": {
+   "label": "native 80^2 (relaxed)",
+   "whiten": {
+    "whitener": "whitener_v2d.npz",
+    "M": 14,
+    "e_op": 0.0176720080730407,
+    "n_keep_w": 487
+   },
+   "basins_present": [
+    "low"
+   ],
+   "basins": {
+    "low": {
+     "gamma_median": 2.4065756851788827,
+     "gamma_ci": [
+      2.310551996955857,
+      2.4958696620669745
+     ],
+     "gamma_std": 0.10068504957860434,
+     "rhat_max": 10.570801920038813,
+     "ess_min": 30.576880787360533,
+     "ess_gamma": 63.62531680884923,
+     "rhat_gamma": 3.027752109315239,
+     "logp_best": -234.1091345613214,
+     "gamma_best": 2.4255926358812148,
+     "thetaE_median": 2.6729398899001655,
+     "thetaE_std": 0.01553158571246395,
+     "n_draws": 12000
+    }
+   },
+   "converged": false,
+   "note": "single-basin (fine-low blocked by near-singular-whitener pathology; see fine-low discriminator diagnostic)"
+  }
+ },
+ "H1": {
+  "v3": {
+   "status": "single-basin",
+   "note": "H1 not computed (needs both basins). single-basin (fine-low blocked by near-singular-whitener pathology; see fine-low discriminator diagnostic)"
+  },
+  "v3b": {
+   "dlogpost_best_steep_minus_low": -62.8862384010572,
+   "dlogpost_map_steep_minus_low": -58.663777592115366,
+   "dlogZ_laplace": -59.35824207090718,
+   "laplace_mass_steep": 1.6635774052237286e-26,
+   "steep_map_crossed": false,
+   "low_map_crossed": false,
+   "steep_disfavored": true,
+   "interpretation": "steep basin is a likelihood artifact (disfavored)"
+  },
+  "v2d": {
+   "dlogpost_best_steep_minus_low": -1.9195811136607972,
+   "dlogpost_map_steep_minus_low": -163.23416277133185,
+   "dlogZ_laplace": 90.21497337106928,
+   "laplace_mass_steep": 1.0,
+   "steep_map_crossed": false,
+   "low_map_crossed": true,
+   "steep_disfavored": true,
+   "interpretation": "steep basin is a likelihood artifact (disfavored)"
+  },
+  "v2d_strict": {
+   "status": "single-basin",
+   "note": "H1 not computed (needs both basins). single-basin (fine-low blocked by near-singular-whitener pathology; see fine-low discriminator diagnostic)"
+  }
+ },
+ "H2": {
+  "primary_binned_low": {
+   "gamma_corr": 1.0981737918857901,
+   "gamma_corr_std": 0.033053420283726674,
+   "anchor": 1.433,
+   "dgamma": 0.33482620811420993,
+   "sigma_comb": 0.047778432293794235,
+   "z": 7.007894400036631,
+   "gate_pass": false,
+   "note": "THE money number: gamma_binned(corr,low) vs 1.433"
+  },
+  "binned_steep": {
+   "gamma_corr": 2.669582643309278,
+   "gamma_corr_std": 0.002477043337857231,
+   "anchor": 1.433,
+   "dgamma": 1.236582643309278,
+   "sigma_comb": 0.03458880951547232,
+   "z": 35.750945482992925,
+   "gate_pass": false,
+   "note": "binned steep basin vs 1.433"
+  },
+  "v2d_relaxed_low": {
+   "gamma_corr": 2.3529688981316648,
+   "gamma_corr_std": 0.09647671811411145,
+   "anchor": 1.433,
+   "dgamma": 0.9199688981316647,
+   "sigma_comb": 0.10245978302763346,
+   "z": 8.978829263024581,
+   "gate_pass": false,
+   "note": "native relaxed low vs 1.433"
+  },
+  "binned_massweighted": {
+   "gamma_massweighted": 1.0981737918857901,
+   "mass_steep": 1.6635774052237286e-26,
+   "note": "Laplace-mass-weighted across binned basins (context only)"
+  },
+  "secondary_fine_steep": {
+   "gamma_corr": 1.8155024486038442,
+   "gamma_corr_std": 0.1172233152824427,
+   "gamma_ci": [
+    1.7028276465501355,
+    1.9295909229732255
+   ],
+   "gamma_diag_fine_artifact": 2.585,
+   "dgamma_vs_artifact": 0.7694975513961557,
+   "dgamma_vs_anchor": 0.3825024486038442,
+   "note": "does the correlated likelihood move the fine STEEP basin off the diagonal-fine 2.585 artifact? (fine-LOW excluded \u2014 whitener pathology)"
+  }
+ },
+ "H3": {
+  "ref": "sigma_gamma(native, DIAGONAL) [re-spec]",
+  "sigma_native_diag": 0.034500000000000086,
+  "threshold": 0.02300000000000006,
+  "binned_low": {
+   "sigma": 0.033053420283726674,
+   "gate_pass": true
+  },
+  "v2d_relaxed_low": {
+   "sigma": 0.09647671811411145,
+   "gate_pass": true
+  },
+  "v2d_strict_low_diagnostic": {
+   "sigma": 0.10068504957860434,
+   "note": "strict whitener (487 px) \u2014 fewer px -> wider; strict-vs-relaxed pixel-loss information-cost (supports info-limited native finding)"
+  }
+ },
+ "pixel_information": {
+  "fine_steep": {
+   "n_keep_w": 37519,
+   "gamma_std": 0.1172233152824427,
+   "basin": "steep"
+  },
+  "binned_low": {
+   "n_keep_w": 9273,
+   "gamma_std": 0.033053420283726674,
+   "basin": "low"
+  },
+  "v2d_relaxed_low": {
+   "n_keep_w": 1466,
+   "gamma_std": 0.09647671811411145,
+   "basin": "low"
+  },
+  "v2d_strict_low": {
+   "n_keep_w": 487,
+   "gamma_std": 0.10068504957860434,
+   "basin": "low"
+  },
+  "note": "real-data sigma-inflation story: fewer kept px -> wider gamma posterior"
+ },
+ "run_status": "INTERIM_UNCONVERGED. Two-stage PHMC failed on indefinite-Laplace-Hessian real-data targets (v3b R-hat 5.9/14.2, v2d 5.5-10.6); every product converged=false. The H1/H2/H3 numbers herein are from UNCONVERGED chains and are NOT headlines (e.g. gamma_binned_low=1.098 is a frozen-chain artifact; the sane v3b-low MAP is gamma=1.27). Only fine-steep is near-converged (R-hat 1.025, gamma=1.816). SUPERSEDED by the Option-A regularized-PD-metric re-run.",
+ "sampler_root_cause": "convergence tracks Laplace Hessian definiteness at MAP: v3-steep min_eig=+0.108/0-floored converged; v3b-low min_eig=-14.8/5-floored and steep -6.6e23/20-floored did not."
+}

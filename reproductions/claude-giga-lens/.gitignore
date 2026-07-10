@@ -23,3 +23,4 @@ papers/*.log
 papers/*.out
 papers/*.run.xml
 papers/*.toc
+!data/e2_report_interim_unconverged.json
