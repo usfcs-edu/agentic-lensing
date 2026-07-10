@@ -130,6 +130,31 @@ the next freed slot; then the other P1c products; then the T2 diagnostic; then g
 P2c partial #1 completions so far: mclmc-A, s0svi, **SMC-evid-24 (primary T3 mode-weight ref)
 DONE**; nautilus/remc/mclmc-B running.
 
+### P1c v2d-relaxed — 2026-07-10 (correlated-NATIVE drifts HIGH; v3b is the decider)
+v2d relaxed whitener (1466 px), both basins: LOW γ=2.353 [2.258,2.450] R̂=1.101 ESS_γ=4397
+(but MAP CROSSED low→steep — HMC drifted UP off the sane 1.60 MAP); STEEP γ=2.525 R̂=5.52
+(unconverged); H1 dlogL(steep−low)=−1.92 (≤0) but Laplace mass_steep=1.0/dlogZ=+90 (indefinite
+→ unreliable). **NO stable low-γ mode near 1.433 for the correlated-native likelihood — both
+basins → γ≈2.4-2.5.**
+- MECHANISM (key interpretation): the model γ prior is TruncatedNormal(2.0,0.25). The
+  correlated likelihood DOWN-weights pixels → broader/weaker → PRIOR-PULLED toward ~2.0-2.4.
+  The diagonal-native reached 1.433 only because its (over-confident) sharpness overcame the
+  prior. So correlated-native γ≈2.4 is most likely an OVER-WHITENING info-loss artifact (native
+  is already low-correlation ρ(1)≈0.5 — whitening it discards info for little benefit), NOT a
+  "more correct" value. This is WHY the pre-registered amendment demoted correlated-native and
+  anchors H2/H3 on diagonal-native 1.433; v2d = secondary info-cost panel.
+- CONVERGENCE PATTERN: info-poor natives + steep basins strain the two-stage recipe (v2d-strict
+  R̂ 10.6, v2d-relaxed steep 5.5, low 1.10 marginal) — indefinite Laplace metrics on real native
+  products (vs the clean E1b mocks the recipe was validated on).
+- **THE DECIDER = v3b (money, 9273 px = 6× relaxed-native, well-conditioned; money = its LOW
+  basin).** If v3b-low converges near 1.4-1.5 → HEADLINE HOLDS (correlated removes the diagonal
+  binned steep artifact, restores native-consistent γ). If v3b-low ALSO drifts to the γ≈2.4
+  prior region → whitening info-loss too severe even at binned scale; cross-scale discrepancy
+  NOT resolved by the noise model alone → "correlated necessary-but-not-sufficient" (pre-reg H1
+  fork, publishable either way). Due ~09:40Z. Pre-auth ONE re-run for v3b-low if unconverged,
+  TUNED to the failure mode (more chains + longer stage-1 + smaller step), plan reported before
+  spending — DISTINCT from strict's intrinsic (unfixable) info-poverty.
+
 ### P1c first completion — 2026-07-10 (v2d-strict: unconverged = info-cost extreme endpoint)
 v2d STRICT whitener (487 px), low basin: prod path works end-to-end (build→MAP→Laplace→
 run_staged→json — e2.py fix FULLY VALIDATED). BUT unconverged: MAP γ=1.596 (sane low), Laplace
