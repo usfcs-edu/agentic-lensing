@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
-"""397_remove_known_lenses.py — subtract the known-lens catalog (KLC) from the v4
-DR11-south new-candidate ranking, so what remains is the genuinely-unpublished set.
+"""397_remove_known_lenses.py — subtract the known-lens catalogs from the v4 DR11-south
+candidate ranking, so what remains is the genuinely-unpublished set.
 
-396 exports the 134,078 galaxies that are in the v4 top-150k but NOT in the old
-union-95k survivor set (`dr11s_v4_new_candidates.csv`). "New" there means *new
-relative to the previous sweep*, not *not-a-published-lens* — the v4 sweep keeps
-known lenses in its parent sample on purpose (the 160/163 population choice), so
-catalog lenses are expected to rank high and they do: 43 % of the top-100 rows
-match a KLC entry. This script does the second subtraction, against the
+Input (default): the FULL v4 top-150k, `dr11s_v4_candidates_150k.csv`, produced by
+`396_export_v4_new_candidates.py --full`. It carries an `is_new` flag = 1 for the
+134,078 rows new relative to the previous union-95k sweep, 0 for the 15,922 that sweep
+also surfaced. This script does NOT filter on is_new: it keeps the whole top-150k and
+subtracts only *published* lenses. (Earlier the input was the 134,078 is_new==1 subset;
+that dropped 14,520 real candidates including v4's #1-ranked one, so we now ship the full
+ranking and carry is_new through as metadata — the old 131,336-row view is exactly the
+is_new==1 survivors.) The v4 sweep keeps known lenses in its parent sample on purpose
+(the 160/163 population choice), so catalog lenses rank high and they do: 81 of v4's
+top-100 rows match a known lens. This script does the second subtraction, against the
 literature: drop every candidate within --radius of a known lens.
 
 Matching (astropy `match_to_catalog_sky`, the 114/163 pattern, 5" default):
@@ -23,10 +27,10 @@ Matching (astropy `match_to_catalog_sky`, the 114/163 pattern, 5" default):
     candidate row, because the Tractor catalog deblends one lens into several
     sources. Every matched row is removed, not just the nearest.
 
-Outputs (CSV columns carried through from 396, plus a fresh contiguous rank):
-  <out>          survivors, known lenses removed, + rank_clean (1..N)
+Outputs (CSV columns carried through from 396 incl. is_new, plus a fresh contiguous rank):
+  <out>          survivors, known lenses removed, + rank_clean (1..N)  -> 145,856 rows
   <removed-out>  the dropped rows + sep_arcsec / klc_index / klc_ra / klc_dec /
-                 klc_ref / klc_dup  -> every removal is auditable
+                 klc_ref / klc_dup / klc_catalog  -> every removal is auditable
   <report>       JSON: counts, radius-sensitivity table, recovery, provenance
 
 "Known" means the union of every known-lens catalog this repo ships: the KLC (--known,
@@ -37,14 +41,14 @@ of them: 7 of the 342 huang2020 lenses are missing from it, of which one
 (cross-catalog duplicates NOT deduped: harmless for removal, inflates the recall
 denominator). external_lens_catalog contributes 0 removals beyond huang2020.
 
-  python 397_remove_known_lenses.py                      # 5", full union -> the shipped product
+  python 397_remove_known_lenses.py                      # 5", full union -> the shipped 145,856
   python 397_remove_known_lenses.py --radius 3
-  python 397_remove_known_lenses.py --no-default-extra   # KLC only -> 131,337 (one lens leaks)
-  python 397_remove_known_lenses.py --flag-only          # keep all rows, add is_known
+  python 397_remove_known_lenses.py --no-default-extra   # KLC only (one huang2020 lens leaks)
+  python 397_remove_known_lenses.py --flag-only          # keep all 150k rows, add is_known
 
 Provenance note (inherited from 396): `mean5` is the RANKING score the top-150k was
 selected by (arithmetic mean of the 5 v4 members). It is NOT a calibrated P(lens) at
-the survey base rate. Removing the KLC makes this list *unpublished*, not *pure* —
+the survey base rate. Removing known lenses makes this list *unpublished*, not *pure* —
 graded p_lens still comes only from the LensJudge vetting stage, which has not been
 run on this set.
 """
@@ -63,7 +67,7 @@ import _clib as C
 
 REPO = C.REPRO.parent                      # <repo>/reproductions/claudenet -> <repo>
 DEFAULT_KNOWN = REPO / "data" / "klc_clean250629ymh.csv"
-DEFAULT_CANDS = C.DATA / "v3" / "dr11s_v4_new_candidates.csv"
+DEFAULT_CANDS = C.DATA / "v3" / "dr11s_v4_candidates_150k.csv"
 RADII = (1.0, 2.0, 3.0, 5.0, 10.0, 15.0, 30.0)   # sensitivity table
 
 # The KLC is NOT a strict superset of the known-lens catalogs this repo already ships:
