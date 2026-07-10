@@ -130,6 +130,24 @@ the next freed slot; then the other P1c products; then the T2 diagnostic; then g
 P2c partial #1 completions so far: mclmc-A, s0svi, **SMC-evid-24 (primary T3 mode-weight ref)
 DONE**; nautilus/remc/mclmc-B running.
 
+### P1c v3-steep — 2026-07-10 (correlated DEFLATES the fine artifact — FAVORABLE reframe)
+fine STEEP (corr, 37519 px, steep-only by design → no H1): **γ=1.816 [1.703,1.930] σ=0.117,
+R̂=1.025, ESS_γ=2047** (γ_map 2.281, γ_best 1.641, MAP not crossed).
+- **The correlated likelihood moves the fine steep basin DOWN to 1.816 — Δ=0.77 correction off
+  the diagonal-fine artifact γ=2.585**, in the pillar's predicted direction (drizzle-correlation
+  correction deflates the inflated diagonal γ). ~67% of the way to the native anchor 1.433
+  (residual 3.1σ high — but this is the STEEP basin; reaching 1.433 is the LOW basin's job, v3b).
+- **REFUTES "correlated prior-pulled everywhere"**: 1.816 is BELOW the γ prior mean 2.0 → the
+  info-rich fine likelihood pulls γ DOWN data-driven, overcoming the prior. The natives' upward
+  drift to ~2.4 was OVER-WHITENING info-poverty (487/1466 px), NOT an intrinsic high-γ pref.
+- Convergence tracks information content: fine (37519 px) R̂ 1.025 >> info-poor natives R̂ 5-10.
+  So the correlated likelihood WORKS (converges + data-driven) where it retains information.
+- **Emerging headline (favorable, honest)**: the correlated likelihood substantially deflates
+  the diagonal upsampling artifact (fine 2.585→1.816) — drizzle-noise correlation is a MAJOR
+  driver of the cross-scale γ discrepancy; a residual offset indicates additional systematics.
+  Publishable regardless of v3b. v3b LOW (money, 9273 px) refines: near 1.4-1.5 = clean
+  unification; ~1.8 = corroborates the partial-correction story.
+
 ### P1c v2d-relaxed — 2026-07-10 (correlated-NATIVE drifts HIGH; v3b is the decider)
 v2d relaxed whitener (1466 px), both basins: LOW γ=2.353 [2.258,2.450] R̂=1.101 ESS_γ=4397
 (but MAP CROSSED low→steep — HMC drifted UP off the sane 1.60 MAP); STEEP γ=2.525 R̂=5.52
