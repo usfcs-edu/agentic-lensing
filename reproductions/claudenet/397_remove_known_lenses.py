@@ -29,8 +29,17 @@ Outputs (CSV columns carried through from 396, plus a fresh contiguous rank):
                  klc_ref / klc_dup  -> every removal is auditable
   <report>       JSON: counts, radius-sensitivity table, recovery, provenance
 
-  python 397_remove_known_lenses.py                      # 5", the repo default
+"Known" means the union of every known-lens catalog this repo ships: the KLC (--known,
+12,210 entries) plus DEFAULT_EXTRA -- huang2020_published_catalog.csv (342) and
+external_lens_catalog.csv (3) -- auto-unioned, because the KLC is NOT a strict superset
+of them: 7 of the 342 huang2020 lenses are missing from it, of which one
+(DESI-036.6760-03.6801, grade C) actually lands in the candidate list. Union = 12,555 rows
+(cross-catalog duplicates NOT deduped: harmless for removal, inflates the recall
+denominator). external_lens_catalog contributes 0 removals beyond huang2020.
+
+  python 397_remove_known_lenses.py                      # 5", full union -> the shipped product
   python 397_remove_known_lenses.py --radius 3
+  python 397_remove_known_lenses.py --no-default-extra   # KLC only -> 131,337 (one lens leaks)
   python 397_remove_known_lenses.py --flag-only          # keep all rows, add is_known
 
 Provenance note (inherited from 396): `mean5` is the RANKING score the top-150k was
@@ -56,6 +65,14 @@ REPO = C.REPRO.parent                      # <repo>/reproductions/claudenet -> <
 DEFAULT_KNOWN = REPO / "data" / "klc_clean250629ymh.csv"
 DEFAULT_CANDS = C.DATA / "v3" / "dr11s_v4_new_candidates.csv"
 RADII = (1.0, 2.0, 3.0, 5.0, 10.0, 15.0, 30.0)   # sensitivity table
+
+# The KLC is NOT a strict superset of the known-lens catalogs this repo already ships:
+# 7 of the 342 huang2020 lenses are absent from it. Union them in BY DEFAULT so a bare
+# invocation reproduces the shipped product; --no-default-extra restores KLC-only.
+DEFAULT_EXTRA = (
+    C.HUANG20 / "data" / "huang2020_published_catalog.csv",
+    C.ROOT / "v3" / "external_lens_catalog.csv",
+)
 
 
 def rel(p: Path) -> str:
@@ -129,9 +146,11 @@ def main() -> int:
                     help="known-lens catalog CSV (Ra, Dec[, ref, klc_dup])")
     ap.add_argument("--extra-known", action="append", default=[],
                     help="additional known-lens CSV (RA,DEC[,name]) unioned into --known; "
-                         "repeatable. The KLC is NOT a strict superset of the repo's own "
-                         "catalogs -- 7 huang2020 lenses are absent from it (cf. 163's "
-                         "--extra-catalog).")
+                         "repeatable, on top of DEFAULT_EXTRA (cf. 163's --extra-catalog)")
+    ap.add_argument("--no-default-extra", action="store_true",
+                    help="do NOT auto-union the repo's own known-lens catalogs (DEFAULT_EXTRA); "
+                         "match against --known alone. Yields 131,337 survivors instead of "
+                         "131,336 -- one published huang2020 lens then leaks through.")
     ap.add_argument("--radius", type=float, default=5.0,
                     help="match radius in arcsec (repo default 5, cf. 163)")
     ap.add_argument("--out", default=None, help="survivors CSV")
@@ -142,10 +161,19 @@ def main() -> int:
     a = ap.parse_args()
 
     cand_p = Path(a.candidates)
-    known_ps = [Path(a.known)] + [Path(p) for p in a.extra_known]
+    auto = [] if a.no_default_extra else [p for p in DEFAULT_EXTRA if p.exists()]
+    known_ps, seen = [], set()
+    for p in [Path(a.known), *auto, *(Path(x) for x in a.extra_known)]:
+        k = p.resolve()                      # dedupe: re-passing a default via --extra-known
+        if k not in seen:                    # would double-count it in the denominators
+            seen.add(k)
+            known_ps.append(p)
     for p in [cand_p, *known_ps]:
         if not p.exists():
             raise SystemExit(f"[397] FATAL: {p} missing")
+    if auto:
+        print(f"[397] auto-unioned {len(auto)} repo catalog(s): "
+              f"{', '.join(p.name for p in auto)}  (--no-default-extra to disable)")
     stem = cand_p.with_suffix("")
     tag = "known_flagged" if a.flag_only else "noknown"   # per-mode paths: a --flag-only
     out_p = Path(a.out) if a.out else Path(f"{stem}_{tag}.csv")      # run must not clobber
