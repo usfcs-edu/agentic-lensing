@@ -1,0 +1,83 @@
+{
+  "candidates_in": {
+    "path": "reproductions/claudenet/data/v3/dr11s_v4_new_candidates.csv",
+    "rows_raw": 134078,
+    "rows_used": 134078
+  },
+  "known_in": {
+    "paths": [
+      "data/klc_clean250629ymh.csv"
+    ],
+    "rows_raw": 12210,
+    "rows_used": 12210,
+    "per_catalog": {
+      "klc_clean250629ymh": 12210
+    }
+  },
+  "radius_arcsec": 5.0,
+  "matcher": "astropy match_to_catalog_sky (great-circle); forward NN exact for removal",
+  "mode": "remove",
+  "outputs": {
+    "primary": "reproductions/claudenet/data/v3/dr11s_v4_new_candidates_noknown.csv",
+    "removed": "reproductions/claudenet/data/v3/dr11s_v4_new_candidates_known_removed.csv"
+  },
+  "matched_known_rows": 2741,
+  "removed_rows": 2741,
+  "rows_written": 131337,
+  "survivors": 131337,
+  "klc_entries_nearest_matched": 2457,
+  "klc_entries_within_radius": 2467,
+  "extra_deblended_rows": 284,
+  "deblended_systems": 256,
+  "known_recall_raw": 0.202048,
+  "radius_sensitivity": {
+    "1": {
+      "removed": 2283,
+      "survivors": 131795,
+      "known_recovered": 2269,
+      "known_recall_raw": 0.185831
+    },
+    "2": {
+      "removed": 2351,
+      "survivors": 131727,
+      "known_recovered": 2311,
+      "known_recall_raw": 0.189271
+    },
+    "3": {
+      "removed": 2483,
+      "survivors": 131595,
+      "known_recovered": 2366,
+      "known_recall_raw": 0.193776
+    },
+    "5": {
+      "removed": 2741,
+      "survivors": 131337,
+      "known_recovered": 2467,
+      "known_recall_raw": 0.202048
+    },
+    "10": {
+      "removed": 3026,
+      "survivors": 131052,
+      "known_recovered": 2580,
+      "known_recall_raw": 0.211302
+    },
+    "15": {
+      "removed": 3110,
+      "survivors": 130968,
+      "known_recovered": 2616,
+      "known_recall_raw": 0.214251
+    },
+    "30": {
+      "removed": 3212,
+      "survivors": 130866,
+      "known_recovered": 2663,
+      "known_recall_raw": 0.2181
+    }
+  },
+  "caveats": [
+    "klc_entries_within_radius counts KLC *rows*, not distinct physical systems: the KLC still holds near-duplicate literature entries (112 rows have another KLC row within 5\"), so the physical-system count is slightly lower.",
+    "known_recall_raw denominator is the FULL KLC (all sky, incl. north and non-DESI area). The true in-footprint recall needs the sweep parent manifest, which lives on Perlmutter -- this is a lower bound.",
+    "The input is 396's NEW subset: the 15,922 top-150k rows retained from the old union-95k survivors are already excluded, and known lenses found by the previous sweep live disproportionately in that excluded bucket. So recall against this file understates v4's true recall of known lenses.",
+    "mean5 is a RANKING score, not a calibrated P(lens). Removing the KLC makes the list unpublished, not pure; vetting (LensJudge) has not been run."
+  ]
+}
