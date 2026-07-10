@@ -23,6 +23,15 @@ reproductions/huang-2020/data/cutouts_jpeg_dr9/
 reproductions/huang-2020/data/checkpoint_best.pt
 
 # Data
+# Bare pattern: ignores every directory named `data`, at any depth.
+# A few small, curated data PRODUCTS are force-added past this rule (`git add -f`) so a
+# result can be reproduced from the repo alone. Negation rules (`!data/...`) cannot work
+# here -- git will not descend into an excluded directory -- and re-anchoring the pattern
+# would un-ignore every nested reproductions/*/data/ dir. Currently force-added:
+#   data/klc_clean250629ymh.csv                             known-lens catalog (KLC)
+#   reproductions/claudenet/data/v3/dr11s_v4_new_candidates*.csv   v4 candidates +/- KLC
+#   reproductions/claudenet/data/v3/dr11s_v4_new_candidates_noknown_report.json
+#   reproductions/huang-2020/data/*.csv                      (pre-existing)
 data
 
 
