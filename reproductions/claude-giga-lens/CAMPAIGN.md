@@ -130,6 +130,31 @@ the next freed slot; then the other P1c products; then the T2 diagnostic; then g
 P2c partial #1 completions so far: mclmc-A, s0svi, **SMC-evid-24 (primary T3 mode-weight ref)
 DONE**; nautilus/remc/mclmc-B running.
 
+### P1c v3b MONEY + all products — 2026-07-10 (UNCONVERGED: metric bug, root-caused, fix decided)
+Babysitter STOPPED, did NOT present a headline from unconverged chains (correct). All 4 products
+done (~9.6 A100-h; cum ~11/30, ~19 reserve) but convergence FAILED on every correlated
+real-data product except fine-steep:
+- v3b LOW (MONEY): γ=1.098 σ=0.033 **R̂=5.94** ESS_γ=36 — frozen chains, NOT a posterior
+- v3b STEEP: γ=2.6696 σ=0.0025 **R̂=14.25** — frozen (σ=0.0025 = chains didn't move)
+- v2d relaxed low R̂ 1.10 / steep 5.52; v2d strict R̂ 10.57; fine-steep R̂ 1.025 (ONLY clean one)
+- **ROOT CAUSE (one variable): convergence tracks LAPLACE HESSIAN DEFINITENESS at the MAP.**
+  fine-steep min_eig +0.108 (0 floored) → PD → mixes; v3b-low min_eig −14.8 (5 floored) →
+  indefinite → stage-1 R̂ 18.8 stuck → two-stage re-preconds from garbage → frozen;
+  v3b-steep min_eig −6.6e23 (20/46 floored) → catastrophic. The `1/|eig|` metric is INVALID on
+  indefinite Hessians (treats saddle/flat dirs as high-curvature). The two-stage PHMC recipe was
+  validated on E1b MOCKS (PD Hessians) → does NOT transfer to real-data targets.
+- **SCIENCE IS THERE, sampling failed**: v3b-LOW MAP is SANE at γ_map=**1.2695** (logp
+  −5200→−4757, in-basin) — Δ=0.16 from the diagonal-native anchor 1.433. Properly sampled,
+  γ_binned(corr,low) ≈ 1.27 → the CLEAN UNIFICATION H2 result. The frozen 1.098 is a stuck-chain
+  artifact. Also confirms v3-steep's favorable read (correlated is data-driven, not prior-pulled).
+- **DECISION (main) = Option A: regularized-PD metric.** The E2 sampler DEVIATED from the
+  validated GIGA-Lens recipe (MAP→SVI→HMC with the eigenvalue-floored SVI covariance mass matrix,
+  or foundry-i's diagraw diagonal |H_ii| — both PD by construction, both foundry-i-validated to
+  converge these posteriors). Reverting to a PD metric is the principled, non-novel fix; fine-steep
+  (PD) proves the recipe works with a valid metric. Implementation agent fixes run_staged, canary-
+  validates v3b-low converges (R̂ drops from 5.94), then re-runs v3b(both)+v2d. Within reserve.
+  CLI-only retry (smaller step/longer stage-1) REJECTED — the metric is the bug, not the budget.
+
 ### P1c v3-steep — 2026-07-10 (correlated DEFLATES the fine artifact — FAVORABLE reframe)
 fine STEEP (corr, 37519 px, steep-only by design → no H1): **γ=1.816 [1.703,1.930] σ=0.117,
 R̂=1.025, ESS_γ=2047** (γ_map 2.281, γ_best 1.641, MAP not crossed).
