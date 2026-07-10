@@ -6,12 +6,16 @@
   },
   "known_in": {
     "paths": [
-      "data/klc_clean250629ymh.csv"
+      "data/klc_clean250629ymh.csv",
+      "reproductions/huang-2020/data/huang2020_published_catalog.csv",
+      "reproductions/claudenet/v3/external_lens_catalog.csv"
     ],
-    "rows_raw": 12210,
-    "rows_used": 12210,
+    "rows_raw": 12555,
+    "rows_used": 12555,
     "per_catalog": {
-      "klc_clean250629ymh": 12210
+      "klc_clean250629ymh": 12210,
+      "huang2020_published_catalog": 342,
+      "external_lens_catalog": 3
     }
   },
   "radius_arcsec": 5.0,
@@ -21,57 +25,57 @@
     "primary": "reproductions/claudenet/data/v3/dr11s_v4_new_candidates_noknown.csv",
     "removed": "reproductions/claudenet/data/v3/dr11s_v4_new_candidates_known_removed.csv"
   },
-  "matched_known_rows": 2741,
-  "removed_rows": 2741,
-  "rows_written": 131337,
-  "survivors": 131337,
-  "klc_entries_nearest_matched": 2457,
-  "klc_entries_within_radius": 2467,
-  "extra_deblended_rows": 284,
-  "deblended_systems": 256,
-  "known_recall_raw": 0.202048,
+  "matched_known_rows": 2742,
+  "removed_rows": 2742,
+  "rows_written": 131336,
+  "survivors": 131336,
+  "klc_entries_nearest_matched": 2460,
+  "klc_entries_within_radius": 2540,
+  "extra_deblended_rows": 282,
+  "deblended_systems": 254,
+  "known_recall_raw": 0.20231,
   "radius_sensitivity": {
     "1": {
-      "removed": 2283,
-      "survivors": 131795,
-      "known_recovered": 2269,
-      "known_recall_raw": 0.185831
+      "removed": 2285,
+      "survivors": 131793,
+      "known_recovered": 2332,
+      "known_recall_raw": 0.185743
     },
     "2": {
-      "removed": 2351,
-      "survivors": 131727,
-      "known_recovered": 2311,
-      "known_recall_raw": 0.189271
+      "removed": 2353,
+      "survivors": 131725,
+      "known_recovered": 2376,
+      "known_recall_raw": 0.189247
     },
     "3": {
-      "removed": 2483,
-      "survivors": 131595,
-      "known_recovered": 2366,
-      "known_recall_raw": 0.193776
+      "removed": 2484,
+      "survivors": 131594,
+      "known_recovered": 2432,
+      "known_recall_raw": 0.193708
     },
     "5": {
-      "removed": 2741,
-      "survivors": 131337,
-      "known_recovered": 2467,
-      "known_recall_raw": 0.202048
+      "removed": 2742,
+      "survivors": 131336,
+      "known_recovered": 2540,
+      "known_recall_raw": 0.20231
     },
     "10": {
-      "removed": 3026,
-      "survivors": 131052,
-      "known_recovered": 2580,
-      "known_recall_raw": 0.211302
+      "removed": 3027,
+      "survivors": 131051,
+      "known_recovered": 2658,
+      "known_recall_raw": 0.211708
     },
     "15": {
-      "removed": 3110,
-      "survivors": 130968,
-      "known_recovered": 2616,
-      "known_recall_raw": 0.214251
+      "removed": 3112,
+      "survivors": 130966,
+      "known_recovered": 2697,
+      "known_recall_raw": 0.214815
     },
     "30": {
-      "removed": 3212,
-      "survivors": 130866,
-      "known_recovered": 2663,
-      "known_recall_raw": 0.2181
+      "removed": 3215,
+      "survivors": 130863,
+      "known_recovered": 2746,
+      "known_recall_raw": 0.218718
     }
   },
   "caveats": [
