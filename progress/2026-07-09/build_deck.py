@@ -535,7 +535,8 @@ def slide_09_v3(prs):
         "half the displaced negatives become typed mimics (\"b50\").",
         "Ship roster v3blend8 keeps both the v2-hard and the v3-b50 version of each "
         "swappable member — 8 members, near-Pareto on both metrics.",
-        "Broad-mimic recovery across generations: 0.60 (original CNN) → 0.89 (v3).",
+        "Broad-mimic recovery (DR10-eval): 0.598 original CNN → 0.790 v3blend8 → "
+        "0.885 with the v3 head re-ranker (deployed only as a φ=0.05 stage-2 re-rank).",
     ], size=15)
     add_takeaway(slide, "Training against typed mimics roughly halves the hard-contaminant "
                         "miss rate, at a small and deliberate cost on the easy random-FPR metric.")
@@ -650,10 +651,10 @@ def slide_12_lever1(prs):
         "the DR9→DR11 drift entirely, and is now the default stage-1 selector.",
     ], size=13, left_in=6.65, width_in=6.15)
 
-    add_subtitle(slide, "Denominator discipline — three published readings, three "
-                        "different denominators:", top=Inches(3.75), size=13, color=NAVY,
+    add_subtitle(slide, "Denominator discipline — three readings, three denominators:",
+                 top=Inches(3.78), size=13, color=NAVY,
                  width=Inches(6.15), left=Inches(6.65))
-    add_table(slide, Inches(4.18), Inches(2.1), [
+    add_table(slide, Inches(4.3), Inches(2.05), [
         ["reading", "value", "denominator"],
         ["union @10⁻⁴, all grade-A", "41%  (37/90)", "all 90 grade-A"],
         ["union @10⁻⁴, searchable", "54%  (37/69)", "in-parent, in-footprint"],
@@ -701,7 +702,7 @@ def slide_13_lever2(prs):
         "measures generalisation, not memorisation.",
     ], size=14)
     add_picture_fit(slide, FIG / "fig3_v4_finetune_gate.png",
-                    Inches(2.4), Inches(2.85), Inches(8.5), Inches(3.6))
+                    Inches(2.6), Inches(3.05), Inches(8.1), Inches(3.4))
     add_takeaway(slide, "One short DR11-native fine-tune cracks the lrg+companion hard "
                         "residual v3 could not touch (0.544 → 0.796), with no AUC regression.")
 
@@ -821,9 +822,9 @@ def slide_16_confidence_i(prs):
         "Retracted: the seed mimic-FPR metric is selection-biased — the seed bank is "
         "precisely what the v2/v3 ensemble scored high — so any \"N× over the original "
         "published models\" claim read off it is invalid. We do not make it.",
-        "Still solid: broad-mimic recovery 0.598 → 0.885, and the LensJudge escalation "
-        "flip (median p_lens 0.03 → 0.70 at 0.1″ on 134 real objects, ~90% agreement "
-        "with Euclid experts on grade-A).",
+        "Still solid: broad-mimic recovery 0.598 → 0.885 across the four generations "
+        "(right panel), and the LensJudge escalation flip (median p_lens 0.03 → 0.70 "
+        "at 0.1″ on 134 real objects, ~90% agreement with Euclid experts on grade-A).",
     ], size=13)
     add_takeaway(slide, "On the one truly independent test, all four generations tie within "
                         "a standard error. Resolution breaks the lens-vs-mimic tie; models don't.")
