@@ -377,3 +377,21 @@ alpha~0.7 documented as the knob if a campaign's cost model prioritizes near-mis
 monotone curve: 0.853/57%/71%.) Ops: hbm80g had a 288-job
 backlog — the sweep ran via TP2 on 2xA100-40 shared QOS (~instant scheduling, cheaper per-GPU billing);
 NERSC shared rule: request 32 cores per GPU.
+
+## Run-3 FINAL — augmented retrain: statistical tie, promoted on robustness (2026-07-10)
+27B bf16 + unfrozen ViT on the augmented corpus (12,370 rows = originals + dihedral copies + 1,500
+random-field dilution), 2 FULL epochs, 4-GPU DDP, 774 steps, 5.5 h — the first untruncated training of
+the program. Valsel curve is a FLAT COLLAPSE-FREE plateau (0.654–0.669 over ckpts 450–774; contrast
+run-2's 8%-recovery cliff at 750) — augmentation delivered exactly its stability promise. Best: ckpt-450.
+
+| bench v5.1 (logprob) | AUC | rec@0.89 | desi_rec | sugohi_rec | xvi_rej |
+|---|---|---|---|---|---|
+| run-2 student600 | 0.892 | 68% | 88% | 64% | 58% |
+| **run-3 ckpt-450** | **0.898** | **69%** | **92%** | 64% | 57% |
+
+Within noise (s.e. ±0.02) → honest headline = PARITY. **run-3 ckpt-450 promoted to deployment default**
+on priors: dihedral invariance + random-field dilution trained in, flat plateau = low selection risk.
+WiSE dial (monotone) + this close run-3: the v5 recipe is at a local optimum; remaining upside is
+inference-side (TTA over 8 dihedral views — untested) and data-side (GALAXY CRUISE negatives in
+training, Euclid transfer). Ops: full endgame (6× merge+serve+valsel-grade → in-job AUC select → bench
+winner) ran autonomously in ONE 1h51m shared-QOS TP2 job.
