@@ -96,9 +96,11 @@ misread.** At this stage "new" means *not previously surfaced by our own pipelin
 **not** mean *not a published lens*. The v4 sweep deliberately keeps known lenses in its parent
 sample (the 160/163 population choice), so catalog lenses are expected to rank high, and they do:
 **43 of the top 100** rows of this file were already-published lenses, decaying monotonically to
-0.81 % in the tail — a 21× enrichment that is itself good evidence the v4 ranking carries real
-signal. The single highest-ranked "new" candidate (`s_344767_6150`) was a known lens, matched at
-0.18″ to Huang+2020 `DESI-359.8897+02.1399`.
+0.81 % in the tail. Against the **2.0 %** rate across the whole 134,078-row list, the top 100 is a
+**21× enrichment over that base rate** — itself good evidence the v4 ranking carries real signal.
+(The top-100 rate vs the *tail* rate is a steeper ≈53×; the 21× figure is the one quoted, and its
+denominator is the list-wide base rate, not the tail.) The single highest-ranked "new" candidate
+(`s_344767_6150`) was a known lens, matched at 0.18″ to Huang+2020 `DESI-359.8897+02.1399`.
 
 ### 3. Subtract the literature → 131,336 (`397_remove_known_lenses.py`, this step)
 
