@@ -130,6 +130,20 @@ the next freed slot; then the other P1c products; then the T2 diagnostic; then g
 P2c partial #1 completions so far: mclmc-A, s0svi, **SMC-evid-24 (primary T3 mode-weight ref)
 DONE**; nautilus/remc/mclmc-B running.
 
+### P1c first completion — 2026-07-10 (v2d-strict: unconverged = info-cost extreme endpoint)
+v2d STRICT whitener (487 px), low basin: prod path works end-to-end (build→MAP→Laplace→
+run_staged→json — e2.py fix FULLY VALIDATED). BUT unconverged: MAP γ=1.596 (sane low), Laplace
+min_eig=−1.33e23 / 18-of-46 floored (pathologically indefinite), posterior γ_median=2.407
+R̂_max=10.57 ESS_min=31 — chains drifted OFF the sane low MAP into a smeared γ=2.41 ARTIFACT
+(NOT a steep-basin preference — do not let it contaminate H1). INTERPRETATION: 487 px is so
+information-poor the whitened likelihood is near-flat/indefinite → UNCONVERGEABLE (intrinsic,
+not budget → NO re-run). This is the EXTREME end of the strict-vs-relaxed info-cost story:
+below ~500 kept px the whitened likelihood becomes uninformative — a stronger statement than
+"wider σ." Pooler treats v2d_strict as converged=false, σ diagnostic-only (not a gate).
+Watching v3b (money, 9273 px, well-conditioned) closely — if IT is unconverged, that's a
+fixable-metric issue (pre-authorized ONE re-run: more chains / longer stage-1 / step retune),
+DISTINCT from strict's intrinsic info-poverty. v2d-relaxed (1466 px, the H3 datum) due next.
+
 ## Gate record
 
 | gate | date | verdict | numbers | notes/retractions |
