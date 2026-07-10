@@ -214,6 +214,25 @@ containment, n_floored 0): logZ_low = 38351.17±0.66 (γ→1.24), logZ_steep = 3
   evidence is required to weight it. s0's "collapse to steep" was landing in the DOMINANT
   basin (right basin, but s0 can't quantify the weight). SMC ≈ 1.11 A100-h/seed (cheap workhorse).
 
+### P2c s0-T2 diagnostic — 2026-07-10 (T2 verdict COMPLETE: two-stage recipe is essential)
+s0_baseline marg46 SINGLE-stage precond_fixedL, 300 burn+keep, 24ch L16 f64: 5.63 s/step
+(full Track-A 5000 draws ≈ 7.8 A100-h/cell → the 2:30 timeout was GENUINE, not a hang;
+Track-B ≈ 33h infeasible). Convergence at 300 keep: R̂ mass 3.10, ESS 28 — **s0 does NOT
+converge cheaply on the real marg46** (harder than synthetic t0_illcond46 which hit ESS 21k
+in P2b — my fast-mix hypothesis REFUTED). But s0 still mixes better PER-DRAW than mclmc
+(ESS 28/300 vs mclmc 9/12000; R̂ 3.10 vs 5.9) → "s0 > auto-mass" holds directionally.
+- **COMPLETE T2 RESULT (ties to the campaign's own fix)**: on the real cond-1e14 marg46,
+  single-stage HMC AND auto-mass MCLMC both fail to converge cheaply; the **TWO-STAGE
+  re-preconditioning recipe (P1b contribution) is what works** — it fixed the E2 f64 marg46
+  R̂ 2.11→1.003 (P1b diagnosis / used in P1c E2). So T2 = "the real ill-conditioned lens
+  posterior needs the two-stage recipe; vanilla single-stage + auto-mass are insufficient."
+  The two-stage convergence datum ALREADY EXISTS (P1b/P1c) — NO separate 8h two-stage s0-T2
+  run needed. This is a cleaner, stronger T2 story than the naive "s0 owns it."
+- SEED-1,2: HELD. P2c science is qualitatively COMPLETE from seed-0; seed-1,2 is confirmatory.
+  Decide a MINIMAL run (SMC ×2 for the w_steep reference σ) AFTER the v3b money product + P1c
+  pooling — keep the queue clear for the headline now.
+- Seed-0 pre-flight cost so far ≈ 13.8 A100-h (+ PT-23/glnt pending).
+
 ### P2c partial #2b — 2026-07-09 (T3 mode-recovery: ALL direct samplers FAIL → evidence needed)
 Judged vs the SMC reference (w_steep≈1.0):
 - **NO direct sampler recovers the weight** — each freezes into a start-determined basin or fails:
