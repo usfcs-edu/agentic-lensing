@@ -287,6 +287,24 @@ def zoom_arcsinh(cube: np.ndarray, factor: float = 2.5, **kw) -> Image.Image:
     return arcsinh_rgb(sub, **kw)
 
 
+def band_montage(cube: np.ndarray, px: int = config.RENDER_PX, a: float = 0.1) -> Image.Image:
+    """Per-band grayscale g | r | z montage (matched-inputs grader, parity Phase C3).
+
+    Human graders saw the per-channel g/r/z images, not just the composite; this renders
+    each band independently arcsinh-stretched (same normalization as arcsinh_rgb) side by
+    side with thin white dividers, so band-to-band presence and relative brightness of a
+    candidate arc can be judged directly (real features appear in more than one band)."""
+    tiles = []
+    for b in range(cube.shape[0]):
+        g8 = (_arcsinh_channel(cube[b], a) * 255).astype(np.uint8)
+        tiles.append(np.repeat(g8[..., None], 3, axis=2))
+    sep = np.full((tiles[0].shape[0], 2, 3), 255, np.uint8)            # thin white divider
+    montage = np.concatenate([tiles[0], sep, tiles[1], sep, tiles[2]], axis=1)
+    h, w = montage.shape[:2]
+    return Image.fromarray(montage[::-1, :, :]).resize(
+        (int(round(px * w / h)), px), Image.NEAREST)                   # flip + NEAREST, keep 3:1
+
+
 def render_stretch() -> str:
     """LENSJUDGE_RENDER_STRETCH = lupton (default) | arcsinh — swaps the full/zoom base stretch."""
     v = os.environ.get("LENSJUDGE_RENDER_STRETCH", "lupton")
