@@ -34,6 +34,12 @@ reproductions/huang-2020/data/checkpoint_best.pt
 #   reproductions/claudenet/data/v3/dr11s_v4_candidates_150k_noknown.README.md
 #   reproductions/huang-2020/data/*.csv                            (pre-existing)
 data
+# ...except the parity truth tables: hand-assembled per-target confirmation
+# outcomes (papers/human_baseline.tex source data), not regenerable from code.
+# The raw VizieR TSV dump stays untracked (fetch_vizier_paper2.py regenerates it).
+!reproductions/lensjudge/parity/data/
+!reproductions/lensjudge/parity/data/**
+reproductions/lensjudge/parity/data/vizier_huang2021_cand.tsv
 
 
 # Python bytecode caches

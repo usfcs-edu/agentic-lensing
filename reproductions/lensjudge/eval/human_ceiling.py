@@ -73,7 +73,8 @@ def pair(label, g1, g2):
 
 
 def main():
-    sug = pd.read_csv(OUT / "desi_x_sugohi_matches.csv")
+    # produced by eval/crossmatch_external.py (candidate `name`/`grade` = DESI consensus)
+    sug = pd.read_csv(OUT / "xmatch_sugohi.csv").rename(columns={"grade": "desi_grade", "name": "desi_name"})
     euc = pd.read_csv(OUT / "xmatch_euclid_q1.csv")
     rows = []
 

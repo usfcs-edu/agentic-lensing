@@ -47,6 +47,7 @@ EXTRA_REPORTS = [
     ("reproductions", "foundry-i", "evolution", "foundry-i-evolution"),
     ("current", "claudenet", "new_candidates", "claudenet-new-candidates"),
     ("current", "lensjudge", "residual", "lensjudge-residual"),
+    ("current", "lensjudge", "human_baseline", "lensjudge-human-baseline"),
 ]
 
 MARKERS = ("TITLE", "AUTHORS", "DATE", "ABSTRACT", "BODY")
