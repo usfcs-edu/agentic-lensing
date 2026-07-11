@@ -82,6 +82,9 @@ NOT two human passes. Excluded as a human anchor.
   SLDE-B objects outside the Q1 catalog = 2,605 rows; 44 truth-labeled
   (38 lens / 6 refuted, tier=modeling). `outputs/parity_bench_arm2.csv`.
 - Cutout resolution verified 8/8 on both arms (Euclid field serves via ls-dr10).
+- Cutout staging COMPLETE: arm1 162/162, arm2 2,605/2,605 (cache/cubes/); the
+  first-pass failures were endpoint rate-limit collisions — a 3-worker retry
+  cleared every one. Fetch politely (<=3-4 workers) against legacysurvey.org.
 
 ### Euclid truth: two integrity findings that shrink the expected arm2 truth set
 1. **The "NISP spectroscopy of Q1 lenses" paper (arXiv:2604.02726) is a
@@ -122,6 +125,52 @@ NOT two human passes. Excluded as a human anchor.
   huang2021 ResNet probability (94 rows) with storfer p_meta (10) — per-catalog
   calibration caveat.
 
-## Next
-- Rebuild arm2 truth join when euclid_q1_{nisp,modeling}.csv land; then Phase C
-  (three machine systems; gate on disjoint benches, never select on parity bench).
+## Phase C — machine systems (2026-07-11, in progress)
+
+### Leak-aware training pool (`parity/build_train_splits.py`)
+69,228 rows (2,657 graded + 2,313 grade-D + 64,507 random after firewall), splits
+train/valsel/gate stratified by source x grade, seed 2026. Firewall: 801 rows
+excluded (769 by bench name incl. the arm1 augmentation strata, 32 by <2" position
+vs arm2); audit asserts 0 collisions. Gate = frozen evidence set (139 graded /
+60 D / 60 random), touched only for one-shot final numbers.
+
+### C1a — frozen-CNN predictor, and a score-provenance trap
+**TRAP (recorded so nobody refalls into it):** graded rows carry the REPRODUCTION
+ensemble score (our_p_meta) while grade-D rows only have the PUBLISHED NeuraLens
+probability. Mixing them across classes fabricates discrimination: gate HARD
+(A/B vs D) AUC = 0.847 mismatched vs **0.646 [0.557, 0.734] like-for-like**
+(published p on both sides). The pool now carries p_pub and p_repro explicitly.
+C1a verdict: the frozen CNN has real but modest rank signal on the human-judged
+HARD contrast — 0.646, far above LensJudge v1's ~0.5, well below deployment grade.
+
+### C1b — representation probe: the wall is real for engineered features (DONE)
+Gate (frozen, touched once; 2000-boot, seed 2026): **HARD A/B-vs-D AUC 0.425
+[0.330, 0.517]** (every valsel grid point <0.5 too); EASY A-vs-random 0.655;
+A/B/C-vs-random 0.716. Tier-1 engineered features carry ~no signal on the
+human-reject wall — confirms and extends the v1 RepresentationKit result with a
+properly trained/gated probe. Chosen: soft-target logistic, C=0.01, isotonic
+(valsel), score = 0.995*iso + 0.005*raw (monotone). Bench scored blind:
+arm1 912/912, arm2 2,605/2,605 -> outputs/rep_probe/bench_scores_arm{1,2}.csv;
+model + features cache in outputs/rep_probe/. Machine bar on HARD remains the
+frozen CNN's 0.646.
+
+### C3 — matched-inputs grader (BUILT, dry-run validated)
+`imaging/grader_matched.py` (+ `--mode matched` in run_batch.py): [full]+[zoom]
+composites, [channels] per-band g|r|z montage (render.band_montage), [wide] 401px
+~105" context (fetch_endpoint size param + get_wide_cube, distinct cache keys),
+metadata block (tractor gloss, region, CNN score, spec-z/photo-z via huang2021
+name/coord join, 5" aperture grz mags from the cutout — no local catalog has
+mags), `prompts/rubric_matched.md` = five Huang criteria verbatim + relative-
+triage framing. Delegates transport to grader_direct via pre-rendered-content
+seam (shared JSON contract/cost/traces). Dropped vs direct: residual view +
+aperture-color JSON (machine-only affordances humans lacked). Smoke: DRY RUN
+6/6 (2A/2C/2D train-split, outputs/matched_smoke/) — no Messages-API key in this
+env; live smoke = `parity/smoke_matched.py --live` on a credentialed host
+(~<=$0.10). Mocked end-to-end grade path + repo no-API tests pass.
+
+### C2 — DESI SFT corpus (builder done; corpus render finishing; training queued)
+`finetune/build_corpus_desi.py` (smoke-tested: leakage PASS, unique-targets
+PASS) + `finetune/PERLMUTTER_DESI_RUN.md`. Perlmutter access restored (sshproxy
+refreshed); v5 run-3 slurm (`$SCRATCH/ljv5_train27b_r3.slurm`: Qwen3.5-27B bf16
+LoRA + unfrozen ViT, 4-GPU DDP, LR 5e-5/VIT 1e-5, save every 75) is the template;
+corpus upload + path rewrite + sbatch = next step.
