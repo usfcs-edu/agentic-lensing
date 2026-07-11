@@ -1,0 +1,153 @@
+campaign,name,ra_deg,dec_deg,outcome,detail,candidate_provenance,source_ref
+agel_dr2,AGEL000224-350716A,0.59845,-35.12122,confirmed_lens,zs=1.549 zd=0.576,"Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL000316-334804A,0.81825,-33.8012,confirmed_lens,"zs=1.834 zd=0.659; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL000645-442950A,1.68592,-44.49735,confirmed_lens,"zs=2.099 zd=0.498; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL000729-443446A,1.87201,-44.57949,inconclusive,"zs=1.009 (source z only; AGEL counts as lens); HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL001310+004004A,3.29016,0.66767,confirmed_lens,"zs=2.071 zd=0.693; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL001424+004145A,3.60116,0.69596,confirmed_lens,zs=1.374 zd=0.569,"Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL001702-100911A,4.2564,-10.153,inconclusive,"zs=1.831 (source z only; AGEL counts as lens); HST 15867, Huang",Huang et al. 2021,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL002527+101107A,6.3643,10.1853,confirmed_lens,"zs=2.397 zd=0.463; HST 15867, Huang",Huang et al. 2021,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL002700-041324A,6.75025,-4.22321,confirmed_lens,zs=1.465 zd=0.495,"Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL003508-252658A,8.78153,-25.44932,lens_z_only,zd=0.775,"Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL003727-413150A,9.3628,-41.53054,confirmed_lens,zs=3.257 zd=0.708,"Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL004144-233905A,10.4341,-23.6515,confirmed_lens,zs=2.203 zd=0.439,Huang et al. 2021,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL004257-371858A,10.73881,-37.31623,confirmed_lens,"zs=3.094 zd=0.883; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL004827+031117A,12.1134,3.18808,confirmed_lens,zs=2.367 zd=0.357,"Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL010128-334319A,15.36604,-33.72201,confirmed_lens,zs=1.167 zd=0.581,"Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL010158-491738A,15.49182,-49.29394,inconclusive,"zs=2.632 (source z only; AGEL counts as lens); HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL010238+015857A,15.65959,1.98243,confirmed_lens,"zs=1.816 zd=0.867; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL010257-291122A,15.73954,-29.18939,confirmed_lens,zs=0.815 zd=0.273,"Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL011759-052718A,19.49477,-5.45492,confirmed_lens,"zs=2.066 zd=0.579; HST 17307, Tran","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL012429-291856A,21.11886,-29.31561,inconclusive,"zs=1.606 (source z only; AGEL counts as lens); HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL012453-144303A,21.22109,-14.71738,confirmed_lens,zs=1.825 zd=0.478,"Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL013003-374458A,22.51201,-37.74938,inconclusive,"zs=2.282 (source z only; AGEL counts as lens); HST 17307, Tran","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL013355-643413A,23.47773,-64.57028,confirmed_lens,"zs=2.093 zd=0.326; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL013442+043350A,23.6765,4.5639,confirmed_lens,"zs=1.568 zd=0.551; HST 15867, Huang",Huang et al. 2020,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL013442+043350B,23.6765,4.5639,confirmed_lens,"zs=2.031 zd=0.551; HST 15867, Huang",Huang et al. 2020,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL013639+000818A,24.1631,0.13836,confirmed_lens,"zs=2.629 zd=0.344; HST 15867, Huang","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL013719-083056A,24.3285,-8.51552,confirmed_lens,zs=2.997 zd=0.563,"Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL014106-171324A,25.27558,-17.22326,confirmed_lens,"zs=2.436 zd=0.609; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL014235-164818A,25.6457,-16.80487,confirmed_lens,zs=2.309 zd=0.619,"Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL014253-183116A,25.7203,-18.52105,confirmed_lens,"zs=2.47 zd=0.637; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL014327-085021A,25.86222,-8.83925,confirmed_lens,"zs=2.755 zd=0.737; HST 17307, Tran","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL014504-045551A,26.26791,-4.93084,confirmed_lens,"zs=1.96 zd=0.635; HST 17307, Tran","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL014556+040229A,26.48478,4.04139,confirmed_lens,"zs=2.361 zd=0.784; HST 17307, Tran","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL015009-030438A,27.53794,-3.0773,inconclusive,zs=1.39 (source z only; AGEL counts as lens),"Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL015153-144825A,27.9723,-14.8069,inconclusive,zs=2.258 (source z only; AGEL counts as lens),Huang et al. 2020,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL015643-101100A,29.17803,-10.18339,inconclusive,zs=2.486 (source z only; AGEL counts as lens),"Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL020613-011417A,31.55611,-1.23817,confirmed_lens,"zs=1.303 zd=0.714; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL020707-272645A,31.77773,-27.44577,inconclusive,zs=1.679 (source z only; AGEL counts as lens),"Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL020707-272645B,31.77773,-27.44577,inconclusive,zs=1.677 (source z only; AGEL counts as lens),"Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL021225-085211A,33.10507,-8.86967,confirmed_lens,"zs=2.202 zd=0.759; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL022709-471856A,36.78734,-47.3155,lens_z_only,"zd=0.603; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL022931-290816A,37.37911,-29.13786,confirmed_lens,zs=1.679 zd=0.857,"Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL023211+001339A,38.04683,0.22756,confirmed_lens,"zs=2.366 zd=0.893; HST 17307, Tran","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL024303-000600A,40.76267,-0.10005,confirmed_lens,"zs=1.729 zd=0.367; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL024303-000600B,40.76267,-0.10005,confirmed_lens,"zs=2.806 zd=0.367; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL024605-060739A,41.5205,-6.1275,inconclusive,zs=2.73 (source z only; AGEL counts as lens),Huang et al. 2020,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL025052-552412A,42.71781,-55.40325,confirmed_lens,zs=2.478 zd=0.722,"Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL025220-473238A,43.08284,-47.54382,lens_z_only,"zd=0.494; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL033203-132510A,53.01064,-13.4195,inconclusive,"zs=2.335 (source z only; AGEL counts as lens); HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL033203-132510B,53.01064,-13.4195,inconclusive,"zs=1.433 (source z only; AGEL counts as lens); HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL033717-315214A,54.32183,-31.87043,confirmed_lens,zs=1.955 zd=0.525,"Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL034131-513045A,55.37833,-51.51241,inconclusive,"zs=2.035 (source z only; AGEL counts as lens); HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL035346-170639B,58.44268,-17.1109,confirmed_lens,"zs=1.46 zd=0.617; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL035346-170639A,58.44268,-17.1109,confirmed_lens,"zs=1.675 zd=0.617; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL035418-160952A,58.57614,-16.1645,confirmed_lens,zs=1.91 zd=0.574,"Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL040823-532714A,62.09439,-53.45394,lens_z_only,"zd=0.641; HST 16773, Glazebrook",Diehl et al. 2017,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL042439-331742A,66.16119,-33.29491,confirmed_lens,"zs=1.188 zd=0.564; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL043806-322852A,69.52573,-32.48116,confirmed_lens,"zs=0.92 zd=0.343; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL053724-464702A,84.35163,-46.78401,confirmed_lens,"zs=2.344 zd=0.354; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL061815+501821A,94.5639,50.3059,confirmed_lens,"zs=3.336 zd=0.521; HST 15867, Huang",Huang et al. 2021,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL075524+344540A,118.848,34.761,confirmed_lens,"zs=2.635 zd=0.722; HST 15867, Huang",Huang et al. 2021,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL080820+103142B,122.0852,10.5284,confirmed_lens,"zs=1.452 zd=0.475; HST 15867, Huang",Huang et al. 2020,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL080820+103142A,122.0852,10.5284,confirmed_lens,"zs=1.303 zd=0.475; HST 15867, Huang",Huang et al. 2020,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL083930+021025A,129.87662,2.17349,inconclusive,zs=1.769 (source z only; AGEL counts as lens),"Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL084633-015417A,131.63619,-1.90466,inconclusive,zs=2.635 (source z only; AGEL counts as lens),"Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL084943+294328A,132.42941,29.72437,confirmed_lens,zs=2.057 zd=0.68,"Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL085331+232155A,133.38,23.3652,confirmed_lens,"zs=2.19 zd=0.306; HST 15867, Huang",Huang et al. 2021,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL085413-042409A,133.55308,-4.40257,inconclusive,"zs=2.393 (source z only; AGEL counts as lens); HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL085917+061517A,134.82065,6.25486,inconclusive,zs=2.658 (source z only; AGEL counts as lens),"Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL090115+095624A,135.3125,9.9401,inconclusive,"zs=2.637 (source z only; AGEL counts as lens); HST 16773, Glazebrook",Huang et al. 2020,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL091126+141757A,137.8568,14.2991,confirmed_lens,zs=1.206 zd=0.546,Huang et al. 2020,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL091905+033639A,139.76916,3.61072,confirmed_lens,zs=2.193 zd=0.444,"Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL091935+303156A,139.896,30.5323,confirmed_lens,"zs=1.812 zd=0.427; HST 17307, Tran",Huang et al. 2021,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL092315+182943A,140.811,18.4954,confirmed_lens,"zs=2.418 zd=0.873; HST 15867, Huang",Huang et al. 2020,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL093333+091919B,143.38871,9.32193,confirmed_lens,zs=2.435 zd=0.743,"Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL093333+091919A,143.38871,9.32193,confirmed_lens,zs=2.435 zd=0.743,"Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL094328-015453A,145.86522,-1.91482,confirmed_lens,zs=2.125 zd=0.45,"Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL094412+322039A,146.0493,32.3441,confirmed_lens,"zs=2.828 zd=0.595; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL101807-000812A,154.5307,-0.1368,confirmed_lens,"zs=1.74 zd=0.372; HST 15867, Huang",Huang et al. 2020,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL101847-012132A,154.6972,-1.359,confirmed_lens,"zs=1.432 zd=0.388; HST 15867, Huang","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL103027-064109A,157.61347,-6.68582,confirmed_lens,zs=1.583 zd=0.468,"Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL104041+185052A,160.1716,18.8477,confirmed_lens,"zs=0.879 zd=0.314; HST 17307, Tran",Huang et al. 2021,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL104056-010359A,160.2351,-1.0663,confirmed_lens,"zs=1.21 zd=0.25; HST 15867, Huang",Huang et al. 2020,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL105100-055628A,162.75076,-5.94108,inconclusive,"zs=1.94 (source z only; AGEL counts as lens); HST 16773, Glazebrook",Wittman et al. 2002,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL110154-060232A,165.4754,-6.0423,confirmed_lens,"zs=1.674 zd=0.483; HST 15867, Huang",Huang et al. 2021,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL110245+121111A,165.6876,12.1864,confirmed_lens,"zs=2.806 zd=0.925; HST 15867, Huang",Huang et al. 2020,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL113929-021826A,174.8727,-2.30722,inconclusive,zs=1.553 (source z only; AGEL counts as lens),"Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL114159+191815A,175.49611,19.30406,confirmed_lens,zs=3.008 zd=1.443,"Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL120535+411044A,181.3975,41.179,confirmed_lens,"zs=2.658 zd=0.661; HST 15867, Huang",Huang et al. 2021,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL123809+150151A,189.53702,15.0309,confirmed_lens,"zs=1.161 zd=0.572; HST 15867, Huang","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL125146+014256A,192.9428,1.7155,confirmed_lens,"zs=1.63 zd=0.74; HST 15867, Huang",Huang et al. 2021,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL132304+034319A,200.76718,3.72207,confirmed_lens,"zs=1.016 zd=0.353; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL133041+044015A,202.669,4.6707,confirmed_lens,"zs=1.169 zd=0.336; HST 15867, Huang",Huang et al. 2020,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL133145+513431A,202.9388,51.5753,confirmed_lens,"zs=2.052 zd=0.289; HST 15867, Huang",Huang et al. 2021,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL134333+415503B,205.88689,41.91763,confirmed_lens,zs=2.843 zd=0.418,Stark et al. 2013,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL140839+253104A,212.16144,25.51779,confirmed_lens,"zs=1.289 zd=0.663; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL142104+002219A,215.2654,0.3719,inconclusive,"zs=2.208 (source z only; AGEL counts as lens); HST 15867, Huang",Huang et al. 2020,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL142719-064515A,216.82796,-6.75413,confirmed_lens,"zs=1.513 zd=0.265; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL144133-005401A,220.38753,-0.90039,confirmed_lens,"zs=1.667 zd=0.538; HST 15867, Huang","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL144149+144121B,220.4549,14.6891,confirmed_lens,"zs=2.34 zd=0.741; HST 15867, Huang",Huang et al. 2021,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL150137+520830A,225.405,52.1417,inconclusive,"zs=2.416 (source z only; AGEL counts as lens); HST 15867, Huang",Huang et al. 2021,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL150745+052256A,226.93811,5.3823,confirmed_lens,"zs=2.164 zd=0.595; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL150745+052256B,226.93811,5.3823,confirmed_lens,"zs=2.591 zd=0.595; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL150925+390140A,227.3528,39.0279,confirmed_lens,"zs=1.523 zd=0.682; HST 15867, Huang",Huang et al. 2021,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL152509+422753A,231.2874,42.4646,inconclusive,"zs=2.261 (source z only; AGEL counts as lens); HST 15867, Huang",Huang et al. 2021,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL152560+084639A,231.49978,8.77744,confirmed_lens,zs=1.951 zd=0.602,"Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL153755+144324A,234.4783,14.7232,inconclusive,"zs=2.477 (source z only; AGEL counts as lens); HST 15867, Huang",Huang et al. 2021,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL153929+165016A,234.8707,16.8379,confirmed_lens,"zs=1.253 zd=0.41; HST 15867, Huang",Huang et al. 2021,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL155417+044339A,238.56911,4.72756,confirmed_lens,"zs=1.721 zd=0.778; HST 15867, Huang","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL162300+213721A,245.75139,21.62261,confirmed_lens,"zs=1.728 zd=0.758; HST 15867, Huang","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL162401+012901A,246.0062,1.4836,confirmed_lens,"zs=2.367 zd=1.092; HST 15867, Huang",Huang et al. 2021,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL165140+280517A,252.9173,28.0881,inconclusive,"zs=2.378 (source z only; AGEL counts as lens); HST 15867, Huang",Huang et al. 2021,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL165742+344858A,254.4235,34.8162,inconclusive,"zs=2.465 (source z only; AGEL counts as lens); HST 15867, Huang",Huang et al. 2021,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL170944+315417A,257.4348,31.9046,inconclusive,"zs=2.119 (source z only; AGEL counts as lens); HST 15867, Huang",Huang et al. 2021,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL171922+244117A,259.83959,24.68796,confirmed_lens,"zs=2.279 zd=0.529; HST 15867, Huang","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL172703+110008A,261.76369,11.00211,inconclusive,"zs=1.337 (source z only; AGEL counts as lens); HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL183520+460627A,278.8338,46.1076,inconclusive,"zs=3.392 (source z only; AGEL counts as lens); HST 15867, Huang",Huang et al. 2021,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL193558+580909A,293.9927,58.1525,confirmed_lens,"zs=3.551 zd=0.577; HST 15867, Huang",Huang et al. 2021,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL201419-575701A,303.58076,-57.95041,confirmed_lens,"zs=2.191 zd=0.717; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL204312-060954A,310.802,-6.1649,confirmed_lens,"zs=1.892 zd=0.791; HST 15867, Huang",Huang et al. 2021,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL205616-423857A,314.0659,-42.64923,lens_z_only,"zd=0.72; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL211005-563931A,317.52247,-56.65849,confirmed_lens,"zs=1.182 zd=0.5; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL211243+000921A,318.17974,0.15577,confirmed_lens,"zs=2.36 zd=0.445; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL211627-594702A,319.11382,-59.78382,confirmed_lens,"zs=1.412 zd=0.395; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL212252-005949A,320.71667,-0.997,confirmed_lens,"zs=0.928 zd=0.349; HST 17307, Tran",Diehl et al. 2017,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL212326+015312A,320.8584,1.8867,confirmed_lens,"zs=1.18 zd=0.591; HST 16773, Glazebrook",Huang et al. 2021,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL212512-650427A,321.30012,-65.07408,confirmed_lens,"zs=2.223 zd=0.779; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL213758-012924A,324.49176,-1.48996,confirmed_lens,"zs=1.458 zd=0.273; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL214915-001252A,327.3138,-0.21431,confirmed_lens,"zs=1.945 zd=0.453; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL215122+134718A,327.8408,13.7884,confirmed_lens,"zs=0.89 zd=0.206; HST 15867, Huang",Huang et al. 2021,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL215844+025730A,329.682,2.9584,confirmed_lens,"zs=2.081 zd=0.287; HST 15867, Huang",Huang et al. 2021,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL221912-434835A,334.80166,-43.80975,confirmed_lens,"zs=2.168 zd=0.71; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL222609+004142A,336.53876,0.69504,confirmed_lens,"zs=1.896 zd=0.647; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL224405+275916A,341.0206,27.9877,confirmed_lens,"zs=0.96 zd=0.343; HST 16773, Glazebrook",Huang et al. 2021,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL224621+223338A,341.58817,22.56045,inconclusive,zs=2.257 (source z only; AGEL counts as lens),Stark et al. 2013,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL230305-511502A,345.76962,-51.2505,confirmed_lens,"zs=2.568 zd=0.514; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL230522-000212A,346.34025,-0.03655,confirmed_lens,zs=1.838 zd=0.492,"Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL231112-454658A,347.79872,-45.78281,confirmed_lens,zs=1.555 zd=0.504,"Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL231812-110604A,349.5492,-11.1012,inconclusive,"zs=2.656 (source z only; AGEL counts as lens); HST 15867, Huang",Huang et al. 2020,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL231935+115016A,349.89385,11.83776,confirmed_lens,zs=1.99 zd=0.542,"Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL232128-463049A,350.36821,-46.51371,inconclusive,"zs=1.749 (source z only; AGEL counts as lens); HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL233459-640407A,353.74665,-64.0686,confirmed_lens,"zs=2.495 zd=0.701; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL233552-515218A,353.96636,-51.87161,confirmed_lens,"zs=2.225 zd=0.566; HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL233610-020735A,354.0428,-2.1264,confirmed_lens,"zs=2.663 zd=0.494; HST 16773, Glazebrook",Huang et al. 2021,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL234930-511339A,357.37523,-51.22751,inconclusive,"zs=1.393 (source z only; AGEL counts as lens); HST 16773, Glazebrook","Jacobs et al. 2019a,b",arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL235934+020824A,359.8897,2.1399,confirmed_lens,zs=1.119 zd=0.43,Huang et al. 2020,arXiv:2503.08041 Tables 2-3
+agel_dr2,AGEL211515+101153A,318.8125,10.198055555555555,non_lens,Ring galaxy (false positive),,arXiv:2503.08041 false-positive table
+agel_dr2,AGEL215041+140248A,327.6708333333333,14.046666666666667,non_lens,Ring galaxy (false positive),,arXiv:2503.08041 false-positive table
+agel_dr2,AGEL224400+124540A,341.0,12.761111111111111,non_lens,Red star + blue galaxy (false positive),,arXiv:2503.08041 false-positive table
+agel_dr2,AGEL203459+001636A,308.74583333333334,0.27666666666666667,non_lens,Red star + blue galaxy (false positive),,arXiv:2503.08041 false-positive table
+agel_dr2,AGEL131330-064211A,198.375,-6.703055555555555,non_lens,Red Galaxy + blue blob (not spectroscopically confirmed) (false positive),,arXiv:2503.08041 false-positive table
+agel_dr2,AGEL132557+263659A,201.48749999999998,26.616388888888892,non_lens,Red Galaxy + blue blob (not spectroscopically confirmed) (false positive),,arXiv:2503.08041 false-positive table
