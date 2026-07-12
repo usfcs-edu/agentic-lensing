@@ -168,6 +168,25 @@ aperture-color JSON (machine-only affordances humans lacked). Smoke: DRY RUN
 env; live smoke = `parity/smoke_matched.py --live` on a credentialed host
 (~<=$0.10). Mocked end-to-end grade path + repo no-API tests pass.
 
+### C3 SELECTION (valsel slice, 149 rows, Sonnet 5 both arms): MATCHED WINS
+Live smoke first: 6/6 parsed, $0.121 ($0.02/cand). Then matched-vs-direct on
+outputs/c3_valsel_slice.csv (29A/30B/30C/40D/20rand, sha ebeeb688):
+- HARD A/B-vs-D: matched **0.623** [0.518,0.725] vs direct 0.436 [0.312,0.553];
+  paired ΔAUC **+0.151 [+0.020,+0.280]** — CI excludes 0.
+- ALL: matched 0.640 vs direct 0.401; ΔAUC +0.161 [+0.040,+0.281].
+**First statistically significant tier-1 lever in the program** (v1–v5 found
+none): the human graders' information set (channels + wide context + metadata)
+is what was missing. CAVEATS: (i) metadata includes the CNN score (fair for
+parity — humans had it — but Phase D must carry CNN-alone as a baseline to
+isolate LLM added value; CNN-alone gate HARD = 0.646 ≈ matched 0.623);
+(ii) raw grades stay cold (QWK ~0.05; mean p_lens on true-A 0.09) — the score
+ranks, the labels don't; deployment goes through the operating point.
+Frozen selection: mode=matched, model=claude-sonnet-5, op point (valsel-fit)
+p_lens>0.050 @ FPR 0.20 + isotonic map -> outputs/c3_matched_op_point.json.
+Robustness: matched 149/149 rows scored; direct 115/149 usable (14 random_neg
+never graded — photometry path failure; ~20 parse-soft). Cost ~$6 total.
+Code: parity/build_c3_valsel_slice.py, parity/c3_select_analysis.py.
+
 ### C2 — DESI SFT corpus (builder done; corpus render finishing; training queued)
 `finetune/build_corpus_desi.py` (smoke-tested: leakage PASS, unique-targets
 PASS) + `finetune/PERLMUTTER_DESI_RUN.md`. Perlmutter access restored (sshproxy
