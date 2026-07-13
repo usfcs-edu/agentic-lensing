@@ -8,9 +8,9 @@ Input (default): the FULL v4 top-150k, `dr11s_v4_candidates_150k.csv`, produced 
 also surfaced. This script does NOT filter on is_new: it keeps the whole top-150k and
 subtracts only *published* lenses. (Earlier the input was the 134,078 is_new==1 subset;
 that dropped 14,520 real candidates including v4's #1-ranked one, so we now ship the full
-ranking and carry is_new through as metadata — the old 131,336-row view is exactly the
-is_new==1 survivors.) The v4 sweep keeps known lenses in its parent sample on purpose
-(the 160/163 population choice), so catalog lenses rank high and they do: 81 of v4's
+ranking and carry is_new through as metadata.) The v4 sweep keeps known lenses in its parent
+sample on purpose
+(the 160/163 population choice), so catalog lenses rank high and they do: 86 of v4's
 top-100 rows match a known lens. This script does the second subtraction, against the
 literature: drop every candidate within --radius of a known lens.
 
@@ -28,22 +28,23 @@ Matching (astropy `match_to_catalog_sky`, the 114/163 pattern, 5" default):
     sources. Every matched row is removed, not just the nearest.
 
 Outputs (CSV columns carried through from 396 incl. is_new, plus a fresh contiguous rank):
-  <out>          survivors, known lenses removed, + rank_clean (1..N)  -> 145,856 rows
+  <out>          survivors, known lenses removed, + rank_clean (1..N)  -> 145,297 rows
   <removed-out>  the dropped rows + sep_arcsec / klc_index / klc_ra / klc_dec /
                  klc_ref / klc_dup / klc_catalog  -> every removal is auditable
   <report>       JSON: counts, radius-sensitivity table, recovery, provenance
 
 "Known" means the union of every known-lens catalog this repo ships: the KLC (--known,
-12,210 entries) plus DEFAULT_EXTRA -- huang2020_published_catalog.csv (342) and
-external_lens_catalog.csv (3) -- auto-unioned, because the KLC is NOT a strict superset
-of them: 7 of the 342 huang2020 lenses are missing from it, of which one
-(DESI-036.6760-03.6801, grade C) actually lands in the candidate list. Union = 12,555 rows
-(cross-catalog duplicates NOT deduped: harmless for removal, inflates the recall
-denominator). external_lens_catalog contributes 0 removals beyond huang2020.
+12,210 entries) plus DEFAULT_EXTRA -- the Huang-group's four DESI searches
+(huang2020/huang2021/storfer2024/inchausti2025) and external_lens_catalog.csv, auto-unioned.
+This is NOT redundant with the KLC: Inchausti+2025 (DR10) is ENTIRELY absent from the KLC
+(0 of 811 entries), so 559 of its published lenses survived until this catalog was staged;
+Huang+2020 has 7 entries absent from the KLC too. Union = 16,573 rows (cross-catalog
+duplicates NOT deduped: harmless for removal, inflates the recall denominator). See the
+DEFAULT_EXTRA comment below for the per-catalog KLC-coverage audit.
 
-  python 397_remove_known_lenses.py                      # 5", full union -> the shipped 145,856
+  python 397_remove_known_lenses.py                      # 5", full union -> the shipped 145,297
   python 397_remove_known_lenses.py --radius 3
-  python 397_remove_known_lenses.py --no-default-extra   # KLC only (one huang2020 lens leaks)
+  python 397_remove_known_lenses.py --no-default-extra   # KLC only (huang2020 + 559 inchausti2025 leak)
   python 397_remove_known_lenses.py --flag-only          # keep all 150k rows, add is_known
 
 Provenance note (inherited from 396): `mean5` is the RANKING score the top-150k was
@@ -70,11 +71,23 @@ DEFAULT_KNOWN = REPO / "data" / "klc_clean250629ymh.csv"
 DEFAULT_CANDS = C.DATA / "v3" / "dr11s_v4_candidates_150k.csv"
 RADII = (1.0, 2.0, 3.0, 5.0, 10.0, 15.0, 30.0)   # sensitivity table
 
-# The KLC is NOT a strict superset of the known-lens catalogs this repo already ships:
-# 7 of the 342 huang2020 lenses are absent from it. Union them in BY DEFAULT so a bare
-# invocation reproduces the shipped product; --no-default-extra restores KLC-only.
+# The KLC is NOT a superset of the Huang-group's own four DESI searches. Verified
+# entry-by-entry against the shipped list (2026-07-13):
+#   Huang+2020 (DR7)     342 entries, 335 in KLC (7 absent -> staged separately)
+#   Huang+2021 (DR8)   1,312 entries, 1,312 in KLC (fully covered)
+#   Storfer+2024 (DR9) 1,895 entries, 1,895 in KLC (fully covered)
+#   Inchausti+2025(DR10) 811 entries,     0 in KLC (ENTIRELY ABSENT -- the KLC,
+#                        compiled 2025-06-29, predates/omits the DR10 systems)
+# So we union ALL FOUR group catalogs by default, not just huang2020: relying on the
+# KLC to contain them silently left 559 published Inchausti-2025 lenses in the list.
+# Huang2021/Storfer2024 add 0 removals (already in KLC) but staging them makes the
+# guarantee self-documenting instead of dependent on the KLC's contents.
+# --no-default-extra restores KLC-only.
 DEFAULT_EXTRA = (
-    C.HUANG20 / "data" / "huang2020_published_catalog.csv",
+    C.HUANG20 / "data" / "huang2020_published_catalog.csv",    # DR7
+    C.HUANG21 / "data" / "huang2021_published_catalog.csv",    # DR8
+    C.INCH / "data" / "storfer2024_published_catalog.csv",     # DR9
+    C.INCH / "data" / "inchausti2025_published_catalog.csv",   # DR10 -- not in the KLC
     C.ROOT / "v3" / "external_lens_catalog.csv",
 )
 
