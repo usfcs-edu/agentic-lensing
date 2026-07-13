@@ -187,9 +187,44 @@ Robustness: matched 149/149 rows scored; direct 115/149 usable (14 random_neg
 never graded — photometry path failure; ~20 parse-soft). Cost ~$6 total.
 Code: parity/build_c3_valsel_slice.py, parity/c3_select_analysis.py.
 
-### C2 — DESI SFT corpus (builder done; corpus render finishing; training queued)
-`finetune/build_corpus_desi.py` (smoke-tested: leakage PASS, unique-targets
-PASS) + `finetune/PERLMUTTER_DESI_RUN.md`. Perlmutter access restored (sshproxy
-refreshed); v5 run-3 slurm (`$SCRATCH/ljv5_train27b_r3.slurm`: Qwen3.5-27B bf16
-LoRA + unfrozen ViT, 4-GPU DDP, LR 5e-5/VIT 1e-5, save every 75) is the template;
-corpus upload + path rewrite + sbatch = next step.
+### C3 GATE (one-shot, 2026-07-13): the valsel win DID NOT REPLICATE
+Frozen matched/Sonnet-5 on the 259-row gate (preds_gate_matched.parquet,
+258/259, $4.36): **HARD A/B-vs-D AUC 0.487 [0.395, 0.577]** (valsel had 0.623
+[0.518,0.725] — selection optimism on a 149-row slice; the disjoint-draw rule
+caught it, again). ALL A/B/C-vs-D+random holds: 0.633 [0.566, 0.699]. Frozen op
+point runs hot on gate grade-D (FPR 0.35 vs 0.20 target); QWK 0.025. Standing
+conclusion: C3 is a real lens-vs-random vetter, NOT a HARD-contrast detector;
+the matched-vs-direct relative gain (+0.15) remains valid but the absolute HARD
+level is chance. The frozen-CNN 0.646 stays the only machine HARD signal so
+far; C2's gate result decides Phase C.
+
+### C2 — DESI 27B student: trained, selected, gate-evaluated (DONE 2026-07-13)
+Corpus: 12,250 aug train / 189 val / 1,174 valsel (build_corpus_desi.py, leakage
+self-check PASS). Training: Perlmutter job 55804993, r3 recipe verbatim
+(Qwen3.5-27B bf16 LoRA + unfrozen ViT, 4-GPU DDP), 6h33m, RC=0, 11 ckpts.
+Selection (job 55848953, merge+serve+valsel-grade 7 plateau ckpts; my inline
+scorer crashed on schema — preds parquets carry no label col, join
+valsel_manifest.csv; scored off-band): MONOTONE plateau, **BEST=ckpt-750**
+(valsel A/B-vs-D+rand 0.852, HARD 0.659). GATE one-shot (job 55859082):
+**HARD 0.644 [0.550, 0.733]** — held from valsel, NO collapse;
+**A/B-vs-D+rand 0.817 [0.757, 0.873]**. Zero-shot control (same protocol):
+HARD 0.530 [0.430, 0.621], A/B-vs-D+rand 0.576. Training delta +0.11 HARD /
++0.24 vetting — direct human-label SFT moves tier-1 where v4's Claude
+distillation could not (teacher-signal argument doesn't bind when the teacher
+is the human catalog). Artifacts on Perlmutter: $SCRATCH/ljdesi/
+{ckpt_desi_27b/v0-*/checkpoint-750(-merged), preds_valsel_*.parquet,
+preds_gate_student750.parquet, preds_gate_zeroshot.parquet}.
+
+## PHASE C FINAL GATE SCOREBOARD (HARD A/B vs D, one-shot, frozen)
+| system | HARD | A/B vs D+rand |
+|---|---|---|
+| student-27B ckpt-750 | **0.644** [0.550,0.733] | **0.817** [0.757,0.873] |
+| frozen CNN (published p) | 0.646 [0.557,0.734] | — |
+| zero-shot 27B | 0.530 | 0.576 |
+| C3 matched Sonnet 5 | 0.487 | 0.633 (ALL incl. C) |
+| rep-feature probe | 0.425 | 0.716 (ALL incl. C) |
+Student ties the CNN on the wall; strongest vetting number in the program at
+DESI resolution. Phase D predictors: human grade (primary comparator), CNN,
+student-750 logprob, (C3 as documented reference). Phase D prerequisite:
+serve ckpt-750 once more to score parity_bench arm1+arm2 (manifests+cutouts
+need staging to Perlmutter, same label pipeline).
