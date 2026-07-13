@@ -89,6 +89,7 @@ nav:
       - LensJudge: current/lensjudge/index.md
       - LensJudge — Honest Residuals: current/lensjudge-residual/index.md
       - LensJudge — Human Baseline: current/lensjudge-human-baseline/index.md
+      - LensJudge — Human Parity: current/lensjudge-parity/index.md
       - ClaudeNet: current/claudenet/index.md
       - ClaudeNet DR10 Lens Rediscoveries: current/claudenet-new-candidates/index.md
       - DR11 Lens Search: current/dr11-campaign/index.md

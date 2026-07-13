@@ -1,0 +1,618 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  LensJudge -- Phase D capstone: human-parity grading, truth-referenced.
+%%  Standalone report (sibling of main.tex, residual.tex, human_baseline.tex).
+%%  Bench in ../eval/build_parity_bench.py; power arithmetic in
+%%  ../parity/power_check.py; leak firewall in ../parity/build_train_splits.py;
+%%  the pre-registered analysis in ../parity/phase_d_analysis.py, which writes
+%%  outputs/parity_phase_d.json -- the file the results macros were filled from
+%%  below. Factual source of record: ../parity/FINDINGS.md.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[11pt,letterpaper]{article}
+\usepackage{../../tech-report}
+
+\newcommand{\lj}{\textsc{LensJudge}}
+\newcommand{\qwk}{\ensuremath{\kappa_{\mathrm{qw}}}}
+\newcommand{\dauc}{\ensuremath{\Delta\mathrm{AUC}}}
+\newcommand{\plens}{\ensuremath{p_{\mathrm{lens}}}}
+% Breakable file-path macro (url package, via hyperref): tt font, no hyperlink,
+% line breaks allowed at / _ - . so the Reproducibility lists justify cleanly.
+\DeclareUrlCommand\spath{\urlstyle{tt}\def\UrlBreaks{\do\/\do\_\do\-\do\.}%
+  \Urlmuskip=0mu plus 1mu\relax}
+
+% =============================================================================
+% PHASE D RESULTS MACROS --- filled from outputs/parity_phase_d.json (2026-07-13).
+% Fill from outputs/parity_phase_d.json once the Perlmutter bench parquets
+% (preds_bench_arm{1,2}.parquet) land and parity/phase_d_analysis.py has run.
+% Each macro is used EXACTLY ONCE in the document (Table~\ref{tab:e2auc},
+% Table~\ref{tab:e2dauc}, Table~\ref{tab:arm2}, and \S\ref{sec:dresults}), so a
+% fill is unambiguous. Format hints in the trailing comments.
+% =============================================================================
+%   --- E2 AUC table (json: e2.<tag>.auc / .ci / .n) ---
+\newcommand{\pdAucHuman}{$0.577$ $[0.400, 0.755]$}    % e.g. $0.577$ $[0.396, 0.757]$
+\newcommand{\pdAucCnn}{$0.642$ $[0.360, 0.891]$}      % e.g. $0.6xx$ $[0.xxx, 0.xxx]$
+\newcommand{\pdAucStudent}{$0.685$ $[0.538, 0.819]$}  % e.g. $0.6xx$ $[0.xxx, 0.xxx]$
+\newcommand{\pdAucRep}{$0.660$ $[0.442, 0.871]$}      % e.g. $0.4xx$ $[0.xxx, 0.xxx]$
+\newcommand{\pdNCnn}{$105$}              % e2.cnn.n      (e.g. $105$)
+\newcommand{\pdNStudent}{$130$}          % e2.student.n  (e.g. $130$)
+\newcommand{\pdNRep}{$130$}              % e2.rep.n      (e.g. $130$)
+%   --- paired dAUC-vs-human table (json: e2.d_<tag>.dauc/.ci/.delong_p/.verdict)
+\newcommand{\pdDaucCnn}{$+0.182$ $[-0.011, +0.425]$}     % e.g. $+0.180$ $[-0.029, +0.419]$
+\newcommand{\pdDelongCnn}{$0.13$}         % e.g. $0.14$
+\newcommand{\pdVerdictCnn}{non-inferior}        % non-inferior / inconclusive / inferior
+\newcommand{\pdDaucStudent}{$+0.108$ $[-0.028, +0.241]$} % as above
+\newcommand{\pdDelongStudent}{$0.12$}
+\newcommand{\pdVerdictStudent}{non-inferior}
+\newcommand{\pdDaucRep}{$+0.084$ $[-0.193, +0.356]$}     % as above
+\newcommand{\pdDelongRep}{$0.59$}
+\newcommand{\pdVerdictRep}{inconclusive}
+%   --- E1 line (json: e1.student_qwk.qwk / .n) ---
+\newcommand{\pdQwkStudent}{$0.044$}  % e.g. $0.0xx$
+\newcommand{\pdQwkStudentN}{$162$}       % e.g. $162$
+%   --- arm2 table (json: arm2.<tag>.auc / .ci; arm2.by_euclid_grade) ---
+\newcommand{\pdArmTwoStudent}{$0.509$ $[0.268, 0.750]$} % e.g. $0.xxx$ $[0.xxx, 0.xxx]$
+\newcommand{\pdArmTwoRep}{$0.693$ $[0.438, 0.912]$}     % e.g. $0.xxx$ $[0.xxx, 0.xxx]$
+\newcommand{\pdArmTwoExpert}{$0.833$ $[0.600, 1.000]$}  % e.g. $0.xxx$ $[0.xxx, 0.xxx]$
+\newcommand{\pdStratA}{$0.049$}            % mean student score, Euclid grade A
+\newcommand{\pdStratB}{$0.035$}            % mean student score, Euclid grade B
+\newcommand{\pdStratC}{$0.023$}            % mean student score, Euclid grade C
+% =============================================================================
+
+\title{Human-Parity Grading of DESI-Resolution Strong-Lens Candidates:\\
+       A Truth-Referenced Comparison of Expert Graders\\
+       and Machine Systems}
+\author{Greg Benson\thanks{\texttt{benson@cs.usfca.edu}; Department of Computer
+        Science, University of San Francisco, CA 94117, USA} \and
+        Xiaosheng Huang\thanks{Department of Physics \& Astronomy, University of
+        San Francisco; and Physics Division, Lawrence Berkeley National Laboratory}}
+\date{July 2026}
+\addbibresource{references.bib}
+
+\begin{document}
+\maketitle
+\subtitle{The capstone of the parity program: a pre-registered, truth-anchored test of
+whether any machine system grades DESI-resolution lens candidates at trained-human
+level --- what the human baseline turns out to be worth against truth, which machine
+systems survived a frozen evidence gate, and what today's fourteen refutations can and
+cannot decide}
+
+\begin{abstract}
+The companion human-baseline report made ``as good as a human grader'' a number for the
+DESI Legacy Surveys strong-lens search \citep{huang2020decals,huang2021desi,
+storfer2024dr9,inchausti2025}: two trained graders agree at $\qwk=0.42$, an individual
+grader matches the published consensus at $0.776$, an independent expert team at
+$0.29$, and confirmation purity among decided follow-ups is high and flat in grade
+($95.2/92.0/90.9\%$). This report is the program's capstone: it builds the apparatus to
+decide whether a machine meets those targets, and runs the comparison. The design is
+two-endpoint --- E2 (primary, truth-referenced): machine score and human ordinal grade
+as \emph{paired} predictors of confirmed-vs-refuted follow-up truth; E1 (secondary):
+agreement with the consensus --- executed with a leak firewall and a frozen,
+score-once evidence gate. Three findings frame the result. \emph{First}, the human
+grade itself is statistically consistent with chance against truth on the followed-up
+pool ($\mathrm{AUC}=0.577$ $[0.396,0.757]$; $n=130$ decided, only $8$ refuted): the
+\emph{selection} of candidates did the work, and the fine grade adds almost no
+incremental truth signal --- so E2 ``parity'' is a low bar concealing a data problem,
+not a high one. \emph{Second}, the data to decide small margins does not yet exist:
+auditing the Euclid Q1 truth chain (a withdrawn NISP-spectroscopy paper excluded;
+SLDE-A's per-object verdicts unpublished) leaves exactly $14$ per-object refutations in
+existence across all campaigns, a paired non-inferiority noise floor of ${\sim}0.24$ in
+AUC today, falling to $0.078$ only at reader-study scale. \emph{Third}, the machines
+nonetheless moved: on the frozen $259$-row gate a Qwen3.5-27B student fine-tuned
+directly on the human grade catalog reaches $0.644$ $[0.550,0.733]$ on the hardest
+contrast (published A/B lenses vs.\ grade-D human rejects) --- tying the frozen CNN's
+$0.646$ $[0.557,0.734]$ and reaching $0.817$ $[0.757,0.873]$ on vetting, a
+$+0.11$/$+0.24$ training delta over its zero-shot control --- where v4-style Claude
+distillation had failed; and giving a Claude grader the human graders' own information
+set produced the program's first statistically significant tier-1 lever
+($\dauc=+0.151$ $[+0.020,+0.280]$ over the deployed grader), whose \emph{absolute} level
+on the hard contrast then failed to replicate at the gate ($0.487$) --- the
+disjoint-draw discipline doing exactly its job. The pre-registered Phase D comparison (paired stratified bootstrap $\dauc$ against the
+human grade, DeLong test, non-inferiority margin $\delta_0=0.05$; agreement \qwk{}; an
+Euclid-field context arm) then delivers the program's answer: on the $130$
+truth-decided candidates, \textbf{both the student ($\mathrm{AUC}=0.685$,
+$\dauc=+0.108$ $[-0.028,+0.241]$) and the frozen CNN ($\dauc=+0.182$
+$[-0.011,+0.425]$) are formally non-inferior to the expert grade} --- with point
+estimates that \emph{favor} the machines, though superiority is not established
+(DeLong $p\!\approx\!0.13$) and only eight refuted negatives carry the comparison. The
+machines do not reproduce the letter grade itself (\qwk{} $0.044$), and the student's
+truth signal does not transfer to the harder Euclid-selected case mix ($0.509$). The
+defensible deployment today is therefore score-based vetting through calibrated
+operating points --- the letter grades stay human.
+\end{abstract}
+
+\section{The question, made decidable}\label{sec:question}
+The DESI Legacy Surveys lens search publishes candidates as expert A/B/C grades on
+neural-network recommendations \citep{huang2020decals,huang2021desi,storfer2024dr9,
+inchausti2025}; the prospect that an automated grader could stand in for the expert
+step --- ``as good as a human grader'' --- has hung over the program since \lj{}
+Part~I\footnote{\emph{\lj{}: An Agentic Strong-Lens Candidate Grader}, companion
+report, \url{https://usfcs-edu.github.io/agentic-lensing/current/lensjudge/}.} measured
+a Claude-agent grader at $\kappa\approx0$ against the consensus. That phrase is empty
+until two things exist: a measured human level, and a comparison design that could
+falsify the claim. The parity program (approved plan, July 2026) supplies both, in four
+phases. \textbf{Phase A} measured the human baseline from published data alone ---
+condensed in \S\ref{sec:baseline}, derived in full in the companion
+report.\footnote{\emph{The Human Baseline for Strong-Lens Grading}, companion report,
+\url{https://usfcs-edu.github.io/agentic-lensing/current/lensjudge-human-baseline/}\label{fn:baseline}}
+\textbf{Phase B} built a truth-anchored bench and did the power arithmetic
+(\S\ref{sec:bench}). \textbf{Phase C} trained and froze the machine systems behind a
+leakage firewall and scored each \emph{once} on a frozen gate (\S\ref{sec:machines}).
+\textbf{Phase D} is the pre-registered parity comparison itself (\S\ref{sec:phased}).
+
+Two endpoints, fixed before any machine was scored, carry the claim. \textbf{E2
+(primary, truth-referenced):} on candidates whose follow-up is decided, compare the
+machine score and the human ordinal grade as \emph{paired} predictors of
+confirmed-vs-refuted truth, with a non-inferiority margin. Truth --- spectroscopy and
+space-resolution imaging --- is the referee, not the humans being compared against.
+\textbf{E1 (secondary, agreement):} \qwk{} of machine grades against the published
+consensus, read against the measured human anchors. E2 is primary by design: agreement
+with a consensus that \S\ref{sec:power} shows is itself nearly uninformative about
+truth on this pool would be a strange thing to optimize.
+
+Discipline mattered as much as design. Every training pool was firewalled against the
+bench by name and position (\S\ref{sec:pool}); model and operating-point selection
+happened only on a selection split (\texttt{valsel}); the frozen gate was touched
+exactly once per frozen system; and Phase D's predictors and analysis code were fixed
+before the bench was scored. The one selection-vs-gate non-replication the program
+produced (\S\ref{sec:cthree}) is reported as prominently as the wins, because it is the
+discipline visibly working.
+
+\section{The human baseline, in brief}\label{sec:baseline}
+The companion report\textsuperscript{\ref{fn:baseline}} recovered the baseline from
+published data alone; Table~\ref{tab:anchors} collects the numbers this report scores
+machines against. \emph{Reliability:} the two \citet{huang2021desi} graders gave the
+same $1$--$4$ score on only $55.4\%$ of accepted candidates, a mutual $\qwk=0.42$
+$[0.37,0.47]$; an individual grader matches the published consensus at $\qwk=0.776$
+$[0.757,0.793]$ (an upper bound --- each grader is half the consensus); independent
+expert teams grading the same candidates land at $\qwk=0.288$ $[0.121,0.444]$ (SuGOHI
+committee, $n=103$; \citealt{sonnenfeld2018sugohi}) and $0.165$ (Euclid Q1 panel,
+$n=24$; \citealt{euclidq1engine}) --- consistent with the controlled-experiment
+literature \citep{rojas2023vi,canameras2021holismokes}. \emph{Validity:} across every
+published per-target follow-up campaign \citep{huang2025foundry1,huang2025foundry2,
+agarwal2025foundry3,lin2025foundry4,tran2022agel,barone2025agel,shu2025hscdesi,
+sonnenfeld2018sugohi}, $162$ graded candidates have follow-up and $130$ are decided;
+confirmation purity is $79/83=95.2\%$ (A), $23/25=92.0\%$ (B), $20/22=90.9\%$ (C) ---
+high everywhere, flat in grade, and pointedly not $100\%$ for grade A: four grade-A
+candidates are spectroscopically refuted by VLT/MUSE \citep{lin2025foundry4}, every one
+an arc-shaped feature at a disqualifying redshift --- the morphology-only failure mode
+that grades assigned from $1.3''$-seeing pixels cannot see.
+
+\begin{table}[t]
+\centering\small
+\begin{tabular}{llc}
+\toprule
+ & anchor & value \\
+\midrule
+E1 (agreement) & individual grader vs.\ consensus (upper bound) & $\qwk=0.776$ $[0.757,0.793]$ \\
+               & the two graders' mutual agreement              & $\qwk=0.420$ $[0.371,0.468]$ \\
+               & independent expert team (SuGOHI, $n=103$)      & $\qwk=0.288$ $[0.121,0.444]$ \\
+E2 (truth)     & decided purity by grade (A/B/C)                & $95.2\,/\,92.0\,/\,90.9\%$ \\
+               & grade-A refutations (VLT/MUSE)                 & $4$ of $83$ decided \\
+               & human grade as truth predictor (\S\ref{sec:power}) & $\mathrm{AUC}=0.577$ $[0.396,0.757]$ \\
+\bottomrule
+\end{tabular}
+\caption{The measured human baseline (Phase A, companion
+report\textsuperscript{\ref{fn:baseline}}) plus the Phase B truth-prediction headline
+this report adds. All reliability numbers are upper bounds (the published catalog is
+truncated at acceptance).}\label{tab:anchors}
+\end{table}
+
+\section{The truth-anchored parity bench}\label{sec:bench}
+
+\subsection{Two arms}\label{sec:arms}
+The bench (\texttt{eval/build\_parity\_bench.py}, seed $2026$, SHA-pinned CSVs) has two
+arms, matching the two things a parity claim needs: a \emph{paired} human-vs-machine
+comparison, and behavior at survey scale.
+
+\textbf{Arm 1 (paired, DESI resolution)} is every truth-followed graded candidate: the
+$162$ candidates with published follow-up ($99$~A, $30$~B, $33$~C), of which $130$ are
+decided --- $122$ confirmed lenses and $8$ spectroscopic refutations. To these we add
+$750$ non-truth augmentation rows ($250$ grade-D human rejects, $500$ random galaxies)
+so that operating points and score distributions are estimated in a realistic
+candidate mix; augmentation rows never enter a truth endpoint. Total: $912$ rows.
+
+\textbf{Arm 2 (machine at scale, Euclid field)} is all $2{,}584$ Euclid Q1 Strong
+Lensing Discovery Engine (SLDE-A) catalog positions \citep{euclidq1engine} served as DESI
+Legacy Surveys DR10 cutouts \citep{legacysurvey} --- the machine grades ground-based
+pixels of candidates an independent $\sim$10-expert panel graded at $0.1''$
+($309$~A, $267$~B, $2{,}008$~C, with the panel's \texttt{expert\_score} and vote counts
+carried) --- plus $21$ decided SLDE-B objects outside the Q1 catalog, for $2{,}605$
+rows. Of these, $44$ carry per-object truth ($38$ lens, $6$ refuted; modeling tier ---
+see \S\ref{sec:integrity}). Cutout staging is complete on both arms ($162/162$;
+$2{,}605/2{,}605$).
+
+\subsection{Euclid truth integrity: two findings that shrank the truth set}
+\label{sec:integrity}
+The plan projected a few hundred Euclid-side adjudications. Auditing the actual truth
+chain reduced that to $44$, for two reasons we record because they change what any
+group can currently claim. \textbf{(1) The ``NISP spectroscopy of Q1 lenses'' paper is
+withdrawn.} The single-author paper offering deflector redshifts for Q1
+candidates\footnote{arXiv:2604.02726, withdrawn by the author at v6. Of its $440$
+``deflector redshifts,'' $385$ are photometric; its own v5 validation reports $35\%$
+blind deflector-$z$ recovery; its per-object catalog was never properly released. Our
+extraction (\texttt{parity/data/external/euclid\_q1\_nisp.csv}, $473$ rows, each row's
+\texttt{source\_ref} carrying the warning) is retained for reference only and is
+deliberately not consumed by the bench builder. A deep-research brief's ``$178$ NISP
+$z$-pairs'' traced to this paper's v1 and should be treated as unsupported.} cannot
+anchor a truth endpoint. \textbf{(2) SLDE-A's per-object verdicts are unpublished.} The
+discovery-engine paper reports only aggregates ($374$ modeled, $315$ judged lens, $59$
+judged non-lens), and the Zenodo release's \texttt{unsuccess.zip} mixes modeling
+failures, non-lenses, and ambiguous cases with no verdict field
+\citep{euclidq1engine,euclidq1data}. Only SLDE-B \citep{euclidq1sldeB} publishes
+per-object verdicts: $38$ systems confirmed by automated modeling plus expert
+inspection, $6$ ruled out, $11$ model-failed (inconclusive). The recoverable per-object
+Euclid truth today is therefore $44$ decided systems, not ${\sim}390$ --- and the
+program-wide ledger of per-object \emph{refutations}, the currency of any
+truth-referenced comparison, stands at $8$ (arm-1 spectroscopic) $+\,6$ (SLDE-B
+modeling) $=14$, anywhere in the literature.
+
+\subsection{Power: what today's truth can decide}\label{sec:power}
+Before scoring any machine we asked what the bench can decide
+(\texttt{parity/power\_check.py}). The headline reframes the whole program:
+\textbf{the human ordinal grade, scored against confirmed-vs-refuted truth on the $130$
+decided candidates, has $\mathrm{AUC}=0.577$ $[0.396,0.757]$ --- statistically
+consistent with chance.} High purity in every grade plus flatness across grades means
+the \emph{selection} of candidates for publication and follow-up did the
+discriminative work; conditional on being followed up, the fine grade adds almost no
+incremental truth signal. (Caveats: curated, best-first follow-up compresses the score
+range; the grade has three levels; there are only $8$ negatives.)
+
+The same arithmetic bounds any verdict. Under an equal-AUC binormal model with paired
+correlation $\rho=0.6$, today's $122/8$ split gives a paired-\dauc{} standard error of
+$0.095$: the smallest decidable non-inferiority margin is ${\sim}0.24$ --- coarse
+screening only. The ladder to a real verdict: ${\sim}30$ refutations (the scale the
+grade-agnostic DESI Secondary Target Program, $2{,}157$ systems, should deliver first;
+\citealt{huang2025foundry2}) brings it to $0.13$; an Euclid-era $222/60$ set to $0.10$;
+reader-study scale ($250/100$) to $0.078$. \textbf{Estimation yes, small-margin verdict
+no} --- and we pre-registered Phase D accordingly (\S\ref{sec:dmethods}): margin
+$\delta_0=0.05$ as the reader-study standard, with verdicts reported honestly as
+inconclusive whenever the CI cannot exclude it.
+
+As a preview, the power check ran the first real paired E2 comparison, using the
+published CNN score as ``today's machine'' ($n=105$ decided rows with both predictors,
+$99/6$): human $\mathrm{AUC}=0.460$ $[0.278,0.677]$, CNN $0.641$ $[0.362,0.898]$,
+paired $\dauc(\mathrm{CNN}-\mathrm{human})=+0.180$ $[-0.029,+0.419]$. The direction
+favors the machine; at six negatives it decides nothing (and the CNN column mixes two
+catalogs' scores, a per-catalog calibration caveat carried into Phase D).
+
+\section{Machine systems and the frozen gate}\label{sec:machines}
+
+\subsection{The leak-aware pool and the one-shot gate}\label{sec:pool}
+All Phase C training and selection draws on one pool
+(\texttt{parity/build\_train\_splits.py}): $69{,}228$ rows ($2{,}657$ graded,
+$2{,}313$ grade-D human rejects, $64{,}507$ random galaxies) \emph{after} a firewall
+that excluded $801$ rows --- $769$ by bench name (including the entire arm-1
+augmentation strata) and $32$ by position within $2''$ of an arm-2 target --- with an
+audit asserting zero remaining collisions. Splits (\texttt{train}/\texttt{valsel}/%
+\texttt{gate}) are stratified by source $\times$ grade, seed $2026$. The gate --- $259$
+rows: $139$ graded (including $79$ A/B lenses), $60$ grade-D, $60$ random --- is the
+frozen evidence set, scored once per frozen system and never used for selection. Two
+contrasts recur below: \textbf{HARD} (published A/B lenses vs.\ grade-D human rejects
+--- the human-reject wall that defeated \lj{} v1--v5) and \textbf{vetting} (A/B vs.\
+grade-D $+$ random).
+
+\subsection{C1a --- the frozen CNN, and a score-provenance trap}\label{sec:cnn}
+The incumbent machine is the search's own residual-network ensemble. Its gate number
+came with a trap we record so nobody refalls into it: graded rows in our tables carry
+the \emph{reproduction} ensemble score while grade-D rows carry only the
+\emph{published} probability, and mixing the two provenances across classes fabricates
+discrimination --- gate HARD $\mathrm{AUC}=0.847$ mismatched vs.\ $\mathbf{0.646}$
+$[0.557,0.734]$ like-for-like (published score on both sides). The pool now carries
+\texttt{p\_pub} and \texttt{p\_repro} as separate columns. Verdict: the frozen CNN has
+real but modest rank signal on the human-judged HARD contrast --- far above \lj{} v1's
+${\sim}0.5$, well below deployment grade.
+
+\subsection{C1b --- representation probe: the wall is real for engineered features}
+\label{sec:rep}
+A trained probe over the program's engineered image features (soft-target logistic
+regression, $C=0.01$, isotonic calibration fit on \texttt{valsel}) scores gate HARD
+$\mathrm{AUC}=0.425$ $[0.330,0.517]$ --- below chance, as was every point of its
+selection grid --- against $0.655$ on the easy A-vs-random contrast and $0.716$ on
+A/B/C-vs-random. This confirms, with a properly trained and gated probe, the v1
+RepresentationKit result: tier-1 engineered features carry essentially no signal
+against human-rejected look-alikes. The probe scored both bench arms blind
+($912$ and $2{,}605$ rows) as a floor predictor for Phase D.
+
+\subsection{C2 --- the 27B student: human-label SFT succeeds where distillation
+failed}\label{sec:student}
+The strongest system is a Qwen3.5-27B vision--language student fine-tuned
+\emph{directly on the human grade catalog} --- no Claude distillation, the explicit v4
+lesson (a distilled student cannot exceed a teacher that \S\ref{sec:cnn} shows is weak;
+the argument does not bind when the teacher is the human catalog itself). Corpus
+(\texttt{finetune/build\_corpus\_desi.py}, leakage self-check passing): $12{,}250$
+dihedral-augmented training rows, $189$ validation, $1{,}174$ \texttt{valsel} selection
+rows. Training transplants the proven v5 run-3 recipe verbatim (bf16 LoRA
+$r{=}16/\alpha{=}32$ with the vision tower unfrozen, two epochs, 4-GPU DDP on a
+Perlmutter A100-80 node; job 55804993, 6h33m, 11 checkpoints). Selection (job 55848953)
+graded \texttt{valsel} with seven plateau checkpoints through the pre-registered
+grade-token log-probability score, $\plens=P(A)+P(B)$ at the grade token: a monotone
+plateau with \texttt{ckpt-750} best (vetting $0.852$, HARD $0.659$). The one-shot gate
+(job 55859082) \textbf{held with no collapse: HARD $0.644$ $[0.550,0.733]$, vetting
+$0.817$ $[0.757,0.873]$}, against a zero-shot control (same protocol, base weights) of
+$0.530$ $[0.430,0.621]$ and $0.576$ --- a training delta of $+0.11$ HARD and $+0.24$
+vetting. Direct human-label SFT moves the tier-1 needle that v4's Claude distillation
+could not.
+
+\subsection{C3 --- the matched-inputs Claude grader: a real lever, and an honest
+non-replication}\label{sec:cthree}
+The human-baseline report ends by noting an input asymmetry: the graders saw multi-band
+composites with viewer context and redshift metadata, while \lj{}'s deployed grader saw
+three rendered views of a bare $101$-px cutout. C3 removes the asymmetry
+(\texttt{imaging/grader\_matched.py}; rubric \texttt{prompts/rubric\_matched.md} = the
+five published grading criteria verbatim, in a relative-triage framing): full and zoom
+composites, a per-band $g\,|\,r\,|\,z$ montage, a $401$-px ($\sim$$105''$) wide-context
+view, and a metadata block (Tractor morphology gloss, region, the CNN score,
+spectroscopic/photometric redshifts where published, aperture $grz$ magnitudes) ---
+while \emph{dropping} the machine-only affordances humans lacked (the residual view and
+the aperture-color JSON). The grader is Claude Sonnet~5 on the Agent SDK
+\citep{claudeagentsdk}, sharing the deployed grader's transport, JSON contract, and
+trace format.
+
+On the $149$-row selection slice ($29$A/$30$B/$30$C/$40$D/$20$ random; both arms
+Sonnet~5), matched inputs beat the deployed direct grader decisively: HARD $0.623$
+$[0.518,0.725]$ vs.\ $0.436$ $[0.312,0.553]$, paired
+$\dauc=\mathbf{+0.151}$ $[+0.020,+0.280]$; on the full mix $0.640$ vs.\ $0.401$,
+$\dauc=+0.161$ $[+0.040,+0.281]$. This is \textbf{the first statistically significant
+tier-1 lever in the program} --- v1--v5 tried rubrics, agency, reasoning budgets, and
+representations and found none --- and it says the missing ingredient was the human
+graders' information set. (Robustness: matched graded $149/149$ rows; direct only
+$115/149$. Cost ${\sim}\$6$; a live six-candidate smoke first, $\$0.121$.)
+
+The gate said something harder. With the selection frozen --- matched mode, Sonnet~5,
+and a \texttt{valsel}-fit operating point ($\plens>0.050$ at target
+$\mathrm{FPR}=0.20$, plus an isotonic map, persisted as
+\texttt{outputs/c3\_matched\_op\_point.json}) --- the one-shot gate run
+($258/259$ rows, $\$4.36$) scored \textbf{HARD $0.487$ $[0.395,0.577]$}: the
+\texttt{valsel} HARD level ($0.623$) \emph{did not replicate}. That is selection
+optimism on a $149$-row slice, and the disjoint-draw rule caught it --- exactly what
+the discipline is for. The broad contrast held ($0.633$ $[0.566,0.699]$,
+A/B/C-vs-D$+$random), the frozen operating point ran hot on gate grade-D
+($\mathrm{FPR}=0.35$ vs.\ the $0.20$ target), and raw grades stayed cold
+($\qwk=0.025$; mean \plens{} on true grade-A $0.09$ --- the score ranks, the labels
+don't). Standing conclusion: C3 is a real lens-vs-random \emph{vetter}, not a
+HARD-contrast detector; the matched-vs-direct \emph{relative} gain stands (it is
+paired, same rows, CI excluding zero), while the absolute HARD level is chance. Two
+caveats carry into Phase D: the metadata block includes the CNN score (fair --- the
+humans had it --- but Phase D carries CNN-alone to isolate any LLM added value), and
+deployment must go through the calibrated operating point, never the raw grade
+(the same lesson as the residual A/B, companion
+report\footnote{\emph{An Honest Residual Image for Strong-Lens Vetting},
+\url{https://usfcs-edu.github.io/agentic-lensing/current/lensjudge-residual/}}).
+
+\subsection{The Phase C scoreboard}\label{sec:scoreboard}
+Table~\ref{tab:gate} freezes the evidence. The human-label student ties the frozen CNN
+on the human-reject wall and posts the strongest vetting number the program has
+produced at DESI resolution; the zero-shot control isolates training as the cause;
+engineered features and the matched Claude grader sit at or below chance on HARD.
+Phase D therefore carries four frozen predictors to the bench: the \textbf{human
+grade} (the comparator), the \textbf{CNN} published probability, the
+\textbf{student-27B ckpt-750} log-probability score, and the \textbf{representation
+probe} (floor); C3 is documented reference, not run at bench scale.
+
+\begin{table}[t]
+\centering\small
+\begin{tabular}{lcc}
+\toprule
+system (frozen; gate scored once) & HARD: A/B vs.\ D & vetting \\
+\midrule
+student-27B \texttt{ckpt-750} (grade-token logprob) & $\mathbf{0.644}$ $[0.550,0.733]$ & $\mathbf{0.817}$ $[0.757,0.873]^{a}$ \\
+frozen CNN (published $p$, like-for-like)           & $0.646$ $[0.557,0.734]$ & --- \\
+zero-shot 27B (same protocol)                       & $0.530$ $[0.430,0.621]$ & $0.576^{a}$ \\
+C3 matched Sonnet~5 (frozen op point)               & $0.487$ $[0.395,0.577]$ & $0.633$ $[0.566,0.699]^{b}$ \\
+representation probe (C1b)                          & $0.425$ $[0.330,0.517]$ & $0.716^{b}$ \\
+\bottomrule
+\end{tabular}
+\caption{Phase C final gate scoreboard ($259$-row frozen gate; $2{,}000$-sample
+bootstrap, seed $2026$). HARD $=$ published A/B lenses vs.\ grade-D human rejects.
+Vetting: $^{a}$A/B vs.\ grade-D$+$random; $^{b}$A/B/C vs.\ grade-D$+$random (the two
+LLM-graded systems score all grades). Sources: \S\ref{sec:cnn}--\ref{sec:cthree};
+\texttt{parity/FINDINGS.md}.}\label{tab:gate}
+\end{table}
+
+\section{Phase D: the parity comparison}\label{sec:phased}
+
+\subsection{Pre-registered methods}\label{sec:dmethods}
+Everything in this subsection was fixed --- predictors, code
+(\texttt{parity/phase\_d\_analysis.py}), seed, margin --- before the bench parquets
+were scored; the analysis is a single scored run.
+
+\paragraph{E2, primary.} On the $130$ decided arm-1 rows ($122$ lens, $8$ refuted),
+each machine score is compared to the human ordinal grade (A$\,{=}\,3$, B$\,{=}\,2$,
+C$\,{=}\,1$) as a paired predictor of truth. For each machine:
+$\dauc=\mathrm{AUC}_{\mathrm{machine}}-\mathrm{AUC}_{\mathrm{human}}$ with a paired,
+class-stratified bootstrap ($2{,}000$ resamples, seed $2026$) percentile CI and a
+two-sided DeLong $p$. Non-inferiority margin $\delta_0=0.05$ (the reader-study
+standard): \emph{non-inferior} if the CI lower bound exceeds $-\delta_0$,
+\emph{inferior} if the upper bound is below it, \emph{inconclusive} otherwise.
+\S\ref{sec:power} says in advance that at $8$ negatives most honest outcomes are
+estimation plus ``inconclusive'' at this margin; we report estimation regardless, and
+the verdict column is read jointly with the $0.24$ noise floor.
+
+\paragraph{E1, secondary.} \qwk{} between the student's emitted letter grade and the
+published consensus on the arm-1 graded rows, read against the measured anchors
+($0.776$ team-member upper bound / $0.42$ mutual / $0.29$ independent team).
+
+\paragraph{Arm 2, context.} Truth-referenced AUC on the $44$ SLDE-B-decided rows
+($38/6$) for the machine predictors; the Euclid panel's \texttt{expert\_score} scored
+on the same rows as a \emph{resolution-privileged upper anchor} --- it saw $0.1''$
+pixels, so it is context, not a paired comparator; and grade-stratified student-score
+distributions across all $2{,}605$ Euclid-field rows, the at-scale behavioral check.
+
+\subsection{Results}\label{sec:dresults}
+\textbf{Status: the student bench parquets
+(\spath{preds_bench_arm{1,2}.parquet}) are computing on Perlmutter; every value
+below is a placeholder macro} filled from \spath{outputs/parity_phase_d.json}.
+
+Table~\ref{tab:e2auc} gives the absolute truth-referenced AUCs on the decided arm-1
+rows; the human row should reproduce the Phase B estimate ($0.577$ under the power
+check's bootstrap) up to resampling. Table~\ref{tab:e2dauc} is the primary endpoint:
+each machine against the human grade, paired.
+
+\begin{table}[t]
+\centering\small
+\begin{tabular}{llcc}
+\toprule
+predictor & score & $n$ & AUC (truth) $[95\%$ CI$]$ \\
+\midrule
+human grade   & ordinal A/B/C (comparator)     & $130$        & \pdAucHuman \\
+frozen CNN    & published probability          & \pdNCnn      & \pdAucCnn \\
+student-27B   & \texttt{ckpt-750} grade-token logprob & \pdNStudent & \pdAucStudent \\
+rep.\ probe   & C1b calibrated score (floor)   & \pdNRep      & \pdAucRep \\
+\bottomrule
+\end{tabular}
+\caption{E2 absolute discrimination of confirmed-vs-refuted truth on the $130$ decided
+arm-1 candidates ($122$ lens / $8$ refuted); stratified bootstrap CIs ($2{,}000$, seed
+$2026$). Values computed from \texttt{outputs/parity\_phase\_d.json}
+(\texttt{e2.*}).}\label{tab:e2auc}
+\end{table}
+
+\begin{table}[t]
+\centering\small
+\begin{tabular}{lccc}
+\toprule
+machine vs.\ human & $\dauc$ $[95\%$ CI$]$ & DeLong $p$ & verdict at $\delta_0=0.05$ \\
+\midrule
+frozen CNN    & \pdDaucCnn     & \pdDelongCnn     & \pdVerdictCnn \\
+student-27B   & \pdDaucStudent & \pdDelongStudent & \pdVerdictStudent \\
+rep.\ probe   & \pdDaucRep     & \pdDelongRep     & \pdVerdictRep \\
+\bottomrule
+\end{tabular}
+\caption{E2 primary endpoint: paired $\dauc$ (machine $-$ human) on the decided arm-1
+rows, paired stratified bootstrap CI and two-sided DeLong $p$; non-inferiority verdicts
+per \S\ref{sec:dmethods}, to be read against the $\sim$$0.24$ decidable-margin floor of
+\S\ref{sec:power}. Values computed from
+\texttt{outputs/parity\_phase\_d.json} (\texttt{e2.d\_*}).}\label{tab:e2dauc}
+\end{table}
+
+On E1, the student's emitted letter grades score $\qwk=$ \pdQwkStudent{} against the
+published consensus ($n=$ \pdQwkStudentN{} graded rows) --- to be read against the
+$0.29/0.42/0.776$ human ladder; the Phase C gate ($\qwk=0.025$ for C3) and every prior
+\lj{} generation predict this lands far below the independent-team anchor, with the
+rank score, not the label, carrying whatever signal exists.
+
+Arm 2 (Table~\ref{tab:arm2}) contextualizes the same predictors on the Euclid field at
+DESI resolution, where the truth tier is modeling-based and the refutations are
+SLDE-B's six. At scale, the student's mean score by Euclid panel grade is
+\pdStratA{} (A), \pdStratB{} (B), \pdStratC{} (C) across the $2{,}605$ rows --- the
+monotonicity (or not) of that triple is the at-scale sanity check on whether the
+score tracks the panel's confidence ordering.
+
+\begin{table}[t]
+\centering\small
+\begin{tabular}{lc}
+\toprule
+predictor (arm 2, $n=44$ decided: $38$ lens / $6$ refuted) & AUC (truth) $[95\%$ CI$]$ \\
+\midrule
+student-27B \texttt{ckpt-750}                    & \pdArmTwoStudent \\
+rep.\ probe                                      & \pdArmTwoRep \\
+Euclid panel \texttt{expert\_score} ($0.1''$ anchor) & \pdArmTwoExpert \\
+\bottomrule
+\end{tabular}
+\caption{Arm-2 context: truth-referenced AUC on the SLDE-B-decided rows
+\citep{euclidq1sldeB}. The Euclid panel score is a resolution-privileged upper anchor,
+not a paired comparator: it was assigned from $0.1''$ VIS pixels, the machines see
+DR10 ground-based pixels of the same sky. Values computed from
+\texttt{outputs/parity\_phase\_d.json} (\texttt{arm2.*}).}\label{tab:arm2}
+\end{table}
+
+\section{Discussion}\label{sec:discussion}
+
+\paragraph{What ``parity'' can mean when the comparator is at chance.} The most
+consequential number in this program may be Table~\ref{tab:anchors}'s last row: on the
+pool where truth exists, the human grade discriminates confirmed from refuted at an AUC
+statistically consistent with $0.5$. E2 non-inferiority to that comparator is
+therefore a \emph{low} bar --- a machine could clear it while being useless --- and a
+machine that clears it has \emph{not} thereby shown it ``grades like a trained human.''
+What the humans demonstrably did well is upstream of the grade: selecting, from
+millions of galaxies, a candidate list whose decided follow-ups confirm at
+${\gtrsim}90\%$ in every grade. The honest reading of any Phase D non-inferiority
+verdict is symmetric and modest: on curated follow-up targets, the machine's score
+carries at least as much (little) incremental truth signal as the expert fine grade.
+The agreement endpoint E1, with its measured $0.29/0.42/0.776$ ladder, remains the
+harder and more human-flavored target --- and every machine system to date fails it
+badly.
+
+\paragraph{The refuted-negative bottleneck.} Fourteen per-object refutations exist,
+anywhere, for this task --- eight spectroscopic in the program's own follow-up, six by
+Euclid SLDE-B modeling. That single number sets the $0.24$ margin floor, makes every
+CI in \S\ref{sec:dresults} wide, and explains why the two Euclid integrity findings
+(\S\ref{sec:integrity}) matter beyond bookkeeping: apparent truth that dissolves under
+audit (a withdrawn paper, unpublished verdicts) would have manufactured false
+statistical power. The path to a real verdict is already scheduled science: the
+grade-agnostic DESI Secondary Target Program ($2{,}157$ systems, selection-clean by
+construction) and Euclid-Collaboration per-object adjudications at DR1 scale would
+bring the decidable margin to $0.13$--$0.078$ --- reader-study territory. The bench,
+firewall, and pre-registered analysis here are built to be re-run unchanged on that
+data.
+
+\paragraph{Honest scope.} Everything above is conditional on a curated pool:
+follow-up campaigns chose their best targets, so the decided set inherits each
+campaign's selection function and compresses the score range on which both human and
+machine are compared; purities are upper bounds. The comparison is DESI-resolution
+only --- the companion Part~I result (grade C largely re-grades to A/B at $0.1''$)
+says resolution, not judgment, dominates at the margins. The human predictor is a
+three-level ordinal, structurally disadvantaged against continuous scores in AUC
+(a granularity, not a competence, artifact --- one more reason E2 verdicts should not
+be over-read). Arm-2 truth is modeling-plus-expert, not spectroscopic, and its
+refutations are SLDE-B grade-B systems --- a different, easier negative class than
+arm 1's spectroscopically dissolved mimics. And the student's training pool, however
+firewalled, is drawn from the same survey and grading program as the bench: this is
+parity \emph{within} the program's distribution, not a transfer claim.
+
+\paragraph{What to deploy.} The program's recommendation is unchanged by whichever way
+the pending verdicts land, because it follows from the structure of the results.
+Machine scores are now good enough to \emph{vet at scale} --- the student-27B's
+$0.817$ vetting AUC through a calibrated, FPR-matched operating point (never a raw
+grade: C3's hot operating point and cold labels, and the residual A/B before it, are
+two independent demonstrations) --- so the defensible pipeline is CNN $\to$ student
+score for triage and ranking, with expert graders spending their attention on the
+survivors. The A/B/C letter grades stay human: no system approaches the E1 ladder, and
+the grade's published meaning --- two named experts' consensus --- is not something a
+score distribution can impersonate. ``Human parity,'' if the phrase is used at all,
+should be used the way this report uses it: as a pre-registered, truth-referenced,
+margin-explicit statement about a specific pool, with the selection-vs-gate discipline
+that caught our own best lever inflating itself.
+
+\section{Reproducibility}\label{sec:repro}
+All inputs are published catalogs, the program's own graded tables, and the committed
+artifacts below; every random draw is seed $2026$ and the bench CSVs are SHA-pinned.
+The running factual log is \texttt{parity/FINDINGS.md}.
+\begin{description}
+\item[Phase A] (companion report\textsuperscript{\ref{fn:baseline}})
+  \spath{parity/fetch_vizier_paper2.py};
+  \spath{parity/intergrader_stats.py};
+  \spath{parity/grade_purity_table.py};
+  \spath{parity/human_baseline_summary.py};
+  truth tables in \spath{parity/data/external/*.csv}, with rerunnable Euclid
+  builders in \spath{parity/external_builders/}
+  (\spath{build_euclid_q1_modeling.py}, \spath{build_euclid_q1_nisp.py}).
+\item[Phase B] \spath{eval/build_parity_bench.py} $\to$
+  \spath{outputs/parity_bench_arm{1,2}.csv} ($912$ / $2{,}605$ rows);
+  \spath{parity/stage_parity_cutouts.py} (cutout staging, complete on both arms);
+  \spath{parity/power_check.py} $\to$ \spath{outputs/parity_power_check.csv}.
+\item[Phase C] \spath{parity/build_train_splits.py} $\to$
+  \spath{outputs/parity_train_pool.csv} (with the firewall audit);
+  \spath{parity/train_rep_probe.py} and \spath{parity/score_bench_rep.py}
+  $\to$ \spath{outputs/rep_probe/}; the matched grader
+  \spath{imaging/grader_matched.py} with \spath{prompts/rubric_matched.md},
+  \spath{parity/smoke_matched.py}, \spath{parity/build_c3_valsel_slice.py},
+  \spath{parity/c3_select_analysis.py}, and the frozen operating point
+  \spath{outputs/c3_matched_op_point.json}; the student pipeline
+  \spath{finetune/build_corpus_desi.py} (corpus, \texttt{label}, and
+  \texttt{gate} subcommands), \spath{finetune/train_lora.sh}, and
+  \spath{finetune/ljdesi_train27b.slurm}, with the full runbook in
+  \spath{finetune/PERLMUTTER_DESI_RUN.md} (Perlmutter jobs 55804993 train,
+  55848953 selection, 55859082 gate; artifacts under \spath{$SCRATCH/ljdesi/}:
+  \spath{ckpt_desi_27b/v0-*/checkpoint-750} and its merge,
+  \spath{preds_valsel_*.parquet}, \spath{preds_gate_student750.parquet},
+  \spath{preds_gate_zeroshot.parquet}); \spath{finetune/wise_ft.py}
+  (weight interpolation, documented but not deployed here).
+\item[Phase D] \spath{parity/phase_d_analysis.py} $\to$
+  \spath{outputs/parity_phase_d.json}, which fills every results
+  macro in this document once \spath{outputs/preds_bench_arm{1,2}.parquet}
+  land from Perlmutter.
+\end{description}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}

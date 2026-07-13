@@ -228,3 +228,35 @@ DESI resolution. Phase D predictors: human grade (primary comparator), CNN,
 student-750 logprob, (C3 as documented reference). Phase D prerequisite:
 serve ckpt-750 once more to score parity_bench arm1+arm2 (manifests+cutouts
 need staging to Perlmutter, same label pipeline).
+
+## Phase D — the parity comparison (DONE 2026-07-13)
+
+Bench scored (Perlmutter job 55863819, ckpt-750, logprob): arm1 912/912,
+arm2 2,605/2,605 -> outputs/preds_bench_arm{1,2}.parquet. Analysis:
+parity/phase_d_analysis.py -> outputs/parity_phase_d.json.
+
+**E2 PRIMARY (130 decided, 122/8; NI margin delta0=0.05, paired stratified
+bootstrap + DeLong):**
+- human 0.577 [0.400,0.755] | cnn 0.642 (n=105) | **student 0.685 [0.538,0.819]**
+  | rep 0.660
+- ΔAUC vs human: **student +0.108 [-0.028,+0.241] p=0.12 -> NON-INFERIOR**;
+  **cnn +0.182 [-0.011,+0.425] p=0.13 -> NON-INFERIOR**; rep +0.084 -> inconclusive.
+- Both pre-registered machine systems formally NON-INFERIOR to the expert grade
+  on truth; point estimates favor machines; superiority NOT established.
+- CNN-coverage note: decided rows are mostly Paper II candidates whose published
+  probability lives in huang2021_published_catalog.csv (not the inchausti score
+  CSVs); huang2020 publishes no probability (25 rows NaN -> n=105).
+
+**E1 secondary:** student QWK 0.044 (n=162) — the machine does NOT reproduce the
+letter grade (anchors 0.29/0.42/0.776). Score ranks; labels stay human.
+
+**Arm2 scope limits:** student 0.509 [0.268,0.750] on the 44 SLDE-B-decided —
+truth signal does NOT transfer to the Euclid-selected case mix; Euclid 0.1"
+expert anchor 0.833 [0.600,1.000]; student score weakly monotone in Euclid
+grade at scale (A 0.049 / B 0.035 / C 0.023 over 2,584 rows).
+
+**Report:** papers/parity.tex (11 pp) — all 24 result macros filled, compiled,
+registered as site page current/lensjudge-parity (strict build + visual QA
+pass). Program conclusion: score-based vetting through calibrated operating
+points is deployable at DESI resolution; grades stay human; a verdict at
+delta0<=0.05 with real power awaits DESI STP outcomes / Euclid DR1 refutations.
