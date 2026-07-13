@@ -48,6 +48,7 @@ EXTRA_REPORTS = [
     ("current", "claudenet", "new_candidates", "claudenet-new-candidates"),
     ("current", "lensjudge", "residual", "lensjudge-residual"),
     ("current", "lensjudge", "human_baseline", "lensjudge-human-baseline"),
+    ("current", "lensjudge", "parity", "lensjudge-parity"),
 ]
 
 MARKERS = ("TITLE", "AUTHORS", "DATE", "ABSTRACT", "BODY")
