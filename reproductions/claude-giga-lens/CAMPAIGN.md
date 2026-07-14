@@ -130,6 +130,28 @@ the next freed slot; then the other P1c products; then the T2 diagnostic; then g
 P2c partial #1 completions so far: mclmc-A, s0svi, **SMC-evid-24 (primary T3 mode-weight ref)
 DONE**; nautilus/remc/mclmc-B running.
 
+### P1c metric-fix attempts — 2026-07-10 (BOTH PD metrics FAIL; MAP is a SADDLE — deeper problem)
+The Option-A metric fix (regularized-PD) did NOT resolve v3b-low convergence:
+- diagraw diagonal metric (cov_cond 2.9e7): stage-1 R̂ 21 (v2d-low), TIMEOUT (v3b-low) — STUCK.
+- svi_cov metric (cov_cond 1.2e6, 24× better; SVI 7000 steps, ELBO −6645→−4795, full-rank):
+  v3b-low posterior γ=1.0997 R̂_max=**22.3** ESS 27 (STAGE1 R̂ 10.7 → STAGE2 R̂ 22.3, WORSE).
+- **ROOT (corrected, deeper than a metric bug): the MAP is a SADDLE, not a mode** — Laplace
+  min_eig=−14.85 with 5 NEGATIVE eigenvalues. map_polish stopped at a saddle; and gamma_best
+  =1.10 (logp −4683) is HIGHER-logp than gamma_map=1.27 (logp −4757) → the true high-density
+  region is nearer γ≈1.10. A Laplace-seeded metric is fundamentally ill-suited at a saddle;
+  two-stage re-precondition makes it WORSE (pools unmixed stage-1 draws).
+- **HONESTY CORRECTION**: my earlier "science confirmed at MAP γ=1.27" was OVER-OPTIMISTIC.
+  The best-fit is nearer γ≈1.10 (Δ=0.33 from anchor 1.433, i.e. further/over-corrected), and
+  NEITHER 1.10 nor 1.27 is cleanly sampled (R̂ 22). The v3b-low correlated posterior is a
+  near-degenerate saddle target that RESISTS the two-stage PHMC recipe (validated on
+  well-behaved mocks) under any local metric.
+- NEXT (impl agent, no more local-metric repeats): (A) is γ≈1.10 extractable despite R̂ (is the
+  γ marginal tight at 1.10 with R̂ carried by another param, or are chains scattered in γ)?
+  (B) a sampler NOT dependent on the saddle metric — blackjax NUTS with long window-adaptation
+  (adapts mass from the chain) or tempered SMC (already built); NUTS-warmup most likely for
+  46-dim f64. Report A + B before any big run. The FAVORABLE DIRECTION still holds (fine-steep
+  converged: corr deflates diagonal 2.585→1.816); the precise binned-low value is the open item.
+
 ### P1c v3b MONEY + all products — 2026-07-10 (UNCONVERGED: metric bug, root-caused, fix decided)
 Babysitter STOPPED, did NOT present a headline from unconverged chains (correct). All 4 products
 done (~9.6 A100-h; cum ~11/30, ~19 reserve) but convergence FAILED on every correlated
