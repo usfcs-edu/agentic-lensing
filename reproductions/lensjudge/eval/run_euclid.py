@@ -30,7 +30,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 try:  # the open-weight backend doesn't need the Claude Agent SDK (offline/Perlmutter deploys omit it)
     from claude_agent_sdk import ClaudeAgentOptions  # noqa: E402
-except ModuleNotFoundError:
+except ImportError:
     ClaudeAgentOptions = None
 
 from lensjudge import config  # noqa: E402

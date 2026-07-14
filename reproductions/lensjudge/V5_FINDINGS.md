@@ -395,3 +395,28 @@ WiSE dial (monotone) + this close run-3: the v5 recipe is at a local optimum; re
 inference-side (TTA over 8 dihedral views — untested) and data-side (GALAXY CRUISE negatives in
 training, Euclid transfer). Ops: full endgame (6× merge+serve+valsel-grade → in-job AUC select → bench
 winner) ran autonomously in ONE 1h51m shared-QOS TP2 job.
+
+## Phase F CLOSED — default-Claude-free, SDK retained as engine option (2026-07-10)
+Full-tree audit (workflow wf_ea18c2d4: 7 readers over all 95 files + empirical import-blocker tracer +
+completeness critic; the critic caught the tracer's own bug — bare ImportError vs the repo's
+ModuleNotFoundError guards — and re-traced correctly). True pre-fix state: ONE open-path root break
+(grader_direct.py's top-level `from anthropic import AsyncAnthropic`, poisoning distill_hsc/
+distill_euclid/augment_sft_v5/build_sft_data/run_cascade(_recall)/run_batch --mode direct), plus the
+anthropic-default backend and a "sonnet"-shaped silent model default on the open path.
+
+Changes: (1) LENSJUDGE_BACKEND now DEFAULTS to `openai`; `claude` accepted as alias for the retained
+anthropic engine. (2) grader_direct's anthropic client import is lazy with a clear error; claude alias
+map applies only on the anthropic branch. (3) config.MODELS is backend-aware — open default model
+LENSJUDGE_MODEL (Qwen/Qwen3-VL-8B-Instruct) instead of silently sending "sonnet" to vLLM. (4) Trace.hooks()
+and tools.server.build() raise clear SDK-engine errors instead of None-crashes. (5) tools/spectrum gets
+the sibling no-op @tool guard (sis_theta_e now SDK-free). (6) All 10 optional-import guards broadened
+ModuleNotFoundError -> ImportError (survives broken installs). (7) Retained SDK-only modules
+(imaging/{judges,orchestrator}, spectro/grader, eval/run_appendix_*) raise a clear "Claude SDK engine"
+ModuleNotFoundError. (8) tests updated + the no-Claude check now blocks BOTH anthropic and
+claude_agent_sdk, asserts the openai default and a non-claude default model. (9) NEW
+.github/workflows/lensjudge-ci.yml: full test suite in an env with NO Claude packages installed —
+any change reintroducing a hard Claude dependency on the default path fails CI.
+
+Verification: all 7 test modules pass (54+ tests incl. the strengthened blocker test); empirical
+goal-state trace 25/25 (21 open-path modules import Claude-free with backend unset; 4 SDK-only modules
+give the clear error). The Claude engine remains fully selectable: LENSJUDGE_BACKEND=claude.

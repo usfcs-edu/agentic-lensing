@@ -14,7 +14,7 @@ from typing import Any
 
 try:  # optional: HookMatcher is only used by the anthropic (Claude Agent SDK) trace path
     from claude_agent_sdk import HookMatcher
-except ModuleNotFoundError:
+except ImportError:
     HookMatcher = None
 
 
@@ -55,6 +55,10 @@ class Trace:
 
     def hooks(self) -> dict:
         """Build the ClaudeAgentOptions(hooks=...) dict bound to this trace."""
+        if HookMatcher is None:
+            raise RuntimeError(
+                "Trace.hooks() requires claude_agent_sdk (the Claude SDK engine, "
+                "LENSJUDGE_BACKEND=anthropic|claude); the open backend does not use SDK hooks")
 
         async def pre(input_data, tool_use_id, context):
             self.write("pre_tool",

@@ -6,13 +6,14 @@ Messages API; the agentic graders via the Claude Agent SDK). v4 makes the backen
 OpenAI-compatible endpoint (vLLM / SGLang on GPUs, MLX-VLM / LM Studio / llama.cpp /
 Ollama on the Mac), fully offline.
 
-Design: the open-weight path is **purely additive**. The Anthropic path is untouched
-and remains the default; this module is only reached when ``LENSJUDGE_BACKEND=openai``.
-The schema (``common.schemas.ImageGrade``) and validator (``common.parse.parse_model``)
-are provider-agnostic and reused verbatim — only the transport differs.
+Design (Phase F, v5): the OPEN-WEIGHT backend is the DEFAULT; the Claude engine is the
+retained, explicitly-selected option (``LENSJUDGE_BACKEND=anthropic`` or its alias
+``claude``). The schema (``common.schemas.ImageGrade``) and validator
+(``common.parse.parse_model``) are provider-agnostic and reused verbatim — only the
+transport differs.
 
 Env switches (read at call time so run scripts can set os.environ from CLI flags):
-  LENSJUDGE_BACKEND      anthropic (default) | openai
+  LENSJUDGE_BACKEND      openai (default) | anthropic (alias: claude)
   LENSJUDGE_BASE_URL     OpenAI-compatible base, e.g. http://localhost:8000/v1
   LENSJUDGE_API_KEY      key for the server (local servers accept anything; default "EMPTY")
   LENSJUDGE_TEMPERATURE  sampling temperature for the open backend (default 0.0 — grading is deterministic)
@@ -32,18 +33,20 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Awaitable, Callable, Optional
 
-# NOTE: `openai` is imported LAZILY inside _get_client so the default Anthropic path
-# never requires it (it is not a hard dependency of the anthropic backend).
+# NOTE: both provider clients are imported LAZILY inside their client paths, so
+# neither `openai` nor `anthropic` is a hard dependency of the other backend.
 
 ANTHROPIC = "anthropic"
 OPENAI = "openai"
 
 
 def get_backend() -> str:
-    """Return the active backend: 'anthropic' (default) or 'openai'."""
-    b = os.environ.get("LENSJUDGE_BACKEND", ANTHROPIC).strip().lower()
+    """Return the active backend: 'openai' (default) or 'anthropic' ('claude' is an alias)."""
+    b = os.environ.get("LENSJUDGE_BACKEND", OPENAI).strip().lower()
+    if b == "claude":
+        b = ANTHROPIC
     if b not in (ANTHROPIC, OPENAI):
-        raise ValueError(f"LENSJUDGE_BACKEND must be {ANTHROPIC!r} or {OPENAI!r}, got {b!r}")
+        raise ValueError(f"LENSJUDGE_BACKEND must be {OPENAI!r}, {ANTHROPIC!r} or 'claude', got {b!r}")
     return b
 
 

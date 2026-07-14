@@ -26,8 +26,6 @@ import time
 from pathlib import Path
 from typing import Optional
 
-from anthropic import AsyncAnthropic
-
 from lensjudge import config
 from lensjudge.common import fetch, hooks, llm_client, parse, render
 from lensjudge.common.schemas import ImageGrade
@@ -100,19 +98,27 @@ def _fewshot_prefix(views) -> list:
     return out if len(out) > 2 else []   # only prefix if at least one example rendered
 
 
-_client: Optional[AsyncAnthropic] = None
+_client = None
 
 
-def _get_client() -> AsyncAnthropic:
+def _get_client():
     global _client
     if _client is None:
+        try:
+            from anthropic import AsyncAnthropic
+        except ImportError as e:
+            raise RuntimeError(
+                "grader_direct's anthropic engine needs `pip install anthropic`; "
+                "the default open backend (LENSJUDGE_BACKEND=openai) does not use it") from e
         _client = AsyncAnthropic()   # reads ANTHROPIC_API_KEY from env
     return _client
 
 
 def _resolve_model(model: Optional[str]) -> str:
     m = model or config.MODELS["grader"]
-    return _MODEL_IDS.get(m, m)
+    # claude-code alias map applies only to the anthropic engine; open backends take
+    # the model id verbatim (a served vLLM name or a merged-checkpoint path).
+    return m if llm_client.is_open() else _MODEL_IDS.get(m, m)
 
 
 def _cost(model_id: str, usage) -> float:

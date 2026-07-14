@@ -13,7 +13,8 @@
 #  - The open path is SDK-free (claude_agent_sdk optional) — the Perlmutter lensjudge venv omits it.
 #  - Prereqs (build once on a login node): $SCRATCH/venvs/vllm (uv venv + `uv pip install vllm ninja
 #    hf_transfer`), $SCRATCH/venvs/lensjudge (pandas numpy astropy pillow pydantic scipy requests tqdm
-#    pyarrow openai anthropic scikit-learn), the model in $HF_HOME, code rsync'd to $LJ_REPRO/lensjudge,
+#    pyarrow openai scikit-learn — anthropic NOT needed since Phase F), the model in $HF_HOME, code
+#    rsync'd to $LJ_REPRO/lensjudge,
 #    and cutouts staged as {name}.fits in $CUTOUT_DIR.
 #SBATCH -A cosmo_g
 #SBATCH -C gpu

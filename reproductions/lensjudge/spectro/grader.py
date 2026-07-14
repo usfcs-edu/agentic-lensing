@@ -14,7 +14,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
-from claude_agent_sdk import ClaudeAgentOptions
+try:
+    from claude_agent_sdk import ClaudeAgentOptions
+except ImportError as e:
+    raise ModuleNotFoundError(
+        "spectro.grader is part of the Claude SDK engine (LENSJUDGE_BACKEND=anthropic|claude); "
+        "install claude-agent-sdk to use spectroscopic grading") from e
 
 from lensjudge import config
 from lensjudge.common import hooks, parse

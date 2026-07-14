@@ -177,26 +177,32 @@ def test_grade_openai_agentic_end_to_end():
 
 
 def test_import_without_claude_sdk():
-    """The open-weight path must import with NO claude_agent_sdk (offline/Perlmutter deployment)."""
+    """Phase F no-Claude CI check: the open-weight DEFAULT path must import and select the
+    open backend with NEITHER claude_agent_sdk NOR anthropic installed (offline deployment)."""
     import subprocess
     code = (
-        "import builtins\n"
+        "import builtins, os\n"
+        "os.environ.pop('LENSJUDGE_BACKEND', None)\n"   # assert the *default*, not an override
         "_imp=builtins.__import__\n"
         "def _b(n,*a,**k):\n"
-        "    if n=='claude_agent_sdk' or n.startswith('claude_agent_sdk.'):\n"
-        "        raise ModuleNotFoundError('blocked')\n"
+        "    if n in ('claude_agent_sdk','anthropic') or n.startswith(('claude_agent_sdk.','anthropic.')):\n"
+        "        raise ModuleNotFoundError('blocked: '+n)\n"
         "    return _imp(n,*a,**k)\n"
         "builtins.__import__=_b\n"
         "import lensjudge.imaging.run_batch, lensjudge.imaging.grader_direct, lensjudge.imaging.grader_lean\n"
         "import lensjudge.imaging.grader_escalate\n"
-        "from lensjudge.tools import server, openai_tools, hsc_cutout, euclid_cutout\n"
-        "from lensjudge.eval import run_hsc, run_euclid\n"
-        "from lensjudge.common import hooks\n"
+        "from lensjudge.tools import server, openai_tools, hsc_cutout, euclid_cutout, spectrum\n"
+        "from lensjudge.eval import run_hsc, run_euclid, run_cascade, stage_hsc\n"
+        "from lensjudge.finetune import distill_hsc, build_corpus_v5\n"
+        "from lensjudge.common import hooks, llm_client\n"
+        "assert llm_client.get_backend() == 'openai', 'default backend must be openai'\n"
+        "from lensjudge import config\n"
+        "assert 'claude' not in config.MODELS['grader'], 'open default must not resolve to a claude model'\n"
         "print('OK')\n"
     )
     r = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True,
                        env={**os.environ, "PYTHONPATH": str(Path(__file__).resolve().parents[2])})
-    assert "OK" in r.stdout, f"SDK-free import failed:\n{r.stderr[-600:]}"
+    assert "OK" in r.stdout, f"no-Claude default-path check failed:\n{r.stderr[-900:]}"
 
 
 if __name__ == "__main__":

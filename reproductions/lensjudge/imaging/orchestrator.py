@@ -23,7 +23,12 @@ import json
 import time
 from typing import Optional
 
-from claude_agent_sdk import ClaudeAgentOptions
+try:
+    from claude_agent_sdk import ClaudeAgentOptions
+except ImportError as e:
+    raise ModuleNotFoundError(
+        "imaging.orchestrator is part of the Claude SDK engine (LENSJUDGE_BACKEND=anthropic|claude); "
+        "install claude-agent-sdk or use the open-backend modes (lean/direct)") from e
 
 from lensjudge import config
 from lensjudge.common import hooks, parse

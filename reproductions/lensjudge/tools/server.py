@@ -9,7 +9,7 @@ from __future__ import annotations
 
 try:  # optional: only the anthropic (Claude Agent SDK) path builds the MCP server
     from claude_agent_sdk import create_sdk_mcp_server
-except ModuleNotFoundError:
+except ImportError:
     create_sdk_mcp_server = None
 
 from lensjudge import config
@@ -56,6 +56,11 @@ def build(tool_names=None):
 
     Defaults to the lean imaging set (fetch_cutout, get_photometry).
     """
+    if create_sdk_mcp_server is None:
+        raise RuntimeError(
+            "claude_agent_sdk not installed — the MCP server is the SDK engine path "
+            "(LENSJUDGE_BACKEND=anthropic|claude); the open backend uses "
+            "lensjudge.tools.openai_tools instead")
     names = list(tool_names or ["fetch_cutout", "get_photometry"])
     tools, ok = [], []
     for n in names:

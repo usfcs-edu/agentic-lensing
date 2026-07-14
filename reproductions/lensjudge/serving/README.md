@@ -1,15 +1,16 @@
 # LensJudge v4 — open-weight serving recipes
 
-LensJudge v4 makes the LLM backend **selectable**. The Anthropic/Claude path is the default and is
-untouched; to run on an **open-weight** model you (1) start an OpenAI-compatible server with one of the
-recipes here, then (2) point LensJudge at it with three env vars. Nothing else in the harness changes —
-the same `eval/run_cascade.py`, `imaging/run_batch.py`, rubric prompts, `ImageGrade` schema, and
-`eval/calibrate.py` all work as-is.
+LensJudge's LLM backend is **selectable**. Since Phase F (v5) the **open-weight OpenAI-compatible
+backend is the default** and requires no Anthropic packages or keys; the Claude engine is the retained,
+explicitly-selected option (`LENSJUDGE_BACKEND=anthropic`, alias `claude`). To run on an open-weight
+model you (1) start an OpenAI-compatible server with one of the recipes here, then (2) point LensJudge
+at it with two env vars. Nothing else in the harness changes — the same `eval/run_cascade.py`,
+`imaging/run_batch.py`, rubric prompts, `ImageGrade` schema, and `eval/calibrate.py` all work as-is.
 
 ## Point LensJudge at an open server
 
 ```bash
-export LENSJUDGE_BACKEND=openai
+export LENSJUDGE_BACKEND=openai                        # optional since Phase F — openai IS the default
 export LENSJUDGE_BASE_URL=http://localhost:8000/v1     # the server you start below
 export LENSJUDGE_MODEL_GRADER=Qwen/Qwen3-VL-8B-Instruct # the served model id (flows through config.MODELS)
 # optional:
@@ -25,10 +26,10 @@ python -m lensjudge.eval.run_cascade ...
 ```
 
 Per-role overrides use the existing seam (`LENSJUDGE_MODEL_{GRADER,JUDGE,WORKER,ARBITRATOR,SPECTRO}`), so
-you can **mix** backends — e.g. an open Stage-1 grader with a Claude Stage-2 adjudicator: set
-`LENSJUDGE_BACKEND=openai` for the open run, or keep `=anthropic` and override only one role once the
-agentic loop port (Phase 3) lands. **To return to Claude** (the regression oracle): `unset
-LENSJUDGE_BACKEND` (default `anthropic`).
+you can **mix** backends — e.g. an open Stage-1 grader with a Claude Stage-2 adjudicator. **To select the
+retained Claude engine** (regression oracle / SDK agentic modes): `export LENSJUDGE_BACKEND=claude` (alias
+for `anthropic`; needs `pip install anthropic` and, for the agentic modes, `claude-agent-sdk` + an
+`ANTHROPIC_API_KEY`). The open default needs neither package.
 
 ## Hardware tiers (this lab)
 

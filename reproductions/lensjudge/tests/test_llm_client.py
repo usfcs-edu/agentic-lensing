@@ -115,11 +115,13 @@ def _patch_client(responses):
 def test_get_backend_default_and_switch():
     saved = _save_env()
     try:
-        assert llm_client.get_backend() == "anthropic"   # default, no env
-        assert llm_client.is_open() is False
-        os.environ["LENSJUDGE_BACKEND"] = "openai"
-        assert llm_client.get_backend() == "openai"
+        assert llm_client.get_backend() == "openai"      # Phase F: open-weight default, no env
         assert llm_client.is_open() is True
+        os.environ["LENSJUDGE_BACKEND"] = "anthropic"
+        assert llm_client.get_backend() == "anthropic"
+        assert llm_client.is_open() is False
+        os.environ["LENSJUDGE_BACKEND"] = "claude"        # retained-engine alias
+        assert llm_client.get_backend() == "anthropic"
         os.environ["LENSJUDGE_BACKEND"] = "OpenAI"        # case-insensitive
         assert llm_client.get_backend() == "openai"
         os.environ["LENSJUDGE_BACKEND"] = "bogus"

@@ -16,7 +16,7 @@ from typing import Any, Optional
 try:  # the open-weight backend doesn't need the Claude Agent SDK (offline deploys omit it)
     from claude_agent_sdk import (AssistantMessage, ClaudeAgentOptions, ResultMessage,
                                   TextBlock, ThinkingBlock, query)
-except ModuleNotFoundError:
+except ImportError:
     AssistantMessage = ClaudeAgentOptions = ResultMessage = TextBlock = ThinkingBlock = query = None
 
 from lensjudge import config

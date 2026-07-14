@@ -9,7 +9,7 @@ from __future__ import annotations
 
 try:  # optional: @tool (MCP) is only used by the anthropic path; no-op keeps core logic SDK-free
     from claude_agent_sdk import tool
-except ModuleNotFoundError:
+except ImportError:
     def tool(*_a, **_k):
         def _deco(fn):
             return fn
