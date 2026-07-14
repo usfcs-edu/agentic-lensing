@@ -130,6 +130,24 @@ the next freed slot; then the other P1c products; then the T2 diagnostic; then g
 P2c partial #1 completions so far: mclmc-A, s0svi, **SMC-evid-24 (primary T3 mode-weight ref)
 DONE**; nautilus/remc/mclmc-B running.
 
+### P1c MONEY NUMBER — 2026-07-14 (converged via 128-particle SMC)
+**γ_binned(corr, low) = 1.103 ± 0.008** (median 1.1032, mean 1.104, q16/q84 1.096/1.112;
+θ_E = 2.624 ± 0.005; logZ_low = −4771.08; SMC λ→1 in 28 steps, 128 particles, ESS 77–118;
+frac_gamma>split = 0.0). Confirms the 21/24-chain diagnosis (γ≈1.10) with a proper σ — the
+tempering crossed the source-center nuisance sub-modes that froze the HMC.
+- **H2 VERDICT: NOT unified — the correlated likelihood OVER-CORRECTS.** γ_binned(corr,low)=1.103
+  is ~17σ BELOW the diagonal-native anchor 1.433 [1.400,1.469]. Cross-scale correlated γ:
+  fine-steep 1.816 (above), binned-low 1.103 (below), native ~2.4 (info-poor/prior-pulled).
+  They BRACKET the anchor but do NOT converge to it.
+- **HONEST HEADLINE (pre-registered H1/H2 fork "necessary but not sufficient" branch)**: the
+  correlated noise model is a MAJOR, real correction — it removes the diagonal's upsampling
+  steep artifact (binned diagonal ~100% steep γ≈2.5 → correlated 0% steep, γ deflated to 1.10)
+  — but it does NOT achieve clean cross-scale unification; residual scale-dependence remains,
+  pointing to additional systematics (source-model/PSF). Publishable, honest.
+- Basin-evidence linchpin (logZ_low −4771 vs logZ_steep from the running steep SMC → does
+  correlated flip the diagonal-SMC's +162-nat steep pref to LOW?) — steep run in progress.
+- Cost: low canary 0.53 A100-h; steep similar. Fresh agent's mem fix (300→128 particles) worked.
+
 ### P1c SMC OOM + multi-day stall — 2026-07-13/14 (restarted with memory fix)
 The correlated-SMC canary (55885270) FAILED on OOM: tried to allocate **120.4 GB** with 300
 particles (~400 MB/particle — the correlated whitening conv inflates the AD tape ~2.8× beyond
