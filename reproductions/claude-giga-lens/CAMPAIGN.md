@@ -144,9 +144,23 @@ tempering crossed the source-center nuisance sub-modes that froze the HMC.
   steep artifact (binned diagonal ~100% steep γ≈2.5 → correlated 0% steep, γ deflated to 1.10)
   — but it does NOT achieve clean cross-scale unification; residual scale-dependence remains,
   pointing to additional systematics (source-model/PSF). Publishable, honest.
-- Basin-evidence linchpin (logZ_low −4771 vs logZ_steep from the running steep SMC → does
-  correlated flip the diagonal-SMC's +162-nat steep pref to LOW?) — steep run in progress.
-- Cost: low canary 0.53 A100-h; steep similar. Fresh agent's mem fix (300→128 particles) worked.
+- **BASIN-EVIDENCE LINCHPIN — CLEAN WIN (the correlated likelihood FLIPS the artifact).**
+  Correlated binned SMC: logZ_low=−4771.08 vs logZ_steep=−4799.96 (γ_steep=2.64) →
+  **ΔlogZ_corr = −28.9 nats favoring LOW** (w_low≈1). vs the DIAGONAL binned SMC which favored
+  STEEP by **+162 nats**. So the correlated likelihood swings the basin evidence by **~191 nats
+  from steep→low** — demonstrating the diagonal's steep-basin dominance on the upsampled product
+  WAS a noise-covariance/upsampling artifact, and the correlated noise model correctly removes it.
+- **COMPLETE P1c VERDICT (nuanced, honest, publishable):**
+  * H1 (basin SELECTION): **correlated WINS** — flips the diagonal's spurious steep dominance
+    (+162) to low (−29), a 191-nat swing → the bimodality/steep artifact IS a noise-covariance
+    artifact the correlated likelihood removes. (Pre-registered H1 "artifact" branch, rigorously.)
+  * H2 (γ VALUE unification): **FAILS — over-correction** — the restored low basin's γ=1.103±0.008
+    is ~17σ BELOW the native anchor 1.433; correlated γ across scales BRACKETS the anchor
+    (fine-steep 1.816 above, binned-low 1.103 below) rather than converging → residual
+    scale-dependence → noise model NECESSARY but NOT SUFFICIENT; other systematics
+    (source-model/PSF) drive the residual.
+- Cost: low 0.53 + steep(p128 OOM)+steep(p96) ~1.1 A100-h. Fresh agent's mem fix (300→128/96
+  particles) worked. **P1c SCIENCE COMPLETE.** ~15 A100-h P1c total, ~15 reserve.
 
 ### P1c SMC OOM + multi-day stall — 2026-07-13/14 (restarted with memory fix)
 The correlated-SMC canary (55885270) FAILED on OOM: tried to allocate **120.4 GB** with 300
