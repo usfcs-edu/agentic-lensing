@@ -130,6 +130,16 @@ the next freed slot; then the other P1c products; then the T2 diagnostic; then g
 P2c partial #1 completions so far: mclmc-A, s0svi, **SMC-evid-24 (primary T3 mode-weight ref)
 DONE**; nautilus/remc/mclmc-B running.
 
+### P1c SMC OOM + multi-day stall — 2026-07-13/14 (restarted with memory fix)
+The correlated-SMC canary (55885270) FAILED on OOM: tried to allocate **120.4 GB** with 300
+particles (~400 MB/particle — the correlated whitening conv inflates the AD tape ~2.8× beyond
+P2c's diagonal-SMC 145 MB/particle; A100=80GB). The impl agent DIED during a multi-day gap and
+never processed the failure / never fired its SMC_PARTICLES=200 fallback → P1c stalled 07-10→14.
+FIX (fresh agent): particles 300→128 (~51GB), XLA mem flags, gradient-checkpoint the whitened
+log-density if needed, ≥96 particles for a credible σ. TIME-BOX 2-3 canary attempts; if OOM
+persists → accept the point-estimate floor γ_binned(corr,low)≈1.10 (21/24-chain consensus, width
+not estimated). Cert refreshed Jul 13 20:32 (access OK). ~16 A100-h reserve.
+
 ### P1c v3b-low diagnosis + SMC decision — 2026-07-10 (γ≈1.10 extractable; nuisance multimodality)
 Impl-agent diagnosis (off-budget L4 + the svi_cov canary draws): **γ_binned(corr,low) ≈ 1.10 IS
 robust** — 21/24 chains land at γ=1.098±0.010 (R̂_γ→2.06 good-chains-only), the density peak
