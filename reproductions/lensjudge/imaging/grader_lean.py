@@ -13,11 +13,14 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Optional
 
-from claude_agent_sdk import (AssistantMessage, ClaudeAgentOptions, ResultMessage,
-                              TextBlock, ThinkingBlock, query)
+try:  # the open-weight backend doesn't need the Claude Agent SDK (offline deploys omit it)
+    from claude_agent_sdk import (AssistantMessage, ClaudeAgentOptions, ResultMessage,
+                                  TextBlock, ThinkingBlock, query)
+except ImportError:
+    AssistantMessage = ClaudeAgentOptions = ResultMessage = TextBlock = ThinkingBlock = query = None
 
 from lensjudge import config
-from lensjudge.common import hooks, parse
+from lensjudge.common import hooks, llm_client, parse
 from lensjudge.common.schemas import ImageGrade
 from lensjudge.tools import server
 
@@ -87,10 +90,50 @@ async def _collect(prompt: str, opts: ClaudeAgentOptions, tr=None):
     return (texts[-1] if texts else ""), cost, turns, stats
 
 
+async def _grade_openai_agentic(cand: dict, *, model, system_prompt, tools, trace_path) -> GradeResult:
+    """Open-weight agentic path (LENSJUDGE_BACKEND=openai): the OpenAI tool-calling loop over the SAME
+    fetch_cutout/get_photometry tools (tools/openai_tools), schema-validated by parse. Drop-in
+    GradeResult; mirrors the Claude-SDK loop's contract (one repair retry, same meta keys)."""
+    from lensjudge.tools import openai_tools
+    sysp = system_prompt or _RUBRIC
+    model_id = model or config.MODELS["grader"]      # served model id via LENSJUDGE_MODEL_GRADER
+    t0 = time.time()
+    try:
+        res = await llm_client.run_tool_loop(
+            system=sysp, user_content=[{"type": "text", "text": _user_message(cand)}],
+            tools=openai_tools.tool_schemas(list(tools)), execute_tool=openai_tools.execute_tool,
+            model=model_id, max_turns=config.MAX_TURNS)
+    except Exception as e:
+        return GradeResult(None, "", error=f"{type(e).__name__}: {e}",
+                           meta={"name": cand.get("name"), "mode": "lean_openai"})
+    raw, cost, gp = res.text, res.cost_usd, res.grade_probs
+    grade = parse.parse_model(raw, ImageGrade)
+    if grade is None and raw:                         # one text-only repair retry (matches SDK path)
+        try:
+            r2 = await llm_client.chat_text(system=sysp, text=_REPAIR + raw, model=model_id, max_tokens=2048)
+            cost += r2.cost_usd
+            g2 = parse.parse_model(r2.text, ImageGrade)
+            if g2 is not None:
+                grade, raw = g2, r2.text
+                gp = r2.grade_probs or gp
+        except Exception:
+            pass
+    return GradeResult(
+        grade=grade, raw=raw, cost_usd=cost, num_turns=res.num_turns, parse_ok=grade is not None,
+        meta={"name": cand.get("name"), "mode": "lean_openai", "backend": "openai",
+              "model_id": model_id, "tool_calls": res.tool_calls,
+              "grade_probs": gp, "p_lens_logprob": llm_client.logprob_p_lens(gp),
+              "wall_s": round(time.time() - t0, 2), "n_thinking_blocks": 0, "thinking_chars": 0})
+
+
 async def grade_candidate(cand: dict, *, model: Optional[str] = None,
                           tools=("fetch_cutout", "get_photometry"),
                           system_prompt: Optional[str] = None,
                           trace_path: Optional[str] = None) -> GradeResult:
+    # open-weight backend: drive the SAME tools through the OpenAI tool-calling loop (no Claude SDK)
+    if llm_client.is_open():
+        return await _grade_openai_agentic(cand, model=model, system_prompt=system_prompt,
+                                           tools=tools, trace_path=trace_path)
     mcp_servers, allowed = server.build(list(tools))
     tr = hooks.Trace(trace_path) if trace_path else None
     opts = ClaudeAgentOptions(

@@ -10,6 +10,7 @@ and cache the result under cache/cubes/.
 """
 from __future__ import annotations
 
+import os
 import re
 import time
 from pathlib import Path
@@ -47,13 +48,13 @@ MAX_FETCH_WALL = 120.0   # total wall-clock cap per candidate across retries (gr
 _CUBE_CACHE = config.CACHE / "cubes"
 
 
-def _read_fits_cube(path: Path) -> np.ndarray | None:
+def _read_fits_cube(path: Path, shape: tuple = config.CUTOUT_SHAPE) -> np.ndarray | None:
     try:
         with fits.open(path) as h:
             cube = np.asarray(h[0].data, dtype=np.float32)
     except Exception:
         return None
-    if cube is None or cube.shape != config.CUTOUT_SHAPE:
+    if cube is None or cube.shape != shape:
         return None
     return np.nan_to_num(cube, nan=0.0, posinf=0.0, neginf=0.0)
 
@@ -71,22 +72,30 @@ def on_disk_path(name: str, survey: str | None = None) -> Path | None:
     return None
 
 
-def _endpoint_url(ra: float, dec: float, layer: str) -> str:
+def _endpoint_url(ra: float, dec: float, layer: str, size: int = config.SIZE_PIX) -> str:
     return (f"{BASE}/fits-cutout?ra={ra:.6f}&dec={dec:.6f}"
-            f"&size={config.SIZE_PIX}&layer={layer}&pixscale={config.PIXSCALE}&bands=grz")
+            f"&size={size}&layer={layer}&pixscale={config.PIXSCALE}&bands=grz")
 
 
 def fetch_endpoint(ra: float, dec: float, layer: str = "ls-dr10",
-                   cache_key: str | None = None) -> np.ndarray | None:
-    """Download a grz cutout from legacysurvey; cache by key. Returns the cube."""
+                   cache_key: str | None = None,
+                   size: int = config.SIZE_PIX) -> np.ndarray | None:
+    """Download a grz cutout from legacysurvey; cache by key. Returns the cube.
+
+    ``size`` (px, same 0.262"/px scale) defaults to the standard 101px geometry so all
+    existing callers/caches are untouched; non-default sizes get an ``_s{size}`` suffix
+    on the auto cache key (callers passing an explicit cache_key own its uniqueness).
+    """
     _CUBE_CACHE.mkdir(parents=True, exist_ok=True)
-    key = cache_key or f"{layer}_{ra:.5f}_{dec:+.5f}"
+    key = cache_key or (f"{layer}_{ra:.5f}_{dec:+.5f}"
+                        + (f"_s{size}" if size != config.SIZE_PIX else ""))
+    shape = (3, size, size)
     cached = _CUBE_CACHE / f"{key}.fits"
     if cached.exists() and cached.stat().st_size > 256:
-        cube = _read_fits_cube(cached)
+        cube = _read_fits_cube(cached, shape)
         if cube is not None:
             return cube
-    url = _endpoint_url(ra, dec, layer)
+    url = _endpoint_url(ra, dec, layer, size)
     t0 = time.time()
     for attempt in range(1, RETRIES + 1):
         if time.time() - t0 > MAX_FETCH_WALL:   # graceful give-up instead of an unbounded slow tail
@@ -108,7 +117,7 @@ def fetch_endpoint(ra: float, dec: float, layer: str = "ls-dr10",
                 tmp.unlink(missing_ok=True)
                 raise RuntimeError("cutout too small (off-footprint?)")
             tmp.rename(cached)
-            return _read_fits_cube(cached)
+            return _read_fits_cube(cached, shape)
         except Exception:
             if attempt < RETRIES and time.time() - t0 < MAX_FETCH_WALL:
                 time.sleep(RETRY_BACKOFF * attempt)
@@ -123,6 +132,15 @@ def get_cube(name: str | None = None, ra: float | None = None, dec: float | None
     raw layer string ('ls-dr9'/'ls-dr10').
     """
     if name:
+        # deployment override: a single staged dir of {name}.fits (e.g. Perlmutter offline serving,
+        # where cutouts are pre-staged and CUTOUT_DIRS' repo-relative paths don't apply).
+        staged = os.environ.get("LENSJUDGE_CUTOUT_DIR")
+        if staged:
+            sp = Path(staged) / f"{name}.fits"
+            if sp.exists():
+                cube = _read_fits_cube(sp)
+                if cube is not None:
+                    return cube
         p = on_disk_path(name, survey if survey in config.CUTOUT_DIRS else None)
         if p is not None:
             cube = _read_fits_cube(p)
@@ -138,3 +156,35 @@ def get_cube(name: str | None = None, ra: float | None = None, dec: float | None
         layer = config.SURVEY_LAYER.get(survey, survey if survey.startswith("ls-") else "ls-dr10")
         return fetch_endpoint(float(ra), float(dec), layer=layer, cache_key=name)
     return None
+
+
+# --- WIDE context cutout (matched-inputs grader, parity Phase C3) -------------
+# Human graders had a Legacy Surveys sky-viewer link and could zoom OUT for context;
+# the matched grader stands that in with one wider cutout at the SAME pixel scale.
+
+def wide_size(factor: int = 4) -> int:
+    """Wide-cutout size in px: same center pixel, ``factor`` x the standard half-width
+    (factor=4 -> 401 px = ~105" at 0.262"/px, comfortably under the endpoint's cap)."""
+    return factor * (config.SIZE_PIX - 1) + 1
+
+
+def get_wide_cube(name: str | None = None, ra: float | None = None, dec: float | None = None,
+                  survey: str = "storfer", factor: int = 4) -> np.ndarray | None:
+    """Fetch a WIDE context grz cube (~4x the standard field, same 0.262"/px scale).
+
+    Wide cutouts are never staged on disk, so this always resolves RA/Dec (from the args
+    or a DESI-coordinate name) and hits the fits-cutout endpoint. Cached under a distinct
+    ``*_wide{size}`` key so the standard 101px cubes/caches are untouched. Callers that
+    batch this must stay polite (<=3 workers against legacysurvey.org)."""
+    if ra is None or dec is None:
+        pra, pdec = parse_radec_from_name(name)
+        ra = ra if ra is not None else pra
+        dec = dec if dec is not None else pdec
+    if ra is None or dec is None:
+        return None
+    layer = config.SURVEY_LAYER.get(
+        survey, survey if str(survey).startswith("ls-") else "ls-dr10")
+    size = wide_size(factor)
+    key = (f"{name}_wide{size}" if name
+           else f"{layer}_{float(ra):.5f}_{float(dec):+.5f}_wide{size}")
+    return fetch_endpoint(float(ra), float(dec), layer=layer, cache_key=key, size=size)

@@ -102,10 +102,18 @@ def crossmatch(master: pd.DataFrame, cat: pd.DataFrame, ra2: str, dec2: str,
 
 
 def _xmatch_sugohi(master, radius, overlap):
-    """SuGOHI/HOLISMOKES (local HSC catalog): committee grade + spec-z + theta_E."""
-    if not SUGOHI_CAT.exists():
+    """SuGOHI/HOLISMOKES (local HSC catalog): committee grade + spec-z + theta_E.
+
+    Prefers the full A/B/C catalog (sugohi_full.csv, staged by the parity work) over the
+    A+B-only parquet the aion-1 retrieval task keeps: the human-ceiling kappa needs the
+    committee's C grades too."""
+    full = SUGOHI_CAT.parent / "sugohi_full.csv"
+    if full.exists():
+        su = pd.read_csv(full)
+    elif SUGOHI_CAT.exists():
+        su = pd.read_parquet(SUGOHI_CAT)
+    else:
         print("  [skip] SuGOHI catalog not staged"); return
-    su = pd.read_parquet(SUGOHI_CAT)
     su = su.dropna(subset=["ra", "dec"])
     print(f"  SuGOHI: {len(su)} HSC lenses, "
           f"RA [{su.ra.min():.1f},{su.ra.max():.1f}]  Dec [{su.dec.min():.1f},{su.dec.max():.1f}]")

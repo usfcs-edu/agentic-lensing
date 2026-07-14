@@ -21,14 +21,13 @@ API needs a key; the SDK rode on the claude CLI login).
 from __future__ import annotations
 
 import json
+import os
 import time
 from pathlib import Path
 from typing import Optional
 
-from anthropic import AsyncAnthropic
-
 from lensjudge import config
-from lensjudge.common import fetch, hooks, parse, render
+from lensjudge.common import fetch, hooks, llm_client, parse, render
 from lensjudge.common.schemas import ImageGrade
 from lensjudge.imaging.grader_lean import GradeResult, _RUBRIC, _REPAIR
 from lensjudge.tools.photometry import _aperture_colors
@@ -53,19 +52,73 @@ _PRICE = {
 # model plan it.
 _DEFAULT_VIEWS = ("full", "zoom", "residual")
 
-_client: Optional[AsyncAnthropic] = None
+
+def _example_blocks(ex: dict, views) -> Optional[list]:
+    """Render one labeled few-shot reference example into content blocks (or None if no cutout)."""
+    cube = fetch.get_cube(name=ex.get("name"), ra=ex.get("ra"), dec=ex.get("dec"),
+                          survey=ex.get("survey_key") or ex.get("catalog") or "storfer")
+    if cube is None:
+        return None
+    imgs = render.render_views(cube, views=[v for v in views if v in render.VIEWS])
+    label = str(ex.get("label", "")).upper()
+    hdr = f"REFERENCE EXAMPLE -- {label}"
+    if ex.get("grade"):
+        hdr += f" (consensus grade {ex['grade']})"
+    if ex.get("note"):
+        hdr += f": {ex['note']}"
+    blocks: list = [{"type": "text", "text": hdr}]
+    for v, img in imgs.items():
+        blocks.append({"type": "text", "text": f"[{v}]"})
+        blocks.append({"type": "image", "source": {
+            "type": "base64", "media_type": "image/png", "data": render.png_b64(img)}})
+    return blocks
 
 
-def _get_client() -> AsyncAnthropic:
+def _fewshot_prefix(views) -> list:
+    """Optional in-context few-shot examples (LENSJUDGE_FEWSHOT_MANIFEST = a CSV with columns
+    name, ra, dec, survey_key, label, grade, note). Returns [] when unset. The examples render with
+    the SAME stretch/views as the candidate so they calibrate on like-for-like pixels."""
+    path = os.environ.get("LENSJUDGE_FEWSHOT_MANIFEST")
+    if not path:
+        return []
+    try:
+        import pandas as pd
+        rows = pd.read_csv(path).to_dict("records")
+    except Exception:
+        return []
+    out: list = [{"type": "text", "text":
+                  "Below are REFERENCE EXAMPLES with known labels, to calibrate your grading. Study them, "
+                  "then grade the CANDIDATE that follows (it is NOT among the examples). Use the FULL p_lens "
+                  "range: a clear lens should score near 1.0, a clear non-lens near 0.0; do not default to 0."}]
+    for ex in rows:
+        b = _example_blocks(ex, views)
+        if b:
+            out.extend(b)
+    out.append({"type": "text", "text": "END OF REFERENCE EXAMPLES. Now grade THIS candidate:"})
+    return out if len(out) > 2 else []   # only prefix if at least one example rendered
+
+
+_client = None
+
+
+def _get_client():
     global _client
     if _client is None:
+        try:
+            from anthropic import AsyncAnthropic
+        except ImportError as e:
+            raise RuntimeError(
+                "grader_direct's anthropic engine needs `pip install anthropic`; "
+                "the default open backend (LENSJUDGE_BACKEND=openai) does not use it") from e
         _client = AsyncAnthropic()   # reads ANTHROPIC_API_KEY from env
     return _client
 
 
 def _resolve_model(model: Optional[str]) -> str:
     m = model or config.MODELS["grader"]
-    return _MODEL_IDS.get(m, m)
+    # claude-code alias map applies only to the anthropic engine; open backends take
+    # the model id verbatim (a served vLLM name or a merged-checkpoint path).
+    return m if llm_client.is_open() else _MODEL_IDS.get(m, m)
 
 
 def _cost(model_id: str, usage) -> float:
@@ -100,7 +153,7 @@ def _build_content(cand: dict, views) -> Optional[list]:
         return None
     imgs = render.render_views(cube, views=[v for v in views if v in render.VIEWS])
     fov = config.SIZE_PIX * config.PIXSCALE
-    content: list = [{"type": "text", "text":
+    content: list = _fewshot_prefix(views) + [{"type": "text", "text":
                       _candidate_text(cand) +
                       f"\n\nRendered grz cutout views ({fov:.1f}\" field, ~0.26\"/px, "
                       "Lupton-RGB z=R/r=G/g=B; lens galaxies red, sources blue):"}]
@@ -120,23 +173,78 @@ def _build_content(cand: dict, views) -> Optional[list]:
     return content
 
 
+async def _grade_openai(cand: dict, content: list, model_id: str, sysp: str,
+                        n_imgs: int, tr, t0: float) -> GradeResult:
+    """Open-weight backend path (LENSJUDGE_BACKEND=openai): one OpenAI-compatible
+    multimodal call with the SAME evidence blocks + rubric, schema-validated by parse.
+
+    Mirrors the Anthropic single-call flow (one turn, one text-only repair retry) so the
+    GradeResult is drop-in identical; only the transport differs.
+    """
+    try:
+        res = await llm_client.chat_with_images(
+            system=sysp, content=content, model=model_id, max_tokens=2048,
+            json_schema=ImageGrade.model_json_schema())
+    except Exception as e:
+        return GradeResult(None, "", error=f"{type(e).__name__}: {e}", parse_ok=False,
+                           meta={"name": cand.get("name"), "mode": "direct"})
+    raw, cost, gp = res.text, res.cost_usd, res.grade_probs
+    if tr is not None:
+        tr.write("direct_response", input_tokens=res.input_tokens,
+                 output_tokens=res.output_tokens, cost_usd=round(cost, 5),
+                 stop_reason=res.finish_reason, text=raw, backend="openai",
+                 grade_probs=gp)
+    grade = parse.parse_model(raw, ImageGrade)
+    if grade is None and raw:  # one text-only repair retry (matches the anthropic path)
+        try:
+            r2 = await llm_client.chat_text(system=sysp, text=_REPAIR + raw,
+                                            model=model_id, max_tokens=2048)
+            cost += r2.cost_usd
+            g2 = parse.parse_model(r2.text, ImageGrade)
+            if g2 is not None:
+                grade, raw = g2, r2.text
+                gp = r2.grade_probs or gp
+        except Exception:
+            pass
+    return GradeResult(
+        grade=grade, raw=raw, cost_usd=cost, num_turns=1, parse_ok=grade is not None,
+        meta={"name": cand.get("name"), "mode": "direct", "model_id": model_id,
+              "backend": "openai", "n_images": n_imgs,
+              "wall_s": round(time.time() - t0, 2),
+              "trace": str(tr.path) if tr else None,
+              # v5 logprob scoring: raw grade-token distribution + uncalibrated P(A)+P(B)
+              "grade_probs": gp, "p_lens_logprob": llm_client.logprob_p_lens(gp),
+              # provenance columns expected by run_batch._row_dict (None in direct mode)
+              "tier": None, "escalated": None, "highres_survey": None,
+              "p_lens_tier1": None, "p_lens_tier2": None,
+              "n_thinking_blocks": 0, "thinking_chars": 0})
+
+
 async def grade_candidate(cand: dict, *, model: Optional[str] = None,
                           tools=("fetch_cutout", "get_photometry"),  # ignored (no loop)
                           system_prompt: Optional[str] = None,
                           views=_DEFAULT_VIEWS,
+                          content: Optional[list] = None,
                           trace_path: Optional[str] = None) -> GradeResult:
+    # `content` lets callers supply PRE-RENDERED evidence blocks (e.g. Euclid/HSC high-res views for
+    # tier-2 distillation) and reuse this dual-backend single-call path unchanged; default = DESI grz.
     model_id = _resolve_model(model)
     tr = hooks.Trace(trace_path) if trace_path else None
     t0 = time.time()
-    content = _build_content(cand, views)
+    if content is None:
+        content = _build_content(cand, views)
     if content is None:
         return GradeResult(None, "", error="no cutout", parse_ok=False,
                            meta={"name": cand.get("name"), "mode": "direct"})
     n_imgs = sum(1 for b in content if b.get("type") == "image")
-    if tr is not None:
-        tr.write("direct_request", model=model_id, n_images=n_imgs, views=list(views))
-    client = _get_client()
     sysp = system_prompt or _RUBRIC
+    if tr is not None:
+        tr.write("direct_request", model=model_id, n_images=n_imgs, views=list(views),
+                 backend=llm_client.get_backend())
+    # open-weight backend: route through the OpenAI-compatible client and return.
+    if llm_client.is_open():
+        return await _grade_openai(cand, content, model_id, sysp, n_imgs, tr, t0)
+    client = _get_client()
 
     # thinking: off by default (matches lean's default; isolates the loop). When
     # LENSJUDGE_THINKING=adaptive, give the single call a reasoning scratchpad — this

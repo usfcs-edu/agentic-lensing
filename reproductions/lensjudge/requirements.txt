@@ -16,3 +16,7 @@ scikit-learn>=1.4   # eval/score.py + eval/run_lensjudge_eval.py (recovery@FPR, 
 #   .venvs/lensfinder (torch)   — Stage-C meta-learner scoring (_scorelib.py)
 #   .venvs/gigalens   (JAX)     — quick_lensmodel VI fit
 anthropic>=0.40
+# v4 open-weight backend (LENSJUDGE_BACKEND=openai): OpenAI-compatible client for
+# vLLM / SGLang / MLX-VLM / LM Studio / Ollama. Imported lazily — only required when
+# the openai backend is selected; the default anthropic path does not need it.
+openai>=1.40

@@ -67,8 +67,19 @@ LUPTON_STRETCH = 0.5
 RENDER_PX = 400            # upsample 101 -> 400 for legibility
 
 # --- model tiers (claude-code aliases; override per role via env) -----------
+# Per-role env always wins. Otherwise the default depends on the engine: the claude
+# aliases below for the anthropic engine; a single open model id (LENSJUDGE_MODEL,
+# matching serve_vllm_qwen3vl.sh's default) for the default open backend — so the
+# openai path never silently sends "sonnet" to a vLLM server.
+_OPEN_DEFAULT_MODEL = os.environ.get("LENSJUDGE_MODEL", "Qwen/Qwen3-VL-8B-Instruct")
+
+
 def _m(role: str, default: str) -> str:
-    return os.environ.get(f"LENSJUDGE_MODEL_{role.upper()}", default)
+    v = os.environ.get(f"LENSJUDGE_MODEL_{role.upper()}")
+    if v:
+        return v
+    from lensjudge.common.llm_client import is_open  # stdlib-only module; no cycle
+    return _OPEN_DEFAULT_MODEL if is_open() else default
 
 MODELS = {
     "grader": _m("grader", "sonnet"),          # lean single-agent grader

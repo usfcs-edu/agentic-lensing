@@ -24,9 +24,15 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import pandas as pd  # noqa: E402
-from claude_agent_sdk import (AssistantMessage, ClaudeAgentOptions,  # noqa: E402
-                              ResultMessage, SystemMessage, TextBlock, ThinkingBlock,
-                              ToolResultBlock, ToolUseBlock, UserMessage, query)
+
+try:
+    from claude_agent_sdk import (AssistantMessage, ClaudeAgentOptions,  # noqa: E402
+                                  ResultMessage, SystemMessage, TextBlock, ThinkingBlock,
+                                  ToolResultBlock, ToolUseBlock, UserMessage, query)
+except ImportError as e:
+    raise ModuleNotFoundError(
+        "run_appendix_examples is part of the Claude SDK engine (LENSJUDGE_BACKEND=anthropic|claude); "
+        "install claude-agent-sdk to reproduce the v2 appendix figures") from e
 
 from lensjudge import config  # noqa: E402
 from lensjudge.common import fetch, hooks, parse, render  # noqa: E402

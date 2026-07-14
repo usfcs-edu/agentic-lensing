@@ -57,12 +57,14 @@ def _resolve_euclid(name, ra, dec, radius_arcsec: float) -> Optional[dict]:
 
 
 def _resolve_hsc(name, ra, dec) -> Optional[dict]:
-    """HSC PDR3 coverage probe: gated on credentials; a successful (cached) cutout fetch == coverage.
-    Carries ra/dec so the HSC tier-2 grader (position-based) can re-render the same object."""
+    """HSC PDR3 coverage probe: a successful cutout fetch == coverage. Coverage requires EITHER
+    credentials (a live/credentialed probe on an internet host) OR a warm cache (the decoupled
+    offline grade host, staged from an internet host). Carries ra/dec so the HSC tier-2 grader
+    (position-based) can re-render the same object."""
     if ra is None or dec is None:
         return None
     from lensjudge.common import hsc_fetch
-    if not hsc_fetch.have_credentials():
+    if not (hsc_fetch.have_credentials() or hsc_fetch.cached(float(ra), float(dec))):
         return None
     try:
         bands = hsc_fetch.fetch_hsc_cutout(float(ra), float(dec))

@@ -16,7 +16,14 @@ import json
 
 import numpy as np
 from astropy.cosmology import FlatLambdaCDM
-from claude_agent_sdk import tool
+
+try:  # optional: @tool (MCP) is only used by the anthropic path; no-op keeps core logic SDK-free
+    from claude_agent_sdk import tool
+except ImportError:
+    def tool(*_a, **_k):
+        def _deco(fn):
+            return fn
+        return _deco
 
 _COSMO = FlatLambdaCDM(H0=70, Om0=0.3)
 _C_KM_S = 299792.458

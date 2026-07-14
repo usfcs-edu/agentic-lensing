@@ -1,4 +1,5 @@
-"""LensJudge — agentic strong-lens candidate VI grader on the Claude Agent SDK.
+"""LensJudge — strong-lens candidate VI grader, backend-selectable (open-weight default
+since Phase F/v5; the Claude Agent SDK engine is retained via LENSJUDGE_BACKEND=claude).
 
 Automates the human visual-inspection grading (A/B/C/D) of strong-lens candidates
 from the Huang group's ResNet/EfficientNet finders. Named LensJudge (the onboarding

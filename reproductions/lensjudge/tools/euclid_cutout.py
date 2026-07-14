@@ -7,7 +7,13 @@ swapping the tool name and the id.
 """
 from __future__ import annotations
 
-from claude_agent_sdk import tool
+try:  # optional: @tool (MCP) is only used by the anthropic path; no-op keeps core logic SDK-free
+    from claude_agent_sdk import tool
+except ImportError:
+    def tool(*_a, **_k):
+        def _deco(fn):
+            return fn
+        return _deco
 
 from lensjudge.common import euclid, render
 

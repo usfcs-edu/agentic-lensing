@@ -38,6 +38,9 @@ def _grader(mode):
     if mode == "direct":
         from lensjudge.imaging import grader_direct
         return grader_direct
+    if mode == "matched":
+        from lensjudge.imaging import grader_matched
+        return grader_matched
     return grader_lean
 
 
@@ -54,6 +57,10 @@ def _row_dict(g, cand):
             "highres_survey": g.meta.get("highres_survey"),
             "p_lens_tier1": g.meta.get("p_lens_tier1"),
             "p_lens_tier2": g.meta.get("p_lens_tier2")}
+    # v5 logprob scoring (open backend; None elsewhere): flattened grade-token distribution
+    gp = g.meta.get("grade_probs") or {}
+    base.update({"p_lens_logprob": g.meta.get("p_lens_logprob"),
+                 **{f"gp_{k}": gp.get(k) for k in ("A", "B", "C", "D")}})
     if g.grade is not None:
         c = g.grade.criteria.model_dump()
         base.update({"grade_pred": g.grade.grade, "p_lens": g.grade.p_lens,
@@ -118,8 +125,8 @@ async def run(df: pd.DataFrame, out: Path, concurrency: int, model: str | None, 
         if len(tools) > 2:
             extra["tools"] = tuple(tools)
     if rubric:
-        if mode not in ("lean", "escalate", "direct"):
-            raise SystemExit("--rubric is only supported with --mode lean, escalate, or direct")
+        if mode not in ("lean", "escalate", "direct", "matched"):
+            raise SystemExit("--rubric is only supported with --mode lean, escalate, direct, or matched")
         extra["system_prompt"] = Path(rubric).read_text()
 
     async def one(cand):
@@ -167,7 +174,8 @@ def summarize(out: Path):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--mode", choices=("lean", "panel", "multiagent", "escalate", "direct"),
+    ap.add_argument("--mode", choices=("lean", "panel", "multiagent", "escalate", "direct",
+                                       "matched"),
                     default="lean")
     ap.add_argument("--modelability", action="store_true",
                     help="give the lean/panel grader the Foundry-I quick_lensmodel tool")

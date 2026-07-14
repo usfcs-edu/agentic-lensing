@@ -12,7 +12,10 @@ import time
 from pathlib import Path
 from typing import Any
 
-from claude_agent_sdk import HookMatcher
+try:  # optional: HookMatcher is only used by the anthropic (Claude Agent SDK) trace path
+    from claude_agent_sdk import HookMatcher
+except ImportError:
+    HookMatcher = None
 
 
 def _field(obj: Any, name: str, default=None):
@@ -52,6 +55,10 @@ class Trace:
 
     def hooks(self) -> dict:
         """Build the ClaudeAgentOptions(hooks=...) dict bound to this trace."""
+        if HookMatcher is None:
+            raise RuntimeError(
+                "Trace.hooks() requires claude_agent_sdk (the Claude SDK engine, "
+                "LENSJUDGE_BACKEND=anthropic|claude); the open backend does not use SDK hooks")
 
         async def pre(input_data, tool_use_id, context):
             self.write("pre_tool",
