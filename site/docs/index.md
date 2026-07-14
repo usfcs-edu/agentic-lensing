@@ -68,7 +68,9 @@ fine-tune on a ~13× larger native-resolution positive pool cracks the
 lrg+companion hard residual and lifts held-out recall to its best-ever level
 (Inchausti grade-A **0.87**, Storfer **0.825**, vs 0.54/0.32). A full
 5.38×10⁷-galaxy DR11-south re-sweep adds 134k net-new candidates — still
-DECam-specific and pending high-resolution vetting.
+DECam-specific and pending high-resolution vetting. The released candidate list
+(145,297 sources, published lenses subtracted) and a grade-by-grade completeness
+analysis are written up under **[ClaudeNet v4 Work](claudenet-v4/index.md)**.
 
 **[Redshifty](current/redshifty/index.md)** — reproduces the Approach-A
 "redshift ignition" NERSC result on a single commodity GPU: sustained
