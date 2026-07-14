@@ -130,6 +130,33 @@ the next freed slot; then the other P1c products; then the T2 diagnostic; then g
 P2c partial #1 completions so far: mclmc-A, s0svi, **SMC-evid-24 (primary T3 mode-weight ref)
 DONE**; nautilus/remc/mclmc-B running.
 
+### P1c v3b-low diagnosis + SMC decision — 2026-07-10 (γ≈1.10 extractable; nuisance multimodality)
+Impl-agent diagnosis (off-budget L4 + the svi_cov canary draws): **γ_binned(corr,low) ≈ 1.10 IS
+robust** — 21/24 chains land at γ=1.098±0.010 (R̂_γ→2.06 good-chains-only), the density peak
+(γ_best 1.10 logp −4683 > saddle-MAP 1.27 logp −4757), 0% mass to steep. The R̂ 22 is a NUISANCE:
+srcShp.center R̂ 22.3 / 15.1 (Sérsic-vs-shapelet source-center degeneracy, two clusters −0.15 vs
++0.09), DECOUPLED from γ (γ is only 3rd-worst). So the γ VALUE is trustworthy; the γ WIDTH is not
+(frozen chains). Both PD metrics failed because they seed from the saddle + underestimate the
+degenerate multimodal source-center direction; two-stage re-precond then poisons stage-2.
+- **DECISION (main) = B2 tempered SMC** (over B1 NUTS): the killer is MULTIMODAL (source-center
+  sub-modes) → SMC tempering crosses them where a single NUTS mass matrix might not; AND SMC
+  yields the basin EVIDENCE = the correlated analog of the diagonal-SMC +162-nat steep result
+  (the cross-pillar LINCHPIN: does correlated flip the diagonal steep pref to low?); AND it IS
+  the banked correlated-SMC (HOLD item #2). One tool → money number + σ + linchpin.
+- Plan: near-free Hessian pre-check at γ_best≈1.10 (if PD, PHMC seeded there works — unlikely);
+  else implement correlated-SMC (residual whitener only, reuse bj_smc/24, n_part=300); canary
+  v3b-LOW seeded at the density peak → converged γ marginal + σ; then v3b-STEEP → basin evidence.
+  ~3 A100-h of the ~16 reserve. Report canary before production.
+- **Emerging honest headline**: γ_binned(corr,low)≈1.10 is a FURTHER-DOWN correction (below
+  diagonal-binned 1.29, below native anchor 1.433) → "correlated deflates γ strongly but
+  OVER-corrects on the binned product; residual scale-dependence remains (fine-steep 1.816 high,
+  binned-low 1.10 low, native prior-pulled) → noise model NECESSARY but NOT SUFFICIENT; other
+  systematics (source-model/PSF) drive the residual." Pre-registered H1 fork alt outcome,
+  publishable. Awaiting the converged σ to state it precisely.
+- Impl-agent budget this session: diagraw canary 1.75 + svi_cov canary 1.40 = 3.15 A100-h;
+  code (build_metric_cov diagraw/svi_cov/laplace, run_svi, stage-1 R̂ + s/step diagnostics)
+  deployed + md5-verified + CPU tests green (not committed — main commits after SMC lands).
+
 ### P1c metric-fix attempts — 2026-07-10 (BOTH PD metrics FAIL; MAP is a SADDLE — deeper problem)
 The Option-A metric fix (regularized-PD) did NOT resolve v3b-low convergence:
 - diagraw diagonal metric (cov_cond 2.9e7): stage-1 R̂ 21 (v2d-low), TIMEOUT (v3b-low) — STUCK.
