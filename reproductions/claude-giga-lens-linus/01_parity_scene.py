@@ -296,7 +296,16 @@ def run_product(tag, cfg, refs, report):
                     "IDENTICAL matrix already scatters at the ~1e-10..1e-9 "
                     "level (see err_vs_truth) — the gate quantity has an "
                     "intrinsic f64 cross-algorithm noise floor"))
-            out["F6_achieved"] = float(f6)
+            # F6 RESTATED per Benson's dated sign-off (CAMPAIGN.md gate
+            # exception, 2026-07-15): compare jax-chol to the fp128 TRUTH with
+            # a conditioning-aware tolerance, not to another noisy f64
+            # algorithm:  err <= max(1e-10, 5*eps*cond(A)*1e-2).
+            cond_a = float(np.linalg.cond(it["A"]))
+            f6_tol = max(1e-10, 5 * np.finfo(np.float64).eps * cond_a * 1e-2)
+            out["F6"]["restated_tol"] = float(f6_tol)
+            out["F6"]["restated_err"] = float(abs(it["logdetA"] - truth))
+            out["F6_achieved"] = float(abs(it["logdetA"] - truth))
+            out["F6_tol"] = float(f6_tol)
 
     out["worst"] = {k: float(v) for k, v in worst.items()}
     report["products"][tag] = out
@@ -430,6 +439,17 @@ def main():
     for g, tol in GATE_TOL.items():
         gates[g] = dict(threshold=tol, achieved=ach[g],
                         gate_pass=bool(ach[g] <= tol))
+    # F6 restated (Benson sign-off 2026-07-15, CAMPAIGN.md gate exception):
+    # per-product err-vs-fp128-truth <= max(1e-10, 5*eps*cond(A)*1e-2).
+    f6_rows = {t: report["products"][t] for t in PRODUCTS}
+    gates["F6"] = dict(
+        threshold="max(1e-10, 5*eps*cond(A)*1e-2) vs fp128 truth "
+                  "(restated per signed gate exception 2026-07-15)",
+        achieved=max(r["F6_achieved"] for r in f6_rows.values()),
+        per_product={t: dict(err_vs_truth=r["F6_achieved"], tol=r["F6_tol"])
+                     for t, r in f6_rows.items()},
+        gate_pass=bool(all(r["F6_achieved"] <= r["F6_tol"]
+                           for r in f6_rows.values())))
     f7ok = all(report["products"][t]["F7"]["perturbation_identity_ok"]
                and not report["products"][t]["F7"]["missing_mapped_names"]
                for t in PRODUCTS)

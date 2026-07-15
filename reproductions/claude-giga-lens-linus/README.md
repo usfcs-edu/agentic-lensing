@@ -60,7 +60,11 @@ CONSTRAINED space via `cgl2/param_map.py` (keyed on z_param_names, never inserti
 - **F4** grad of loglik wrt constrained params (chain rule through each stack's bijector)
   ≤ 1e-8 rel-L2, all 4 points
 - **F5** delta-kernel CorrelatedImageLikelihoodTerm ≡ stock ImageLikelihoodTerm ≤ 1e-10
-- **F6** Occam −½logdet A vs numpy slogdet ≤ 1e-10
+- **F6** Occam −½logdet A vs fp128 truth ≤ max(1e-10, 5·eps·cond(A)·1e-2)
+  *(restated per the signed gate exception of 2026-07-15, CAMPAIGN.md — original
+  form "vs numpy slogdet ≤ 1e-10" failed on a measured f64 cross-algorithm noise
+  floor at cond(A)=7e7; the restated gate compares to ground truth with the
+  tolerance floating-point error analysis requires)*
 - **F7** unconstrained(constrained(z)) == z + z_param_names audit (exact; informational)
 - **F8** harness under a NERSC jax-0.10 env, 1 shared-QOS cell (report-only)
 
