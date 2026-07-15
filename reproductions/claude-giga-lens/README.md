@@ -24,7 +24,24 @@ Ledger + stage log: `CAMPAIGN.md`. Perlmutter jobs charge **deepsrch_g** only.
 
 ## Status
 
-**P0 (scaffold) — IN PROGRESS.** Nothing science-bearing has run yet.
+**COMPLETE (2026-07-14).** All phases done; report at `papers/main.pdf` (27pp). Headline results:
+- **P1 correlated-noise likelihood** — validated on drizzle mocks (calibration + SBC); on the real
+  HST lens it is **necessary but not sufficient**: it flips the binned bimodality (per-basin
+  evidence swings **191 nats**, +162 steep → −29 low → the upsampled steep basin is a
+  noise-covariance artifact, **H1 ✓**), but **over-corrects** the slope —
+  γ_binned(corr,low) = **1.103 ± 0.008**, ~17σ below the diagonal-native anchor 1.433, and the
+  correlated slopes bracket rather than unify onto it (**H2 ✗**; residual → source/PSF systematics).
+- **P2 sampler/multimodality benchmark** (first on lens posteriors; 9 methods, 19-target zoo, 370
+  cells) — the two hardest *real* posteriors defeat off-the-shelf samplers: the 46-dim cond-1e14
+  marginalized posterior converges only under the campaign's **two-stage re-preconditioning
+  recipe** (not single-stage HMC R̂ 3.1, not auto-mass MCLMC R̂ 5.9); the 74-dim bimodal posterior
+  needs **per-basin SMC evidence** because every direct sampler freezes into a start-determined basin.
+- **P3** — recipe end-to-end + COOLEST export (3/3 round-trip); Euclid Q1 demo shows genuine
+  native-resolution degeneracies (source-center / PSF), not fit failures.
+
+See `CAMPAIGN.md` for the full gate-by-gate ledger (every number traced to a JSON artifact),
+including the honest negatives and retractions (the fine-low whitener pathology, the info-poor
+native non-convergence, the saddle-MAP sampler saga resolved by SMC).
 
 ## Operator quickstart
 

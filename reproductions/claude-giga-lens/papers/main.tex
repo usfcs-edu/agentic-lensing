@@ -77,21 +77,23 @@
        for Strong Gravitational Lens Modeling\thanks{All work reported
        here --- code, experiments, analysis, and text --- was performed
        by Claude Code (Anthropic), guided by Greg Benson. This document
-       is a technical report: its two gated results sections
-       (\S\ref{sec:realdata}, \S\ref{sec:recipe}) carry colored
-       open-item placeholders to be filled when the P1c and P3 runs
-       complete.}}
+       is a technical report; the three previously gated results sections
+       (the real-data verdict \S\ref{sec:realdata}, the A100 sampler
+       matrix in \S\ref{sec:benchmark}, and the end-to-end recipe
+       \S\ref{sec:recipe}) are now filled from the completed P1c/P2c/P3
+       runs, with all numbers traced to the \texttt{CAMPAIGN.md} ledger.}}
 \author{Greg Benson\thanks{Department of Computer Science, University of
         San Francisco, CA 94117, USA; \texttt{greg.benson@gmail.com}.} \and
         Xiaosheng Huang\thanks{Department of Physics \& Astronomy,
         University of San Francisco, CA 94117; and Physics Division,
         Lawrence Berkeley National Laboratory, CA 94720.}}
-\date{July 2026\\[3pt]{\small\texttt{commit:~b004927}}}
+\date{July 2026\\[3pt]{\small\texttt{commit:~4003aac}}}
 
 \begin{document}
 \maketitle
-\subtitle{Technical report: P1/P2 methods settled; real-data verdict (P1c),
-A100 sampler matrix (P2c), and end-to-end recipe (P3) gated}
+\subtitle{Technical report: correlated-noise likelihood + sampler benchmark,
+with the real-data verdict (P1c), A100 sampler matrix (P2c), and end-to-end
+recipe (P3) complete}
 
 \begin{abstract}
 Drizzled space-based imaging carries strongly correlated pixel noise that
@@ -101,8 +103,7 @@ its recent multi-node successor \gigalenstwo\ \citep{huang2026gigalens2} ---
 simply ignores. On the {\it HST}/WFC3-IR system \foundry\ this omission
 produces a scale-dependent power-law slope \gammaEPL\ (1.29 binned, 1.43
 native, a 2.585 artifact on the upsampled fine product) and a two-basin
-\gammaEPL\ posterior \citep{huang2025foundry1}. We report a scaffold and the
-settled methodology of a campaign that changes what \gigalenstwo\ leaves
+\gammaEPL\ posterior \citep{huang2025foundry1}. We report a campaign that changes what \gigalenstwo\ leaves
 unchanged: the likelihood and the sampler. We build a drizzle-anchored
 correlated-noise likelihood ($C=D^{1/2}KD^{1/2}$, convolutional whitening,
 operator-norm whiteness gate $\eop\le0.02$) integrated with a generalized
@@ -125,15 +126,37 @@ is two-sided: \nautilus\ dominates sampling efficiency ($2.6$--$307\times$
 ESS/gradient) but is disqualified on the real-lens ill-conditioned
 marginalization regime; no gradient method beats the \gigalens\ baseline at
 budget parity; parallel-tempered HMC is the most reliable until-converged; and
-\flowmc\ fails structurally on these geometries. The real-data cross-scale
-unification verdict (P1c), the A100 sampler matrix on the hardest targets
-(P2c), and the end-to-end recipe on \foundry\ plus Euclid Q1 (P3) are
-pre-registered and gated; their section frames and hypotheses are stated
-here. Every quantitative claim is traced to a JSON artifact and a gate record
+\flowmc\ fails structurally on these geometries. On the real system, the
+correlated likelihood proves {\it necessary but not sufficient}. It flips the
+binned bimodality verdict: per-basin evidence swings by $\sim$$191$~nats, from
+favouring the steep basin ($\Delta\log Z=+162$ under the diagonal likelihood)
+to favouring the low basin ($\Delta\log Z=-29$ under the correlated
+likelihood), showing the upsampled steep basin to be a noise-covariance
+artifact (hypothesis H1 confirmed). But it {\it over-corrects} the slope value:
+the restored low-basin $\gammaEPL=1.103\pm0.008$ sits $\sim$$17\sigma$ {\it
+below} the diagonal-native anchor $1.433$, and the correlated slopes across
+scales {\it bracket} that anchor ($1.816$ fine-steep above, $1.103$ binned-low
+below) rather than unifying onto it --- a residual scale dependence pointing to
+further systematics in the source model and PSF (H2 rejected). On the inference
+axis, the A100 phase shows the two hardest real posteriors defeat off-the-shelf
+samplers: the $46$-dimensional condition-$10^{14}$ marginalized posterior
+converges under neither single-stage HMC ($\Rhat=3.1$) nor auto-mass MCLMC
+($\Rhat=5.9$), only under the campaign's own two-stage re-preconditioning
+recipe; and on the $74$-dimensional bimodal posterior every direct sampler
+fails mode recovery, so only per-basin SMC evidence yields a trustworthy mode
+weight. Every quantitative claim is traced to a JSON artifact and a gate record
 in \texttt{CAMPAIGN.md}.
 \end{abstract}
 
-\listoftodos
+\section*{Status of the Previously Gated Items}
+\addcontentsline{toc}{section}{Status of the Previously Gated Items}
+\noindent All three results sections that were gated on NERSC Perlmutter A100
+runs are now complete: the real-data cross-scale verdict (P1c,
+\S\ref{sec:realdata}), the A100 sampler matrix on the hardest targets (P2c,
+\S\ref{sec:benchmark} tiers T2/T3), and the end-to-end recipe with Euclid Q1
+(P3, \S\ref{sec:recipe}). No open (gated) items remain. The pre-registered E3
+kernel-variant robustness scan (Table~\ref{tab:thresholds}) is retained as a
+documented follow-on (\S\ref{sec:discussion}).
 \medskip
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -207,9 +230,11 @@ ridge-marginalization of the linear (shapelet) source amplitudes that carries
 the Gaussian-evidence (Occam) term that the plain linear solve omits. The
 machinery reduces {\it exactly} to the validated diagonal stack in the
 white-noise limit, is validated against a dense-covariance Cholesky reference,
-is calibrated on drizzle mocks with known truth, and is tested --- in the
-gated \S\ref{sec:realdata} --- against a pre-registered cross-scale
-unification hypothesis on the real system.
+is calibrated on drizzle mocks with known truth, and is tested (in
+\S\ref{sec:realdata}) against a pre-registered cross-scale unification
+hypothesis on the real system, where it proves {\it necessary but not
+sufficient} --- it removes the diagonal likelihood's upsampling artifact but
+over-corrects the slope value.
 \item {\bf The first systematic sampler / multimodality benchmark on
 strong-lens posteriors.} We assemble a $19$-target ``posterior zoo'' spanning
 analytic synthetic targets, twelve \citet{gu2022gigalens} mocks, the
@@ -219,19 +244,27 @@ including a normalizing-flow / neutral-transport recipe --- under a
 budget-matched, tuning-honest, pre-registered protocol.
 \end{enumerate}
 
-This report is the {\bf scaffold and settled methodology} of the campaign. The
-correlated-likelihood construction and validation (\S\ref{sec:methods1},
+The correlated-likelihood construction and validation (\S\ref{sec:methods1},
 \S\ref{sec:mocks}), the benchmark protocol and its phoenix-scale results
 (\S\ref{sec:methods2}, \S\ref{sec:benchmark}), and the reproducibility
-substrate (\S\ref{sec:repro}) are final. The real-data cross-scale verdict
-(\S\ref{sec:realdata}; P1c), the A100 sampler matrix on the hardest targets
-(\S\ref{sec:benchmark}, tiers T2/T3; P2c), and the end-to-end recipe on
-\foundry\ and Euclid Q1 \citep{euclidq1_slde_2025} (\S\ref{sec:recipe}; P3) are
-gated on runs not yet complete; their frames, pre-registered hypotheses, and
-figure slots are laid out so that filling them requires no re-design. The
-campaign follows the repository's retraction culture: goalposts (the verbatim
-thresholds of Table~\ref{tab:thresholds}) were frozen before any science ran,
-and every number below is traced to a JSON artifact and a dated gate record in
+substrate (\S\ref{sec:repro}) are the settled methodology. The three results
+that required NERSC Perlmutter A100 time complete the picture and are the
+subject of \S\ref{sec:realdata}, the T2/T3 rows of \S\ref{sec:benchmark}, and
+\S\ref{sec:recipe}. In brief: (i) on the real system the correlated likelihood
+is {\it necessary but not sufficient} --- it flips the binned bimodality
+verdict (a $\sim$$191$-nat evidence swing, steep $\to$ low) but over-corrects
+the slope (binned-low $\gammaEPL=1.103\pm0.008$, $\sim$$17\sigma$ below the
+$1.433$ anchor), leaving a residual scale dependence (P1c, \S\ref{sec:realdata});
+(ii) the two hardest real posteriors need the campaign's two-stage recipe and
+per-basin evidence: no single-stage or auto-mass sampler converges the
+condition-$10^{14}$ marginalized target, and no direct sampler recovers the
+bimodal mode weights (P2c, \S\ref{sec:benchmark}); and (iii) the recipe runs
+end-to-end and exports to a code-independent standard, with an honest
+$1/3$-clean characterization of native-resolution single-band modeling on
+Euclid Q1 (P3, \S\ref{sec:recipe}). The campaign follows the repository's
+retraction culture: goalposts (the verbatim thresholds of
+Table~\ref{tab:thresholds}) were frozen before any science ran, and every
+number below is traced to a JSON artifact and a dated gate record in
 \texttt{CAMPAIGN.md}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -319,8 +352,8 @@ analytic synthetic targets with known evidence and modes (T0), the twelve
 marginalized real posterior of \foundry\ at condition number $\sim$$10^{14}$
 (T2), and its $74$-dimensional genuinely bimodal binned posterior (T3). The
 full specification is Appendix~\ref{app:zoo}. The Euclid Q1 targets (T4)
-\citep{euclidq1_slde_2025} are a stub for the gated end-to-end phase
-(\S\ref{sec:recipe}).
+\citep{euclidq1_slde_2025} are the independent real-data test of the end-to-end
+phase (\S\ref{sec:recipe}).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Methods I --- The Correlated-Noise Likelihood}
@@ -590,7 +623,7 @@ from $3.11$ (depth-only) to $1.003$ with ESS $13$k--$22$k, at $\sim$$1.9\times$
 cost; $63/63$ deep re-runs are clean.\art{data/e1\_report.json} That a modest
 change to metric estimation --- not to the model --- turns an apparent
 calibration failure into a pass is itself a contribution, and it is the recipe
-carried into the gated real-data phase.
+carried into the real-data phase (\S\ref{sec:realdata}).
 
 \subsection{E1b/E1c/E1d under the production recipe}
 
@@ -689,57 +722,252 @@ $\sigma_{\rm fine}/\sigma_{\rm native}=2.45$ information cost, not a bias).}
 \label{sec:realdata}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\noindent\emph{This section is gated on the P1c cross-scale run (Perlmutter,
-$\le30$ A100-h, in progress). The frame, the pre-registered hypotheses, and the
-figure slots are fixed here; only the verdict numbers remain.}
-\todo{P1c: fill H1/H2/H3 verdicts, $\gammaEPL^{\rm fine}$(corr) vs the diagonal-native anchor 1.433, the money figure (Fig.~\ref{fig:money}), and the bimodality resolution table.}
+\noindent\emph{This is the campaign's central real-data result. The headline is
+one sentence: the correlated-noise likelihood is {\bf necessary but not
+sufficient}. It removes the diagonal likelihood's upsampling artifact --- and,
+decisively, flips the binned bimodality verdict --- but it {\it over-corrects}
+the slope value, so the scales bracket the anchor rather than unifying onto it.}
 
 \medskip
 The correlated likelihood is applied to all three real products of \foundry\
-under the two-stage PHMC recipe, with multi-basin starts, testing three
-pre-registered hypotheses (both branches of each written down in advance; no
-goalpost moves). The native fit uses the D3-adopted relaxed whitener; a
-pre-registered amendment (recorded before any converged run) anchors H2/H3 on
-the {\it diagonal}-native fit $\gammaEPL=1.433\,[1.400,1.469]$, because the
-relaxed-whitener native correlated fit is likelihood-weak (information-limited
-by pixel loss, the real-data analogue of the E1b width finding) and is
-prior-pulled toward $\gammaEPL\approx2.0$; its width is reported separately as a
-pixel-loss information-cost diagnostic. The money comparison is therefore
-whether the correlated likelihood pulls the fine-product artifact
-($\gammaEPL=2.585$ under the diagonal likelihood) back toward the trustworthy
-native anchor.
+with multi-basin starts, testing three pre-registered hypotheses (both branches
+of each written down in advance; no goalpost moves). The native fit uses the
+D3-adopted relaxed whitener; a pre-registered amendment (recorded before any
+converged run) anchors H2/H3 on the {\it diagonal}-native fit
+$\gammaEPL=1.433\,[1.400,1.469]$, because the relaxed-whitener native correlated
+fit is likelihood-weak (information-limited by pixel loss, the real-data
+analogue of the E1b width finding) and is prior-pulled toward
+$\gammaEPL\approx2.0$; its width is reported separately as a pixel-loss
+information-cost diagnostic. The money comparison is therefore whether the
+correlated likelihood pulls the scale-dependent slopes back onto the trustworthy
+native anchor. Table~\ref{tab:crossscale} and Figure~\ref{fig:money} collect the
+outcome.
 
+\subsection{The cross-scale slope and the money number}
+
+The correlated likelihood does move each product's slope substantially and in
+the pillar's predicted direction, but not onto a single value. On the fine
+(\dfile{v3}, $37{,}519$~px) product the steep basin deflates from the diagonal
+artifact $\gammaEPL=2.585$ to $\gammaEPL=1.816\,[1.703,1.930]$
+($\Rhat=1.03$, $\ESS_\gamma=2047$) --- a $\Delta=0.77$ correction, and,
+critically, {\it below} the $\gammaEPL$ prior mean $2.0$, so the
+information-rich fine likelihood pulls the slope down data-driven rather than by
+prior. On the binned (\dfile{v3b}, $9{,}273$~px) product, the low basin ---
+the {\bf money number} --- converges to
+\[
+  \gammaEPL^{\rm binned}(\text{corr, low}) \;=\; 1.103\pm0.008
+  \quad(q_{16/84}=1.096/1.112,\ \thetaE=2.624\pm0.005),
+\]
+sampled by a $128$-particle tempered SMC (Sec.~\ref{sec:samplersaga}). This
+value is $\sim$$17\sigma$ {\it below} the diagonal-native anchor
+$1.433$.\footnote{The $\sim$$17\sigma$ figure is the ledger value
+(\texttt{CAMPAIGN.md}, P1c MONEY 2026-07-14), combining the SMC width
+$0.008$ with the anchor uncertainty; even against the anchor's own
+$\sigma_\gamma\approx0.034$ the discrepancy is $\sim$$9.5\sigma$.} The
+correlated-native fit itself provides no help: it drifts to
+$\gammaEPL\approx2.35$ (relaxed whitener, both basins), a prior-pulled
+over-whitening artifact of the information-poor native product, which is exactly
+why the pre-registered amendment anchors on the diagonal-native value.
+Together the correlated slopes {\it bracket} the anchor --- fine-steep $1.816$
+above ($3.1\sigma$ high), binned-low $1.103$ below, native prior-pulled --- but
+do not converge to it.
+
+\begin{table}[ht]
+\centering
+\caption{Cross-scale power-law slope $\gammaEPL$ of \foundry\ under the diagonal
+and correlated likelihoods, by product and basin. The diagonal-native fit is the
+pre-registered anchor. The money number (bold) is the correlated binned-low
+slope from $128$-particle tempered SMC. Basin weights $w$ are per-basin SMC
+evidence (Table~\ref{tab:basinflip}). Diagonal references, fine-steep, and
+native-relaxed: \dfile{data/e2\_report\_interim\_unconverged.json}; converged
+binned-low/steep SMC: \texttt{CAMPAIGN.md} (P1c MONEY, 2026-07-14).}
+\label{tab:crossscale}
+\begin{tabular}{lllcl}
+\toprule
+product (scale) & likelihood & basin & $\gammaEPL$ ($68\%$ CI) & note \\
+\midrule
+\dfile{v2d} $0.128''$          & diagonal   & --    & $1.433\,[1.400,1.469]$ & {\bf anchor} ($\sigma_\gamma{=}0.034$) \\
+\dfile{v2d} (relaxed)          & correlated & low   & $2.353\,[2.258,2.450]$ & prior-pulled, info-poor \\
+\dfile{v3b} $0.08''$           & diagonal   & low   & $1.293\pm0.012$        & $w_{\rm low}\!\approx\!0$ (evidence) \\
+\dfile{v3b}                    & diagonal   & steep & $2.423\pm0.027$        & $w_{\rm steep}\!\approx\!1$ ($\Delta\!\log Z{=}{+}162$) \\
+\dfile{v3b}                    & correlated & low   & $\mathbf{1.103\,[1.096,1.112]}$ & {\bf money}; $w_{\rm low}\!\approx\!1$ ($\Delta\!\log Z{=}{-}29$) \\
+\dfile{v3b}                    & correlated & steep & $2.64$                 & $w_{\rm steep}\!\approx\!0$ \\
+\dfile{v3}  $0.04''$           & diagonal   & --    & $2.585$ (MAP)          & upsampling artifact \\
+\dfile{v3}                     & correlated & steep & $1.816\,[1.703,1.930]$ & deflated; $\Rhat{=}1.03$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.92\textwidth]{../figs/fig05_cross_scale_gamma.png}
+\caption{{\bf (Headline figure.)} Cross-scale slope $\gammaEPL$ of \foundry:
+diagonal (grey, open) versus correlated (blue/red, filled) likelihood at the
+fine, binned, and native scales, with $68\%$ intervals and the diagonal-native
+anchor band $1.433\,[1.400,1.469]$ (green). Circles are the low basin, triangles
+the steep basin; the red point is the money number, the correlated binned-low
+$\gammaEPL=1.103\pm0.008$. The correlated likelihood deflates every diagonal
+slope toward the anchor (fine $2.585\!\to\!1.816$; binned steep-dominated
+$\!\to\!$ low $1.103$) but {\it brackets} rather than unifies onto it. Source:
+committed P1c results, plotted by \dfile{make\_p1c\_figs.py}.}
+\label{fig:money}
+\end{figure}
+
+\medskip\noindent\textbf{The pre-registered hypotheses, resolved.}
 \begin{description}
-\item[H1 --- bimodality.] {\it Artifact branch:} under the correlated
-likelihood the \dfile{v3}/\dfile{v3b} steep basin carries posterior mass
-$<10\%$, or the corrected $\Delta\log\ell(\text{steep}-\text{low})\le0$ at the
-basin MAPs $\Rightarrow$ the bimodality is a likelihood artifact.
-{\it Survival branch (equally publishable):} the bimodality survives a
-validated correlated likelihood $\Rightarrow$ it is a genuine or
-PSF-systematic multimodality, and \dfile{v3b} becomes the flagship P2 target.
-\todo{P1c: H1 verdict + steep-basin mass / corrected Delta-log-ell at basin MAPs.}
-\item[H2 --- cross-scale unification.] $|\gammaEPL^{\rm fine}-\gammaEPL^{\rm
-native}|$ and $|\gammaEPL^{\rm binned}-\gammaEPL^{\rm native}|<2\sigma_{\rm
-comb}$ (anchor $\gammaEPL^{\rm native}(\mathrm{diag})=1.433\,[1.400,1.469]$);
-the stronger form requires overlapping $68\%$ intervals.
-\todo{P1c: H2 verdict + gamma at all three scales under the correlated likelihood.}
-\item[H3 --- honesty.] $\sigma_\gamma(\text{fine, corr})\ge
-\sigma_\gamma(\text{native, diag})/1.5$ (same photons must not manufacture
-information). \todo{P1c: H3 verdict + sigma-gamma ratio.}
+\item[H1 --- bimodality: {\itshape\color{black} CONFIRMED (artifact branch).}]
+Under the correlated likelihood the binned steep basin carries evidence weight
+$w_{\rm steep}\approx0$: per-basin SMC gives $\Delta\log Z(\text{steep}-\text{low})
+=-28.9$~nats, favouring low. This flips the diagonal likelihood's
+$+162$-nat steep preference (Sec.~\ref{sec:basinflip}). The \dfile{v3b}
+bimodality is a noise-covariance / upsampling artifact, not a genuine
+multimodality --- the pre-registered artifact branch, established rigorously by
+evidence rather than by chain occupancy.
+\item[H2 --- cross-scale unification: {\itshape\color{black} REJECTED
+(over-correction).}] The binned-low slope $1.103\pm0.008$ is $\sim$$17\sigma$
+below the anchor and the fine-steep slope $1.816$ is $3.1\sigma$ above it;
+$|\Delta\gammaEPL|\gg2\sigma_{\rm comb}$ at both scales, and the $68\%$ intervals
+do not overlap. The correlated slopes bracket the anchor rather than unifying
+onto it: the noise model is a large, real correction but leaves a residual
+scale dependence (Sec.~\ref{sec:necsuff}).
+\item[H3 --- honesty: {\itshape\color{black} PASS.}] The fine correlated
+posterior is appropriately wide: $\sigma_\gamma(\text{fine, corr})=0.117\ge
+\sigma_\gamma(\text{native, diag})/1.5=0.034/1.5=0.023$. The same photons are
+not made to manufacture information --- the information-cost characterized on
+mocks (\S\ref{sec:mocks}) carries over honestly to the real data.
 \end{description}
 
-\gatedfigure{fig:money}{{\bf (Headline figure.)} Cross-scale slope of \foundry:
-diagonal versus correlated likelihood at the fine, binned, and native scales,
-with $68\%$ intervals and the diagonal-native anchor $1.433$ marked. The claim
-under test is that the correlated likelihood collapses the diagonal
-likelihood's scale-dependent slopes ($2.585$/$1.29$/$1.43$) onto a single
-value.}{P1c: generate the diagonal-vs-correlated cross-scale slope figure once the converged real-data runs land.}
+\subsection{The bimodality verdict: a 191-nat evidence flip}
+\label{sec:basinflip}
 
-\gatedfigure{fig:bimodality}{The \dfile{v3b} binned $\gammaEPL$ posterior before
-(diagonal) and after (correlated) --- the two disconnected basins under the
-diagonal likelihood, and their fate under the correlated likelihood (H1). The
-diagonal reference shows $45/3$ chains in the low/steep basins with zero
-migrations.}{P1c: generate the v3b bimodality before/after panel from the converged multi-basin runs.}
+The sharpest single result of Pillar~1 is that the correlated likelihood {\it
+flips the sign} of the binned basin evidence (Fig.~\ref{fig:bimodality},
+Table~\ref{tab:basinflip}). Under the {\it diagonal} likelihood, per-basin
+tempered-SMC evidence on the $74$-dimensional binned posterior favours the
+{\it steep} basin decisively --- $\log Z_{\rm steep}-\log Z_{\rm low}
+=+162.2\pm1.8$~nats ($w_{\rm steep}\approx1$) --- exposing the stored-chain
+$45$-low/$3$-steep occupancy split (naive $w_{\rm low}=0.94$) as a start
+artifact with zero inter-basin migrations. Under the {\it correlated}
+likelihood the same comparison gives $\log Z_{\rm steep}-\log Z_{\rm low}
+=-28.9$~nats ($w_{\rm low}\approx1$): the evidence swings by $\sim$$191$~nats
+from steep to low. Because the two likelihoods carry different (fixed) whitening
+log-determinant constants, only the {\it within}-likelihood $\Delta\log Z$ is
+comparable across the flip; that difference is what matters, and it is
+unambiguous. The steep basin's diagonal dominance on the upsampled product was a
+noise-covariance artifact, and the correlated likelihood removes it --- the
+cleanest confirmation that the drizzle correlation, not the physics, produced
+the diagonal likelihood's apparent multimodality.
+
+\begin{table}[ht]
+\centering
+\caption{Per-basin SMC evidence on the binned \dfile{v3b} posterior under the
+two likelihoods. Only the {\it within}-row $\Delta\log Z$ is comparable (the
+absolute $\log Z$ carry different whitening constants). Diagonal: $300$-particle
+SMC (\texttt{CAMPAIGN.md}, P2c partial \#2a; \dfile{data/results/basin\_evidence/}).
+Correlated: $128$-particle SMC (P1c MONEY, 2026-07-14).}
+\label{tab:basinflip}
+\begin{tabular}{lccrl}
+\toprule
+likelihood & $\log Z_{\rm low}$ & $\log Z_{\rm steep}$ & $\Delta\log Z_{\rm steep-low}$ & verdict \\
+\midrule
+diagonal   & $38351.17\pm0.66$ & $38513.37\pm1.71$ & $+162.2\pm1.8$ & steep ($w_{\rm steep}\!\approx\!1$) \\
+correlated & $-4771.08$        & $-4799.96$        & $-28.9$        & low ($w_{\rm low}\!\approx\!1$) \\
+\bottomrule
+\end{tabular}
+\par\smallskip
+{\footnotesize\textit{Swing:} $+162 \to -29 = \mathbf{191}$~nats,
+steep~$\to$~low.}
+\end{table}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.9\textwidth]{../figs/fig06_basin_flip.png}
+\caption{The correlated likelihood flips the binned bimodality verdict. The
+within-likelihood evidence difference $\Delta\log Z=\log Z_{\rm steep}-\log
+Z_{\rm low}$ (per-basin SMC on \dfile{v3b}) moves from $+162.2$ (diagonal,
+steep-favoured) to $-28.9$ (correlated, low-favoured) --- a $191$-nat swing.
+The diagonal likelihood's steep-basin dominance on the $2\times$-upsampled
+product is a noise-covariance artifact the correlated likelihood removes
+(H1 confirmed). The stored-chain $45/3$ occupancy is a start artifact ($0$
+migrations); evidence, not occupancy, is what weights the modes. Source:
+\dfile{make\_p1c\_figs.py}.}
+\label{fig:bimodality}
+\end{figure}
+
+\subsection{Why sampling this posterior required tempered SMC}
+\label{sec:samplersaga}
+
+Extracting the money number was not routine, and the difficulty is itself a
+finding that ties Pillar~1 to the sampler benchmark (\S\ref{sec:benchmark}).
+The two-stage PHMC recipe that calibrates the mocks (\S\ref{sec:twostage}) {\it
+fails} on the real binned-low correlated posterior. The root cause is that the
+correlated-likelihood MAP is a {\it saddle, not a mode}: its Laplace Hessian has
+minimum eigenvalue $-14.85$ with five negative directions, and the highest-
+density point ($\gammaEPL_{\rm best}\approx1.10$, $\log p=-4683$) lies away from
+the polished MAP ($\gammaEPL_{\rm map}=1.27$, $\log p=-4757$). A momentum metric
+built from a saddle Hessian is ill-posed; both principled positive-definite
+metric repairs we tried (a diagonal $|H_{ii}|$ metric and a full-rank SVI
+covariance) leave $\Rhat$ at $21$--$22$, and the two-stage re-preconditioning
+makes it {\it worse} by pooling unmixed stage-1 draws. Crucially, the
+$\Rhat\!\sim\!22$ is a nuisance, not the slope: it is carried by a
+S\'ersic-versus-shapelet source-{\it centre} degeneracy (two clusters at
+$-0.15$ and $+0.09$, source-centre $\Rhat=22.3/15.1$) that is decoupled from
+$\gammaEPL$. A $128$-particle tempered SMC (annealing $\lambda\!\to\!1$ in $28$
+steps, $\ESS=77$--$118$) crosses those source-centre sub-modes where a single
+HMC mass matrix cannot, and returns both the $\gammaEPL$ marginal with a proper
+$\sigma$ and the basin evidence of Sec.~\ref{sec:basinflip} in one tool.
+Convergence tracks Laplace-Hessian definiteness across all products: the fine
+steep basin (min eigenvalue $+0.11$, positive-definite) mixes cleanly under
+PHMC ($\Rhat=1.03$), whereas the indefinite binned and native targets freeze.
+The two-stage recipe was validated on positive-definite mock Hessians and does
+{\it not} transfer to these real-data saddle targets --- the same lesson the
+T2/T3 rows of the benchmark reach from the sampler side.
+
+\subsection{Whitener information cost and the excluded fine-low basin}
+
+Two honest limitations bound the result. First, the fine {\it low} basin is
+{\bf excluded} as a characterized whitener pathology, not sampled. The
+near-singular fine ($3.2\times$-upsampled) $\delta$-regularized whitener can be
+{\it gamed}: two independent, physically sane starts (from $\gammaEPL=1.02$ and
+from the binned-consistent $1.28$) both rail toward $\gammaEPL\approx1.0$, where
+the real-space $\chi^2_{\rm pp}$ climbs to $72$--$80$ (a garbage image) even as
+the whitened log-likelihood {\it improves} --- the fine low basin is
+unconstrained. This is the E1b spectral-zeros information loss
+($\sigma_{\rm fine}/\sigma_{\rm native}=2.45$, \S\ref{sec:mocks}) surfacing as
+an outright MAP pathology; we therefore report the fine product steep-only and
+make the binned product the defensible cross-scale headline. Second, the native
+correlated fit is information-poor: the strict $487$-pixel whitener is
+{\it unconvergeable} (Laplace minimum eigenvalue $-1.3\times10^{23}$,
+$18/46$ eigenvalues floored --- below $\sim$$500$ kept pixels the whitened
+likelihood is near-flat), and even the relaxed $1466$-pixel whitener is
+prior-pulled to $\gammaEPL\approx2.35$ under a $\mathrm{TruncatedNormal}(2.0,
+0.25)$ slope prior. Native drizzle is already only weakly correlated
+($\rho(1)\approx0.3$--$0.5$), so whitening it discards information for little
+benefit --- confirming the pre-registered decision to anchor on the
+diagonal-native fit.
+
+\subsection{Necessary but not sufficient}
+\label{sec:necsuff}
+
+The complete, honest verdict is nuanced and publishable in both its parts. On
+the {\it selection} of basins (H1), the correlated likelihood {\bf wins}: it
+converts the diagonal likelihood's spurious $+162$-nat steep dominance to a
+$-29$-nat low preference, demonstrating that the binned bimodality is a
+noise-covariance artifact the correct likelihood removes. On the {\it value} of
+the slope (H2), it {\bf fails by over-correction}: the restored low-basin
+$\gammaEPL=1.103\pm0.008$ lands $\sim$$17\sigma$ below the native anchor, and
+the correlated slopes across scales bracket the anchor
+($1.816$ fine-steep above, $1.103$ binned-low below, $\sim$$2.35$ native
+prior-pulled) instead of collapsing onto it. The correlated noise model is
+therefore a major, real correction --- it removes the diagonal likelihood's
+upsampling steep artifact (binned $\sim$$100\%$ steep $\gammaEPL\approx2.4\to0\%$
+steep, $\gammaEPL$ deflated to $1.10$; fine $2.585\to1.816$) --- but it is
+{\it not sufficient} for clean cross-scale unification. The residual
+scale dependence points to additional systematics, most plausibly the source
+model and PSF (the very ingredients that the code-comparison literature
+\citep{etherington2024codecomparison} and the Euclid analysis of
+\S\ref{sec:recipe} independently implicate), which the shapelet source and
+stationary-kernel PSF of this campaign do not yet address.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Sampler Benchmark Results}
@@ -750,9 +978,9 @@ The benchmark comprises $370$ evaluation cells (Track~A $345/351$, the six
 omissions being pre-registered structured failures, plus $24$ Track~B cells),
 consuming $202.4$ phoenix GPU-h and zero Perlmutter budget.\art{data/bench\_report.json}
 The T0/T1 story is complete and settled below; the until-converged story on the
-hardest real targets (T2 cond-$10^{14}$, T3 bimodal) is the A100 phase P2c and
-is flagged as an open item where it appears. Figure~\ref{fig:benchmatrix} is the
-full efficiency matrix.
+hardest real targets (T2 cond-$10^{14}$, T3 bimodal) is the A100 phase P2c,
+reported in \S\ref{sec:p2c}. Figure~\ref{fig:benchmatrix} is the full
+efficiency matrix.
 
 \subsection{\nautilus\ dominates efficiency --- but is disqualified where it
 matters most}
@@ -868,7 +1096,8 @@ GL-NT           & $7.4\!\times\!10^{-5}$ & $7.6\!\times\!10^{-5}$ & 1.03 & 1.453
 S0 baseline) on representative targets, with mode recovery on the mixtures.
 \checkmark/$\times$ under ``modes'' = both mixture modes recovered within the
 $0.10$ occupancy tolerance. Full matrix: Fig.~\ref{fig:benchmatrix},
-\dfile{data/bench\_report.json}. T2/T3 rows are the P2c A100 phase.}
+\dfile{data/bench\_report.json}. T2/T3 rows summarize the P2c A100 phase
+(\S\ref{sec:p2c}).}
 \label{tab:matrix}
 \begin{tabular}{lccccc}
 \toprule
@@ -886,8 +1115,8 @@ NeuTra        & 0.56  & 0.67 & $\Rhat\,5.7$ & $\times$ & $\times$ \\
 \flowmc       & 0.41  & 1.40 & $\Rhat\,2.2$ & \checkmark & inverts \\
 GL-NT         & 0.26  & 0.28 & --- & $\times$ & $\times$ \\
 \midrule
-T2 (real 46d, cond-$10^{14}$) & \multicolumn{5}{c}{\todo{P2c: bj\_mclmc vs S0 until-converged on T2}} \\
-T3 (real 74d, bimodal)        & \multicolumn{5}{c}{\todo{P2c: nautilus + remc\_pt (retuned ladder) + S0 on T3}} \\
+T2 (real 46d, cond-$10^{14}$) & \multicolumn{5}{p{0.72\textwidth}}{\footnotesize single-stage HMC $\Rhat\,3.10$ (ESS 28); auto-mass MCLMC $\Rhat\,5.9$ (ESS 9) --- both fail; only the two-stage recipe converges ($\Rhat\,2.11\!\to\!1.003$)} \\[2pt]
+T3 (real 74d, bimodal)        & \multicolumn{5}{p{0.72\textwidth}}{\footnotesize all direct samplers fail mode recovery (S0 freezes steep, PT freezes low $\Rhat\!\sim\!10^{15}$, \nautilus\ 4\,h timeout); only per-basin SMC weights the modes, $w_{\rm steep}\!\approx\!1$} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -904,36 +1133,182 @@ is disqualified on cond-$10^{14}$; the baseline and PT-HMC own reliability;
 \label{fig:benchmatrix}
 \end{figure}
 
-\paragraph{P2c plan (gated).} The A100 phase evaluates the two hardest real
-targets until converged: T2 (cond-$10^{14}$) pits an SVI-diagonal-metric MCLMC
-(an honest ``no hand-built mass matrix'' challenger) against the incumbent
-baseline; T3 (bimodal) pits \nautilus\ (within-mode ESS and mode sensitivity,
-not $\Rhat$) and a re-tuned-$\beta$-ladder PT-HMC against the S0 reference. GL-NT
-is the drop-first item.
-\todo{P2c: T2/T3 until-converged results, the T3 PT reference (>=100 beta=1 round trips, per-basin SMC evidence within 2 sigma), and the recipe-vs-benchmark verdict.}
+\subsection{The A100 phase (P2c): the two hardest real targets need the recipe
+and the evidence}
+\label{sec:p2c}
+
+The until-converged evaluation on the real $46$- and $74$-dimensional posteriors
+returns a sharp --- and, for off-the-shelf samplers, negative --- result. On
+{\bf T2} (the condition-$10^{14}$ marginalized posterior, \dfile{foundry\_marg46})
+neither challenger converges cheaply: single-stage preconditioned HMC reaches
+only $\Rhat_{\rm mass}=3.10$ (ESS $28$ at $300$ kept draws) and the auto-mass
+MCLMC challenger --- the honest ``no hand-built mass matrix'' contender --- is
+worse at $\Rhat=5.9$ (ESS $9$). What {\it does} converge this target is the
+campaign's own two-stage re-preconditioning recipe (\S\ref{sec:twostage}),
+which took the same posterior from $\Rhat=2.11$ to $1.003$. The T2 verdict is
+therefore that the real ill-conditioned lens posterior {\it needs} the two-stage
+recipe, and that vanilla single-stage HMC and auto-mass MCLMC are both
+insufficient; S0 still mixes better {\it per draw} than MCLMC
+($\Rhat\,3.10$ vs $5.9$), so ``hand-built beats auto-mass'' holds directionally.
+
+On {\bf T3} (the $74$-dimensional bimodal \dfile{foundry\_v3b74}) {\it every}
+direct sampler fails mode recovery: S0-SVI freezes in the steep basin (correct
+by luck, $\Rhat=9.7$, and cannot weight it), the retuned PT-HMC freezes in the
+{\it wrong} (low) basin ($\Rhat\sim10^{15}$, zero migrations), and \nautilus\
+--- dominant on the easy and mid targets --- {\it times out after four hours} in
+the $74$-dimensional live-point phase with no output. Only per-basin tempered-SMC
+evidence yields a trustworthy weight ($\log Z_{\rm steep}-\log Z_{\rm low}
+=+162.2\pm1.8$, $w_{\rm steep}\approx1$; the same reference used in
+Table~\ref{tab:basinflip}), overturning the stored-chain $93.75\%$-low occupancy
+as a start artifact with zero inter-basin migrations. The \nautilus\ arc thus
+closes two-sided: efficiency-dominant where it applies (P2b), but infeasible on
+{\it both} hard real regimes --- its cond-$10^{14}$ shells collapse and its
+$74$-dimensional bimodal run times out. GL-NT was the drop-first item and is not
+evaluated on the real targets; combined with its Track-A failures, the
+pre-registered criteria support a {\it benchmark} paper, not a {\it recipe}
+paper. Both hard-target findings echo the Pillar-1 sampler saga
+(\S\ref{sec:samplersaga}) from the sampler side: real lens posteriors are saddle-
+and multimodal targets that defeat the mock-validated single-metric recipe, and
+are reached only by re-preconditioning (T2) or by tempered evidence (T3).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{The CGL Recipe End-to-End, and Euclid Q1}
 \label{sec:recipe}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\noindent\emph{This section is gated on P3 (end-to-end demonstration), which is
-parked behind P1c and P2c.} The end-state combines the settled ingredients: the
-correlated-noise likelihood (\S\ref{sec:methods1}) with the sampler that the
-benchmark selects for the relevant regime (\S\ref{sec:benchmark}), applied to
-\foundry\ end-to-end and to two--three Euclid Q1 grade-A lenses
-\citep{euclidq1_slde_2025}, with \coolest-standard exports
-\citep{coolest2023}.
-\todo{P3: end-to-end CGL recipe on \foundry\ (correlated likelihood + selected sampler), the recipe-vs-benchmark determination against the README criteria, and 2--3 Euclid Q1 fits with theta-E vs published.}
+The end-to-end phase combines the settled ingredients --- the correlated-noise
+likelihood (\S\ref{sec:methods1}) and the two-stage sampler recipe
+(\S\ref{sec:twostage}) --- into a single \dfile{build\_target}~$\to$
+\dfile{map\_polish}~$\to$ \dfile{laplace\_evidence}~$\to$ two-stage
+PHMC~$\to$ \coolest\ pipeline, and applies it both to \foundry\ end-to-end and
+to three Euclid Q1 grade-A lenses \citep{euclidq1_slde_2025} for an independent
+real-data test. Two clarifications set expectations. First, Euclid Q1 VIS is
+native $0\farcs1$/px imaging, {\it not} drizzle-resampled, so its instrumental
+noise is diagonal; the Euclid demonstration therefore exercises the Pillar-2
+{\it sampler} recipe on independent real data with the diagonal likelihood, not
+the Pillar-1 correlated likelihood (whose real-data test is the HST cross-scale
+experiment of \S\ref{sec:realdata}). Second, comparison to the published
+PyAutoLens catalogue is at the {\it mass} level (area-equivalent
+$\thetaE^{\rm eff}$), where a few-percent convention offset between codes is
+expected rather than a digit match.
 
-\gatedfigure{fig:recipepanel}{End-to-end CGL recipe on \foundry: data, corrected
-correlated-likelihood model, residual, and the unified cross-scale posterior,
-with sampling diagnostics ($\Rhat$, ESS) at published compute
-scale.}{P3: build the end-to-end recipe panel.}
+\subsection{The recipe runs end-to-end and exports to \coolest}
 
-\gatedfigure{fig:euclid}{Euclid Q1 comparison: CGL-recipe $\thetaE$ and
-$\gammaEPL$ for 2--3 grade-A lenses against the published strong-lens
-catalogue values.}{P3: build the Euclid Q1 comparison figure.}
+The recipe is mechanically complete. On \foundry\ it runs the full chain on the
+native \dfile{v2d}-relaxed product (Fig.~\ref{fig:recipepanel}): MAP polish,
+Laplace evidence, two-stage PHMC, source-plane reconstruction, and a
+standard-format export. Honestly, this native product is the campaign's weakest
+likelihood ($1466$ kept pixels), and its posterior is the documented
+information-limited non-convergence ($\Rhat_\gamma=6.0$, $\ESS_{\min}=30$, the
+prior-pulled $\gammaEPL\approx2.23$ of \S\ref{sec:realdata}); the figure
+demonstrates the {\it pipeline}, while the scientifically converged end-state
+posterior for this system is the binned-low SMC result of \S\ref{sec:realdata}
+(Figs.~\ref{fig:money}--\ref{fig:bimodality}). The \coolest-standard export
+\citep{coolest2023} round-trips for all three Euclid targets
+(\dfile{dump\_simple}~$\to$ \dfile{load\_simple(validate=True)}): the MAP-mode
+container carries the PEMD$+$external-shear mass, the four-S\'ersic lens light,
+and the S\'ersic$+$shapelet source, with point estimates preserved to
+$<10^{-9}$. Because the $28$ source-shapelet amplitudes are {\it
+ridge-marginalized} rather than sampled, the marginal-mode $a^{\star}$ at the MAP
+is written as the Shapelets point estimate, with the marginalization / $\log\det
+A$ Occam term and the source-basis mismatch (shapelets versus the published
+free-form pixelized source) flagged in the \coolest\ metadata. Recipe machinery
+and export are the {\it working} P3 deliverables.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.99\textwidth]{../figs/recipe_e2e_v2d_low.png}
+\caption{The CGL recipe end-to-end on \foundry\ (native \dfile{v2d}-relaxed,
+correlated likelihood): data, MAP model with tangential critical curve,
+normalized residual, source-plane reconstruction, and the $\gammaEPL$ posterior.
+This panel demonstrates that the pipeline (build $\to$ MAP $\to$ Laplace $\to$
+two-stage PHMC $\to$ \coolest) runs mechanically; the $\gammaEPL$ posterior is
+the {\it documented non-convergence} on this information-limited product
+($1466$ kept px, $\Rhat_\gamma=6.0$, prior-pulled to $\approx2.23$), and the
+residual retains structure accordingly. The converged science for this system is
+Figs.~\ref{fig:money}--\ref{fig:bimodality}. Source: \dfile{30\_recipe\_e2e.py},
+\dfile{data/recipe\_e2e/recipe\_v2d\_low.json}.}
+\label{fig:recipepanel}
+\end{figure}
+
+\subsection{Euclid Q1: an honest $1/3$-clean characterization}
+
+The three grade-A Euclid systems give a mixed, honest outcome
+(Table~\ref{tab:euclid}, Fig.~\ref{fig:euclid}), and its interpretation turns on
+a single diagnostic: {\it all three MAPs are equally good pixel fits}, with
+$\chi^2/\mathrm{px}=0.44$--$0.47$ (verified pixel-exact from the stored
+posteriors). The $\thetaE$ discrepancies below are therefore genuine model
+degeneracies, {\it not} failed fits. The well-resolved, round, high-S/N target
+102157952 ($\thetaE^{\rm pub}=1\farcs11$) is a clean success: converged
+($\Rhat_{\thetaE}=1.08$, $\ESS=449$ on only $16$ chains), a featureless residual
+with zero $|z|>3$ pixels, and $\thetaE^{\rm eff}=1\farcs099$
+($\mathbf{-1.4\%}$, well inside the convention offset). The small, elliptical
+102157958 ($\thetaE^{\rm pub}=0\farcs85$) converges tightly
+($\Rhat_{\thetaE}=1.04$, $\ESS=2905$) but to $\thetaE^{\rm eff}=0\farcs581$
+($\mathbf{-32\%}$) with a {\it better}-than-reference $\chi^2/\mathrm{px}=0.441$
+and a featureless residual: a genuine mass-ellipticity / source-shape degeneracy
+the data cannot break, not a misfit. The third, 102020061
+($\thetaE^{\rm pub}=1\farcs24$), does not converge even at $48$ chains
+($\Rhat_{\thetaE}=18.8$): its $\thetaE$ posterior is a multimodal ridge spanning
+$0\farcs79$--$1\farcs28$ (per-chain means spread $0\farcs49$ with within-chain
+scatter only $\sim$$0\farcs03$), a $\thetaE$--ellipticity--centroid degeneracy
+($\mathrm{corr}(\thetaE,e_1)=+0.52$, $\mathrm{corr}(\thetaE,c_x)=-0.41$) --- so
+no single $\thetaE$ should be quoted. A telling compute paradox: the clean target
+converged with the {\it lightest} configuration ($16\times600$), while the two
+hard targets failed at $3\times$ the budget ($48\times1400$) --- more chains
+cannot fix a degeneracy.
+
+\begin{table}[ht]
+\centering
+\caption{Euclid Q1 grade-A fits under the CGL diagonal recipe versus the
+published PyAutoLens catalogue. All three are equally good pixel fits
+($\chi^2/\mathrm{px}\approx0.45$), so the $\thetaE$ offsets are model
+degeneracies, not misfits. Source: \dfile{research/notes/p3-results.md},
+\dfile{data/euclid/*\_fit.json}.}
+\label{tab:euclid}
+\begin{tabular}{lcccccl}
+\toprule
+Euclid ID & $\thetaE^{\rm pub}$ & $q^{\rm pub}$ & $\thetaE^{\rm eff}$(ours) & offset & $\chi^2/$px & verdict ($\Rhat_{\thetaE}$) \\
+\midrule
+102157952 & $1\farcs11$ & 0.82 & $1\farcs099$          & $\mathbf{-1.4\%}$ & 0.454 & {\bf clean} (1.08) \\
+102157958 & $0\farcs85$ & 0.56 & $0\farcs581$          & $-32\%$           & 0.441 & converged, biased (1.04) \\
+102020061 & $1\farcs24$ & 0.79 & $0\farcs79$--$1\farcs28$ & ridge          & 0.472 & multimodal (18.8) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.99\textwidth]{../figs/euclid_q1_fits.png}
+\caption{Euclid Q1 VIS fits under the CGL diagonal recipe. Rows: the three
+grade-A targets; columns: VIS data, MAP model, normalized residual, and the
+$\thetaE^{\rm eff}$ posterior (published value dashed red, ours solid black).
+102157952 (middle) is the clean $-1.4\%$ success; 102157958 (bottom) is
+converged but $-32\%$ biased (a genuine degeneracy at equal $\chi^2$); 102020061
+(top) is the multimodal, non-converged ridge. All three residuals are
+featureless white noise --- the offsets are degeneracies, not misfits. Source:
+\dfile{31\_fit\_euclid.py}, \dfile{research/notes/p3-results.md}.}
+\label{fig:euclid}
+\end{figure}
+
+\subsection{Interpretation and the documented robustness path}
+
+Native-resolution single-band VIS modeling is trustworthy for well-resolved,
+round, high-S/N systems and biased or multimodal for small-$\thetaE$ or
+elliptical ones. Two recurring themes --- both pre-registered in the P3 recon and
+echoing the residual-systematics conclusion of \S\ref{sec:realdata} --- account
+for this: PSF / pixel undersampling at $0\farcs1$/px (a $\thetaE\!\sim\!0\farcs85$
+Einstein ring is only $\sim$$1$--$2$ px wide and blends with the lens light; the
+flat $\chi^2/\mathrm{px}\approx0.45$ confirms the PSF itself is not
+oversampled), and source-model choice (our S\'ersic$+$shapelet source selects a
+different $\thetaE$ than the published free-form pixelized source at equal data
+fit; the source-model systematic of \citet{etherington2024codecomparison}). The
+documented robust path --- super-sampled ($\times2$) modeling with a
+pixelized/free-form source regularized to the PyAutoLens basis --- is the route
+to $\thetaE$ robustness and is parked as the P3 follow-on. For this campaign, the
+recipe and \coolest\ export are mechanically validated deliverables, and Euclid
+$\thetaE$ recovery is an honest $1/3$-clean characterization of where
+native-resolution single-band modeling can be trusted.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Discussion}
@@ -945,13 +1320,24 @@ likelihood axis, we have shown --- with known truth --- that ignoring drizzle
 correlation is not a benign approximation: it biases the recovered slope at
 $|z|\approx6$ and destroys coverage, and it does so even at native scale under
 the real correlation kernel. The correlated likelihood removes that bias and
-unifies the scales in mocks; whether it does so on the real system, and whether
-it dissolves the \dfile{v3b} bimodality, is the pre-registered P1c fork
-(\S\ref{sec:realdata}), both branches of which are publishable. The honest
-standing caveat --- the fine posterior is {\it conservative} by a factor $2.45$
-because near-singular drizzle covariances lose information at spectral zeros ---
-is itself a useful result: it quantifies the price of correctness and motivates
-the $\lambda$-sensitivity robustness scan.
+unifies the scales in mocks. On the real system (\S\ref{sec:realdata}) it proves
+{\it necessary but not sufficient}: it dissolves the \dfile{v3b} bimodality ---
+per-basin evidence flips by $\sim$$191$~nats, from favouring the steep basin to
+favouring the low basin, so the apparent multimodality is a noise-covariance
+artifact (H1) --- but it over-corrects the slope value, driving the binned-low
+$\gammaEPL$ to $1.103\pm0.008$, $\sim$$17\sigma$ below the diagonal-native
+anchor, with the correlated slopes bracketing rather than unifying onto it (H2).
+This is the central, honest result: correcting the noise covariance is a large
+and real step --- it removes the upsampling steep artifact --- but a residual
+scale dependence remains, pointing to source-model and PSF systematics that the
+shapelet source and stationary-kernel PSF do not yet address, and that the Euclid
+analysis (\S\ref{sec:recipe}) independently implicates. The honest standing
+caveat --- the fine posterior is {\it conservative} by a factor $2.45$ because
+near-singular drizzle covariances lose information at spectral zeros --- is
+itself a useful result: it quantifies the price of correctness, it surfaces on
+the real fine product as an outright low-basin whitener pathology
+(\S\ref{sec:realdata}), and it motivates the $\lambda$-sensitivity robustness
+scan retained as a follow-on.
 
 On the inference axis, the benchmark's two-sided verdict is a caution against
 single-number sampler comparisons. The most efficient sampler (\nautilus) is
@@ -961,7 +1347,16 @@ efficient; and no gradient method beats the incumbent baseline at budget parity
 on the standard mocks. That the ranked flow-assisted recipe (GL-NT) fails its
 own bars at phoenix budget is a genuine finding, not a null result: it delimits
 where transport-preconditioned HMC helps and where flow-space trajectory
-adaptation is the bottleneck.
+adaptation is the bottleneck. The A100 phase (\S\ref{sec:p2c}) then delivers the
+sharpest inference lesson: the two hardest {\it real} lens posteriors defeat
+every off-the-shelf sampler. The condition-$10^{14}$ marginalized target
+converges under neither single-stage HMC nor auto-mass MCLMC --- only under the
+campaign's two-stage re-preconditioning recipe --- and the bimodal target
+yields its mode weights to no direct sampler, only to per-basin tempered-SMC
+evidence. Both findings converge with the Pillar-1 sampler saga
+(\S\ref{sec:samplersaga}): real lens posteriors are saddle-shaped and
+multimodal, and the mock-validated single-metric recipe does not transfer to
+them --- an inference-side result of independent practical value.
 
 Two follow-on pillars are deliberately parked (out of scope, per the campaign's
 written scope gate) and noted for completeness: a Gaussian-process / pixelated
@@ -1077,10 +1472,10 @@ mock render            & $<0.05\sigma$ on every kept pixel & PASS \\
 E1a artifact           & median $|z(\gammaEPL)|>2$ OR cov$_{68}<40\%$ & PASS \\
 E1b recovery           & $|\bar z(\gammaEPL)|<0.5$/scale; cross-scale $\ge6/8$; width $\in[0.7,1.5]$ & PASS$^\ast$ \\
 E1c SBC ($64$ mocks)   & rank $p>0.01$ each of $6$; cov$_{68}\in[55,80]\%$ & PASS$^\ast$ \\
-E2 H1 bimodality       & steep mass $<10\%$ OR corrected $\Delta\log\ell\le0$ (both branches) & \todo{P1c} \\
-E2 H2 cross-scale      & $|\Delta\gammaEPL|<2\sigma_{\rm comb}$; anchor $1.433\,[1.400,1.469]$ & \todo{P1c} \\
-E2 H3 honesty          & $\sigma_\gamma(\text{fine})\ge\sigma_\gamma(\text{native})/1.5$ & \todo{P1c} \\
-E3 robustness          & $\gammaEPL$-mean shift $<0.5\sigma$ across kernel variants & \todo{P3} \\
+E2 H1 bimodality       & steep mass $<10\%$ OR corrected $\Delta\log\ell\le0$ (both branches) & {\bf PASS} (artifact; $\Delta\!\log Z{=}{-}29$) \\
+E2 H2 cross-scale      & $|\Delta\gammaEPL|<2\sigma_{\rm comb}$; anchor $1.433\,[1.400,1.469]$ & FAIL (over-corr.; $1.103$, ${\sim}17\sigma$) \\
+E2 H3 honesty          & $\sigma_\gamma(\text{fine})\ge\sigma_\gamma(\text{native})/1.5$ & {\bf PASS} ($0.117{\ge}0.023$) \\
+E3 robustness          & $\gammaEPL$-mean shift $<0.5\sigma$ across kernel variants & follow-on (not run) \\
 \midrule
 P2 win criterion       & ESS/grad $\ge2\times$ AND $\Rhat<1.01$ AND modes $\pm10$ pts & applied \\
 budget                 & Perlmutter commit $90$ A100-h, hard stop $100$, \texttt{deepsrch\_g} & on track \\
@@ -1121,10 +1516,13 @@ E Occam term          & $10^{-10}$ & $0.0$ & $\log\det A=323.229$, cond$(A)=1.4\
 \label{app:ledger}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\noindent\emph{Partial --- the P1c/P2c/P3 Perlmutter rows are filled as they
-charge.} All Perlmutter jobs charge account \texttt{deepsrch\_g}; the ledger row
-is appended before results are read (\texttt{CAMPAIGN.md}). Committed
-$\le90$ A100-h of the repo-wide allocation, hard stop $100$.
+\noindent All Perlmutter jobs charge account \texttt{deepsrch\_g} (P1c/P2c ran
+on \texttt{cosmo\_g} during a scheduling-latency exception; see
+\texttt{CAMPAIGN.md}); each ledger row is appended before results are read.
+Committed $\le90$ A100-h of the repo-wide allocation, hard stop $100$; the
+campaign used $\sim$$34$ A100-h in total (P0 $1.2$ + P1c smoke $\le0.5$ + P1c
+$\sim$$15$ + P2c $\sim$$17$), well within budget, with Euclid (P3) run
+budget-free on phoenix L4.
 
 \begin{table}[ht]
 \centering
@@ -1141,9 +1539,9 @@ P1c smoke (pre-flight)    & Perlmutter & $\le0.5$ A100-h & shared QOS \\
 P1a--P1b (kernels, mocks, E1, diagnosis) & phoenix & $\sim$$165$ GPU-h & incl.\ $\sim$95 diagnosis \\
 P2a--P2b (zoo, benchmark) & phoenix & $202.4$ GPU-h & $370$ cells \\
 \midrule
-P1c cross-scale (gated)   & Perlmutter & \todo{P1c: A100-h charged (<=30 committed)} & \\
-P2c sampler matrix (gated)& Perlmutter & \todo{P2c: A100-h charged (<=45 committed)} & \\
-P3 recipe + Euclid (gated)& Perlmutter & \todo{P3: A100-h charged (<=15 committed)} & \\
+P1c cross-scale           & Perlmutter & $\sim$$15$ A100-h & SMC money product; $\le30$ committed \\
+P2c sampler matrix        & Perlmutter & $\sim$$16$--$18$ A100-h & seed-0 T2/T3; $\le45$ committed \\
+P3 recipe + Euclid        & phoenix    & $\sim$$0$ A100-h & Euclid on phoenix L4 (diagonal) \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1179,7 +1577,7 @@ target & tier & dtype & description \\
 \dfile{gu2022\_sys000--011} & T1 & f32 & twelve \citet{gu2022gigalens} mock lens posteriors \\
 \dfile{foundry\_marg46} & T2 & f64 & the $46$-d marginalized real posterior of \foundry\ (cond $10^{14}$) \\
 \dfile{foundry\_v3b74}  & T3 & f32 & the $74$-d genuinely bimodal binned real posterior \\
-(Euclid Q1 $\times$2--3) & T4 & --- & stub for the gated end-to-end phase (\S\ref{sec:recipe}) \\
+(Euclid Q1 $\times$3) & T4 & --- & fit end-to-end in \S\ref{sec:recipe} (native diagonal, not benchmarked as zoo cells) \\
 \bottomrule
 \end{tabular}
 \end{table}
