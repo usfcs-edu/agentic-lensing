@@ -78,5 +78,15 @@ measured σ_seed and the finalization is itself a ledger row, not a goalpost mov
 
 ## Honest status / what is a proxy / what is blocked
 
-- 2026-07-15: campaign open. Env + vendor + skeleton up; import smoke PASS. Parity battery,
-  MC-SMC v0, and adapters under construction. No science claims yet.
+- 2026-07-15: **parity battery run (v2d+v3b, z_ref+3 perts): F1–F5, F7 PASS; F6 FAIL
+  (1.31e-10 vs 1e-10 on v3b only)** — a measured f64 cross-algorithm noise-floor artifact at
+  cond(A)=7e7, NOT an implementation defect (fp128-truth analysis in
+  data/parity_report_scene.json; exception recommendation in CAMPAIGN.md, awaiting sign-off).
+  The certification is CONDITIONAL on three documented convention reconciliations
+  (cgl2/scene_build.py docstring: Sersic bn approximant ~2e-3 model delta between stacks;
+  f32 shapelet prefactor; f32 grid + unrenormalized subgrid PSF kernel) — parity gates run
+  with old-convention cgl2-side subclasses, vendor UNPATCHED; native-convention deltas are
+  quantified under `informational` in the report. Correlated-noise term ported and validated
+  (delta≡stock 5.9e-11; dense-exact 5.5e-12 nats; whitener manifest green). F8 = slurm
+  template only (not run). MC-SMC v0 + adapters still under construction. No science claims.
+- 2026-07-15: campaign open. Env + vendor + skeleton up; import smoke PASS.
