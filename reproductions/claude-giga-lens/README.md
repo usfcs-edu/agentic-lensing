@@ -43,6 +43,10 @@ See `CAMPAIGN.md` for the full gate-by-gate ledger (every number traced to a JSO
 including the honest negatives and retractions (the fine-low whitener pathology, the info-poor
 native non-convergence, the saddle-MAP sampler saga resolved by SMC).
 
+Post-campaign scoping: `research/NEXT_DIRECTIONS.md` (2026-07-15) — the prioritized,
+evidence-checked follow-on program (E3 scan → injection-recovery → source/PSF forks → the
+flt-level arbiter), with novelty verification against the mid-2026 literature.
+
 ## Operator quickstart
 
 ```bash
