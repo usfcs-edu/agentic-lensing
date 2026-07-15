@@ -1,0 +1,19 @@
+# Hard constraints for ALL pip installs into the cgl2 venv (seeded from ../claude-giga-lens).
+# Core pins are parity-critical: cross-stack parity needs the OLD validated 58ec9a7 stack and
+# the vendored scene API importable in ONE process, and jax 0.6.2 is the only intersection ever
+# validated on aarch64 phoenix (with the known XLA workaround flags).
+# Any package that cannot resolve under these pins gets DOWNGRADED, not jax upgraded.
+# KNOWN DEVIATION (ledgered): numpy 2.4.6 vs gigalens-linus pyproject's 2.1.3 — covered by the
+# F1-F8 gate battery; vendored install uses --no-deps so the pin here governs.
+jax==0.6.2
+jaxlib==0.6.2
+jax-cuda12-plugin==0.6.2
+jax-cuda12-pjrt==0.6.2
+numpy==2.4.6
+scipy==1.17.1
+tensorflow-probability==0.25.0
+optax==0.2.8
+objax==1.8.0
+astropy==7.2.0
+lenstronomy==1.14.0
+blackjax==1.3

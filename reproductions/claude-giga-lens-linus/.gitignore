@@ -1,0 +1,14 @@
+data/
+*.egg-info/
+__pycache__/
+.pytest_cache/
+.jax_cache/
+*.npz
+*.log
+papers/*.aux
+papers/*.bbl
+papers/*.blg
+papers/*.out
+papers/*.toc
+papers/main.pdf
+!plans/*.md

@@ -1,0 +1,78 @@
+*.py[cod]
+
+# C extensions
+*.so
+
+# Packages
+*.egg
+*.egg-info
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+lib
+lib64
+__pycache__
+
+.idea
+.ipynb_checkpoints
+.DS_STORE
+# Installer logs
+pip-log.txt
+
+# Unit test / coverage reports
+.coverage
+.tox
+nosetests.xml
+
+# Translations
+*.mo
+
+# Mr Developer
+.mr.developer.cfg
+.project
+.pydevproject
+
+#stuff
+*.npy
+*.out
+.DS_Store
+*.fits
+*.gif
+
+profile-data/
+
+# Keep personal root-level work untracked by default, but preserve current repository structure.
+# Allow shared-work contents explicitly.
+/*
+!/.gitignore
+!/README.rst
+!/LICENSE
+!/pyproject.toml
+!/setup.py
+!/tox.ini
+!/demo-multinode/
+!/demos/
+!/docs/
+!/docsrc/
+!/shared-work/
+!/src/
+!/tests/
+!/wip/
+
+# validation suite plot artifacts
+tests/validation/_artifacts/
+tests/multiplane_demo/artifacts/
+wip/bench_out/
+# Sphinx build output
+docs/_build/
+
+.venv-docs/
+
+# local docs preview (screenshots, gallery) — not part of the PR
+docs-preview/

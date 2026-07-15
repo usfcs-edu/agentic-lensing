@@ -1,0 +1,21 @@
+# Documentation build dependencies (Sphinx + MyST toolchain).
+# Install into a docs venv:  python -m pip install -r docs/requirements.txt
+# The gigalens package itself does NOT need to be importable — heavy deps are
+# mocked in conf.py — but `pip install -e .` (without the CUDA extra) makes the
+# version string and any un-mocked imports resolve cleanly.
+sphinx>=7.3
+# Light, CPU-only runtime deps that execute at import time (numpy/scipy constants,
+# jnp.pi, etc.) — too pervasive to mock safely, so install the real thing. jax is
+# pinned to the package's version for import compatibility; the CPU wheel is enough
+# (no GPU). The heavy stack (tensorflow, lenstronomy, objax) stays mocked in conf.py.
+numpy
+scipy
+jax[cpu]==0.6.2
+myst-parser>=3.0
+myst-nb>=1.1
+linkify-it-py>=2.0          # required by the MyST "linkify" extension (bare-URL autolinking)
+pydata-sphinx-theme>=0.15
+sphinx-copybutton>=0.5
+sphinx-design>=0.6
+# Optional static-analysis reference backend (see docs/README.md); uncomment to use:
+# sphinx-autodoc2>=0.5

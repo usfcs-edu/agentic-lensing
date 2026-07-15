@@ -1,0 +1,29 @@
+{
+  "g1": {
+    "None": {
+      "grad": 2.352474650984372e-15,
+      "finite": true,
+      "gate_pass": true
+    },
+    "float32": {
+      "grad": 1.4019126095071047e-16,
+      "finite": true,
+      "gate_pass": true
+    }
+  },
+  "g2": {
+    "noop": true
+  },
+  "g3": {
+    "peak_base": 9196.877688,
+    "peak_twin": 4934.484112,
+    "gate_pass": true
+  },
+  "g4": {
+    "ran": true,
+    "finite": true,
+    "peak_gb": 19.284922624,
+    "free_mb": 34198.0,
+    "gate_pass": true
+  }
+}

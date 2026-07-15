@@ -1,0 +1,229 @@
+{
+  "device": "cuda:0",
+  "equiv": [
+    {
+      "cell": [
+        200,
+        2,
+        15
+      ],
+      "lay_chi2": 0.0,
+      "lay_grad": 0.0,
+      "rmt_chi2": 0.0,
+      "rmt_grad": 2.94804528736449e-15,
+      "lay32_chi2": 0.0,
+      "rmt32_grad": 4.471312472271543e-17,
+      "nan": false,
+      "gate_pass": true
+    },
+    {
+      "cell": [
+        200,
+        2,
+        30
+      ],
+      "lay_chi2": 0.0,
+      "lay_grad": 0.0,
+      "rmt_chi2": 0.0,
+      "rmt_grad": 6.403679966936741e-14,
+      "lay32_chi2": 0.0,
+      "rmt32_grad": 8.032361962390994e-07,
+      "nan": false,
+      "gate_pass": false
+    }
+  ],
+  "latency": [
+    {
+      "cell": [
+        200,
+        2,
+        15
+      ],
+      "variant": "layout",
+      "grad_ms": 10.950566967949271,
+      "grad_ms_min": 7.944730983581394,
+      "xla_peak_mb": 534.587024
+    },
+    {
+      "cell": [
+        200,
+        2,
+        15
+      ],
+      "variant": "base",
+      "grad_ms": 10.952961980365217,
+      "grad_ms_min": 7.897923002019525,
+      "xla_peak_mb": 534.58728
+    },
+    {
+      "cell": [
+        200,
+        2,
+        15
+      ],
+      "variant": "l+rmt",
+      "grad_ms": 8.108546491712332,
+      "grad_ms_min": 7.837019977159798,
+      "xla_peak_mb": 320.672624
+    },
+    {
+      "cell": [
+        200,
+        2,
+        30
+      ],
+      "variant": "layout",
+      "grad_ms": 27.200231968890876,
+      "grad_ms_min": 27.05252100713551,
+      "xla_peak_mb": 1597.723024
+    },
+    {
+      "cell": [
+        200,
+        2,
+        30
+      ],
+      "variant": "base",
+      "grad_ms": 27.221927972277626,
+      "grad_ms_min": 26.98797098128125,
+      "xla_peak_mb": 1597.72328
+    },
+    {
+      "cell": [
+        200,
+        2,
+        30
+      ],
+      "variant": "l+rmt",
+      "grad_ms": 27.858657005708665,
+      "grad_ms_min": 27.70652197068557,
+      "xla_peak_mb": 1433.1798
+    }
+  ],
+  "bs": [
+    {
+      "variant": "base",
+      "bs": 1,
+      "grad_ms": 10.939722007606179,
+      "free_mb": 31674.0,
+      "grad_ms_min": 10.925015027169138,
+      "per_sample_ms": 10.939722007606179,
+      "xla_peak_mb": 534.58728,
+      "oom": false
+    },
+    {
+      "variant": "base",
+      "bs": 8,
+      "grad_ms": 60.153377533424646,
+      "free_mb": 31674.0,
+      "grad_ms_min": 59.702972997911274,
+      "per_sample_ms": 7.519172191678081,
+      "xla_peak_mb": 4609.075504,
+      "oom": false
+    },
+    {
+      "variant": "base",
+      "bs": 16,
+      "grad_ms": 116.77784350467846,
+      "free_mb": 31674.0,
+      "grad_ms_min": 116.24082602793351,
+      "per_sample_ms": 7.298615219042404,
+      "xla_peak_mb": 9196.877688,
+      "oom": false
+    },
+    {
+      "variant": "base",
+      "bs": 32,
+      "oom": true,
+      "free_mb": 31674.0,
+      "xla_peak_mb": 18392.959736,
+      "error": "RESOURCE_EXHAUSTED: Out of memory while trying to allocate 17.13GiB."
+    },
+    {
+      "variant": "layout",
+      "bs": 1,
+      "grad_ms": 11.00454299012199,
+      "free_mb": 8006.0,
+      "grad_ms_min": 10.974927979987115,
+      "per_sample_ms": 11.00454299012199,
+      "xla_peak_mb": 534.587024,
+      "oom": false
+    },
+    {
+      "variant": "layout",
+      "bs": 8,
+      "grad_ms": 59.57500298973173,
+      "free_mb": 8006.0,
+      "grad_ms_min": 59.36843698145822,
+      "per_sample_ms": 7.446875373716466,
+      "xla_peak_mb": 4609.075248,
+      "oom": false
+    },
+    {
+      "variant": "layout",
+      "bs": 16,
+      "grad_ms": 116.02255352772772,
+      "free_mb": 8006.0,
+      "grad_ms_min": 115.81544199725613,
+      "per_sample_ms": 7.251409595482983,
+      "xla_peak_mb": 9196.877432,
+      "oom": false
+    },
+    {
+      "variant": "layout",
+      "bs": 32,
+      "oom": true,
+      "free_mb": 8006.0,
+      "xla_peak_mb": 18392.95948,
+      "error": "RESOURCE_EXHAUSTED: Out of memory while trying to allocate 17.13GiB."
+    },
+    {
+      "variant": "layout+rmt",
+      "bs": 1,
+      "grad_ms": 11.10746551421471,
+      "free_mb": 8002.0,
+      "grad_ms_min": 11.080544965807348,
+      "per_sample_ms": 11.10746551421471,
+      "xla_peak_mb": 320.672624,
+      "oom": false
+    },
+    {
+      "variant": "layout+rmt",
+      "bs": 8,
+      "grad_ms": 58.66132248775102,
+      "free_mb": 8002.0,
+      "grad_ms_min": 58.44681698363274,
+      "per_sample_ms": 7.332665310968878,
+      "xla_peak_mb": 2477.882192,
+      "oom": false
+    },
+    {
+      "variant": "layout+rmt",
+      "bs": 16,
+      "grad_ms": 115.25041196728125,
+      "free_mb": 8002.0,
+      "grad_ms_min": 114.82354998588562,
+      "per_sample_ms": 7.203150747955078,
+      "xla_peak_mb": 4934.483856,
+      "oom": false
+    },
+    {
+      "variant": "layout+rmt",
+      "bs": 32,
+      "grad_ms": 223.685940989526,
+      "free_mb": 8002.0,
+      "grad_ms_min": 223.05438201874495,
+      "per_sample_ms": 6.990185655922687,
+      "xla_peak_mb": 9868.166416,
+      "oom": false
+    },
+    {
+      "variant": "layout+rmt",
+      "bs": 64,
+      "oom": true,
+      "free_mb": 8002.0,
+      "xla_peak_mb": 19089.642504,
+      "error": "RESOURCE_EXHAUSTED: Out of memory while trying to allocate 17.78GiB."
+    }
+  ]
+}
