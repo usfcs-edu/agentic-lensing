@@ -149,7 +149,8 @@ def prod(args):
 
     tag = args.tag
     print(f"===== PROD {tag} ({e2.PRODUCTS[tag]['label']}) =====", flush=True)
-    target = e2.build_target(tag, whitener_file=(args.whitener or None))
+    target = e2.build_target(tag, whitener_file=(args.whitener or None),
+                             cutout_file=(args.data_file or None))
     gi = e2.gamma_index(target.model)
     ti = e2.theta_e_index(target.model)
     labels = list(target.model.index_labels)
@@ -317,7 +318,8 @@ def prod_smc(args):
 
     tag = args.tag
     print(f"===== PROD-SMC {tag} ({e2.PRODUCTS[tag]['label']}) =====", flush=True)
-    target = e2.build_target(tag, whitener_file=(args.whitener or None))
+    target = e2.build_target(tag, whitener_file=(args.whitener or None),
+                             cutout_file=(args.data_file or None))
     labels = list(target.model.index_labels)
     out = dict(tag=tag, sampler="correlated_smc", label=e2.PRODUCTS[tag]["label"],
                whiten=target.whiten_meta, ndim=int(target.model.ndim),
@@ -389,6 +391,11 @@ def main():
     ap.add_argument("--tags", type=str, default="")
     ap.add_argument("--whitener", type=str, default="",
                     help="override whitener npz (e.g. whitener_v2d.npz strict)")
+    ap.add_argument("--data-file", type=str, default="",
+                    help="override the tag's cutout npz (load_product layout, "
+                         "same grid/PSF conventions; e.g. a T1.1 injection "
+                         "dataset; absolute paths OK). Default '' = the "
+                         "production PRODUCTS[tag] cutout, bit-for-bit.")
     ap.add_argument("--out", type=str, default="data/results/e2_out.json")
     # smoke
     ap.add_argument("--hmc-steps", type=int, default=50)

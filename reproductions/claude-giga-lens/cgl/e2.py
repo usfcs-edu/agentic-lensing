@@ -406,7 +406,8 @@ def build_marg_model_grouped(product, whitener, *, n_max=6, supersample=2,
 # --------------------------------------------------------------------------- #
 # target builder: correlated marg model + batched logp
 # --------------------------------------------------------------------------- #
-def build_target(tag, n_max=6, verify_logp=False, whitener_file=None):
+def build_target(tag, n_max=6, verify_logp=False, whitener_file=None,
+                 cutout_file=None):
     """Build the correlated marg model + batched log-prob for a product tag.
 
     Uses the grouped-conv design whitening (build_marg_model_grouped) so the
@@ -414,13 +415,21 @@ def build_target(tag, n_max=6, verify_logp=False, whitener_file=None):
     reference cgl.likelihood.build_marg_model (vmap-conv) at a prior draw.
     whitener_file overrides PRODUCTS[tag]['whitener'] (e.g. the strict v2d
     whitener for the whitener-vs-prior-pull diagnostic).
+    cutout_file overrides PRODUCTS[tag]['cutout'] with a load_product-layout
+    npz on the SAME grid/PSF conventions as the tag (e.g. a T1.1 injection
+    dataset: real residual field + synthetic truth render). Keyword-only
+    addition 2026-07-15 (claude-giga-lens-linus T1.1); default None
+    reproduces the production path bit-for-bit (same load_product(cfg
+    cutout) call).
 
     Returns SimpleNamespace(model, batched_lp, whiten_meta, tag, cfg, ...)."""
     import jax
     import jax.numpy as jnp
 
+    from pathlib import Path as _Path
+
     cfg = PRODUCTS[tag]
-    prod = load_product(cfg["cutout"])
+    prod = load_product(_Path(cutout_file) if cutout_file else cfg["cutout"])
     wname = whitener_file or cfg["whitener"]
     wz = np.load(DATA / wname, allow_pickle=True)
     whitener = dict(h=np.asarray(wz["h"], dtype=np.float64),

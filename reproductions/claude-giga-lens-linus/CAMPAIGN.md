@@ -25,6 +25,10 @@ Plan of record: `plans/PLAN.md` (approved 2026-07-15). Their-format handoffs: `p
 | 2026-07-15 | 55951084 cgl2-t02-steep-s3 (v3b-steep SMC p96 seed3, slurm/t02_smc_v3b_steep_seed3.slurm) | P1 T0.2 | 2.0 | — | 5.0 (est) |
 | 2026-07-15 | 55951085 cgl2-t02-steep-s4 (v3b-steep SMC p96 seed4, slurm/t02_smc_v3b_steep_seed4.slurm) | P1 T0.2 | 2.0 | — | 7.0 (est) |
 | 2026-07-15 | 55951086 cgl2-t03-compmask (v3b-low SMC p128 seed2, companion-eroded whitener, slurm/t03_smc_v3b_low_compmask.slurm) | P1 T0.3 | 2.0 | — | 9.0 (est) |
+| 2026-07-15 | 55952480 cgl2-t11-i1 (inj1 shift(0,0): svicov prep + SMC p128 seed2, slurm/t11_inj1.slurm) | T1.1 (D7) | 2.0 | — | 11.0 (est) |
+| 2026-07-15 | 55952481 cgl2-t11-i2 (inj2 shift(+.030,−.014)″: svicov prep + SMC p128 seed2, slurm/t11_inj2.slurm) | T1.1 (D7) | 2.0 | — | 13.0 (est) |
+| 2026-07-15 | 55952482 cgl2-t11-i3 (inj3 shift(−.022,+.034)″: svicov prep + SMC p128 seed2, slurm/t11_inj3.slurm) | T1.1 (D7) | 2.0 | — | 15.0 (est) |
+| 2026-07-15 | 55952483 cgl2-t11-i1d (inj1 DIAGONAL control via delta whitener, slurm/t11_inj1_diagctl.slurm) | T1.1 (D7) | 2.0 | — | 17.0 (est) |
 
 ## Gate record
 
@@ -43,6 +47,7 @@ Plan of record: `plans/PLAN.md` (approved 2026-07-15). Their-format handoffs: `p
 | W | whitener bundles re-validated (e_op reproduction + erosion + hashes) | e_op ≤0.02 strict | **PASS** (v2d/v3b/v3 admissible; v2d_relaxed inadmissible-by-design, e_op 0.0312 vs its own e_target 0.05) | data/whitener_manifest.json |
 | B0 | MC-SMC correctness (adapters, mix2/funnel/illcond, MCLMC bias screen) | PLAN §5 | PENDING | data/smc_b0_report.json |
 | X1-G0 | profile-curvature mechanism entry gate: r_eff ordering must admit the bracket's sign pattern | monotone ordering exists | **FAIL — hypothesis structurally dead** (24/24 robustness variants non-monotone; fine/binned constrain slope at the SAME radius, Δr_eff≈0.008″ < ¼ px, yet Δγ=0.71 ⇒ would need \|dγ_loc/dln r\|≈226 vs O(1) physical) | data/x1_g0_effective_radii.json, research/x1_g0_mechanism_check.md, figs/x1_g0_*.png |
+| T1.1 | injection-recovery on real drizzle noise: does the production stationary-whitened correlated likelihood recover γ_truth=1.433 injected on the REAL v3b residual field? | pre-registered: median(γ_rec−1.433) < −0.072 confirms LOW bias; \|median bias\| < 0.024 exonerates; between = partial, quantified; control (diag likelihood, same data) predicted 1.29–1.43 | PENDING (4 jobs submitted 2026-07-15) | data (CFS) t11_inj{1,2,3}_smc.npz + t11_inj1_diag_smc.npz; build gates data/t11_injection_build_report.json |
 | Fermat teaser | noise-model Δφ sensitivity (illustrative; NOT a TD lens; synthetic pairs; corr posterior is the known over-correcting product) | report-only | median \|frac shift\| **88%** anchor→corr (10.7σ); same-product diag→corr arm **61%** (17σ) — vs the ~1% TDCOSMO-relevant scale | data/fermat_dt_teaser.json, research/fermat_dt_teaser.md |
 | T0.4-1 | per-block kernel homogeneity (stationarity of the noise-model class) | 2σ blockwise + calibrated p | **REJECTED** — money product v3b max\|z\|=3.67, calibrated p=0.010; arc-excluded v3 p=0.010; replicated spatial pattern; observed cross-block ρ(0,1) spread 16.4× the drizzle-registration envelope. **The stationary kernel class behind γ=1.103 is provably violated by the field.** Verifier CLEAN (all z/p recomputed exactly; power check confirms informative nulls). | data/t04_stationarity*.json, figs/t04_stationarity_*.png, research/t04_free_checks.md |
 | T0.4-2 | λ-arm: does spectrum-flooring cure the fine-low gaming? | ordering table w/ per-λ exact log\|C\| | **NO — "information-discard-at-spectral-zeros" FALSIFIED**; data reject flooring by 3.3k–33k nats; pathology localized to down-weighting of high-S large-scale modes (the w_b≈0.27 background component — exactly the nonstationary component of T0.4-1). Production s_floor=0.05 confirmed (plan's "0.1" corrected); production taps reproduced to 1e-9. Verifier CLEAN (per-λ Szegő anchors verified — no shared constant). | data/t04_lambda_arm.json, figs/t04_lambda_arm.png |
@@ -100,6 +105,101 @@ downstream ΔlogZ gate, as planned).
 - sshproxy refreshed 2026-07-15 (user). Jobs charge `cosmo_g` (D5), single-GPU shared QOS.
 
 ## Stage log (newest first)
+
+### 2026-07-15 — T1.1 DESIGN CHECKPOINT + submission (injection-recovery on real drizzle noise; est 8.0 A100-h committed in ledger, D7 freed pool)
+
+**T1.1 DESIGN CHECKPOINT (pre-registered, appended BEFORE submission):**
+- **Hypothesis (mechanism-backed, P1 synthesis / T0.4):** the production stationary-whitened
+  correlated likelihood is biased LOW in γ on the real v3b noise field — a NONSTATIONARY
+  correlated-background component priced as stationary (T0.4-1 rejection, p=0.010) lets the
+  whitened metric discount large-scale real-space misfit (T0.4-2/3), dragging γ down at fixed
+  radial information (X1-G0).
+- **Design (n=3 injections + 1 control):** inj_i = (real v3b cutout img − model_map_v3b_cold,
+  i.e. the production converged-model residual field = the field the whitener was fit on)
+  + (synthetic full scene at the ANCHOR truth). Truth = hmc_v13_v2d per-dim-median 74-dim
+  paper point → 46-dim marg z via the e2/fermat/t04-validated transform (ie_scale = cf_v3b);
+  **γ_truth = 1.43298**; the 28 shapelet amps FROZEN at a_truth = the production correlated
+  ridge solve of that point on the REAL v3b data ("the fitted shapelet source"); render =
+  M_det(z_i) + ret(z_i)·a_truth via the parity-certified reference builder (cross-builder
+  identity 4.4e-16 vs the grouped production model). Between-injection variation ONLY a
+  rigid sub-pixel source-center shift (srcS+srcShp together): inj1 (0,0)″, inj2
+  (+0.030,−0.014)″, inj3 (−0.022,+0.034)″ (v3b pixel = 0.08″); truth γ + mass sector
+  identical (verified to 1e-9). err_map/keep_mask/psf/meta byte-identical to cutout_v3b.
+  Truth provenance per injection: data/t11_inj{i}_truth.json (z46, named physical params,
+  a_truth, shifts, input md5s, gate numbers).
+- **Fit (unmodified production v3b-low correlated config, per injection, chained in ONE
+  slurm job):** step 1 reproduces the production warm-start prep = the
+  e2_v3b_low_canary_svicov.npz generation step, EXACT preserved config (scratchpad
+  e2_v3b_low_canary_svicov.json: --mode prod --basins low --metric svi_cov --svi-steps 7000
+  --svi-particles 16 --chains 24 --num-leapfrog 16 --step-size 0.1 --stage1-burn 200
+  --stage1-keep 200 --burn 50 --keep 100 --map-rounds 4 --map-iters 200 --seed 2) ON the
+  injection; step 2 = the frozen production correlated SMC (p128, cov-inflate 3.0,
+  mcmc-steps 4, integration-steps 8, step 0.1, target-ess 0.7, max-lambda 400, seed 2 = THE
+  production seed) warm-started from step 1's npz. **Whitener = PRODUCTION whitener_v3b,
+  unchanged — testing it IS the experiment.** Job 4 (control, D7-optional exercised because
+  turnkey): injection 1 under the DELTA whitener bundle (h=[[1]], M=0, keep_w=keep_mask;
+  makes the production code path compute exactly the diagonal masked marg likelihood —
+  identity gated at 0.0 nats on 3 test points, build report G4).
+- **Prediction (pre-registered):** median(γ_rec − 1.433) < −0.072 (≥3× the 0.024 = 3·σ_stat
+  floor, σ_stat = 0.008; mechanism scale suggests 0.1–0.3). Control prediction: γ_rec(diag)
+  ≈ 1.29–1.43, NOT dragged to ~1.1 (also bounds any bias contributed by the residual field's
+  scene-subtraction residue: same data, likelihood is the only change).
+- **Falsifier:** |median(γ_rec − 1.433)| < 0.024 ⇒ the stationary-whitener approximation is
+  EXONERATED on real noise ⇒ source/PSF reinstated as prime suspects. Intermediate
+  (0.024–0.072): partial contribution, quantified. Per-injection z-scores
+  (γ_rec,i − 1.433)/σ_i reported; **NO coverage claims at n=3.**
+- **Build sanity gates (all measured BEFORE submission; data/t11_injection_build_report.json,
+  builder 06_build_injections.py):** G2 t04-check-3 reproduction PASS (anchor diag-solve
+  χ²_pp 7.4364 vs 7.436; corr logL_data −5442.1 vs −5442.1); G3 transform roundtrip PASS
+  (γ 1.43298 = stored chain median, drift 0.0); cross-builder render identity PASS (4.4e-16);
+  G4 delta-whitener identity PASS (0.0 nats); G5 production-code-path probe on each injection
+  PASS (logp finite at truth and at the production low warm start; ridge amps on injected
+  data within 35–36% rel-L2 of a_truth — noise-driven, recorded). **G1 as briefed
+  (full-keep χ²_pp vs own truth ∈ [0.9, 1.25]): FAIL at 1.598 — root-caused and RESTATED
+  here BEFORE submission** (F6-restatement pattern): the briefed range is v2d-native
+  calibration lore (gated MAP 1.234, honest 0.92); on v3b NO model achieves it — the
+  ledgered field SOTA is 1.578 (t04 check-3 diag-low home render). Decomposition: sky
+  (production kernel-fit set) 0.952, faint 0.973, bright-object 2.71, center r<1.2″ 5.46 —
+  103% of the excess over 1.0 is bright-object scene-subtraction residue that every REAL
+  fit on this product also faces (it makes the injection MORE faithful to the real
+  inference, and the diagonal control bounds its γ effect). Restated arms, both hard:
+  **G1a sky-set χ²_pp ∈ [0.9,1.25]: PASS 0.952** (the intended noise-consistency test, on
+  the pixels the whitener was actually fit from); **G1b full-keep = ledgered field level
+  1.578 ± 0.15: PASS 1.598** (assembly-bug guard). All three injections identical in these
+  numbers by construction (same residual field).
+- **Documented deviation (the only code change):** OLD 10_run_e2.py + cgl/e2.py gained a
+  keyword-only `--data-file`/`cutout_file` override — an exact clone of the existing
+  `--whitener`/`whitener_file` pattern (the brief's assumed data-file flag did NOT exist;
+  verified). Default reproduces production bit-for-bit: logp at the v3b low start
+  −5200.305720610074 identical pre/post patch (scratchpad t11/baseline_{pre,post}patch.json).
+  Same precedent as the accepted P3 keyword-only prior overrides in likelihood.py.
+- **Budget:** 4 × est 2.0 A100-h = 8.0 from the D7-freed pool (rows above, marked
+  "T1.1 (D7)"). Walltime 02:30/job; two-step structure gives a SKIP_PREP=1 resubmit path if
+  step 2 is walltime-killed (canary npz persists on $PSCRATCH).
+
+**Perlmutter ops record (this session, T1.1 submission):**
+- md5-audit of the remote exec tree (`~gdbenson/claude-giga-lens/repo/.../claude-giga-lens/`,
+  the same 71-file list as the T0.2 audit) BEFORE truing: 69/71 identical; the ONLY diffs were
+  the two files this session intentionally patched locally (10_run_e2.py, cgl/e2.py), whose
+  remote md5s matched the pre-patch local GIT state exactly (e8ce6b16…, 9a6d4488…) — i.e. the
+  P1 truing held; remote was CLEAN. Patched files rsync-trued; **re-audit CLEAN 71/71** vs the
+  local working tree (scratchpad t11/{local,remote_md5_post}.txt).
+- Staged to `/global/cfs/cdirs/deepsrch/gdbenson/cgl2-linus/code/` with md5 verification
+  **12/12 identical**: t11_inj{1,2,3}_v3b.npz (569 KB each), t11_inj{1,2,3}_truth.json,
+  whitener_v3b_delta_diag.npz, t11_injection_build_report.json, and the four t11 slurm files.
+  Absolute-path flags used for --data-file/--whitener (t03 precedent). OLD campaign's staged
+  data tree untouched (only the two trued .py files changed there).
+- **SUBMITTED 2026-07-15 14:15 PT (all 4, cosmo_g shared QOS, -t 02:30, ledger rows above):**
+  55952480 (t11-i1), 55952481 (t11-i2), 55952482 (t11-i3), 55952483 (t11-i1d diag control).
+  All 4 registered with the watchdog (max_pending 24 h / max_run 6 h / expect_artifact = CFS
+  t11_*_smc.npz / on_stall resubmit:<CFS slurm path>); loop verified alive (PID 118755);
+  manual pass clean for all 4 (PENDING ok). NOTE: the pass shows the EXPECTED fail-loud
+  COMPLETED_NO_ARTIFACT alert for T0.2 job 55951082 (CFS artifact checked on phoenix's
+  filesystem — the designed harvest reminder); left in place for the harvest session.
+- Results path policy: hot I/O to `$PSCRATCH/cgl2-linus/results`, `cp` to CFS results/ at the
+  end of each step (prep npz copied BEFORE the SMC step so a walltime kill of step 2 preserves
+  the warm start; SKIP_PREP=1 resubmit path in each slurm file).
+- **NO results read this session** (submission+setup only; harvest is a later phase).
 
 ### 2026-07-15 — P1 T0.2/T0.3 design checkpoints + Perlmutter submission ops (task #15; est 9.0 A100-h committed in ledger)
 
