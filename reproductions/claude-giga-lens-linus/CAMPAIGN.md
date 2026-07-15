@@ -20,15 +20,16 @@ Plan of record: `plans/PLAN.md` (approved 2026-07-15). Their-format handoffs: `p
 
 | Date | Job | Phase | Est. h | Actual h | Cumulative |
 |---|---|---|---|---|---|
-| 2026-07-15 | 55951082 cgl2-t02-low-s3 (v3b-low SMC p128 seed3, slurm/t02_smc_v3b_low_seed3.slurm) | P1 T0.2 | 1.5 | — | 1.5 (est) |
-| 2026-07-15 | 55951083 cgl2-t02-low-s4 (v3b-low SMC p128 seed4, slurm/t02_smc_v3b_low_seed4.slurm) | P1 T0.2 | 1.5 | — | 3.0 (est) |
-| 2026-07-15 | 55951084 cgl2-t02-steep-s3 (v3b-steep SMC p96 seed3, slurm/t02_smc_v3b_steep_seed3.slurm) | P1 T0.2 | 2.0 | — | 5.0 (est) |
-| 2026-07-15 | 55951085 cgl2-t02-steep-s4 (v3b-steep SMC p96 seed4, slurm/t02_smc_v3b_steep_seed4.slurm) | P1 T0.2 | 2.0 | — | 7.0 (est) |
-| 2026-07-15 | 55951086 cgl2-t03-compmask (v3b-low SMC p128 seed2, companion-eroded whitener, slurm/t03_smc_v3b_low_compmask.slurm) | P1 T0.3 | 2.0 | — | 9.0 (est) |
-| 2026-07-15 | 55952480 cgl2-t11-i1 (inj1 shift(0,0): svicov prep + SMC p128 seed2, slurm/t11_inj1.slurm) | T1.1 (D7) | 2.0 | — | 11.0 (est) |
-| 2026-07-15 | 55952481 cgl2-t11-i2 (inj2 shift(+.030,−.014)″: svicov prep + SMC p128 seed2, slurm/t11_inj2.slurm) | T1.1 (D7) | 2.0 | — | 13.0 (est) |
-| 2026-07-15 | 55952482 cgl2-t11-i3 (inj3 shift(−.022,+.034)″: svicov prep + SMC p128 seed2, slurm/t11_inj3.slurm) | T1.1 (D7) | 2.0 | — | 15.0 (est) |
-| 2026-07-15 | 55952483 cgl2-t11-i1d (inj1 DIAGONAL control via delta whitener, slurm/t11_inj1_diagctl.slurm) | T1.1 (D7) | 2.0 | — | 17.0 (est) |
+| 2026-07-15 | 55951082 cgl2-t02-low-s3 (v3b-low SMC p128 seed3, slurm/t02_smc_v3b_low_seed3.slurm) | P1 T0.2 | 1.5 | 0.51 (COMPLETED 00:30:40, 1×A100 shared) | 0.51 |
+| 2026-07-15 | 55951083 cgl2-t02-low-s4 (v3b-low SMC p128 seed4, slurm/t02_smc_v3b_low_seed4.slurm) | P1 T0.2 | 1.5 | 0.51 (COMPLETED 00:30:30) | 1.02 |
+| 2026-07-15 | 55951084 cgl2-t02-steep-s3 (v3b-steep SMC p96 seed3, slurm/t02_smc_v3b_steep_seed3.slurm) | P1 T0.2 | 2.0 | 0.29 (COMPLETED 00:17:39) | 1.31 |
+| 2026-07-15 | 55951085 cgl2-t02-steep-s4 (v3b-steep SMC p96 seed4, slurm/t02_smc_v3b_steep_seed4.slurm) | P1 T0.2 | 2.0 | 0.31 (COMPLETED 00:18:23) | 1.62 |
+| 2026-07-15 | 55951086 cgl2-t03-compmask (v3b-low SMC p128 seed2, companion-eroded whitener, slurm/t03_smc_v3b_low_compmask.slurm) | P1 T0.3 | 2.0 | 0.59 (COMPLETED 00:35:40) | 2.21 |
+| 2026-07-15 | 55952480 cgl2-t11-i1 (inj1 shift(0,0): svicov prep + SMC p128 seed2, slurm/t11_inj1.slurm) | T1.1 (D7) | 2.0 | — | 4.21 (est) |
+| 2026-07-15 | 55952481 cgl2-t11-i2 (inj2 shift(+.030,−.014)″: svicov prep + SMC p128 seed2, slurm/t11_inj2.slurm) | T1.1 (D7) | 2.0 | — | 6.21 (est) |
+| 2026-07-15 | 55952482 cgl2-t11-i3 (inj3 shift(−.022,+.034)″: svicov prep + SMC p128 seed2, slurm/t11_inj3.slurm) | T1.1 (D7) | 2.0 | — | 8.21 (est) |
+| 2026-07-15 | 55952483 cgl2-t11-i1d (inj1 DIAGONAL control via delta whitener, slurm/t11_inj1_diagctl.slurm) | T1.1 (D7) | 2.0 | — | 10.21 (est) |
+| 2026-07-16 | **P1 T0.2/T0.3 actuals harvested**: 2.21 A100-h vs 9.0 est (shared-QOS single-GPU; sacct -X Elapsed × 1 GPU, AllocTRES gres/gpu=1 each) | P1 | — | 2.21 total | 2.21 actual + 8.0 T1.1 est |
 
 ## Gate record
 
@@ -49,6 +50,9 @@ Plan of record: `plans/PLAN.md` (approved 2026-07-15). Their-format handoffs: `p
 | X1-G0 | profile-curvature mechanism entry gate: r_eff ordering must admit the bracket's sign pattern | monotone ordering exists | **FAIL — hypothesis structurally dead** (24/24 robustness variants non-monotone; fine/binned constrain slope at the SAME radius, Δr_eff≈0.008″ < ¼ px, yet Δγ=0.71 ⇒ would need \|dγ_loc/dln r\|≈226 vs O(1) physical) | data/x1_g0_effective_radii.json, research/x1_g0_mechanism_check.md, figs/x1_g0_*.png |
 | T1.1 | injection-recovery on real drizzle noise: does the production stationary-whitened correlated likelihood recover γ_truth=1.433 injected on the REAL v3b residual field? | pre-registered: median(γ_rec−1.433) < −0.072 confirms LOW bias; \|median bias\| < 0.024 exonerates; between = partial, quantified; control (diag likelihood, same data) predicted 1.29–1.43 | PENDING (4 jobs submitted 2026-07-15) | data (CFS) t11_inj{1,2,3}_smc.npz + t11_inj1_diag_smc.npz; build gates data/t11_injection_build_report.json |
 | Fermat teaser | noise-model Δφ sensitivity (illustrative; NOT a TD lens; synthetic pairs; corr posterior is the known over-correcting product) | report-only | median \|frac shift\| **88%** anchor→corr (10.7σ); same-product diag→corr arm **61%** (17σ) — vs the ~1% TDCOSMO-relevant scale | data/fermat_dt_teaser.json, research/fermat_dt_teaser.md |
+| T0.2 | seed-repeat certification of the P1c money numbers: σ_seed(γ) per basin over seeds {2 (production), 3, 4}; σ_seed(ΔlogZ) | σ_seed(γ)≤0.008 both basins; σ_seed(ΔlogZ)<5 nats; KILL σ_seed(γ)>0.024 | **PASS (both gates; kill not tripped)** — γ_med low {1.1032, 1.0967, 1.1005} → σ_seed=0.00325; steep {2.6393, 2.6522, 2.6485} → σ_seed=0.00664; logZ low {−4771.08, −4769.12, −4771.37} → σ_seed=1.22; steep {−4799.96, −4801.39, −4802.56} → σ_seed=1.30 → σ_seed(ΔlogZ)=1.79 nats; ΔlogZ(steep−low) per matched seed −28.88/−32.27/−31.19 — LOW-basin preference SEED-STABLE (all seeds, ≥16σ_seed). n=3 σ estimates carry ±46% χ-dist sampling error (quoted with every use). γ_binned(corr,low)=1.1032 CERTIFIED at stated significance: σ_tot=√(σ_stat²+σ_seed²)=0.0086 ≈ 1.08×σ_stat | data/t02_t03_gate_eval.json, figs/t02_seed_overlay.png, data/results-perlmutter/ |
+| T0.3 | companion-mask discriminator: does the LL2/LL3 companion misfit transmit into global γ via the whitened likelihood? (whiten-then-drop, keep_w 9273→8247, production seed 2) | UPWARD shift ≥0.024 (3σ_stat) ⇒ mechanism REAL; static within 0.024 ⇒ companion EXONERATED | **COMPANION EXONERATED** — γ_med 1.1011 vs production 1.1032: shift −0.0021 (slightly DOWN, 0.26σ_stat, 0.65σ_seed — statistically static). σ_stat widened 0.0080→0.0085 (+6%, consistent with −11.1% whitened dof). logZ −4339.16 vs −4771.08 NOT comparable (different data: 1026 fewer whitened dof). Convergence indistinguishable from production (λ-steps 28=28, w_ess 127.4 vs 118.1, n_uniq 84 vs 77). The 1.103 over-correction is NOT companion-driven — consistent with the P1 synthesis (noise-model-CLASS misspecification), which stays the prime suspect for T1.1 | data/t02_t03_gate_eval.json, figs/t03_compmask_overlay.png |
+| σ_seed FINALIZATION | downstream provisional thresholds inherit P1's measured σ_seed (README frozen-gates note: a ledgered finalization, not a goalpost move) | — | **FINALIZED**: (1) B5-G2 basin-ΔlogZ agreement = 3·√(σ_boot² + 1.79²) nats (floor 5.36 at σ_boot=0); (2) T1.1 σ floor = σ_tot = √(0.008² + 0.00325²) = 0.0086 → exonerate \|median(γ_rec−1.433)\| < 0.026, confirm < −0.078 (supersedes the provisional 0.024/−0.072 that used σ_stat alone; bands move <8%, interpretation zones unchanged in kind); (3) X1-G1's ~15-nat placeholder RETIRED with P4 (D7) — never finalized | data/t02_t03_gate_eval.json |
 | T0.4-1 | per-block kernel homogeneity (stationarity of the noise-model class) | 2σ blockwise + calibrated p | **REJECTED** — money product v3b max\|z\|=3.67, calibrated p=0.010; arc-excluded v3 p=0.010; replicated spatial pattern; observed cross-block ρ(0,1) spread 16.4× the drizzle-registration envelope. **The stationary kernel class behind γ=1.103 is provably violated by the field.** Verifier CLEAN (all z/p recomputed exactly; power check confirms informative nulls). | data/t04_stationarity*.json, figs/t04_stationarity_*.png, research/t04_free_checks.md |
 | T0.4-2 | λ-arm: does spectrum-flooring cure the fine-low gaming? | ordering table w/ per-λ exact log\|C\| | **NO — "information-discard-at-spectral-zeros" FALSIFIED**; data reject flooring by 3.3k–33k nats; pathology localized to down-weighting of high-S large-scale modes (the w_b≈0.27 background component — exactly the nonstationary component of T0.4-1). Production s_floor=0.05 confirmed (plan's "0.1" corrected); production taps reproduced to 1e-9. Verifier CLEAN (per-λ Szegő anchors verified — no shared constant). | data/t04_lambda_arm.json, figs/t04_lambda_arm.png |
 | T0.4-3 | real-space head-to-head on the SAME v3b pixels | report-only ordering | Binned data in real space prefers **γ≈1.29** (diag-low, χ²_pp 1.58) over BOTH the anchor 1.433 (7.44) and corr-low 1.103 (8.32); the production whitened metric INVERTS this (+501 nats for corr-low). Corr-low's residual = smooth lens-center misfit (same currency as fine-low gaming). Anchor's full-field number carries a cross-product resolution handicap (honest caveat). | data/t04_realspace_headtohead.json, figs/t04_headtohead_residuals.png |
@@ -105,6 +109,65 @@ downstream ΔlogZ gate, as planned).
 - sshproxy refreshed 2026-07-15 (user). Jobs charge `cosmo_g` (D5), single-GPU shared QOS.
 
 ## Stage log (newest first)
+
+### 2026-07-15 — P1 T0.2/T0.3 HARVEST (jobs 55951082–86, all COMPLETED; 2.21 A100-h actual vs 9.0 est)
+
+**Harvest ops:** all 15 result files (npz+json+run logs) + 5 slurm logs pulled from CFS
+`/global/cfs/cdirs/deepsrch/gdbenson/cgl2-linus/{results,slurm-logs}/` to
+`data/results-perlmutter/`. sacct -X actuals in the ledger (0.51/0.51/0.29/0.31/0.59 h,
+single A100 each). Analysis = `07_harvest_t02_t03.py` under the OLD cgl venv (CPU,
+bijector only — no likelihood evals): the per-run JSON summaries are the authoritative
+extraction (the P1c convention — weighted quantiles via cgl.e2._weighted_quantile inside
+run_correlated_smc); saved equal-weight particles transformed via
+build_target('v3b').model.to_physical_mass for the plots, cross-checked against the
+weighted medians (agree ≤0.003; the 0.0027 seed3-low delta is median discreteness from
+its duplicate cluster, below). Plots BEFORE metrics: figs/t02_seed_overlay.png,
+figs/t03_compmask_overlay.png. Full numbers: data/t02_t03_gate_eval.json.
+
+**T0.2 PASS (gate record):** σ_seed(γ) = 0.0033 (low) / 0.0066 (steep), both ≤ 0.008;
+σ_seed(ΔlogZ) = 1.79 nats < 5; kill (>0.024) not tripped; ΔlogZ(steep−low) =
+−28.88/−32.27/−31.19 for seeds 2/3/4 — the ~29-nat low-basin preference is seed-stable
+in sign AND magnitude (spread 3.4 nats). The P1c money number is now quotable as
+γ_binned(corr,low) = 1.1032 ± 0.0080 (stat) ± 0.0033 (seed), σ_tot = 0.0086; the 17σ
+anchor tension stands at its stated significance. n=3 caveat: σ estimates carry ±46%
+χ-distribution sampling error — thresholds derived from them say so.
+
+**T0.3 verdict (gate record): COMPANION EXONERATED.** With the companion disk
+(r<1.2″ @ (−2.34,−2.86)″) whiten-then-dropped, γ_med = 1.1011 vs production 1.1032:
+shift −0.0021, i.e. DOWN 0.26σ_stat, not the pre-registered ≥+0.024 upward move. The
+localized companion misfit does NOT transmit into the global slope; the over-correction
+driver stays with the T0.4/P1-synthesis nonstationarity mechanism now under direct test
+in T1.1. logZ is not comparable across the mask change (9273→8247 whitened dof) and is
+reported, not interpreted.
+
+**Convergence sanity (all 7 runs compared, incl. the 2 production baselines):** every
+run reached λ=1 by construction (run_adaptive_tempered_smc RAISES otherwise; artifact
+written ⇒ terminated at λ=1); λ-step counts homogeneous per config (low 28/28/28 +
+compmask 28; steep 21/21/22, all ≪ cap 400); n_floored_q=0 everywhere; basin purity
+clean (frac_γ>1.9 = 0.000 low / 1.000 steep). Final-weights ESS: new runs 127.4–127.7/128
+(low) and 90.3–96.0/96 (steep) — the NEW steep runs are markedly healthier than the
+production seed-2 steep (w_ess 36.0/96), so σ_seed is not inflated by a sick repeat.
+One flag, not sick: seed3-low's final population carries a dominant duplicate cluster
+(γ_q16 == γ_med exactly ⇒ ~⅓ of weight on one γ value; resampling-duplicate survival,
+w_ess still 127.7) — visible as the tall narrow peak in the overlay; its median enters
+σ_seed as-is (reported exactly as computed). Provenance note: the two T0.2-low +
+compmask jobs ran on nid008221, steep pair on nid008193; T0.2 jobs executed pre-patch
+e2.py (md5 9a6d4488…), the compmask job (started after the T1.1 truing) executed the
+T1.1-patched e2.py (md5 782a268a…) whose default data_file='' path is the documented
+bit-for-bit production deviation (logp identity verified in the T1.1 record; its json
+config confirms data_file='').
+
+**Downstream thresholds FINALIZED from measured σ_seed (gate-record row):** B5-G2 →
+3·√(σ_boot² + 1.79²) nats; T1.1 σ floor → σ_tot = 0.0086, exonerate |median bias| <
+0.026, confirm < −0.078; X1-G1's ~15-nat placeholder retired with P4 (D7). Per the
+README frozen-gates note these finalizations are themselves this ledger row.
+
+**Housekeeping:** jobs 55951082–86 deregistered from the watchdog; the 5
+COMPLETED_NO_ARTIFACT alerts were exactly the designed harvest reminders (artifacts
+were on CFS all along, checked on phoenix's filesystem) — all accounted for,
+data/WATCHDOG_ALERT deleted, heartbeat touched; loop alive (PID 118755). The 4 T1.1
+registrations (55952480–83) left in place; T1.1 results NOT read (separate
+pre-registered readout).
 
 ### 2026-07-15 — T1.1 DESIGN CHECKPOINT + submission (injection-recovery on real drizzle noise; est 8.0 A100-h committed in ledger, D7 freed pool)
 
