@@ -44,6 +44,18 @@ Plan of record: `plans/PLAN.md` (approved 2026-07-15). Their-format handoffs: `p
 | B0 | MC-SMC correctness (adapters, mix2/funnel/illcond, MCLMC bias screen) | PLAN §5 | PENDING | data/smc_b0_report.json |
 | X1-G0 | profile-curvature mechanism entry gate: r_eff ordering must admit the bracket's sign pattern | monotone ordering exists | **FAIL — hypothesis structurally dead** (24/24 robustness variants non-monotone; fine/binned constrain slope at the SAME radius, Δr_eff≈0.008″ < ¼ px, yet Δγ=0.71 ⇒ would need \|dγ_loc/dln r\|≈226 vs O(1) physical) | data/x1_g0_effective_radii.json, research/x1_g0_mechanism_check.md, figs/x1_g0_*.png |
 | Fermat teaser | noise-model Δφ sensitivity (illustrative; NOT a TD lens; synthetic pairs; corr posterior is the known over-correcting product) | report-only | median \|frac shift\| **88%** anchor→corr (10.7σ); same-product diag→corr arm **61%** (17σ) — vs the ~1% TDCOSMO-relevant scale | data/fermat_dt_teaser.json, research/fermat_dt_teaser.md |
+| T0.4-1 | per-block kernel homogeneity (stationarity of the noise-model class) | 2σ blockwise + calibrated p | **REJECTED** — money product v3b max\|z\|=3.67, calibrated p=0.010; arc-excluded v3 p=0.010; replicated spatial pattern; observed cross-block ρ(0,1) spread 16.4× the drizzle-registration envelope. **The stationary kernel class behind γ=1.103 is provably violated by the field.** Verifier CLEAN (all z/p recomputed exactly; power check confirms informative nulls). | data/t04_stationarity*.json, figs/t04_stationarity_*.png, research/t04_free_checks.md |
+| T0.4-2 | λ-arm: does spectrum-flooring cure the fine-low gaming? | ordering table w/ per-λ exact log\|C\| | **NO — "information-discard-at-spectral-zeros" FALSIFIED**; data reject flooring by 3.3k–33k nats; pathology localized to down-weighting of high-S large-scale modes (the w_b≈0.27 background component — exactly the nonstationary component of T0.4-1). Production s_floor=0.05 confirmed (plan's "0.1" corrected); production taps reproduced to 1e-9. Verifier CLEAN (per-λ Szegő anchors verified — no shared constant). | data/t04_lambda_arm.json, figs/t04_lambda_arm.png |
+| T0.4-3 | real-space head-to-head on the SAME v3b pixels | report-only ordering | Binned data in real space prefers **γ≈1.29** (diag-low, χ²_pp 1.58) over BOTH the anchor 1.433 (7.44) and corr-low 1.103 (8.32); the production whitened metric INVERTS this (+501 nats for corr-low). Corr-low's residual = smooth lens-center misfit (same currency as fine-low gaming). Anchor's full-field number carries a cross-product resolution handicap (honest caveat). | data/t04_realspace_headtohead.json, figs/t04_headtohead_residuals.png |
+
+**P1 synthesis (2026-07-15): one mechanism spans T0.4-1/2/3 + X1-G0** — a NONSTATIONARY
+correlated-background component priced as stationary lets the whitened metric discount
+large-scale real-space misfit, biasing γ low. The 1.103 over-correction is now most plausibly
+noise-model-CLASS misspecification, not source/PSF. Confirmatory experiment = T1.1
+injection-recovery on the real noise field (D7 queue, mechanism-backed directional prediction).
+Design implication for P3: CorrelatedImageData keeps a pluggable whitener seam for a
+locally-stationary (per-region) class. Ops lesson: parallel build_whitener needs
+OPENBLAS_NUM_THREADS=4 on aarch64 (default threading livelocks ~100×).
 
 **Gate exception F6 — ENACTED (Benson sign-off, 2026-07-15):** F6 restated as
 "|jax-chol logdetA − fp128-truth logdetA| ≤ max(1e-10, 5·eps·cond(A)·1e-2)" —
