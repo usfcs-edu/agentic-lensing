@@ -1,11 +1,11 @@
 {
- "updated_utc": "2026-07-06T21:34:58Z",
+ "updated_utc": "2026-07-08T03:10:45Z",
  "protocol": "P2b pre-registered policy tuning: dev split only (T0 all + gu2022 sys000-005), <=8 configs per method, every trial ledgered here; frozen policies in data/policies_frozen.json",
  "grad_budgets": {
   "T0": 200000.0,
   "T1": 1500000.0
  },
- "n_trials": 33,
+ "n_trials": 35,
  "trials": [
   {
    "sampler": "bj_mclmc",
@@ -43,6 +43,43 @@
    "logz_abs_err": null,
    "device": "NVIDIA A16",
    "json_path": "data/results_tuning/bj_mclmc/gu2022_sys000/s0_A.json"
+  },
+  {
+   "sampler": "bj_mclmc",
+   "target": "gu2022_sys001",
+   "seed": 0,
+   "track": "A",
+   "written_utc": "2026-07-06T21:46:30Z",
+   "config": {
+    "adjusted": false,
+    "start": "svi",
+    "desired_energy_var": 0.0005,
+    "diagonal_preconditioning": true,
+    "mass": "svi_diag",
+    "adj_step_scale": 1.0,
+    "adj_max_steps": 64,
+    "adj_target_min_steps": 2
+   },
+   "config_sha": "92fa339d5caa9bcaa288223c9f59a0d74f46dbedad6a4dc217f26950d9fe9084",
+   "budget_requested": {
+    "n_chains": 16,
+    "n_tune": 3000,
+    "n_steps": 25000,
+    "track": "A",
+    "n_grad_budget": 1500000
+   },
+   "n_grad": 1498017,
+   "n_logp": 0,
+   "wall_s": 4603.8,
+   "ess_mass_min": 6001.2,
+   "ess_per_grad_mass": 0.004006081279759548,
+   "ess_source": "rank_normalized_bulk",
+   "rhat_mass_max": 1.0039440892352678,
+   "acceptance": NaN,
+   "mode_weight_error": 0.0,
+   "logz_abs_err": null,
+   "device": "NVIDIA A16",
+   "json_path": "data/results_tuning/bj_mclmc/gu2022_sys001/s0_A.json"
   },
   {
    "sampler": "bj_mclmc",
@@ -928,6 +965,52 @@
    "logz_abs_err": null,
    "device": "NVIDIA L4",
    "json_path": "data/results_tuning/neutra/gu2022_sys000/s0_A.json"
+  },
+  {
+   "sampler": "neutra",
+   "target": "gu2022_sys001",
+   "seed": 0,
+   "track": "A",
+   "written_utc": "2026-07-06T22:12:42Z",
+   "config": {
+    "n_flow_train": 8192,
+    "flow_layers": 4,
+    "knots": 6,
+    "interval": 5.0,
+    "nn_width": 64,
+    "nn_depth": 1,
+    "max_epochs": 60,
+    "max_patience": 8,
+    "flow_batch": 512,
+    "flow_lr": 0.0003,
+    "eps0": 0.3,
+    "init_l": 3,
+    "max_leapfrog": 20,
+    "use_gbtla": true,
+    "target_accept": null,
+    "adapt_frac": 0.8,
+    "start_scale": 1.0
+   },
+   "config_sha": "241c118f226233ced1c9bbd674cd47030a7772c559a4db77134993496c485164",
+   "budget_requested": {
+    "n_chains": 48,
+    "n_burn": 250,
+    "n_keep": 700,
+    "track": "A",
+    "n_grad_budget": 1500000
+   },
+   "n_grad": 1100768,
+   "n_logp": 45600,
+   "wall_s": 2982.3,
+   "ess_mass_min": 1491.5,
+   "ess_per_grad_mass": 0.0013549965101741731,
+   "ess_source": "rank_normalized_bulk",
+   "rhat_mass_max": 1.0358564897939477,
+   "acceptance": 0.7317261904761905,
+   "mode_weight_error": 0.0,
+   "logz_abs_err": null,
+   "device": "NVIDIA A16",
+   "json_path": "data/results_tuning/neutra/gu2022_sys001/s0_A.json"
   },
   {
    "sampler": "neutra",

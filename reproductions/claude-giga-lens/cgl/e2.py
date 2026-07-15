@@ -529,19 +529,24 @@ def map_polish(target, z0, rounds=6, iters=400):
 
 
 def laplace_evidence(target, z_map, eig_floor=1e-3):
-    """Laplace log-evidence at z_map + a ROBUST HMC metric covariance.
+    """Laplace log-evidence at z_map + the RAW Hessian eigendecomposition.
 
-    H = Hessian of -logpost. The metric covariance uses 1/|eigenvalue| (floored
-    at eig_floor) rather than flooring near-zero/negative eigenvalues to a tiny
-    value: at a saddle (common on the weak-likelihood products, min_eig down to
-    -1e13) the floored form makes cov ~ 1e8 in the negative directions -> the
-    leapfrog explodes (R-hat ~ 1e31). |lambda| keeps the metric on the local
-    curvature SCALE and PD, so stage 1 stays stable; the two-stage recipe then
-    re-estimates the metric from pooled draws. The log-evidence itself uses the
-    floored-positive spectrum (a saddle evidence is only a rough basin-mass
-    proxy; reported with that caveat).
+    H = Hessian of -logpost. Returns the eigendecomposition (eig, eigvec, H) and
+    a PD flag (is_pd = no eigenvalue <= 0) so the stage-1 HMC METRIC is built
+    downstream by build_metric_cov(): the exact Laplace covariance H^-1 where H
+    is PD (the validated fine-steep path), a regularized-PD metric (diagraw /
+    svi_cov) where H is INDEFINITE. The log-evidence uses the floored-positive
+    spectrum (a saddle evidence is only a rough basin-mass proxy; caveated).
 
-    Returns (log_evidence, logdet_H, cov, n_floored, min_eig, n_neg)."""
+    NOTE (2026-07-10, metric-bug fix): the legacy `cov` = V diag(1/|eig|) V^T is
+    STILL returned but is now only used by build_metric_cov(metric="laplace") for
+    A/B reproduction of the pre-fix runs. It is INVALID on indefinite Hessians
+    (it treats saddle/flat directions -- negative eig -- as high-curvature small-
+    mass, so the stage-1 leapfrog gets the geometry wrong and never mixes; this
+    froze v3b-low/steep and the v2d natives). See CAMPAIGN.md "metric bug".
+
+    Returns dict(log_evidence, logdet_H, logp_map, cov[legacy], H, eig, eigvec,
+    is_pd, n_floored, min_eig, n_neg)."""
     import jax
     import jax.numpy as jnp
 
@@ -557,13 +562,277 @@ def laplace_evidence(target, z_map, eig_floor=1e-3):
     w_pos = np.where(w < eig_floor, eig_floor, w)
     logdet_H = float(np.sum(np.log(w_pos)))
     log_ev = logp_map + 0.5 * ndim * np.log(2 * np.pi) - 0.5 * logdet_H
-    # metric: 1/|lambda|, curvature-scaled and PD
+    # LEGACY metric (the buggy 1/|lambda|); kept only for --metric laplace A/B.
     w_abs = np.maximum(np.abs(w), eig_floor)
     cov = (V * (1.0 / w_abs)) @ V.T
     cov = 0.5 * (cov + cov.T)
     return dict(log_evidence=float(log_ev), logdet_H=logdet_H,
-                logp_map=logp_map, cov=cov, n_floored=n_neg,
+                logp_map=logp_map, cov=cov, H=H, eig=w, eigvec=V,
+                is_pd=bool(n_neg == 0), n_floored=n_neg,
                 min_eig=float(w.min()), n_neg=n_neg)
+
+
+# --------------------------------------------------------------------------- #
+# stage-1 HMC METRIC construction (the 2026-07-10 regularized-PD fix)
+# --------------------------------------------------------------------------- #
+def run_svi(target, z0, *, n_steps=8000, n_particles=32, lr=1e-3,
+            init_scale=1e-2, seed=0, check_schedule=True):
+    """Full-covariance Gaussian SVI over the 46-dim correlated marg log-posterior
+    (the canonical GIGA-Lens MAP->SVI->HMC recipe; foundry-i 42_svi_paper_scale).
+
+    Maximizes the reparameterized ELBO of a MultivariateNormalTriL guide started
+    at z0 (=MAP). Returns dict(loc, cov, losses, meta); `cov` is the variational
+    posterior covariance Sigma_VI (PD by construction). Sigma_VI is eigenvalue-
+    floored downstream (guards.floor_svi_covariance = the upstream Bug-2 guard)
+    before it becomes the momentum metric, so a rank-deficient SVI cov cannot NaN
+    the momentum inversion.
+
+    NB draws f64 normals inside a jitted scan -> set XLA_FLAGS
+    --xla_disable_hlo_passes=priority-fusion (the slurm templates do)."""
+    import jax
+    import jax.numpy as jnp
+    import optax
+
+    from cgl import guards
+
+    ndim = int(target.model.ndim)
+    if check_schedule:
+        guards.check_svi_schedule(n_steps, ndim)
+    blp = target.batched_lp
+    _DIAG_EPS = 1e-6
+
+    def _scale_tril(raw):
+        # raw (ndim,ndim): lower-tri off-diagonal used directly; positive diagonal
+        # via softplus. Pure jnp (no TFP bijector -> no f32/f64 dtype conflict).
+        d = jax.nn.softplus(jnp.diagonal(raw)) + _DIAG_EPS
+        return jnp.tril(raw, -1) + jnp.diag(d)
+
+    # init: L0 = init_scale * I  ->  softplus(diag_raw) + eps = init_scale
+    diag_raw0 = float(np.log(np.expm1(max(init_scale - _DIAG_EPS, 1e-8))))
+    raw0 = jnp.diag(jnp.full((ndim,), diag_raw0, dtype=jnp.float64))
+    params = {"loc": jnp.asarray(np.asarray(z0, dtype=np.float64)), "raw": raw0}
+    sched = optax.polynomial_schedule(init_value=lr * 1e-3, end_value=lr,
+                                      power=2.0, transition_steps=int(n_steps))
+    opt = optax.adam(sched)
+    _ENT_CONST = 0.5 * ndim * (1.0 + float(np.log(2.0 * np.pi)))
+
+    def neg_elbo(p, key):
+        L = _scale_tril(p["raw"])
+        eps = jax.random.normal(key, (n_particles, ndim), dtype=jnp.float64)
+        zs = p["loc"][None, :] + eps @ L.T
+        lps = blp(zs)
+        entropy = _ENT_CONST + jnp.sum(jnp.log(jnp.diagonal(L)))
+        return -(jnp.mean(lps) + entropy)
+
+    vg = jax.value_and_grad(neg_elbo)
+
+    @jax.jit
+    def run(params, key):
+        def step(carry, k):
+            p, s = carry
+            v, g = vg(p, k)
+            upd, s = opt.update(g, s, p)
+            return (optax.apply_updates(p, upd), s), v
+        keys = jax.random.split(key, int(n_steps))
+        (pf, _), losses = jax.lax.scan(step, (params, opt.init(params)), keys)
+        return pf, losses
+
+    t0 = time.time()
+    pf, losses = run(params, jax.random.PRNGKey(seed))
+    Lf = np.asarray(_scale_tril(pf["raw"]), dtype=np.float64)
+    cov = 0.5 * (Lf @ Lf.T + (Lf @ Lf.T).T)
+    loc = np.asarray(pf["loc"], dtype=np.float64)
+    losses = np.asarray(losses, dtype=np.float64)
+    ev = np.linalg.eigvalsh(cov)
+    meta = dict(n_steps=int(n_steps), n_particles=int(n_particles),
+                elbo0=float(-losses[0]), elbo_final=float(-losses[-1]),
+                min_eig=float(ev[0]), max_eig=float(ev[-1]),
+                full_rank=bool(ev[0] > 0), wall_s=time.time() - t0)
+    return dict(loc=loc, cov=cov, losses=losses, meta=meta)
+
+
+def build_metric_cov(target, z_map, lap, metric="diagraw", *, eig_floor=1e-3,
+                     diag_floor=1.0, cond_cap=1e8, svi_steps=8000,
+                     svi_particles=32, seed=0):
+    """Build the PD stage-1 momentum METRIC (a posterior-COVARIANCE estimate Sigma;
+    run_staged/_run_phmc use momentum covariance = Sigma^-1, the GIGA-Lens convention).
+
+    PD Laplace Hessian (is_pd): ALWAYS the exact Laplace covariance H^-1 =
+    V diag(1/max(eig, eig_floor)) V^T. This reproduces the pre-fix fine-steep run
+    bit-for-bit (there 1/|eig| == 1/eig), so the validated path never regresses.
+
+    INDEFINITE Hessian: the invalid 1/|eig| metric is replaced by a PD-by-
+    construction metric selected by `metric`:
+      diagraw : diag(1/max(|H_ii|, floor)); floor = max(diag_floor, |H|_max/cond_cap)
+                so cond(Sigma) <= cond_cap (< the 1e10 floor_svi_covariance
+                threshold -> the downstream floor is a no-op and the momentum
+                covariance is exactly diag(max(|H_ii|,floor)), the foundry-i
+                34_fit_marg `diagraw` mass matrix). Diagonal marginal scales, PD,
+                float64-safe; stage-2 re-estimates the full (correlated) cov.
+      svi_cov : eigenvalue-floored full-covariance SVI posterior Sigma_VI
+                (MAP->SVI->HMC). Captures correlations in stage 1 too; heavier.
+      laplace : the LEGACY (buggy) V diag(1/|eig|) V^T -- A/B reproduction only.
+
+    Returns (cov_reg, meta). cov_reg is symmetric-PD (floor_svi_covariance-clean)."""
+    from cgl import guards
+
+    w = np.asarray(lap["eig"], dtype=np.float64)
+    V = np.asarray(lap["eigvec"], dtype=np.float64)
+    H = np.asarray(lap["H"], dtype=np.float64)
+    n_neg = int(np.sum(w <= 0.0))
+    is_pd = bool(n_neg == 0)
+    svi_meta = None
+
+    if is_pd:
+        w_used = np.maximum(w, eig_floor)
+        cov = (V * (1.0 / w_used)) @ V.T
+        used = "laplace_pd"
+    elif metric == "diagraw":
+        h = np.abs(np.diag(H))
+        hmax = max(float(h.max()), 1e-300)
+        floor = max(float(diag_floor), hmax / float(cond_cap))
+        h = np.maximum(h, floor)
+        cov = np.diag(1.0 / h)
+        used = "diagraw"
+    elif metric == "svi_cov":
+        svi = run_svi(target, z_map, n_steps=svi_steps,
+                      n_particles=svi_particles, seed=seed)
+        cov = np.asarray(svi["cov"], dtype=np.float64)
+        svi_meta = svi["meta"]
+        used = "svi_cov"
+    elif metric == "laplace":
+        w_used = np.maximum(np.abs(w), eig_floor)   # the pre-fix (buggy) metric
+        cov = (V * (1.0 / w_used)) @ V.T
+        used = "laplace_abseig"
+    else:
+        raise ValueError(f"unknown metric {metric!r}")
+
+    cov = 0.5 * (cov + cov.T)
+    cov_reg, _chol, n_floored = guards.floor_svi_covariance(cov)
+    ev = np.linalg.eigvalsh(cov_reg)
+    meta = dict(metric_requested=metric, metric_used=used,
+                is_pd_hessian=is_pd, n_neg_hessian=n_neg,
+                min_eig_hessian=float(w.min()),
+                cov_min_eig=float(ev[0]), cov_max_eig=float(ev[-1]),
+                cov_cond=float(ev[-1] / max(ev[0], 1e-300)),
+                n_floored_metric=int(n_floored), ndim=int(H.shape[0]))
+    if svi_meta is not None:
+        meta["svi"] = svi_meta
+    return cov_reg, meta
+
+
+# --------------------------------------------------------------------------- #
+# correlated basin-local adaptive tempered SMC (the metric-free fallback for a
+# SADDLE MAP + near-degenerate/multimodal nuisance; 2026-07-10). Mirrors
+# 24_basin_evidence_v3b's q_k -> posterior anneal, with log_prob = the
+# CORRELATED marg log-posterior. Gives BOTH the converged basin-restricted
+# gamma marginal AND logZ_basin (the correlated analog of the diagonal-SMC
+# basin-evidence linchpin). Reuses cgl.samplers.common (UNMODIFIED).
+# --------------------------------------------------------------------------- #
+def fit_gaussian_from_draws(draws, cov_inflate=3.0):
+    """Basin-local reference Gaussian (loc, cov) from posterior draws for the
+    correlated-SMC q. draws: (T,C,ndim) or (N,ndim). The POOLED covariance
+    captures the basin spread INCLUDING near-degenerate/multi-clustered
+    directions (chains sitting in different source-center sub-modes -> large
+    variance there), so q seeds particles ACROSS them and the tempering crosses
+    them; cov_inflate fattens the tails for safe annealing."""
+    a = np.asarray(draws, dtype=np.float64)
+    if a.ndim == 3:
+        a = a.reshape(-1, a.shape[-1])
+    loc = a.mean(axis=0)
+    cov = np.cov(a, rowvar=False) * float(cov_inflate)
+    return loc, cov
+
+
+def _weighted_quantile(x, w, qs):
+    x = np.asarray(x, dtype=np.float64)
+    w = np.asarray(w, dtype=np.float64)
+    i = np.argsort(x)
+    x, w = x[i], w[i]
+    cw = (np.cumsum(w) - 0.5 * w) / max(w.sum(), 1e-300)
+    return np.interp(qs, cw, x)
+
+
+def run_correlated_smc(target, loc, cov, *, n_particles=300, seed=0,
+                       target_ess=0.7, num_mcmc_steps=4, hmc_integration_steps=8,
+                       hmc_step_size=0.1, max_lambda_steps=400):
+    """Basin-local adaptive tempered SMC for the CORRELATED marg posterior.
+
+    q = N(loc, floor(cov)) is the basin-local reference (seed at the density
+    peak; cov = the basin spread, guard-floored). With logprior=log q,
+    loglike=log_prob - log q (log_prob = target.model.target_log_prob_fn, the
+    correlated marg log-POSTERIOR), the lambda=0 law is q and lambda=1 is
+    exp(log_prob) restricted to q's basin. So the harvested lambda=1 particles
+    are the converged basin-restricted posterior (metric-free: tempering +
+    systematic resampling cross the source-center sub-modes that froze the
+    fixed-leapfrog PHMC), and log_evidence = logZ_basin = log int_basin
+    exp(log_prob) dz.
+
+    Returns dict(particles, weights, logZ, gamma_{median,sigma,q16,q84}, ...)."""
+    import jax
+    import jax.numpy as jnp
+    import tensorflow_probability.substrates.jax as tfp
+
+    from cgl import guards
+    from cgl.samplers import common
+
+    guards.require_x64()
+    tfd = tfp.distributions
+    ndim = int(target.model.ndim)
+    fdt = jnp.float64
+    cov_reg, chol, n_floored = guards.floor_svi_covariance(np.asarray(cov))
+    loc = np.asarray(loc, dtype=np.float64)
+    q = tfd.MultivariateNormalTriL(loc=jnp.asarray(loc, dtype=fdt),
+                                   scale_tril=jnp.asarray(chol, dtype=fdt))
+    key = jax.random.PRNGKey(int(seed))
+    k_seed, k_smc = jax.random.split(key)
+    eps = jax.random.normal(k_seed, (int(n_particles), ndim), dtype=fdt)
+    particles = jnp.asarray(loc, dtype=fdt)[None, :] + eps @ jnp.asarray(chol, dtype=fdt).T
+
+    lp = target.model.target_log_prob_fn
+
+    def logprior_pt(z):
+        return jnp.squeeze(q.log_prob(jnp.asarray(z, dtype=fdt)))
+
+    def loglike_pt(z):
+        zz = jnp.asarray(z, dtype=fdt)
+        return jnp.squeeze(lp(zz)) - jnp.squeeze(q.log_prob(zz))
+
+    t0 = time.time()
+    out = common.run_adaptive_tempered_smc(
+        logprior_pt, loglike_pt, particles, k_smc,
+        target_ess=float(target_ess), num_mcmc_steps=int(num_mcmc_steps),
+        hmc_step_size=float(hmc_step_size),
+        inverse_mass_matrix=jnp.asarray(cov_reg, dtype=fdt),
+        hmc_num_integration_steps=int(hmc_integration_steps),
+        max_lambda_steps=int(max_lambda_steps))
+    wall = time.time() - t0
+
+    parts = np.asarray(out["particles"], dtype=np.float64)         # (N, ndim), lambda=1
+    w = np.asarray(out["weights"], dtype=np.float64)
+    w = w / max(w.sum(), 1e-300)
+    w_ess = common.weight_ess(w)
+    rng = np.random.default_rng(int(seed) + 20260710)
+    idx = rng.choice(int(n_particles), size=int(n_particles), p=w)   # equal-weight
+    n_unique = int(len(np.unique(idx)))
+    phys = target.model.to_physical_mass(parts)                    # weighted particles
+    gph = np.asarray(phys["gamma"]); tph = np.asarray(phys["theta_E"])
+    gmed, g16, g84 = _weighted_quantile(gph, w, [0.5, 0.16, 0.84])
+    gmean = float(np.sum(w * gph))
+    gsig = float(np.sqrt(max(np.sum(w * (gph - gmean) ** 2), 0.0)))
+    return dict(
+        particles=parts[idx], weights=out["weights"], logZ=float(out["log_evidence"]),
+        n_lambda_steps=int(out["n_steps"]), lambdas=list(out["lambdas"]),
+        gamma_median=float(gmed), gamma_mean=gmean, gamma_sigma=gsig,
+        gamma_q16=float(g16), gamma_q84=float(g84),
+        thetaE_median=float(_weighted_quantile(tph, w, [0.5])[0]),
+        thetaE_sigma=float(np.sqrt(max(np.sum(w * (tph - np.sum(w * tph)) ** 2), 0.0))),
+        ess_weight=float(w_ess), n_unique=n_unique,
+        ess_est=float(min(w_ess, n_unique)),
+        frac_gamma_gt_split=float(np.sum(w * (gph > GAMMA_STEEP_LOW_SPLIT))),
+        n_floored_q=int(n_floored), wall_s=wall, n_particles=int(n_particles),
+        n_grad=int(out["n_grad"]), loc_gamma=float(np.asarray(
+            target.model.to_physical_mass(loc[None, :])["gamma"]).reshape(-1)[0]))
 
 
 # --------------------------------------------------------------------------- #
@@ -642,8 +911,12 @@ def run_staged(target, z_map, metric_cov, chains=24, seed=2,
     """Two-stage re-preconditioned PHMC for one basin (fixed-leapfrog PHMC).
 
     Stage 1: `chains` seeded at z_map + jitter*chol(metric_cov) noise, metric =
-    metric_cov (the Laplace/SVI cov). Stage 2: metric re-estimated from pooled
-    cross-chain stage-1 draws; warm-start from stage-1 chain ends."""
+    metric_cov. `metric_cov` MUST be a PD posterior-covariance estimate built by
+    build_metric_cov() (exact Laplace H^-1 where the Hessian is PD, else the
+    diagraw/svi_cov regularized-PD metric); the pre-fix invalid 1/|eig| metric on
+    indefinite Hessians is what froze stage 1 (CAMPAIGN.md 2026-07-10 metric bug).
+    Stage 2: metric re-estimated from pooled cross-chain stage-1 draws (captures
+    the full correlated posterior cov); warm-start from stage-1 chain ends."""
     import jax
     import jax.numpy as jnp
 

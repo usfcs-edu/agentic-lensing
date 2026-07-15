@@ -180,9 +180,27 @@ def prod(args):
               f"{'CROSSED->reseed@start' if crossed else 'in-basin'}", flush=True)
         lap = e2.laplace_evidence(target, z_seed_hmc)
         print(f"  Laplace: logZ={lap['log_evidence']:.2f} logdetH={lap['logdet_H']:.2f} "
-              f"min_eig={lap['min_eig']:.2e} n_floored={lap['n_floored']}", flush=True)
+              f"min_eig={lap['min_eig']:.2e} n_neg={lap['n_neg']} "
+              f"is_pd={lap['is_pd']}", flush=True)
+        # stage-1 HMC metric: PD-by-construction (build_metric_cov). PD Hessian ->
+        # exact Laplace H^-1 (reproduces fine-steep); indefinite -> --metric
+        # regularization (diagraw default / svi_cov / laplace[legacy-buggy]).
+        metric_cov, mmeta = e2.build_metric_cov(
+            target, z_seed_hmc, lap, metric=args.metric, seed=args.seed,
+            svi_steps=args.svi_steps, svi_particles=args.svi_particles)
+        print(f"  METRIC[{mmeta['metric_requested']}]: used={mmeta['metric_used']} "
+              f"is_pd_hessian={mmeta['is_pd_hessian']} "
+              f"min_eig_H={mmeta['min_eig_hessian']:.2e} "
+              f"cov_cond={mmeta['cov_cond']:.2e} "
+              f"cov_min_eig={mmeta['cov_min_eig']:.2e} "
+              f"n_floored={mmeta['n_floored_metric']}", flush=True)
+        if "svi" in mmeta:
+            s = mmeta["svi"]
+            print(f"    SVI: {s['n_steps']}steps ELBO {s['elbo0']:.1f}->"
+                  f"{s['elbo_final']:.1f} min_eig={s['min_eig']:.2e} "
+                  f"full_rank={s['full_rank']} ({s['wall_s']:.0f}s)", flush=True)
         st = e2.run_staged(
-            target, z_seed_hmc, lap["cov"], chains=args.chains, seed=args.seed,
+            target, z_seed_hmc, metric_cov, chains=args.chains, seed=args.seed,
             stage1_burn=args.stage1_burn, stage1_keep=args.stage1_keep,
             burn=args.burn, keep=args.keep, step_size=args.step_size,
             num_leapfrog=args.num_leapfrog, jitter=args.jitter)
@@ -212,7 +230,9 @@ def prod(args):
             logp_best=logp_best, gamma_best=gamma_best,
             map_round_lps=mp["round_lps"], map_wall_s=mp["wall_s"],
             laplace=dict(log_evidence=lap["log_evidence"], logdet_H=lap["logdet_H"],
-                         min_eig=lap["min_eig"], n_floored=lap["n_floored"]),
+                         min_eig=lap["min_eig"], n_floored=lap["n_floored"],
+                         is_pd=lap["is_pd"], n_neg=lap["n_neg"]),
+            metric=mmeta,
             gamma_median=float(np.median(gph)),
             gamma_q16=float(np.quantile(gph, 0.16)),
             gamma_q84=float(np.quantile(gph, 0.84)),
@@ -230,6 +250,11 @@ def prod(args):
               f"std={summ['gamma_std']:.4f} | Rhat_max={summ['rhat_max']:.4f} "
               f"ESS_min={summ['ess_min']:.0f} ESS_gamma={summ['ess_gamma']:.0f} "
               f"({st['wall_s']:.0f}s)", flush=True)
+        _nstep = args.stage1_burn + args.stage1_keep + args.burn + args.keep
+        print(f"    STAGE1: Rhat_max={summ['stage1_rhat_max']:.3f} "
+              f"ESS_min={summ['stage1_ess_min']:.0f} | STAGE2: Rhat_max={summ['rhat_max']:.3f} "
+              f"| wall s1={st['stage1_wall_s']:.0f}s s2={st['stage2_wall_s']:.0f}s "
+              f"~{st['wall_s']/max(_nstep,1):.2f}s/step", flush=True)
         out["basins"][basin] = summ
 
     # H1 numbers (only when BOTH basins were sampled). Pre-registered test:
@@ -280,6 +305,83 @@ def prod(args):
     return out
 
 
+def prod_smc(args):
+    """Correlated basin-local adaptive tempered SMC (the metric-free path for a
+    SADDLE MAP + near-degenerate/multimodal nuisance). Per basin: build a
+    reference Gaussian q (fit from --smc-fit-npz <basin>_draws seeded at the
+    density peak, else from a MAP polish + regularized metric cov), run
+    e2.run_correlated_smc -> converged basin-restricted gamma marginal + logZ.
+    Both basins -> H1 basin evidence (correlated analog of the diagonal +162)."""
+    from cgl import e2
+    import jax.numpy as jnp
+
+    tag = args.tag
+    print(f"===== PROD-SMC {tag} ({e2.PRODUCTS[tag]['label']}) =====", flush=True)
+    target = e2.build_target(tag, whitener_file=(args.whitener or None))
+    labels = list(target.model.index_labels)
+    out = dict(tag=tag, sampler="correlated_smc", label=e2.PRODUCTS[tag]["label"],
+               whiten=target.whiten_meta, ndim=int(target.model.ndim),
+               basins={}, config=vars(args))
+    fit = np.load(args.smc_fit_npz, allow_pickle=True) if args.smc_fit_npz else None
+    parts_store = {}
+    basins = [b.strip() for b in args.basins.split(",") if b.strip()]
+    for basin in basins:
+        print(f"\n--- basin {basin} (SMC, seed {args.seed}) ---", flush=True)
+        if fit is not None and f"{basin}_draws" in fit:
+            draws = np.asarray(fit[f"{basin}_draws"], dtype=np.float64)
+            loc, cov = e2.fit_gaussian_from_draws(draws,
+                                                  cov_inflate=args.smc_cov_inflate)
+            gloc = float(np.asarray(target.model.to_physical_mass(
+                loc[None, :])["gamma"]).reshape(-1)[0])
+            print(f"  q from {args.smc_fit_npz} [{basin}_draws {draws.shape}] "
+                  f"gamma(loc)={gloc:.4f} cov_inflate={args.smc_cov_inflate}", flush=True)
+        else:
+            z0, rep = e2.make_start(tag, basin, target)
+            mp = e2.map_polish(target, z0, rounds=args.map_rounds,
+                               iters=args.map_iters)
+            lap = e2.laplace_evidence(target, mp["z_map"])
+            metric_cov, mmeta = e2.build_metric_cov(
+                target, mp["z_map"], lap, metric=args.metric, seed=args.seed,
+                svi_steps=args.svi_steps, svi_particles=args.svi_particles)
+            loc = mp["z_map"]
+            cov = metric_cov * float(args.smc_cov_inflate)
+            gmap = float(np.asarray(target.model.to_physical_mass(
+                loc[None, :])["gamma"]).reshape(-1)[0])
+            print(f"  q from MAP polish gamma_map={gmap:.4f} + {mmeta['metric_used']} "
+                  f"cov x{args.smc_cov_inflate} (is_pd_H={mmeta['is_pd_hessian']})", flush=True)
+        smc = e2.run_correlated_smc(
+            target, loc, cov, n_particles=args.smc_particles, seed=args.seed,
+            target_ess=args.smc_target_ess, num_mcmc_steps=args.smc_mcmc_steps,
+            hmc_integration_steps=args.smc_integration_steps,
+            hmc_step_size=args.smc_step_size, max_lambda_steps=args.smc_max_lambda)
+        print(f"  SMC gamma={smc['gamma_median']:.4f} "
+              f"[{smc['gamma_q16']:.4f},{smc['gamma_q84']:.4f}] sigma={smc['gamma_sigma']:.4f} "
+              f"| logZ={smc['logZ']:.2f} ess_est={smc['ess_est']:.0f} "
+              f"(w_ess={smc['ess_weight']:.0f} n_uniq={smc['n_unique']}) "
+              f"lambda_steps={smc['n_lambda_steps']} frac_steep={smc['frac_gamma_gt_split']:.3f} "
+              f"({smc['wall_s']:.0f}s)", flush=True)
+        parts_store[basin] = np.asarray(smc.pop("particles"), dtype=np.float32)
+        smc.pop("weights", None); smc.pop("lambdas", None)
+        out["basins"][basin] = smc
+    if "low" in out["basins"] and "steep" in out["basins"]:
+        dlogZ = out["basins"]["steep"]["logZ"] - out["basins"]["low"]["logZ"]
+        w_low = float(1.0 / (1.0 + np.exp(np.clip(dlogZ, -700, 700))))
+        out["H1"] = dict(dlogZ_smc_steep_minus_low=float(dlogZ),
+                         w_low_smc=w_low, w_steep_smc=float(1 - w_low),
+                         favors_low=bool(dlogZ < 0.0))
+        print(f"\n[H1-SMC] dlogZ(steep-low)={dlogZ:.2f} -> w_low={w_low:.4f} "
+              f"(diagonal-binned favored STEEP by +162 nat; correlated favors "
+              f"{'LOW' if dlogZ < 0 else 'STEEP'})", flush=True)
+    outp = Path(args.out)
+    outp.parent.mkdir(parents=True, exist_ok=True)
+    np.savez(outp.with_suffix(".npz"), labels=np.array(labels),
+             summary=json.dumps(out, default=float),
+             **{f"{b}_particles": parts_store[b] for b in parts_store})
+    json.dump(out, open(outp.with_suffix(".json"), "w"), indent=1, default=float)
+    print(f"[prod-smc] wrote {outp.with_suffix('.npz')} + .json", flush=True)
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode", choices=["smoke", "prod"], required=True)
@@ -300,6 +402,28 @@ def main():
     ap.add_argument("--step-size", type=float, default=0.1)
     ap.add_argument("--num-leapfrog", type=int, default=16)  # foundry-i marg recipe
     ap.add_argument("--jitter", type=float, default=0.5)
+    # stage-1 HMC metric (2026-07-10 regularized-PD fix). Only affects INDEFINITE
+    # Laplace Hessians (a PD Hessian always uses the exact Laplace H^-1, i.e. the
+    # validated fine-steep path). Default diagraw = foundry-i 34_fit_marg mass
+    # matrix (PD diagonal); svi_cov = canonical MAP->SVI->HMC; laplace = the
+    # pre-fix (buggy) 1/|eig| metric, for A/B reproduction only.
+    ap.add_argument("--metric", choices=["diagraw", "svi_cov", "laplace"],
+                    default="diagraw")
+    ap.add_argument("--svi-steps", type=int, default=8000)
+    ap.add_argument("--svi-particles", type=int, default=32)
+    # sampler selection: phmc (two-stage PHMC, default) or smc (correlated
+    # basin-local tempered SMC = the metric-free path for a saddle MAP).
+    ap.add_argument("--sampler", choices=["phmc", "smc"], default="phmc")
+    ap.add_argument("--smc-fit-npz", type=str, default="",
+                    help="npz with <basin>_draws to fit the SMC reference q "
+                         "(e.g. the svi_cov canary, seeding q at the density peak)")
+    ap.add_argument("--smc-cov-inflate", type=float, default=3.0)
+    ap.add_argument("--smc-particles", type=int, default=300)
+    ap.add_argument("--smc-mcmc-steps", type=int, default=4)
+    ap.add_argument("--smc-integration-steps", type=int, default=8)
+    ap.add_argument("--smc-step-size", type=float, default=0.1)
+    ap.add_argument("--smc-target-ess", type=float, default=0.7)
+    ap.add_argument("--smc-max-lambda", type=int, default=400)
     ap.add_argument("--map-rounds", type=int, default=4)
     ap.add_argument("--map-iters", type=int, default=200)
     ap.add_argument("--seed", type=int, default=2)
@@ -312,6 +436,8 @@ def main():
         raise SystemExit("set GIGALENS_X64=1 (real-data marg is float64-only)")
     if args.mode == "smoke":
         smoke(args)
+    elif args.sampler == "smc":
+        prod_smc(args)
     else:
         prod(args)
 
