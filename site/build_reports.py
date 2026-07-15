@@ -30,7 +30,8 @@ TARGET = "gfm+tex_math_dollars-tex_math_gfm"
 MIN_PANDOC = (3, 1, 7)  # first release with the tex_math_gfm extension
 
 SLUGS = {
-    "current": ["lensjudge", "claudenet", "redshifty", "dr11-campaign"],
+    "current": ["lensjudge", "claudenet", "redshifty", "dr11-campaign",
+                "claude-giga-lens"],
     "reproductions": [
         "aion-1", "cikota-2023", "dawes-2022", "foundry-i", "foundry-ii",
         "foundry-iii", "foundry-iv", "gu-2022", "hsu-2025", "huang-2020",
@@ -55,10 +56,14 @@ MARKERS = ("TITLE", "AUTHORS", "DATE", "ABSTRACT", "BODY")
 
 # Pandoc-readable stand-ins for the tech-report.sty macros (pandoc must not
 # read the real .sty: its \mbox-based \farcs leaks \mbox into math strings).
+#
+# NOTE: \rm is deliberately NOT shimmed to \mathrm. \rm is a font *declaration*
+# scoped to its group ({\rm eff} -> all of "eff" upright), whereas \mathrm takes
+# a single argument, so the shim turned {\rm eff} into \mathrm{e} + italic "ff".
+# Left alone, \rm passes through to MathJax, which supports it natively.
 SHIM = r"""
 \newcommand{\subtitle}[1]{}
 \newcommand{\thanks}[1]{}
-\newcommand{\rm}{\mathrm}
 \newcommand{\AUC}{\ensuremath{\mathrm{AUC}}}
 \newcommand{\dd}{\mathrm{d}}
 \newcommand{\code}[1]{\texttt{#1}}
@@ -87,6 +92,14 @@ TOOLIO = re.compile(
 USEPACKAGE_STY = re.compile(r"\\usepackage\{\.\./\.\./tech-report\}")
 SUBTITLE = re.compile(r"\\subtitle\{([^}]*)\}")
 WIKILINK = re.compile(r"\[\[([^\]]+)\]\]")
+
+# Most reports keep figures in papers/figures/, but some (claude-giga-lens)
+# reference a sibling dir: \includegraphics{../figs/x.png}. That path would
+# resolve ABOVE the page's output dir and 404, so the leading ../ is stripped
+# and the referenced dir is copied in alongside the page (see copy_assets).
+INCLUDEGRAPHICS_UP = re.compile(
+    r"(\\includegraphics(?:\[[^\]]*\])?\{)\.\./(?!\.\.)([^}]+)\}"
+)
 
 # \resizebox{\linewidth}{!}{ <tabular> } hides the tabular from pandoc's
 # table parser, so the table loses its caption/label association.
@@ -125,6 +138,7 @@ def check_pandoc():
 
 def preprocess(tex: str) -> str:
     tex = USEPACKAGE_STY.sub("", tex)
+    tex = INCLUDEGRAPHICS_UP.sub(r"\1\2}", tex)
     tex = RESIZEBOX.sub(r"\1", tex)
     tex = CMIDRULE.sub("", tex)
     tex = TOOLIO.sub(
@@ -239,13 +253,21 @@ def write_if_changed(path: Path, content: str) -> None:
         path.write_text(content)
 
 
-def copy_assets(papers: Path, out: Path, pdf_name: str = "main.pdf") -> None:
+def copy_assets(papers: Path, out: Path, pdf_name: str = "main.pdf",
+                tex: str = "") -> None:
     figures = papers / "figures"
     if figures.is_dir():
         shutil.copytree(figures, out / "figures", dirs_exist_ok=True)
     for pattern in ("*.png", "*.jpg", "*.jpeg"):
         for img in papers.glob(pattern):
             shutil.copy2(img, out / img.name)
+    # Sibling figure dirs whose ../ prefix preprocess() stripped, e.g.
+    # ../figs/x.png -> figs/x.png, published as <page>/figs/.
+    for name in {m.group(2).split("/")[0]
+                 for m in INCLUDEGRAPHICS_UP.finditer(tex)}:
+        src = papers.parent / name
+        if src.is_dir():
+            shutil.copytree(src, out / name, dirs_exist_ok=True)
     shutil.copy2(papers / pdf_name, out / pdf_name)
 
 
@@ -264,7 +286,7 @@ def build_report(slug: str, section: str, texname: str = "main",
                     pdf_name=pdf_name)
 
     write_if_changed(out / "index.md", page)
-    copy_assets(papers, out, pdf_name)
+    copy_assets(papers, out, pdf_name, tex=tex)
 
 
 def build_apple_silicon(slug: str) -> None:

@@ -13,8 +13,8 @@ Astronomy and the DESI Strong Lens Foundry group: a complete public-data
 reproduction of the 16-paper Huang-group strong gravitational lensing corpus —
 discovery, modeling, and follow-up spectroscopy, plus the AION-1 astronomy
 foundation model — executed end-to-end with coding agents, one LaTeX tech
-report per paper. Three pieces of **current work** (LensJudge, ClaudeNet,
-Redshifty) build on the reproduced stack.
+report per paper. Four pieces of **current work** (LensJudge, ClaudeNet,
+Claude-GIGA-Lens, Redshifty) build on the reproduced stack.
 
 Every report page on this site is generated directly from its `main.tex`; each
 offers a **PDF download** and a link to the code and artifacts on **GitHub**.
@@ -71,6 +71,36 @@ lrg+companion hard residual and lifts held-out recall to its best-ever level
 DECam-specific and pending high-resolution vetting. The released candidate list
 (145,297 sources, published lenses subtracted) and a grade-by-grade completeness
 analysis are written up under **[ClaudeNet v4 Work](claudenet-v4/index.md)**.
+
+**[Claude-GIGA-Lens](current/claude-giga-lens/index.md)** — changes the two
+things GIGA-Lens 2.0 leaves unchanged: the likelihood and the sampler. Drizzled
+space-based imaging carries strongly correlated pixel noise that the per-pixel
+diagonal Gaussian likelihood — the statistical core of every fast GPU lens
+modeling code — simply ignores; on the *HST*/WFC3-IR system
+DESI-165.4754−06.0423 that omission produces a scale-dependent slope γ (1.29
+binned, 1.43 native, a 2.585 artifact on the upsampled fine product) and a
+two-basin posterior. **P1** builds a drizzle-anchored correlated-noise
+likelihood (convolutional whitening, ridge-marginalized source amplitudes with
+the Gaussian evidence term) that reduces *exactly* to the validated diagonal
+stack (\|Δlog L\| = 0 at machine precision), matches a dense-covariance Cholesky
+reference to <3×10⁻⁹ nat, and is calibrated on drizzle mocks — *conservative,
+not biased*. On the real lens the verdict is two-sided: the correlated
+likelihood is **necessary but not sufficient**. It flips the binned bimodality
+— per-basin evidence swings ~191 nats, convicting the upsampled steep basin as
+a noise-covariance artifact — but *over-corrects* the value: the restored
+low-basin γ = 1.103 ± 0.008 sits ~17σ *below* the native anchor 1.433, and the
+correlated slopes **bracket** that anchor rather than unifying onto it,
+implicating further systematics in the source model and PSF. **P2** delivers
+the first systematic sampler and multimodality benchmark on strong-lens
+posteriors (nine contenders, a 19-target four-tier "posterior zoo", 370
+pre-registered budget-matched cells): nautilus dominates efficiency
+(2.6–307× ESS/gradient) but is disqualified on the real-lens ill-conditioned
+regime, **no gradient method beats the GIGA-Lens baseline at budget parity**,
+PT-HMC is the most reliable until-converged, and flowMC fails structurally. The
+hardest real posteriors defeat off-the-shelf samplers outright — the 46-dim
+condition-10¹⁴ target converges only under the campaign's own two-stage
+re-preconditioning recipe (R̂ 2.11 → 1.003), and the 74-dim bimodal one yields a
+trustworthy mode weight only via per-basin SMC evidence.
 
 **[Redshifty](current/redshifty/index.md)** — reproduces the Approach-A
 "redshift ignition" NERSC result on a single commodity GPU: sustained
