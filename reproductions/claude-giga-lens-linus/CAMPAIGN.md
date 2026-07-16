@@ -27,9 +27,10 @@ Plan of record: `plans/PLAN.md` (approved 2026-07-15). Their-format handoffs: `p
 | 2026-07-15 | 55951086 cgl2-t03-compmask (v3b-low SMC p128 seed2, companion-eroded whitener, slurm/t03_smc_v3b_low_compmask.slurm) | P1 T0.3 | 2.0 | 0.59 (COMPLETED 00:35:40) | 2.21 |
 | 2026-07-15 | 55952480 cgl2-t11-i1 (inj1 shift(0,0): svicov prep + SMC p128 seed2, slurm/t11_inj1.slurm) | T1.1 (D7) | 2.0 | — | 4.21 (est) |
 | 2026-07-15 | 55952481 cgl2-t11-i2 (inj2 shift(+.030,−.014)″: svicov prep + SMC p128 seed2, slurm/t11_inj2.slurm) | T1.1 (D7) | 2.0 | — | 6.21 (est) |
-| 2026-07-15 | 55952482 cgl2-t11-i3 (inj3 shift(−.022,+.034)″: svicov prep + SMC p128 seed2, slurm/t11_inj3.slurm) | T1.1 (D7) | 2.0 | — | 8.21 (est) |
+| 2026-07-15 | 55952482 cgl2-t11-i3 (inj3 shift(−.022,+.034)″: svicov prep + SMC p128 seed2, slurm/t11_inj3.slurm) | T1.1 (D7) | 2.0 | 1.49 (**FAILED** 01:29:15 — step-2 GPU OOM on hbm40g node; prep COMPLETED, artifacts valid; see stage log 2026-07-15 inj3 diagnosis) | 8.21 (est) |
 | 2026-07-15 | 55952483 cgl2-t11-i1d (inj1 DIAGONAL control via delta whitener, slurm/t11_inj1_diagctl.slurm) | T1.1 (D7) | 2.0 | — | 10.21 (est) |
 | 2026-07-16 | **P1 T0.2/T0.3 actuals harvested**: 2.21 A100-h vs 9.0 est (shared-QOS single-GPU; sacct -X Elapsed × 1 GPU, AllocTRES gres/gpu=1 each) | P1 | — | 2.21 total | 2.21 actual + 8.0 T1.1 est |
+| 2026-07-15 | 55958518 cgl2-t11-i3 **T1.1 inj3 resubmit** of 55952482 (SMC-only via SKIP_PREP=1, reuses the COMPLETED production prep npz on $PSCRATCH; fix = `-C gpu&hbm80g` pin + PYTHONUNBUFFERED=1, NO numerics change; slurm/t11_inj3.slurm) | T1.1 (D7) | 2.0 | — | 2.21 + 1.49 (failed 55952482) actual + 6.0 T1.1 est outstanding + 2.0 resubmit est |
 
 ## Gate record
 
@@ -109,6 +110,52 @@ downstream ΔlogZ gate, as planned).
 - sshproxy refreshed 2026-07-15 (user). Jobs charge `cosmo_g` (D5), single-GPU shared QOS.
 
 ## Stage log (newest first)
+
+### 2026-07-15 — T1.1 inj3 FAILURE DIAGNOSIS + RESUBMIT (55952482 FAILED → 55958518; ledger row appended BEFORE any readout)
+
+**Symptom:** 55952482 (t11-i3) FAILED ExitCode 1:0 at Elapsed 01:29:15 on nid003112; the
+slurm log showed only the [t11-i3] header echoes. This is expected under failure BY
+DESIGN: both python steps redirect stdout/stderr to `$PSCRATCH/.../t11_inj3_*_run.log`,
+and `set -e` aborts before the end-of-job summary grep — the slurm .out never gets
+python output. The initial "no partial artifacts" triage read was STALE: on inspection,
+step 1 (prep) had COMPLETED cleanly (t11_inj3_canary_svicov.{npz,json,run.log} on
+$PSCRATCH 17:27 AND cp'd to CFS results/), and t11_inj3_smc_run.log (2975 B vs 435 B
+healthy siblings) held the full traceback.
+
+**ROOT CAUSE (from the step-2 run.log, not a hypothesis):** GPU OOM in the frozen
+production SMC (p128) — `XlaRuntimeError: RESOURCE_EXHAUSTED ... 49,861,018,216 bytes`
+in `common.run_adaptive_tempered_smc` step; XLA rematerialization reported it could not
+reduce the working set below **39.05 GiB**. nid003112 is an **hbm40g** (40 GB A100) node:
+0.95×40 GB cannot hold a ≥39 GiB floor. The successful siblings inj1/inj2 (and ALL prior
+successful SMC runs this campaign: T0.2 low/steep + T0.3 on nid008221/nid008193) ran on
+**hbm80g** nodes by scheduler luck — every script requested only `-C gpu`, while the OLD
+campaign's own e2_smc slurm comment states the production memory budget outright:
+"XLA_PYTHON_CLIENT_MEM_FRACTION=0.95 (give JAX 76 GB of the 80 GB card)". Latent defect,
+not an inj3 pathology.
+
+**Ruled out:** (1) datafile corruption — md5 81271c7f… identical across local
+data/t11_inj3_v3b.npz, the build report, and the CFS-staged copy; (2) an inj3-specific
+prep NaN — prep COMPLETED with healthy numbers (MAP γ_map=1.4266 in-basin; SVI full_rank;
+warm-start gamma(loc)=1.4995, in family with inj2's 1.5183); (3) host OOM — MaxRSS 3.6 GB
+of 57 GB; (4) lost-buffered-stdout — the traceback flushed fine on exception.
+
+**Fix applied (minimal, no numerics change):** slurm/t11_inj3.slurm gains
+`#SBATCH -C gpu&hbm80g` (pins the GPU class the production config was budgeted for and
+every successful SMC run actually used) + `export PYTHONUNBUFFERED=1` (observability).
+Truth params / whitener / mask / SMC config UNTOUCHED. **Resubmitted with SKIP_PREP=1**
+— the script's documented resilience path — reusing the completed, unmodified-production
+prep npz (t11_inj3_canary_svicov.npz, seed 2) from $PSCRATCH; SMC-only rerun.
+
+**Ops:** fixed script staged to CFS code/, md5 1e1e32aa… verified identical both sides;
+submitted as **55958518** (cosmo_g shared, 1 GPU, SKIP_PREP=1 exported); watchdog:
+55952482 deregistered, 55958518 registered (max_pending 24 h / max_run 6 h /
+expect_artifact CFS t11_inj3_smc.npz / on_stall resubmit) — loop alive (PID 118755).
+inj1/inj2/control results NOT touched; their COMPLETED_NO_ARTIFACT harvest-reminder
+alerts left in place. **Carried flag:** the `-C gpu` under-pin affects all campaign
+slurm templates — pin `gpu&hbm80g` on any future ≥40 GB-working-set (SMC/HMC prod)
+submission. Transparency: during triage the inj2 SMC run.log tail was displayed
+(a γ line was on screen); it was not interpreted and no gate math was done — the T1.1
+readout remains a separate pre-registered phase. **NO results read this session.**
 
 ### 2026-07-15 — P1 T0.2/T0.3 HARVEST (jobs 55951082–86, all COMPLETED; 2.21 A100-h actual vs 9.0 est)
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH -A cosmo_g
-#SBATCH -C gpu
+#SBATCH -C gpu&hbm80g  # pinned 2026-07-15: SMC p128/96 needs ~39GiB (job 55952482 OOM on hbm40g)
 #SBATCH -q shared
 #SBATCH -t 02:30:00
 #SBATCH -N 1

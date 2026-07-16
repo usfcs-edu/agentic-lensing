@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH -A cosmo_g
-#SBATCH -C gpu
+#SBATCH -C gpu&hbm80g
 #SBATCH -q shared
 #SBATCH -t 02:30:00
 #SBATCH -N 1
@@ -24,7 +24,13 @@
 # stationary-whitener low bias; |bias| < 0.024 exonerates.
 # Resilience: if walltime killed step 2, resubmit with SKIP_PREP=1 (canary
 # npz persists on $PSCRATCH).
+# 2026-07-15 resubmit fix (job 55952482 FAILED, ledgered): step-2 SMC OOMs on
+# 40GB A100s (XLA remat floor 39.05GiB > 0.95*40GB; nid003112=hbm40g) while all
+# successful SMC runs landed on hbm80g by scheduler luck -> pin -C gpu&hbm80g
+# (production mem budget was always "76GB of the 80GB card", old e2_smc slurm).
+# PYTHONUNBUFFERED for run.log observability. NO numerics change.
 set -euo pipefail
+export PYTHONUNBUFFERED=1
 module load python
 source "$HOME/claude-giga-lens/venv/bin/activate"
 export GIGALENS_X64=1
