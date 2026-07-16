@@ -32,6 +32,7 @@ Plan of record: `plans/PLAN.md` (approved 2026-07-15). Their-format handoffs: `p
 | 2026-07-16 | **P1 T0.2/T0.3 actuals harvested**: 2.21 A100-h vs 9.0 est (shared-QOS single-GPU; sacct -X Elapsed × 1 GPU, AllocTRES gres/gpu=1 each) | P1 | — | 2.21 total | 2.21 actual + 8.0 T1.1 est |
 | 2026-07-15 | 55958518 cgl2-t11-i3 **T1.1 inj3 resubmit** of 55952482 (SMC-only via SKIP_PREP=1, reuses the COMPLETED production prep npz on $PSCRATCH; fix = `-C gpu&hbm80g` pin + PYTHONUNBUFFERED=1, NO numerics change; slurm/t11_inj3.slurm) | T1.1 (D7) | 2.0 | 0.43 (COMPLETED 00:25:47, nid008193; SKIP_PREP=1) | 2.21 + 1.49 (failed 55952482) actual + 6.0 T1.1 est outstanding + 2.0 resubmit est |
 | 2026-07-15 | **T1.1 actuals harvested**: 7.80 A100-h vs 10.0 est (1.89 + 2.00 + 1.49 FAILED + 1.99 + 0.43; sacct -X Elapsed × 1 GPU each) | T1.1 (D7) | — | 7.80 total | **10.01 actual** (2.21 P1 + 7.80 T1.1) of 100 h cap |
+| 2026-07-16 | 55980038 cgl2-deploy-verify (P2 Path-A deploy verify: md5 audit + 00_env_check + 01_parity_scene NATIVE gate battery under the new cgl2-pm venv, slurm/deploy_f8_verify.slurm; plain `-C gpu`, 30-min cap, shared 1×GPU) | P2 deploy | 0.2 | pending | 10.01 actual + 0.2 est |
 
 ## Gate record
 
@@ -112,6 +113,43 @@ downstream ΔlogZ gate, as planned).
 - sshproxy refreshed 2026-07-15 (user). Jobs charge `cosmo_g` (D5), single-GPU shared QOS.
 
 ## Stage log (newest first)
+
+### 2026-07-16 — P2 DEPLOYMENT Path A + Path B on Perlmutter (scout plan research/p2_deployment_plan.md executed; verify job 55980038, 0.2 A100-h est)
+
+- **Path A venv BUILT**: `/global/cfs/cdirs/deepsrch/gdbenson/cgl2-linus/cgl2-pm-venv`
+  (`module load python` → 3.13.11; login-node pip with `--no-cache-dir`). Wheels-only
+  (`--only-binary :all:`) under `-c constraints.txt` for the whole set EXCEPT
+  **lenstronomy 1.14.0, which is sdist-only on PyPI** (plan E2's "wheel ✓" was
+  release-existence; pure-python build, installed from sdist, trivial). Resolved core
+  pins EXACT: jax/jaxlib/jax-cuda12-{plugin,pjrt} 0.6.2, numpy 2.4.6, scipy 1.17.1,
+  tfp 0.25.0, blackjax 1.3, optax 0.2.8, objax 1.8.0, astropy 7.2.0, lenstronomy
+  1.14.0 (+ arviz 1.2.0, corner 2.3.0, pytest 9.1.1, matplotlib 3.11.0 — figs now
+  possible PM-side); **NO tensorflow** (D2 held; objax pulled tensorboard only).
+  `pip install -e vendor/gigalens-linus --no-deps` + `pip install -e . --no-deps` OK;
+  import smoke: gigalens resolves INSIDE the pinned vendor, jax-pin guard PASS.
+- **Code staged non-git**: `cgl2-linus/code/campaign/` (cgl2/ + vendor@80916d2 +
+  operator scripts + tests + tools + slurm). **md5 manifest `deploy.md5` (195 files:
+  every .py, slurm scripts, pyproject/constraints, parity_refs.npz, whitener manifest
+  + campaign whitener npz, ../foundry-i/data/cutout_{v2d,v3b}.npz) verified BOTH
+  sides** (local self-check + remote `md5sum -c`: PASS; local copy
+  data/deploy_p2_perlmutter.md5). Inputs staged for 01_parity_scene: parity_refs.npz
+  → campaign/data/, cutouts → code/foundry-i/data/ (paths.py REPRO_ROOT-relative).
+- **Login CPU tests (new venv)**: `pytest tests/` → **54 passed, 25.29 s**
+  (CGL2_ALLOW_CPU=1 JAX_PLATFORMS=cpu) — matches the phoenix 54-green suite.
+- **Path B PROVEN ON PERLMUTTER** (B4/B5 prep): OLD venv `~/claude-giga-lens/venv` +
+  `PYTHONPATH=.../code/campaign` → `import cgl2.samplers.smc_micro` vendor-free
+  (gigalens never enters sys.modules); `22_run_b3_vendorfree_test.py` →
+  **logZ=−3.5272 true=−3.4813 err=0.0459 sig=0.0550 stages=3 — digit-identical to
+  the plan's E1 record from phoenix** (x86 A100 login vs aarch64: same printed digits).
+- **Verify job 55980038 submitted** (`slurm/deploy_f8_verify.slurm`, clone of
+  parity_f8_nersc.slurm's shape but NATIVE pins: CGL2_F8 UNSET so require_jax_pin
+  stays ACTIVE; plain `-C gpu` on purpose — don't burn hbm80g on a light job; -A
+  cosmo_g -q shared). Ops lesson: **Perlmutter shared QOS rejects `-c 16` — requires
+  32 cores per GPU** (first submit failed; script fixed to `-c 32`, manifest updated,
+  re-audited both sides). Runs 00_env_check + the full 01_parity_scene battery
+  (F1–F7 restated-F6) on A100 at the campaign pins. Watchdog: registered.
+- **No P2 benchmark cells run** (deployment + verification only, per tasking).
+  RESULT (appended post-completion): see gate row "PM-A100" below / job log.
 
 ### 2026-07-15 evening — T1.1b STOPPED AT THE PRE-DECLARED BUILD GATE (residue-masked refits are information-starved; NO submission, 0 A100-h)
 

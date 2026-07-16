@@ -15,7 +15,7 @@
 #SBATCH -C gpu
 #SBATCH -N 1
 #SBATCH --gpus 1
-#SBATCH -c 16
+#SBATCH -c 32
 #SBATCH -t 00:30:00
 #SBATCH -J cgl2-deploy-verify
 #SBATCH -o /global/cfs/cdirs/deepsrch/gdbenson/cgl2-linus/slurm-logs/slurm-%j.out

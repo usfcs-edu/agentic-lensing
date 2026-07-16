@@ -175,7 +175,7 @@ b7bb64fb8cad1348a3372dea03090c28  ./vendor/gigalens-linus/wip/validate_remat_def
 e2a418bd61a7b06865443431839684cd  pyproject.toml
 96b25ed7466bfbe4d003391914298599  constraints.txt
 13adeabb77a9af9fbea8183eec19388b  00_run_tests.sh
-52a11ebcf2e4fdb66d09b9905b761205  slurm/deploy_f8_verify.slurm
+4274025b8e492f2d2531af9e7dfa72b5  slurm/deploy_f8_verify.slurm
 9ec487d53772a70e118d24b086b377e0  slurm/parity_f8_nersc.slurm
 1cecfddcd7af101e88b5af7b8359f0ce  slurm/t02_smc_v3b_low_seed3.slurm
 b3319a8b0c846126815b37061cdce4dc  slurm/t02_smc_v3b_low_seed4.slurm
