@@ -34,7 +34,7 @@ surface (2-D, sky-plane) mass density $\Sigma(R)$, the mass enclosed inside
 radius $R$ is
 
 $$
-M(<R) \;=\; \int_0^R \Sigma(R')\, \bigl(2\pi R'\bigr)\, dR'.
+M({<}R) \;=\; \int_0^R \Sigma(R')\, \bigl(2\pi R'\bigr)\, dR'.
 $$
 
 The factor $2\pi R'\,dR'$ is itself a small accumulation: it is the area of a
@@ -245,7 +245,7 @@ case, $\gamma = 2$, where the previous section gave $\Sigma(R) \propto 1/R$.
 Feed that into the ring-accumulation integral from the first section:
 
 $$
-M(<R) \;\propto\; \int_0^R \frac{1}{R'}\cdot 2\pi R'\, dR' \;=\; 2\pi \int_0^R dR' \;\propto\; R.
+M({<}R) \;\propto\; \int_0^R \frac{1}{R'}\cdot 2\pi R'\, dR' \;=\; 2\pi \int_0^R dR' \;\propto\; R.
 $$
 
 The enclosed mass of an isothermal profile grows *linearly* with radius —
@@ -254,7 +254,7 @@ because the ring's shrinking density ($1/R'$) exactly cancels its growing
 area ($R'$). Now put that into the 2-D field law just derived:
 
 $$
-g(R) \;\propto\; -\frac{M(<R)}{R} \;\propto\; -\frac{R}{R} \;=\; \text{const}.
+g(R) \;\propto\; -\frac{M({<}R)}{R} \;\propto\; -\frac{R}{R} \;=\; \text{const}.
 $$
 
 The radius cancels completely. An isothermal sphere's deflection has the same
@@ -341,12 +341,12 @@ is [Ch. 17](17-lens-equation.md#the-lens-equation)'s job.)
 
 ??? question "Exercise 3.4 — deriving the flat rotation curve"
     Using only (a) $\Sigma(R)\propto 1/R$ for an isothermal profile and (b)
-    the 2-D field law $g(R)\propto -M(<R)/R$, show that the isothermal
+    the 2-D field law $g(R)\propto -M({<}R)/R$, show that the isothermal
     deflection magnitude is independent of radius, and identify which of the
     two facts would have to change for that to fail.
 
     ??? success "Solution"
-        $M(<R) = \int_0^R \Sigma(R')\,2\pi R'\,dR' \propto \int_0^R dR' \propto R$ because the $1/R'$ density and the $R'$ ring area cancel inside the integrand. Then $g(R)\propto -M(<R)/R \propto -R/R =$ constant. It fails for any $\gamma \ne 2$: the enclosed-mass integral would give $M(<R)\propto R^{2-\gamma}$ (from $\Sigma\propto R^{1-\gamma}$ and one more power of $R$ from the ring area), and $g(R)\propto R^{2-\gamma}/R = R^{1-\gamma}$ would depend on radius for every slope except $\gamma=2$. Isothermal is not "a" profile with
+        $M({<}R) = \int_0^R \Sigma(R')\,2\pi R'\,dR' \propto \int_0^R dR' \propto R$ because the $1/R'$ density and the $R'$ ring area cancel inside the integrand. Then $g(R)\propto -M({<}R)/R \propto -R/R =$ constant. It fails for any $\gamma \ne 2$: the enclosed-mass integral would give $M({<}R)\propto R^{2-\gamma}$ (from $\Sigma\propto R^{1-\gamma}$ and one more power of $R$ from the ring area), and $g(R)\propto R^{2-\gamma}/R = R^{1-\gamma}$ would depend on radius for every slope except $\gamma=2$. Isothermal is not "a" profile with
         a flat rotation curve — it is *the* profile whose projected exponent
         exactly cancels the ring-area exponent, and that cancellation is a
         single-value coincidence in $\gamma$.

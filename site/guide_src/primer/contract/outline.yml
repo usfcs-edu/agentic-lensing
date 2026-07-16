@@ -1,0 +1,312 @@
+# The frozen chapter table for the Beginner's Guide. Authored BEFORE fan-out;
+# chapter agents may not invent a chapter, anchor, figure or cross-reference
+# that is not listed here. One agent writes exactly one file.
+#
+# The NOTATION contract is SHARED: ../../contract/notation.yml. Do not copy it.
+# A reader who reads both books is exactly the reader that contract protects —
+# gamma means three different things across this corpus and beta means two.
+
+meta:
+  title: "A Beginner's Guide to Astrophysics and Cosmology"
+  subtitle: "What the universe is, how we know, and why any of it bends light"
+  destination: >-
+    The reader can open the main guide at Ch. 9 and not be lost: they know what
+    a galaxy, a cluster and a redshift ARE, and why bigger z means farther away
+    and longer ago.
+
+# Why this book exists, in one paragraph. Every chapter serves this.
+premise: >-
+  The main guide ("From Calculus to the Money Number") says "elliptical galaxy"
+  39 times and "cluster" 35 times without ever defining either. Across its 29
+  chapters, "Big Bang", "CMB", "cosmic web", "distance ladder", "standard
+  candle", "parallax", "Milky Way" and "solar system" appear ZERO times, and
+  "dark matter" appears in a single subordinate clause. It reproduces a cluster
+  mass of 4.6e13 solar masses and never says whether that is a lot, because it
+  has no Milky Way to compare against. This book is the layer beneath it.
+
+devices:
+  unlocks: >-
+    EVERY chapter ends with an "Unlocks" note naming the guide chapter(s) it
+    makes readable, with a link. This book is a prerequisite, and it should
+    never let the reader forget where they are going.
+  you_already_know_this: >-
+    Same recurring "!!! tip" bridge as the main guide — the reader is the same
+    CS professor. Use where the analogy is real and load-bearing (the distance
+    ladder as bootstrapping error; a spectrum as a signal; the inverse-square
+    law as sampling; standard candles as calibration). Never manufacture one.
+  scale_anchor: >-
+    The Milky Way is this book's ruler. Once Ch. 1 establishes it, every later
+    mass, size and distance is quoted against it at least once. The main guide
+    has no anchor at all; this is the fix.
+
+chapters:
+  # ---------------- Part I — Where are we? ---------------------------------
+  - n: 1
+    slug: 01-scale-ladder
+    title: The scale ladder
+    part: "Part I — Where are we?"
+    prereqs: []
+    abstract: >-
+      Earth -> AU -> light-year -> parsec -> Milky Way (1e11 stars, 1e5 ly
+      across) -> Local Group -> cluster (1e3 galaxies) -> the cosmic web ->
+      the observable universe. Powers of ten, one rung at a time. Establishes
+      the Milky Way as the book's ruler. The main guide contains no rung of
+      this ladder except the parsec.
+    anchors: [powers-of-ten, the-solar-system, the-light-year, our-galaxy,
+              beyond-the-galaxy, the-whole-thing]
+    figures: [p01-scale-ladder]
+    examples: [pch01]
+    unlocks: [9]
+
+  - n: 2
+    slug: 02-stars
+    title: Stars, and why old means red
+    part: "Part I — Where are we?"
+    prereqs: [1]
+    abstract: >-
+      Fusion; why a star is a balance between gravity and pressure; the main
+      sequence; why massive stars are blue and die fast while small ones are red
+      and live ~forever. This premise silently carries the main guide's "old and
+      red stellar population" (Ch. 10) and its entire Ca II K vs [OII] line
+      selection (Ch. 12), neither of which explains it.
+    anchors: [what-a-star-is, the-main-sequence, why-massive-means-short,
+              what-is-left-behind]
+    figures: [p02-main-sequence]
+    examples: [pch02]
+    unlocks: [10, 12]
+
+  - n: 3
+    slug: 03-galaxies
+    title: Galaxies, and which ones bend light
+    part: "Part I — Where are we?"
+    prereqs: [2]
+    abstract: >-
+      What a galaxy IS (~1e11 stars, ~1e5 ly, mostly empty). Spirals vs
+      ellipticals; star formation and why it stops; why ellipticals are red,
+      massive, and the lenses this program hunts. Hands the *dynamical*
+      distinction to Ch. 10 rather than repeating it — Ch. 10's two paragraphs
+      on that are the best beginner writing in the main guide.
+    anchors: [what-a-galaxy-is, spirals-and-ellipticals, why-star-formation-stops,
+              which-ones-lens]
+    figures: [p03-galaxy-types]
+    examples: [pch03]
+    unlocks: [10]
+
+  - n: 4
+    slug: 04-clusters
+    title: Clusters and the cosmic web
+    part: "Part I — Where are we?"
+    prereqs: [3]
+    abstract: >-
+      Groups -> clusters (1e3 galaxies, 1e14-1e15 Msun) -> filaments -> voids.
+      CLOSES the scale gap the main guide leaves open: theta_E ~ 1-2" for a
+      galaxy (Ch. 9), 1.145" for its fiducial elliptical (Ch. 10), and 13.03"
+      for the Carousel CLUSTER (Ch. 15) — three chapters, 10x apart, and no
+      sentence anywhere connects them. A cluster is ~100x the mass, so its ring
+      is ~10x bigger; that is the whole explanation and nobody gives it.
+    anchors: [groups-and-clusters, the-cosmic-web, why-cluster-rings-are-bigger]
+    figures: [p04-theta-e-ladder]
+    examples: [pch04]
+    unlocks: [15]
+
+  # ---------------- Part II — How do we know? ------------------------------
+  - n: 5
+    slug: 05-light
+    title: Light is the only messenger
+    part: "Part II — How do we know?"
+    prereqs: [1]
+    abstract: >-
+      The EM spectrum; photons; blackbody radiation and why temperature sets
+      colour; the inverse-square law. And the fact every redshift claim in the
+      corpus rests on and no chapter states: light takes time, so looking far
+      away IS looking into the past.
+    anchors: [the-spectrum, why-hot-means-blue, the-inverse-square-law,
+              looking-back-in-time]
+    figures: [p05-blackbody]
+    examples: [pch05]
+    unlocks: [9, 12]
+
+  - n: 6
+    slug: 06-telescopes
+    title: Telescopes, surveys, and the three observatories
+    part: "Part II — How do we know?"
+    prereqs: [5]
+    abstract: >-
+      HST, DESI and Euclid are central to the main guide and NONE is introduced
+      there. Ground vs space (seeing vs diffraction — the parenthetical Ch. 9
+      hangs the whole HST-vs-DESI split on); imaging vs spectroscopic; what a
+      band (g, r, z) is, and the z-band/redshift-z collision nobody flags; what
+      a survey is and why anyone images the whole sky.
+    anchors: [what-a-telescope-collects, ground-versus-space, bands-and-filters,
+              what-a-survey-is, the-three-observatories]
+    figures: [p06-resolution-ladder]
+    examples: [pch06]
+    unlocks: [9, 11, 27]
+
+  - n: 7
+    slug: 07-spectra
+    title: Spectra — the fingerprint of everything
+    part: "Part II — How do we know?"
+    prereqs: [5, 6]
+    abstract: >-
+      Continuum plus lines; why each element has a fixed pattern; emission vs
+      absorption. Ch. 12's skip box already outsources exactly this ("You do not
+      need atomic physics: take it as given...") — this chapter is the thing it
+      hands off to.
+    anchors: [continuum-and-lines, why-elements-have-fingerprints,
+              emission-versus-absorption]
+    figures: [p07-spectrum-lines]
+    examples: [pch07]
+    unlocks: [12]
+
+  - n: 8
+    slug: 08-redshift
+    title: Redshift — what it is and why it means distance
+    part: "Part II — How do we know?"
+    prereqs: [5, 7]
+    abstract: >-
+      THE chapter this book exists for. z = delta-lambda/lambda. Doppler first,
+      then the cosmological reading. And the sentence the main guide never says:
+      bigger z = smaller universe then = longer ago = farther away. Ch. 12
+      asserts it and retracts it ("a definition, not yet a physical claim");
+      Ch. 13 denies the velocity reading; Ch. 15 gives an integral. Nobody
+      closes the chain. Also: how far z=0.5 and z=2.0 actually ARE — the guide's
+      standard test pair, never once given a physical picture.
+    anchors: [what-redshift-measures, the-doppler-picture,
+              the-cosmological-picture, bigger-z-means-farther, z-in-real-numbers]
+    figures: [p08-redshift-chain]
+    examples: [pch08]
+    unlocks: [12, 13, 15]
+
+  - n: 9
+    slug: 09-distance-ladder
+    title: The distance ladder
+    part: "Part II — How do we know?"
+    prereqs: [8]
+    abstract: >-
+      Parallax (rung 1 — the parsec's STORY, which Ch. 9 omits while deriving
+      its arithmetic) -> Cepheids -> Type Ia supernovae -> redshift. Owns
+      "standard candle" and ABSOLUTE magnitude M, which Ch. 15 uses inside a
+      distance-modulus formula having never defined it (Ch. 9 defines only
+      apparent magnitude). Each rung calibrates the next, and errors compound —
+      which is why the Hubble tension (Ch. 14) is hard.
+    anchors: [nothing-comes-with-a-ruler, parallax, standard-candles,
+              supernovae, errors-compound]
+    figures: [p09-distance-ladder]
+    examples: [pch09]
+    unlocks: [9, 15]
+
+  # ---------------- Part III — What is the universe doing? -----------------
+  - n: 10
+    slug: 10-expansion
+    title: The expanding universe
+    part: "Part III — What is the universe doing?"
+    prereqs: [8]
+    abstract: >-
+      Hubble's law v = H0*d. Raisin bread. There is no centre; nothing moves
+      *through* space; the expansion is of the ruler itself. Ch. 13 formalises
+      this as a(t) and derives Hubble's law as a Taylor term — this paints the
+      picture that makes that formalism mean something.
+    anchors: [hubbles-law, the-raisin-bread, there-is-no-centre,
+              what-is-actually-expanding]
+    figures: [p10-expansion]
+    examples: [pch10]
+    unlocks: [13]
+
+  - n: 11
+    slug: 11-big-bang
+    title: The Big Bang and the oldest light
+    part: "Part III — What is the universe doing?"
+    prereqs: [10]
+    abstract: >-
+      Run the expansion backwards: hot, dense, and 13.8 Gyr ago. Names a = 0,
+      which Ch. 14 integrates back to and never calls anything. The CMB as the
+      baby picture and the single most informative image ever taken — absent
+      from all 29 chapters of the main guide.
+    anchors: [running-it-backwards, the-first-light, the-cmb, what-the-cmb-tells-us]
+    figures: [p11-cosmic-history]
+    examples: [pch11]
+    unlocks: [13, 14]
+
+  - n: 12
+    slug: 12-dark-matter
+    title: Dark matter
+    part: "Part III — What is the universe doing?"
+    prereqs: [3, 4, 11]
+    abstract: >-
+      Four independent lines of evidence — rotation curves, cluster dynamics,
+      lensing itself, and the CMB — that agree. Halos. ~5x more than everything
+      that shines. And the expansion nobody gives the reader: the CDM in
+      FlatLambdaCDM, which they type in Ch. 14, means COLD DARK MATTER. The main
+      guide's entire treatment is one subordinate clause in Ch. 10.
+    anchors: [rotation-curves, four-independent-witnesses, halos,
+              what-cdm-stands-for]
+    figures: [p12-rotation-curve]
+    examples: [pch12]
+    unlocks: [10, 14]
+
+  - n: 13
+    slug: 13-dark-energy
+    title: Dark energy and how it ends
+    part: "Part III — What is the universe doing?"
+    prereqs: [9, 11]
+    abstract: >-
+      The 1998 supernova result: the expansion is ACCELERATING. Lambda. The
+      energy budget (~5% baryons / ~27% dark matter / ~68% dark energy) — i.e.
+      what Omega_m = 0.3 actually asserts. In the main guide, accelerated
+      expansion appears only inside Exercise 14.4's solution.
+    anchors: [the-supernova-surprise, what-lambda-is, the-energy-budget,
+              how-it-ends]
+    figures: [p13-energy-budget]
+    examples: [pch13]
+    unlocks: [14]
+
+  - n: 14
+    slug: 14-hubble-tension
+    title: The Hubble tension, and why lensing arbitrates it
+    part: "Part III — What is the universe doing?"
+    prereqs: [9, 10, 11]
+    abstract: >-
+      The ladder says ~73, the CMB says ~67, and the error bars do not overlap.
+      Why this is the biggest open problem in cosmology. And the punchline for
+      this reader: time-delay strong lensing is an INDEPENDENT third method — the
+      reader's own field arbitrates the argument. The main guide fixes H0 = 70 by
+      fiat and winks at this ("identical if this repository had asserted 67")
+      without ever naming it.
+    anchors: [two-answers, why-it-matters, the-third-method, where-it-stands]
+    figures: [p14-h0-tension]
+    examples: [pch14]
+    unlocks: [13, 14]
+
+  # ---------------- Part IV — Why lensing? ---------------------------------
+  - n: 15
+    slug: 15-gravity-bends-light
+    title: Gravity bends light
+    part: "Part IV — Why lensing?"
+    prereqs: [5, 12]
+    abstract: >-
+      Mass curves spacetime; light follows the curve. Eddington's 1919 eclipse
+      and why the factor of two mattered so much. Conceptual only — Ch. 16
+      derives 4GM/c^2b; this chapter earns it.
+    anchors: [the-idea, eddington-1919, why-a-factor-of-two-mattered]
+    figures: [p15-deflection]
+    examples: [pch15]
+    unlocks: [16]
+
+  - n: 16
+    slug: 16-what-is-a-strong-lens
+    title: What a strong lens is, and where to go next
+    part: "Part IV — Why lensing?"
+    prereqs: [4, 8, 15]
+    abstract: >-
+      The geometry: a foreground galaxy and a background galaxy, wildly
+      different distances, accidentally aligned on one sightline. Why alignment
+      is rare. Arcs, rings, doubles and quads. The theta_E ladder (~1" galaxy,
+      ~13" cluster). Why anyone cares (mass, including the invisible kind; H0).
+      Closes with an explicit map: which chapter of the main guide to open, and
+      what this book has already given you for it.
+    anchors: [the-geometry, why-it-is-rare, what-you-see, why-anyone-cares,
+              where-to-go-next]
+    figures: [p16-lens-geometry]
+    examples: [pch16]
+    unlocks: [1, 9, 16, 17]

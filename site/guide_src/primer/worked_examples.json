@@ -1,0 +1,267 @@
+{
+  "pch01": {
+    "note": "The scale ladder: AU, light-year, parsec, and the Milky Way as ruler",
+    "values": {
+      "au_km": 149597870.7,
+      "au_light_minutes": 8.316746397269274,
+      "hubble_distance_in_mw": 139684.60309008483,
+      "hubble_distance_mpc": 4282.7494,
+      "ly_km": 9460730472580.8,
+      "mw_crossing_yr": 100000.0,
+      "mw_diameter_ly": 100000.0,
+      "mw_stars": 100000000000.0,
+      "nearest_star_in_au": 268142.16683728906,
+      "nearest_star_ly": 4.24,
+      "pc_in_ly": 3.261563777
+    }
+  },
+  "pch02": {
+    "note": "Stellar lifetimes: why massive stars die fast (t ~ M/L, L ~ M^3.5)",
+    "values": {
+      "chandrasekhar_mass_msun": 1.4,
+      "core_collapse_threshold_msun": 8.0,
+      "earth_radius_km": 6371.0,
+      "ns_density_tonne_per_cm3": 499454757.17546034,
+      "ns_mass_msun": 1.4,
+      "ns_radius_km": 11.0,
+      "ns_wd_density_ratio": 453337395.36113197,
+      "ratio_10msun_lifetime_to_universe_age": 0.0023481706613738863,
+      "ratio_10msun_to_sun": 0.003162277660168379,
+      "ratio_half_msun_lifetime_to_universe_age": 4.200535377282121,
+      "star_10msun_lifetime_myr": 31.622776601683793,
+      "star_half_msun_lifetime_gyr": 56.568542494923804,
+      "sun_lifetime_gyr": 10.0,
+      "universe_age_gyr": 13.466983947061873,
+      "wd_density_tonne_per_cm3": 1.101728563066347,
+      "wd_mass_msun": 0.6,
+      "wd_radius_km": 6371.0
+    }
+  },
+  "pch03": {
+    "note": "Galaxies: how empty they are, and why ellipticals lens. NB this density is a crude UNIFORM-disk average (~0.44/pc^3); the measured density near the Sun is ~0.1/pc^3, because the real disk thins with radius and height. The 4x is fine for an order-of-magnitude emptiness argument and the prose must not claim better. The gas mass/SFR pair are order-of-magnitude Milky-Way benchmarks (standard textbook figures, not repo-derived), used only for the depletion-timescale division.",
+    "values": {
+      "density_ratio_uniform_over_measured": 4.41761378191552,
+      "gas_depletion_gyr": 5.0,
+      "local_star_density_pc3": 0.1,
+      "mean_star_sep_au": 270829.4483272674,
+      "mean_star_sep_over_sun_diameter": 29105968.96021184,
+      "mean_star_sep_pc": 1.313018218031478,
+      "mw_gas_mass_msun": 10000000000.0,
+      "mw_sfr_msun_per_yr": 2.0,
+      "mw_volume_pc3": 226366552027.18747,
+      "stars_per_cubic_pc_mw": 0.44176137819155203,
+      "sun_diameter_au": 0.009304945274197677
+    }
+  },
+  "pch04": {
+    "note": "Clusters: why a cluster's Einstein ring is ~10x a galaxy's",
+    "values": {
+      "carousel_in_milky_ways": 30.80676003221014,
+      "carousel_mass_msun": 46210140048315.21,
+      "cluster_high_in_mw": 666.6666666666666,
+      "cluster_low_in_mw": 66.66666666666667,
+      "cluster_mass_high_msun": 1000000000000000.0,
+      "cluster_mass_low_msun": 100000000000000.0,
+      "implied_mass_ratio": 129.50241223470186,
+      "mw_diam_mpc": 0.030660139380129004,
+      "n_galaxies_cluster": 1000.0,
+      "theta_e_carousel": 13.03,
+      "theta_e_galaxy": 1.145,
+      "theta_e_ratio_cluster_to_galaxy": 11.379912663755459,
+      "void_in_mw_diameters": 3261.5637770000003,
+      "void_scale_mpc": 100.0
+    }
+  },
+  "pch05": {
+    "note": "Light: Wien's law, the inverse-square law, and lookback time",
+    "values": {
+      "andromeda_ly": 2500000.0,
+      "andromeda_travel_myr": 2.5,
+      "cmb_peak_mm": 1.063402552293578,
+      "cmb_temp_k": 2.725,
+      "cool_star_peak_nm": 965.923985,
+      "flux_ratio_at_10x": 0.01,
+      "flux_ratio_at_2x": 0.25,
+      "hot_star_peak_nm": 96.5923985,
+      "star10000k_peak_nm": 289.7771955,
+      "sun_light_travel_min": 8.316746397269274,
+      "sun_peak_freq_hz": 597149152675818.4,
+      "sun_peak_nm": 502.03949324324327,
+      "sun_temp_k": 5772.0
+    }
+  },
+  "pch06": {
+    "note": "Telescopes: resolution, and the wall the discovery half runs into",
+    "values": {
+      "desi_arcsec_per_px": 0.262,
+      "desi_seeing_arcsec": 1.3,
+      "euclid_arcsec_per_px": 0.1,
+      "euclid_gain": 13.0,
+      "hst_arcsec_per_px": 0.128,
+      "ring_diameter_px_desi": 9.16030534351145,
+      "seeing_px_desi": 4.961832061068702
+    }
+  },
+  "pch07": {
+    "note": "Spectra: the hydrogen fingerprint. The Rydberg formula gives the VACUUM wavelength (656.470 nm); line lists and older papers often quote AIR (656.28 nm). The 0.03% gap is exactly the refractive index of air, and it is a real trap: a redshift measured against the wrong convention is wrong in the 4th digit.",
+    "values": {
+      "ca_ii_k_nm": 393.366,
+      "halpha_air_nm": 656.2878349700835,
+      "halpha_air_vacuum_gap_percent": 0.027692329224820723,
+      "halpha_nm": 656.4696267003703,
+      "hbeta_nm": 486.27379755582984,
+      "hgamma_nm": 434.173033531991,
+      "oii_nm": 372.7
+    }
+  },
+  "pch08": {
+    "note": "Redshift: the chain the main guide never closes",
+    "values": {
+      "halpha_at_z2_nm": 1969.41,
+      "halpha_rest_nm": 656.47,
+      "naive_v_z05_kms": 149896.229,
+      "naive_v_z2_kms": 599584.916,
+      "naive_v_z2_over_c": 2.0,
+      "universe_age_gyr": 13.466983947061873,
+      "z05_angular_mpc": 1259.0835972889447,
+      "z05_comoving_in_mw": 61598.721796987156,
+      "z05_comoving_mpc": 1888.625395933417,
+      "z05_lookback_frac_of_age": 0.37429597815848153,
+      "z05_lookback_gyr": 5.040637929310092,
+      "z05_scale_factor": 0.6666666666666666,
+      "z05_stretch_percent": 50.0,
+      "z20_angular_mpc": 1726.6206914697912,
+      "z20_comoving_in_mw": 168944.50511749688,
+      "z20_comoving_mpc": 5179.862074409373,
+      "z20_lookback_frac_of_age": 0.7604046256572315,
+      "z20_lookback_gyr": 10.24035688699753,
+      "z20_scale_factor": 0.3333333333333333,
+      "z20_stretch_percent": 200.0,
+      "z2_lookback_gyr": 10.24035688699753
+    }
+  },
+  "pch09": {
+    "note": "The distance ladder: parallax, and why 1 pc is 1 arcsec by definition",
+    "values": {
+      "arcsec_per_rad": 206264.80624709636,
+      "candle_vs_parallax_reach_ratio": 56658.761878002515,
+      "d_l_in_mw_diameters_z05": 92398.08269548074,
+      "d_l_mpc_z05": 2832.9380939001253,
+      "gaia_limit_ly": 163078.18884999998,
+      "gaia_limit_pc": 49999.99999999999,
+      "gaia_reach_in_mw_diameters": 1.6307818884999998,
+      "mw_diameter_ly": 100000.0,
+      "parsec_definition_check": 1.0,
+      "proxima_distance_ly": 4.242960552881488,
+      "proxima_distance_pc": 1.3008976193573565,
+      "proxima_parallax_arcsec": 0.7687,
+      "snia_absolute_mag": -19.3,
+      "snia_apparent_mag_at_z05": 22.9611854215409,
+      "snia_distance_modulus_z05": 42.2611854215409
+    }
+  },
+  "pch10": {
+    "note": "Expansion: Hubble's law and the age it implies",
+    "values": {
+      "H0": 70.0,
+      "hubble_distance_mpc": 4282.7494,
+      "hubble_time_gyr": 13.968725895053247,
+      "naive_v_at_z1432": 429302.79985599994,
+      "naive_v_over_c": 1.432,
+      "scatter_kms": 900.0,
+      "v_at_100mpc": 7000.0
+    }
+  },
+  "pch11": {
+    "note": "Big Bang and CMB: the numbers that name a=0",
+    "values": {
+      "age_gap_percent": 2.4728332212112156,
+      "cmb_age_fraction": 2.8217156973956712e-05,
+      "cmb_age_kyr": 380.0,
+      "cmb_age_this_model_kyr": 465.38852752906615,
+      "cmb_emission_temp_k": 3000.225,
+      "cmb_redshift": 1100.0,
+      "cmb_scale_factor": 0.0009082652134423251,
+      "cmb_temp_k": 2.725,
+      "planck_age_gyr": 13.8,
+      "universe_age_gyr": 13.466983947061873
+    }
+  },
+  "pch12": {
+    "note": "Dark matter: the budget, and what CDM stands for",
+    "values": {
+      "dm_to_baryon_ratio": 5.408163265306123,
+      "invisible_fraction_of_om0": 0.8439490445859873,
+      "omega_baryon": 0.049,
+      "omega_dark_matter": 0.265,
+      "omega_lambda": 0.685,
+      "omega_matter_total": 0.314,
+      "sum_check": 0.9990000000000001
+    }
+  },
+  "pch13": {
+    "note": "Dark energy: the budget and the acceleration",
+    "values": {
+      "age_at_crossover_gyr": 10.076923800585417,
+      "dl_actual_z05_mpc": 2832.9380939001253,
+      "dl_decel_only_z05_mpc": 2357.69747378919,
+      "dl_ratio_z05": 1.2015698050297983,
+      "fraction_of_age_accelerating": 0.2517312086954758,
+      "fraction_of_age_decelerating": 0.7482687913045242,
+      "h_de_sitter_kms_mpc": 57.93530875036397,
+      "lookback_at_crossover_gyr": 3.390060146476456,
+      "mag_diff_z05": 0.39874503075008677,
+      "omega_baryon": 0.049,
+      "omega_dark_matter": 0.265,
+      "omega_lambda": 0.685,
+      "omega_ratio_today": 2.1815286624203822,
+      "omega_sum": 0.9990000000000001,
+      "universe_age_gyr": 13.466983947061873,
+      "z_cross_repo_om03": 0.3263524026321307,
+      "z_matter_lambda_equality": 0.2969412629458197
+    }
+  },
+  "pch14": {
+    "note": "The Hubble tension: two answers that do not overlap",
+    "values": {
+      "gap_vs_cmb_relerr": 11.199999999999987,
+      "gap_vs_ladder_relerr": 6.065281899109785,
+      "h0_cmb": 67.4,
+      "h0_cmb_err": 0.5,
+      "h0_cmb_relerr_pct": 0.7418397626112759,
+      "h0_difference": 5.599999999999994,
+      "h0_ladder": 73.0,
+      "h0_ladder_err": 1.0,
+      "h0_ladder_relerr_pct": 1.36986301369863,
+      "h0_midpoint": 70.2,
+      "percent_difference": 8.308605341246281,
+      "repo_h0": 70.0,
+      "tension_sigma": 5.008792269599524
+    }
+  },
+  "pch15": {
+    "note": "Deflection: the Eddington number, and why the factor of two mattered",
+    "values": {
+      "eddington_error": 0.16,
+      "eddington_measured": 1.98,
+      "factor": 2.0,
+      "newton_sigma_off": 6.901427545929223,
+      "newtonian_deflection_arcsec": 0.8757715926513243,
+      "sun_deflection_arcsec": 1.7515431853026486
+    }
+  },
+  "pch16": {
+    "note": "What a strong lens is: the geometry and how rare it is",
+    "values": {
+      "alignment_fraction": 7.707586167564428e-12,
+      "dr11_galaxies_scored": 53800000.0,
+      "lens_disc_sq_deg": 3.1796105217053534e-07,
+      "one_in_n_sightlines": 129742305601.23555,
+      "sigma_v_kms": 250.0,
+      "sky_sq_deg": 41253.0,
+      "theta_e_typical_arcsec": 1.145287516915105,
+      "z_lens": 0.5,
+      "z_source": 2.0
+    }
+  }
+}

@@ -20,10 +20,10 @@ import re
 import sys
 from pathlib import Path
 
+import guides
+
 HERE = Path(__file__).resolve().parent
-GUIDE = HERE.parent / "docs" / "guide"
 REPO = HERE.parent.parent
-MANIFEST = HERE / "figures.json"
 
 # Fenced code / inline code must be exempt from math and prose rules.
 FENCE = re.compile(r"^( {0,3})(```+|~~~+)")
@@ -260,6 +260,59 @@ class Lint:
                      "check tag inside math — MathJax will typeset the comment "
                      "into the equation. Put it on its own line after the $$")
 
+        # A '<' IMMEDIATELY followed by a letter inside math reads as an HTML
+        # tag opener to Python-Markdown, which silently corrupts md_in_html's
+        # state machine FOR THE REST OF THE FILE. Every `markdown="span"` block
+        # downstream then ships unprocessed: the reader gets literal `**Figure
+        # 12.1.**` and a raw `$1/\sqrt{r}$` in the caption.
+        #
+        # Real instance: primer/12-dark-matter.md wrote `$M(<r)$` at line 17 and
+        # its figure caption at line 63 rendered as raw markdown. NOTHING else
+        # caught it — lint was clean, `mkdocs build --strict` was clean, all
+        # numbers reproduced, the site built in 2s. Only opening the page did.
+        #
+        # `$M(<\theta)$` is safe purely by accident ('\' is not a letter), which
+        # is why the main guide never tripped it while the primer did.
+        # Fix: `{<}` — an ordinary atom in LaTeX (tighter spacing, which is what
+        # "mass within r" wants), safe in MathJax and pandoc's MathML both.
+        # Verified with a minimal repro against python-markdown before this rule
+        # was written: `$M(<r)$` + a figure -> attribute survives, content raw.
+        for off, inner in spans:
+            m = re.search(r"<[a-zA-Z]", inner)
+            if m:
+                self.add(path, body.count("\n", 0, off) + 1, "math-lt-letter",
+                         f"'{m.group(0)}' in math — Python-Markdown reads it as "
+                         f"an HTML tag and every markdown=\"span\" block AFTER "
+                         f"this point silently ships unprocessed. Write "
+                         f"'{{<}}' + the letter instead")
+        for m in re.finditer(r"\$\$(.*?)\$\$", body, re.S):
+            f = re.search(r"<[a-zA-Z]", m.group(1))
+            if f:
+                self.add(path, body.count("\n", 0, m.start()) + 1,
+                         "math-lt-letter",
+                         f"'{f.group(0)}' in display math — breaks md_in_html "
+                         f"for the rest of the file. Use '{{<}}'")
+
+        # Model/tool-call scaffolding leaked into the prose. These chapters are
+        # written by agents, and an agent that mis-closes its own tool call
+        # commits the wrapper INTO the markdown. Verified: `04-clusters.md`
+        # shipped a trailing "</content>\n</invoke>" and every other gate passed
+        # it — lint was clean, `mkdocs build --strict` was clean, the numbers all
+        # reproduced. The browser rendered the literal text at the end of the
+        # chapter, because Python-Markdown passes unknown inline HTML through.
+        # Nothing but reading the built page caught it, which is not a gate.
+        #
+        # Checked against the code-stripped body so a fenced example that
+        # legitimately shows one of these tokens is exempt.
+        for m in re.finditer(
+            r"</?(?:invoke|content|function_calls|function_results|parameter)\b"
+            r"|antml:|<parameter\s+name=", body
+        ):
+            self.add(path, body.count("\n", 0, m.start()) + 1, "no-scaffolding",
+                     f"tool-call scaffolding leaked into the prose: "
+                     f"{m.group(0)!r} — this renders as literal junk and NO "
+                     f"other gate catches it")
+
         # Every tagged number must exist in worked_examples.json.
         for m in re.finditer(r"<!--\s*check:\s*([\w.]+)\s*=", body):
             key = m.group(1)
@@ -282,10 +335,14 @@ class Lint:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--file", help="lint one file")
+    guides.add_argument(ap)
     args = ap.parse_args()
 
-    manifest = json.loads(MANIFEST.read_text()) if MANIFEST.exists() else {}
-    files = [Path(args.file)] if args.file else sorted(GUIDE.glob("*.md"))
+    g = guides.spec(args.guide)
+    manifest = (json.loads(g["manifest_path"].read_text())
+                if g["manifest_path"].exists() else {})
+    files = ([Path(args.file)] if args.file
+             else sorted(g["docs_dir"].glob("*.md")))
     if not files:
         print("no guide chapters yet — nothing to lint")
         return 0

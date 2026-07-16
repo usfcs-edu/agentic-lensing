@@ -34,19 +34,11 @@ import lensing as L
 import numpy as np
 
 HERE = Path(__file__).resolve().parent
-OUT = HERE / "worked_examples.json"
 
-_EX: dict[str, dict] = {}
-
-
-def example(chapter_key: str, expect: dict | None = None, note: str = ""):
-    """Register a worked example. ``expect`` = {name: (value, tol)} to assert."""
-
-    def deco(fn):
-        _EX[chapter_key] = dict(fn=fn, expect=expect or {}, note=note)
-        return fn
-
-    return deco
+# The registry lives in its own module so a driver can import exactly one
+# guide's examples per process; see examples_registry.py and guides.py. This
+# file is CONTENT — it self-registers on import and owns no CLI.
+from examples_registry import example  # noqa: E402
 
 
 # --------------------------------------------------------------------------- #
@@ -2206,50 +2198,3 @@ def ch29_synthesis_constants():
         # "stalled 07-10->14" -- inclusive span, four calendar days.
         impl_agent_stall_days=4,
     )
-
-
-# --------------------------------------------------------------------------- #
-def run_all() -> dict:
-    return {k: {"note": s["note"], "values": s["fn"]()} for k, s in _EX.items()}
-
-
-def check() -> int:
-    fails = []
-    for key, spec in _EX.items():
-        vals = spec["fn"]()
-        for name, (want, tol) in spec["expect"].items():
-            got = vals[name]
-            if abs(got - want) > tol:
-                fails.append(f"{key}.{name}: got {got!r}, expected {want!r} +/- {tol!r}")
-    if fails:
-        print("FAIL — worked examples do not reproduce:")
-        for f in fails:
-            print("  " + f)
-        return 1
-    n = sum(len(s["expect"]) for s in _EX.values())
-    print(f"OK — {n} pinned values across {len(_EX)} examples reproduce")
-    return 0
-
-
-def main() -> int:
-    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--emit", action="store_true", help="write worked_examples.json")
-    ap.add_argument("--check", action="store_true", help="assert pinned values")
-    ap.add_argument("--show", metavar="KEY", help="print one example's values")
-    args = ap.parse_args()
-
-    if args.show:
-        print(json.dumps(_EX[args.show]["fn"](), indent=2, default=float))
-        return 0
-    if args.check:
-        return check()
-    if args.emit:
-        OUT.write_text(json.dumps(run_all(), indent=2, sort_keys=True, default=float) + "\n")
-        print(f"-> {OUT}")
-        return 0
-    ap.print_help()
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())

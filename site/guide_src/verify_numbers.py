@@ -15,14 +15,16 @@ guide that repeats numbers it has not divided is worth less than no guide.
 """
 from __future__ import annotations
 
+import argparse
+import importlib
 import re
 import sys
 from pathlib import Path
 
-import worked_examples as W
+import examples_registry as R
+import guides
 
 HERE = Path(__file__).resolve().parent
-GUIDE = HERE.parent / "docs" / "guide"
 
 # <!-- check: ch25.evidence_swing_nats = 191.1 ± 0.05 -->   (± or +/-)
 TAG = re.compile(
@@ -32,12 +34,18 @@ TAG = re.compile(
 
 
 def main() -> int:
-    values = {k: spec["fn"]() for k, spec in W._EX.items()}
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    guides.add_argument(ap)
+    args = ap.parse_args()
+
+    g = guides.spec(args.guide)
+    importlib.import_module(g["examples"])   # exactly one guide per process
+    values = {k: spec["fn"]() for k, spec in R._EX.items()}
 
     n_ok = n_bad = n_miss = 0
     problems: list[str] = []
 
-    for path in sorted(GUIDE.glob("*.md")):
+    for path in sorted(g["docs_dir"].glob("*.md")):
         text = path.read_text()
         for m in TAG.finditer(text):
             ch, key = m.group("ch"), m.group("key")
@@ -67,7 +75,7 @@ def main() -> int:
         print("  " + p)
 
     total = n_ok + n_bad + n_miss
-    print(f"\n{n_ok}/{total} tagged numbers reproduce", end="")
+    print(f"\n{n_ok}/{total} tagged numbers reproduce ({args.guide})", end="")
     if n_bad:
         print(f"  |  {n_bad} WRONG", end="")
     if n_miss:

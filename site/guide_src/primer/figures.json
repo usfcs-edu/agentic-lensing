@@ -1,0 +1,390 @@
+{
+  "p01-scale-ladder": {
+    "caption_hint": "Every rung from the Earth to the observable universe, on one log axis",
+    "chapter": 1,
+    "source_fn": "scale_ladder",
+    "variants": {
+      "dark": {
+        "bytes": 54939,
+        "file": "p01-scale-ladder-dark.svg",
+        "fmt": "svg",
+        "sha256": "ad0e543e41f6f06f18c1b391d1f76a9cd2a4d758f51b9c071032552dce96c7a3"
+      },
+      "light": {
+        "bytes": 54939,
+        "file": "p01-scale-ladder-light.svg",
+        "fmt": "svg",
+        "sha256": "275307ec79b2a5667fa52ff98807c9195142ec915b239393d9c5c2756712f77f"
+      }
+    },
+    "width": "90%",
+    "worked_values": {
+      "n_rungs": 11,
+      "span_decades": 19.830476638730207
+    }
+  },
+  "p02-main-sequence": {
+    "caption_hint": "Why massive stars die young: lifetime falls as M^-2.5",
+    "chapter": 2,
+    "source_fn": "main_sequence",
+    "variants": {
+      "dark": {
+        "bytes": 55602,
+        "file": "p02-main-sequence-dark.svg",
+        "fmt": "svg",
+        "sha256": "aee0d4b2842544cc3208bef2253e3c25af316ef5a58ae31c9f2597273e038fbb"
+      },
+      "light": {
+        "bytes": 55602,
+        "file": "p02-main-sequence-light.svg",
+        "fmt": "svg",
+        "sha256": "23e4135bc999392a173d328a774e3b0e8795bd05b7b2646c2fdc9a1af3ae5eed"
+      }
+    },
+    "width": "90%",
+    "worked_values": {
+      "age_gyr": 13.466983947061873,
+      "m10_myr": 31.622776601683793,
+      "sun_gyr": 10.0
+    }
+  },
+  "p03-galaxy-types": {
+    "caption_hint": "A spiral's disk and arms vs an elliptical's smooth, compact blob",
+    "chapter": 3,
+    "source_fn": "galaxy_types",
+    "variants": {
+      "dark": {
+        "bytes": 213770,
+        "file": "p03-galaxy-types-dark.svg",
+        "fmt": "svg",
+        "sha256": "1956473162eb55e771c19470a4b28d62ddb2dabe69c72d20e0b7ba790f5fc67e"
+      },
+      "light": {
+        "bytes": 213770,
+        "file": "p03-galaxy-types-light.svg",
+        "fmt": "svg",
+        "sha256": "c595217220b7191d76868b4b58a4af78f12d97536f7effbff2982b807f7f3573"
+      }
+    },
+    "width": "90%",
+    "worked_values": {
+      "disk_scale_length": 2.2,
+      "elliptical_effective_radius": 1.1
+    }
+  },
+  "p04-theta-e-ladder": {
+    "caption_hint": "Why a cluster's Einstein ring is ~10x a galaxy's: theta_E ~ sqrt(M)",
+    "chapter": 4,
+    "source_fn": "theta_e_ladder",
+    "variants": {
+      "dark": {
+        "bytes": 53677,
+        "file": "p04-theta-e-ladder-dark.svg",
+        "fmt": "svg",
+        "sha256": "0c837c866b7fe249da75bca8dd584f39845bcc74d0820f82d9e5805636c606a0"
+      },
+      "light": {
+        "bytes": 53677,
+        "file": "p04-theta-e-ladder-light.svg",
+        "fmt": "svg",
+        "sha256": "6a28229782be24f363ad0c8d2d0b5e39d635bfd4360dba0cb6144db334710662"
+      }
+    },
+    "width": "90%",
+    "worked_values": {
+      "carousel_mass": 46210140048315.21,
+      "ratio": 11.379912663755459
+    }
+  },
+  "p05-blackbody": {
+    "caption_hint": "Hotter is bluer: Planck curves and Wien's law",
+    "chapter": 5,
+    "source_fn": "blackbody",
+    "variants": {
+      "dark": {
+        "bytes": 51742,
+        "file": "p05-blackbody-dark.svg",
+        "fmt": "svg",
+        "sha256": "2eb1ef5890e48979dfbed875b9a7b5bde66f10b1565115024d403a24750051fa"
+      },
+      "light": {
+        "bytes": 51742,
+        "file": "p05-blackbody-light.svg",
+        "fmt": "svg",
+        "sha256": "81902104c2743b6ca0824526aab8b57f421e01444c02151423a7e1c4c6874dff"
+      }
+    },
+    "width": "90%",
+    "worked_values": {
+      "sun_peak_nm": 502.044352044352
+    }
+  },
+  "p06-resolution-ladder": {
+    "caption_hint": "The same lens as DESI, HST and Euclid see it",
+    "chapter": 6,
+    "source_fn": "resolution_ladder",
+    "variants": {
+      "dark": {
+        "bytes": 171383,
+        "file": "p06-resolution-ladder-dark.svg",
+        "fmt": "svg",
+        "sha256": "8e5301ad2345e940b7e5acd72302db6742d0adce1dd18d9382a167b9fad7148d"
+      },
+      "light": {
+        "bytes": 171383,
+        "file": "p06-resolution-ladder-light.svg",
+        "fmt": "svg",
+        "sha256": "480b4c0dfedf30f98f74b82949d8c71edb37dd7b021b9d333b1528f414a0ee1c"
+      }
+    },
+    "width": "90%",
+    "worked_values": {
+      "desi_seeing": 1.3,
+      "theta_e": 1.2
+    }
+  },
+  "p07-spectrum-lines": {
+    "caption_hint": "A continuum with absorption lines \u2014 the fingerprint",
+    "chapter": 7,
+    "source_fn": "spectrum_lines",
+    "variants": {
+      "dark": {
+        "bytes": 42295,
+        "file": "p07-spectrum-lines-dark.svg",
+        "fmt": "svg",
+        "sha256": "f2ec111241d861ab46d7171a93620865465b50c93c55329f04a2b0067c016dfa"
+      },
+      "light": {
+        "bytes": 42295,
+        "file": "p07-spectrum-lines-light.svg",
+        "fmt": "svg",
+        "sha256": "ca913a09a21b235bc28f9f36d42d286d0863476f13c8eab9669dae2db0b9624e"
+      }
+    },
+    "width": "90%",
+    "worked_values": {
+      "n_lines": 5
+    }
+  },
+  "p08-redshift-chain": {
+    "caption_hint": "One redshift, four readings: stretch, scale, lookback, distance",
+    "chapter": 8,
+    "source_fn": "redshift_chain",
+    "variants": {
+      "dark": {
+        "bytes": 48986,
+        "file": "p08-redshift-chain-dark.svg",
+        "fmt": "svg",
+        "sha256": "4cdbf320c0794d1ff41c326d5a4b2cd46b6e4c8ed86b86bc5a509fc77f62fc73"
+      },
+      "light": {
+        "bytes": 48986,
+        "file": "p08-redshift-chain-light.svg",
+        "fmt": "svg",
+        "sha256": "ac71e4c2a20824c0508a0f5f92900b95f3436374af57880c919f5b7a90a7c432"
+      }
+    },
+    "width": "90%",
+    "worked_values": {
+      "z05_gyr": 5.040637929310092,
+      "z2_gyr": 10.24035688699753
+    }
+  },
+  "p09-distance-ladder": {
+    "caption_hint": "Each rung calibrates the next, and errors compound",
+    "chapter": 9,
+    "source_fn": "distance_ladder",
+    "variants": {
+      "dark": {
+        "bytes": 38510,
+        "file": "p09-distance-ladder-dark.svg",
+        "fmt": "svg",
+        "sha256": "b25eaaba30f7c1843df341176911419e70a30ec871221d4570d6057abfe8b7ab"
+      },
+      "light": {
+        "bytes": 38510,
+        "file": "p09-distance-ladder-light.svg",
+        "fmt": "svg",
+        "sha256": "41490fec75b4b54367f8c101b79c9208de928074c9464ea3958bc6a019486147"
+      }
+    },
+    "width": "90%",
+    "worked_values": {
+      "n_rungs": 4
+    }
+  },
+  "p10-expansion": {
+    "caption_hint": "Hubble's law: recession speed rises linearly with distance",
+    "chapter": 10,
+    "source_fn": "expansion",
+    "variants": {
+      "dark": {
+        "bytes": 45117,
+        "file": "p10-expansion-dark.svg",
+        "fmt": "svg",
+        "sha256": "ce6a8486727d109e1340bccf72720a9e43186e6ce6e8cbac7c3f116b4dcde2b3"
+      },
+      "light": {
+        "bytes": 45117,
+        "file": "p10-expansion-light.svg",
+        "fmt": "svg",
+        "sha256": "65612ab0a01940f4f5ea96a298a83f57eceb9d36cdce3cba4665542263ccb44d"
+      }
+    },
+    "width": "90%",
+    "worked_values": {
+      "H0": 70.0,
+      "scatter_kms": 900
+    }
+  },
+  "p11-cosmic-history": {
+    "caption_hint": "Running the expansion backwards: the scale factor and the temperature that goes with it",
+    "chapter": 11,
+    "source_fn": "cosmic_history",
+    "variants": {
+      "dark": {
+        "bytes": 76699,
+        "file": "p11-cosmic-history-dark.svg",
+        "fmt": "svg",
+        "sha256": "b2f0c1132727d40eec1c1601fb55bae8fc6f73f4e8882f27fbb57523ee960baf"
+      },
+      "light": {
+        "bytes": 76699,
+        "file": "p11-cosmic-history-light.svg",
+        "fmt": "svg",
+        "sha256": "bc0ae74668c83bc2927e6a05cc719eeb4a8a3f9616f815b5e4529a84bae2ab32"
+      }
+    },
+    "width": "90%",
+    "worked_values": {
+      "T_cmb_emission_k": 3000.2250000000004,
+      "T_now_k": 2.725,
+      "a_cmb": 0.0009082652134423251,
+      "age_now_gyr": 13.466983947061873,
+      "t_cmb_myr": 0.4653885275290662
+    }
+  },
+  "p12-rotation-curve": {
+    "caption_hint": "The first evidence: rotation curves that refuse to fall",
+    "chapter": 12,
+    "source_fn": "rotation_curve",
+    "variants": {
+      "dark": {
+        "bytes": 52256,
+        "file": "p12-rotation-curve-dark.svg",
+        "fmt": "svg",
+        "sha256": "56e19eeb3e5e849abaa1d4e65af14609ed3f04ad8f8f566f9c81f5db7495cb97"
+      },
+      "light": {
+        "bytes": 52256,
+        "file": "p12-rotation-curve-light.svg",
+        "fmt": "svg",
+        "sha256": "13c673583eada3ddf1641b37cef53601aba026ec78765271c9369d5385884f01"
+      }
+    },
+    "width": "90%",
+    "worked_values": {
+      "r_visible_kpc": 12.0,
+      "v_flat": 200.0
+    }
+  },
+  "p13-energy-budget": {
+    "caption_hint": "What the universe is made of \u2014 and what Om0=0.3 asserts",
+    "chapter": 13,
+    "source_fn": "energy_budget",
+    "variants": {
+      "dark": {
+        "bytes": 24350,
+        "file": "p13-energy-budget-dark.svg",
+        "fmt": "svg",
+        "sha256": "628d7b13e14cdebadf0d7b5e7d8b94a263ccce946b4d60055ed6190c2e04dc58"
+      },
+      "light": {
+        "bytes": 24350,
+        "file": "p13-energy-budget-light.svg",
+        "fmt": "svg",
+        "sha256": "7328c2557cbd6e629fa8002f92d3641a6fabbf9d07a5480a9b1be9b2d352482e"
+      }
+    },
+    "width": "90%",
+    "worked_values": {
+      "omega_b": 0.049,
+      "omega_dm": 0.265,
+      "omega_lambda": 0.685
+    }
+  },
+  "p14-h0-tension": {
+    "caption_hint": "Two measurements of H0 that do not overlap",
+    "chapter": 14,
+    "source_fn": "h0_tension",
+    "variants": {
+      "dark": {
+        "bytes": 33498,
+        "file": "p14-h0-tension-dark.svg",
+        "fmt": "svg",
+        "sha256": "e84c64916f61351ff4c203378983e5927fce9001901d581c551bf7283c21091d"
+      },
+      "light": {
+        "bytes": 33498,
+        "file": "p14-h0-tension-light.svg",
+        "fmt": "svg",
+        "sha256": "1c73e2e5c32761c63acc1351e87af548862064e373ee31f2c6bfb70266f0245a"
+      }
+    },
+    "width": "90%",
+    "worked_values": {
+      "gap": 5.599999999999994,
+      "sigma": 5.008792269599524
+    }
+  },
+  "p15-deflection": {
+    "caption_hint": "Why 1919 settled it: Newton and Einstein differ by exactly 2x, and the eclipse could tell",
+    "chapter": 15,
+    "source_fn": "deflection",
+    "variants": {
+      "dark": {
+        "bytes": 73642,
+        "file": "p15-deflection-dark.svg",
+        "fmt": "svg",
+        "sha256": "f3074288852116a8211fd4057e8ebbbfa8a21634961b458aef914d6b19fed302"
+      },
+      "light": {
+        "bytes": 73642,
+        "file": "p15-deflection-light.svg",
+        "fmt": "svg",
+        "sha256": "079cbe36d13ad62d7da69c7ca15af1985bf2f7dc14c338d8a488fc451d1b4b2e"
+      }
+    },
+    "width": "90%",
+    "worked_values": {
+      "einstein_at_limb": 1.7515431853026486,
+      "measured": 1.98,
+      "measured_err": 0.16,
+      "newton_at_limb": 0.8757715926513243
+    }
+  },
+  "p16-lens-geometry": {
+    "caption_hint": "The geometry: two galaxies, wildly different distances, one sightline",
+    "chapter": 16,
+    "source_fn": "lens_geometry",
+    "variants": {
+      "dark": {
+        "bytes": 27839,
+        "file": "p16-lens-geometry-dark.svg",
+        "fmt": "svg",
+        "sha256": "69077bd944276ef605f1e76e30a7892652b98ee4e2fe5e0d401fe2c2792fc84d"
+      },
+      "light": {
+        "bytes": 27839,
+        "file": "p16-lens-geometry-light.svg",
+        "fmt": "svg",
+        "sha256": "cb48032db66a37d20739b07f2164f7228e3d0b9861420c7676aea3d8c2637884"
+      }
+    },
+    "width": "90%",
+    "worked_values": {
+      "z_lens": 0.5,
+      "z_source": 2.0
+    }
+  }
+}

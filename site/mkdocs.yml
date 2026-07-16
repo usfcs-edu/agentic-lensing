@@ -89,10 +89,34 @@ extra_javascript:
 # or `mkdocs serve`); they are gitignored and built in CI.
 nav:
   - Home: index.md
-  # Prerequisite material: what you read BEFORE the reports, so it sits first.
+  # Two books, in reading order, both BEFORE the reports they prepare you for.
+  # The Primer is the conceptual layer beneath the Guide: no calculus, and it
+  # ends by handing off to Guide Ch. 9.
   # navigation.indexes is OFF (see the theme block), so "Overview" must be an
-  # explicit first child — the section will not adopt index.md by itself.
+  # explicit first child of each — a section will not adopt index.md by itself.
   # The nested "Part N" entries are pure grouping and need no index page.
+  - Primer:
+      - Overview: primer/index.md
+      - "Part I — Where are we?":
+          - "1. The scale ladder": primer/01-scale-ladder.md
+          - "2. Stars, and why old means red": primer/02-stars.md
+          - "3. Galaxies, and which ones bend light": primer/03-galaxies.md
+          - "4. Clusters and the cosmic web": primer/04-clusters.md
+      - "Part II — How do we know?":
+          - "5. Light is the only messenger": primer/05-light.md
+          - "6. Telescopes and surveys": primer/06-telescopes.md
+          - "7. Spectra — the fingerprint": primer/07-spectra.md
+          - "8. Redshift": primer/08-redshift.md
+          - "9. The distance ladder": primer/09-distance-ladder.md
+      - "Part III — What is the universe doing?":
+          - "10. The expanding universe": primer/10-expansion.md
+          - "11. The Big Bang and the oldest light": primer/11-big-bang.md
+          - "12. Dark matter": primer/12-dark-matter.md
+          - "13. Dark energy and how it ends": primer/13-dark-energy.md
+          - "14. The Hubble tension": primer/14-hubble-tension.md
+      - "Part IV — Why lensing?":
+          - "15. Gravity bends light": primer/15-gravity-bends-light.md
+          - "16. What a strong lens is": primer/16-what-is-a-strong-lens.md
   - Guide:
       - Overview: guide/index.md
       - "Part 0 — Orientation":

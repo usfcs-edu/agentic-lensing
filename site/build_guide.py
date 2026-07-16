@@ -36,11 +36,17 @@ import sys
 import tempfile
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent / "guide_src"))
+import guides  # noqa: E402
+
 REPO = Path(__file__).resolve().parent.parent
-GUIDE = REPO / "site" / "docs" / "guide"
-FIGDIR = GUIDE / "figures"
-OUTDIR = REPO / "guide"
 FILTER = REPO / "site" / "filters" / "guide.lua"
+# Bound from --guide in main(); see site/guide_src/guides.py.
+GUIDE: Path
+FIGDIR: Path
+OUTDIR = REPO / "guide"
+STEM = "guide"
+TITLE = SUBTITLE = ""
 MIN_PANDOC = (3, 1, 7)
 
 # `!!! type "Title"` / `??? type "Title"` / `???+ type "Title"`
@@ -172,6 +178,19 @@ def strip_site_only(text: str) -> str:
         lambda m: f"](#{m.group(1)}-{m.group(2)})" if m.group(2)
         else f"](#{m.group(1)})",
         text)
+    # Links to the OTHER guide leave this document entirely -> absolute URL.
+    # Without this they ship into the PDF as a literal `../guide/15-x.md`: the
+    # same-guide rule below only matches "](" + \d\d-, so it never sees them,
+    # and nothing else complains. Silent dead links, print-only.
+    # use_directory_urls defaults true -> /guide/15-distances/#anchor.
+    text = re.sub(
+        r'\]\(\.\./(guide|primer)/(\d\d-[\w-]+)\.md(#[\w:-]+)?\)',
+        lambda m: "](https://usfcs-edu.github.io/agentic-lensing/"
+                  f"{m.group(1)}/{m.group(2)}/{m.group(3) or ''})", text)
+    text = re.sub(r'\]\(\.\./(guide|primer)/index\.md(#[\w:-]+)?\)',
+                  lambda m: "](https://usfcs-edu.github.io/agentic-lensing/"
+                            f"{m.group(1)}/{m.group(2) or ''})", text)
+
     # Report links become absolute URLs — those pages are not in this document.
     text = re.sub(r'\]\(\.\./current/([\w-]+)/index\.md(#[\w:-]+)?\)',
                   r"](https://usfcs-edu.github.io/agentic-lensing/current/\1/\2)", text)
@@ -182,7 +201,11 @@ def chapter_files() -> list[Path]:
     return sorted(p for p in GUIDE.glob("*.md") if re.match(r"\d\d-", p.name))
 
 
-def namespace_anchors(text: str, slug: str) -> str:
+def _known_stems() -> set[str]:
+    return {p.stem for p in chapter_files()}
+
+
+def namespace_anchors(text: str, slug: str, known: set[str]) -> str:
     """Prefix every heading anchor and internal link with the chapter slug.
 
     On the site each chapter is its own page, so `{ #connect }` in 29 chapters
@@ -196,9 +219,9 @@ def namespace_anchors(text: str, slug: str) -> str:
 
     # Same-chapter links are bare `#anchor` in the source. Cross-chapter links
     # were already resolved to `#<target-slug>-<anchor>` by strip_site_only, so
-    # skip anything that already starts with a chapter slug.
-    known = {p.stem for p in chapter_files()}
-
+    # skip anything that already starts with a chapter slug. `known` is passed
+    # in rather than re-globbed per chapter (it was also a hidden read of the
+    # module-global GUIDE, which parameterising made a live hazard).
     def fix(m):
         a = m.group(1)
         if any(a == k or a.startswith(k + "-") for k in known):
@@ -210,13 +233,14 @@ def namespace_anchors(text: str, slug: str) -> str:
 
 def assemble() -> str:
     parts = []
+    known = _known_stems()
     for p in chapter_files():
         slug = p.stem
         t = p.read_text()
         t = strip_site_only(t)          # cross-chapter links -> #anchor
         t = single_variant_figures(t)   # drop the dark twin first...
         t = html_figure_to_markdown(t)  # ...then fold <figure> into one image
-        t = namespace_anchors(t, slug)  # ...then de-collide the anchors
+        t = namespace_anchors(t, slug, known)  # ...then de-collide anchors
         t = blocks_to_divs(t)
         # NB: headings are NOT demoted here. Rewriting `# ` -> `## ` by regex
         # demotes the chapter title but leaves its own `##` sections at `##`
@@ -246,21 +270,21 @@ def build(fmt: str, body: str) -> Path:
             "--shift-heading-level-by=1",
             "--standalone", "--toc", "--toc-depth=2",
             "--resource-path", f"{GUIDE}:{FIGDIR}",
-            "--metadata", "title=From Calculus to the Money Number",
-            "--metadata", "subtitle=The astrophysics, cosmology and mathematics behind this repository",
+            "--metadata", f"title={TITLE}",
+            "--metadata", f"subtitle={SUBTITLE}",
             "--metadata", "author=Agentic Lensing — USF Computer Science",
         ]
         if FILTER.exists():
             common += ["--lua-filter", str(FILTER)]
 
         if fmt == "html":
-            out = OUTDIR / "guide.html"
+            out = OUTDIR / f"{STEM}.html"
             # --mathml, not --mathjax: no CDN, so the file works offline.
             cmd = common + ["--to", "html5", "--mathml", "--embed-resources",
                             "--css", str(REPO / "site" / "guide_src" / "guide_print.css"),
                             "-o", str(out)]
         else:
-            out = OUTDIR / "guide.pdf"
+            out = OUTDIR / f"{STEM}.pdf"
             # xelatex, not pdflatex: the prose is full of Unicode that pdflatex
             # rejects outright — U+2212 MINUS in object names (DESI−165.4754),
             # M⊙, ×, é, en/em dashes. xelatex handles them natively instead of
@@ -285,7 +309,14 @@ def main() -> int:
     ap.add_argument("--html", action="store_true", help="build guide/guide.html")
     ap.add_argument("--pdf", action="store_true", help="build guide/guide.pdf")
     ap.add_argument("--dump", metavar="PATH", help="write the preprocessed markdown")
+    guides.add_argument(ap)
     args = ap.parse_args()
+
+    global GUIDE, FIGDIR, STEM, TITLE, SUBTITLE
+    g = guides.spec(args.guide)
+    GUIDE, FIGDIR, STEM = g["docs_dir"], g["fig_dir"], g["out"]
+    m = guides.meta(args.guide)
+    TITLE, SUBTITLE = m.get("title", args.guide), m.get("subtitle", "")
     if not (args.html or args.pdf or args.dump):
         ap.print_help()
         return 0

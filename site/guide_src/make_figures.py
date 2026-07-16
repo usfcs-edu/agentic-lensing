@@ -32,19 +32,23 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib
 import io
 import json
 import sys
 from pathlib import Path
 
 import _style
+import guides
 import matplotlib
 import matplotlib.pyplot as plt
 from registry import REGISTRY as _REGISTRY
 
 HERE = Path(__file__).resolve().parent
-FIGDIR = HERE.parent / "docs" / "guide" / "figures"
-MANIFEST = HERE / "figures.json"
+# Set from --guide in main(); see guides.py. Every path in this module is
+# per-guide so two books cannot render into one directory.
+FIGDIR: Path
+MANIFEST: Path
 
 # An SVG above this is almost always a contourf/hexbin/large-scatter blowup
 # (measured: a 30-level contourf is 576 KB vs 33 KB for a contour). Demote to
@@ -154,9 +158,13 @@ def main() -> int:
     ap.add_argument("--list", action="store_true", help="list registered figures")
     ap.add_argument("--pdf", action="store_true",
                     help="also emit <slug>-light.pdf for the print target")
+    guides.add_argument(ap)
     args = ap.parse_args()
 
-    import figures  # noqa: F401  (registers everything via @figure)
+    global FIGDIR, MANIFEST
+    g = guides.spec(args.guide)
+    FIGDIR, MANIFEST = g["fig_dir"], g["manifest_path"]
+    importlib.import_module(g["figures"])   # registers via @figure, once
 
     if args.list:
         for slug in sorted(_REGISTRY):
