@@ -55,6 +55,7 @@ Plan of record: `plans/PLAN.md` (approved 2026-07-15). Their-format handoffs: `p
 | T0.2 | seed-repeat certification of the P1c money numbers: σ_seed(γ) per basin over seeds {2 (production), 3, 4}; σ_seed(ΔlogZ) | σ_seed(γ)≤0.008 both basins; σ_seed(ΔlogZ)<5 nats; KILL σ_seed(γ)>0.024 | **PASS (both gates; kill not tripped)** — γ_med low {1.1032, 1.0967, 1.1005} → σ_seed=0.00325; steep {2.6393, 2.6522, 2.6485} → σ_seed=0.00664; logZ low {−4771.08, −4769.12, −4771.37} → σ_seed=1.22; steep {−4799.96, −4801.39, −4802.56} → σ_seed=1.30 → σ_seed(ΔlogZ)=1.79 nats; ΔlogZ(steep−low) per matched seed −28.88/−32.27/−31.19 — LOW-basin preference SEED-STABLE (all seeds, ≥16σ_seed). n=3 σ estimates carry ±46% χ-dist sampling error (quoted with every use). γ_binned(corr,low)=1.1032 CERTIFIED at stated significance: σ_tot=√(σ_stat²+σ_seed²)=0.0086 ≈ 1.08×σ_stat | data/t02_t03_gate_eval.json, figs/t02_seed_overlay.png, data/results-perlmutter/ |
 | T0.3 | companion-mask discriminator: does the LL2/LL3 companion misfit transmit into global γ via the whitened likelihood? (whiten-then-drop, keep_w 9273→8247, production seed 2) | UPWARD shift ≥0.024 (3σ_stat) ⇒ mechanism REAL; static within 0.024 ⇒ companion EXONERATED | **COMPANION EXONERATED** — γ_med 1.1011 vs production 1.1032: shift −0.0021 (slightly DOWN, 0.26σ_stat, 0.65σ_seed — statistically static). σ_stat widened 0.0080→0.0085 (+6%, consistent with −11.1% whitened dof). logZ −4339.16 vs −4771.08 NOT comparable (different data: 1026 fewer whitened dof). Convergence indistinguishable from production (λ-steps 28=28, w_ess 127.4 vs 118.1, n_uniq 84 vs 77). The 1.103 over-correction is NOT companion-driven — consistent with the P1 synthesis (noise-model-CLASS misspecification), which stays the prime suspect for T1.1 | data/t02_t03_gate_eval.json, figs/t03_compmask_overlay.png |
 | σ_seed FINALIZATION | downstream provisional thresholds inherit P1's measured σ_seed (README frozen-gates note: a ledgered finalization, not a goalpost move) | — | **FINALIZED**: (1) B5-G2 basin-ΔlogZ agreement = 3·√(σ_boot² + 1.79²) nats (floor 5.36 at σ_boot=0); (2) T1.1 σ floor = σ_tot = √(0.008² + 0.00325²) = 0.0086 → exonerate \|median(γ_rec−1.433)\| < 0.026, confirm < −0.078 (supersedes the provisional 0.024/−0.072 that used σ_stat alone; bands move <8%, interpretation zones unchanged in kind); (3) X1-G1's ~15-nat placeholder RETIRED with P4 (D7) — never finalized | data/t02_t03_gate_eval.json |
+| T1.1b-G0 | residue-masked refit entry gate: whiten-then-drop dof budget — erode the production v3b whitener keep_w by the T1.1 residue regions (bright-object ∪ center, definitions pinned by exact reproduction of the ledgered G1 decomposition 0.952/0.973/2.71/5.46) | kept-dof loss ≤ 40% (pre-declared in the T1.1b tasking BEFORE the build ran) | **FAIL — STOPPED, information-starved (no jobs submitted, 0 A100-h)**: loss **85.8%** (keep_w 9273→1320); the region drop ALONE (before the 21×21 kernel-support erosion) already loses 47.6% — no whiten-then-drop variant of this region set can pass; arc-band (1.2–4.2″) whitened px 6373→**108**, survivors at r 3.9–6.2″ (median 4.9″) = pure outer sky, essentially zero lensed-arc signal; diag-control arm alone loses 35.9% (would pass) but the corr arm IS the experiment. Positive content: fit-side residue masking is STRUCTURALLY incompatible with this injection design — the residue region is the bright scene, which is exactly where the injected arcs live, and M=10 whitening support dilates the drop over the rest. Residue-free injections must be built DATA-side (kernel-sampled noise-only / sky-set bootstrap, or deeper multi-start scene subtraction), as the T1.1 implications already queued for P3. | data/t11b_residue_mask_report.json, 09_build_residue_masked_whitener.py |
 | T0.4-1 | per-block kernel homogeneity (stationarity of the noise-model class) | 2σ blockwise + calibrated p | **REJECTED** — money product v3b max\|z\|=3.67, calibrated p=0.010; arc-excluded v3 p=0.010; replicated spatial pattern; observed cross-block ρ(0,1) spread 16.4× the drizzle-registration envelope. **The stationary kernel class behind γ=1.103 is provably violated by the field.** Verifier CLEAN (all z/p recomputed exactly; power check confirms informative nulls). | data/t04_stationarity*.json, figs/t04_stationarity_*.png, research/t04_free_checks.md |
 | T0.4-2 | λ-arm: does spectrum-flooring cure the fine-low gaming? | ordering table w/ per-λ exact log\|C\| | **NO — "information-discard-at-spectral-zeros" FALSIFIED**; data reject flooring by 3.3k–33k nats; pathology localized to down-weighting of high-S large-scale modes (the w_b≈0.27 background component — exactly the nonstationary component of T0.4-1). Production s_floor=0.05 confirmed (plan's "0.1" corrected); production taps reproduced to 1e-9. Verifier CLEAN (per-λ Szegő anchors verified — no shared constant). | data/t04_lambda_arm.json, figs/t04_lambda_arm.png |
 | T0.4-3 | real-space head-to-head on the SAME v3b pixels | report-only ordering | Binned data in real space prefers **γ≈1.29** (diag-low, χ²_pp 1.58) over BOTH the anchor 1.433 (7.44) and corr-low 1.103 (8.32); the production whitened metric INVERTS this (+501 nats for corr-low). Corr-low's residual = smooth lens-center misfit (same currency as fine-low gaming). Anchor's full-field number carries a cross-product resolution handicap (honest caveat). | data/t04_realspace_headtohead.json, figs/t04_headtohead_residuals.png |
@@ -111,6 +112,76 @@ downstream ΔlogZ gate, as planned).
 - sshproxy refreshed 2026-07-15 (user). Jobs charge `cosmo_g` (D5), single-GPU shared QOS.
 
 ## Stage log (newest first)
+
+### 2026-07-15 evening — T1.1b STOPPED AT THE PRE-DECLARED BUILD GATE (residue-masked refits are information-starved; NO submission, 0 A100-h)
+
+**Task:** fix the T1.1 confound in the FIT — whiten-then-drop the residue-dominated
+regions (bright-object + center, from the T1.1 G1 decomposition) so the production
+correlated likelihood sees only the sky-dominated field where the injection is clean;
+then resubmit inj1/2/3 corr + inj1 diag control. **The tasking pre-declared the
+falsifier BEFORE the build: if > 40% of whitened dof would be lost, STOP — the
+experiment would be information-starved, itself a finding about injection methodology.**
+
+**Build (09_build_residue_masked_whitener.py, OLD cgl venv, CPU-only, mirrors
+05_build_companion_whitener.py):** kernel h / e_op / logdet_per_pix / rho_kernel
+copied verbatim (kernel properties, unchanged by construction — asserted); ONLY
+keep_w eroded: keep_w_new = erode_keep(keep & ~drop, M=10), asserted equal to
+keep_w_old & ~dilate(drop, 21×21) (duality) and ⊆ keep_w_old. Region definitions
+PINNED before use (gate R): recomputed residual-field decomposition reproduces the
+ledgered numbers exactly — sky 0.952239 (1e-9 vs build report), faint(=|img|<5·med
+err, on keep) 0.9733, bright-object(=keep&~faint) 2.7118, center(=keep&r<1.2″)
+5.4644 vs quoted 0.973/2.71/5.46. Noted + asserted: center ⊂ bright-object (every
+r<1.2″ keep pixel is non-faint), so drop = (~faint)|(r<1.2″) and the bright-only
+mask is identical to the union. Production keep_w reproduction gate (erode_keep(keep,
+M) == on-disk keep_w) PASS.
+
+**T1.1b-G0 readout (gate record): FAIL — STOPPED.**
+- corr keep_w 9273 → **1320**: **85.8% of whitened dof lost** vs the 40% line.
+- Attribution: the region drop alone (no 21×21 halo — not a valid correlated
+  whitening, attribution only) already loses **47.6%** > 40%; the kernel-support
+  erosion adds the rest. No whiten-then-drop variant of this region set can pass.
+- Information content, not just count: arc-band (1.2–4.2″) whitened px 6373 → **108**;
+  survivors live at r 3.88–6.17″ (median 4.86″) — pure outer sky. The masked corr
+  likelihood would carry essentially zero lensed-arc signal; a γ recovery number
+  from it would be prior/sky-driven, not a whitener test.
+- Diag-control arm alone (delta whitener, M=0, keep & ~drop) would lose 35.9% —
+  passes its own budget — but the corr refit IS the experiment; STOP governs.
+- Center-only variant would lose 15.2% (informational; the region set is fixed by
+  the confound analysis — the bright-object region is where 103% of the residue
+  excess lives — so shrinking it would be a goalpost move, not taken).
+
+**Finding (the STOP clause's positive content):** fit-side residue masking is
+STRUCTURALLY incompatible with this injection design. The residue lives in the
+bright-scene footprint, and the injected synthetic arcs live in (essentially) the
+same footprint — masking the residue masks the signal, and the M=10 whitening
+support (21×21) dilates the drop over most of what remains. This holds for ANY
+region set that covers the bright scene, i.e. for any honest residue mask. The
+residue-free injection path must therefore be DATA-side, exactly as the T1.1
+implications queued: kernel-sampled noise-only injections / sky-set bootstrap
+fields, or a deeper multi-start scene subtraction — now the ONLY viable routes to
+a quotable whitener-bias number (P3 seam requirement unchanged).
+
+**Discipline record:** threshold (40%) written before the build (tasking + script
+header + report JSON `threshold_provenance`); gate evaluated as written; no
+goalpost move. Because the entry gate tripped, the step-2 design checkpoint for
+submission was never written and NOTHING was submitted: no slurm/t11b_* files, no
+CFS staging, no md5 audits (nothing to audit), no ledger A100-h rows (est 6.0 h
+NOT committed), watchdog untouched (loop alive, PID 118755). The planned readout
+thresholds (confirm < −0.078; exonerate |median bias| < max(0.026, 3·median
+σ_inj); masked diag control predicted unbiased as the residue-story falsifier)
+are recorded here for the successor design but were never armed. Cost: CPU-only,
+~1 min. Artifacts: data/t11b_residue_mask_report.json (verdict
+STOPPED_INFO_STARVED; full dof/attribution/diagnostics),
+09_build_residue_masked_whitener.py (re-runnable; exits nonzero on STOP, writes
+no bundles). NOT committed (house rule: user commits).
+
+### 2026-07-15 evening — multi-front mobilization (T1.1b + P3-L0 + P2-scout/B3 + X2)
+Concurrent-agent discipline: the T1.1b ops agent owns CAMPAIGN.md edits this wave; the
+P3-L0 / P2-B3 / X2 agents write their pre-run design checkpoints to
+`research/checkpoints_{l0,b3,x2}.md` BEFORE their runs (same their-format content; referenced
+here to preserve the checkpoint-before-run property without ledger file contention). Their gate
+rows and A100/GPU-h actuals are folded into this ledger at harvest. Phoenix device assignment:
+L0 → GPU 9 (L4), B3 → GPU 8 (L4) + A16s 0–3, X2 → A16s 4–7.
 
 ### 2026-07-15 — T1.1 PRE-REGISTERED READOUT (jobs 55952480/81/83 + 55958518; 7.80 A100-h actual): NO-CONFIRM / NO-EXONERATE — CONFOUNDED BY SCENE RESIDUE
 
