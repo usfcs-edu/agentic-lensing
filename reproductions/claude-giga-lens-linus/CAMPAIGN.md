@@ -33,6 +33,14 @@ Plan of record: `plans/PLAN.md` (approved 2026-07-15). Their-format handoffs: `p
 | 2026-07-15 | 55958518 cgl2-t11-i3 **T1.1 inj3 resubmit** of 55952482 (SMC-only via SKIP_PREP=1, reuses the COMPLETED production prep npz on $PSCRATCH; fix = `-C gpu&hbm80g` pin + PYTHONUNBUFFERED=1, NO numerics change; slurm/t11_inj3.slurm) | T1.1 (D7) | 2.0 | 0.43 (COMPLETED 00:25:47, nid008193; SKIP_PREP=1) | 2.21 + 1.49 (failed 55952482) actual + 6.0 T1.1 est outstanding + 2.0 resubmit est |
 | 2026-07-15 | **T1.1 actuals harvested**: 7.80 A100-h vs 10.0 est (1.89 + 2.00 + 1.49 FAILED + 1.99 + 0.43; sacct -X Elapsed × 1 GPU each) | T1.1 (D7) | — | 7.80 total | **10.01 actual** (2.21 P1 + 7.80 T1.1) of 100 h cap |
 | 2026-07-16 | 55980038 cgl2-deploy-verify (P2 Path-A deploy verify: md5 audit + 00_env_check + 01_parity_scene NATIVE gate battery under the new cgl2-pm venv, slurm/deploy_f8_verify.slurm; plain `-C gpu`, 30-min cap, shared 1×GPU) | P2 deploy | 0.2 | pending | 10.01 actual + 0.2 est |
+| 2026-07-16 | 55985444 cgl2-b1-s1-s2 (B1 carousel33 S1 prior-seeded MAMS-SMC N=512 seed 2, mock stand-in DECLARED, chunk 32/fwd 64, slurm/p2_b1_s1_seed2.slurm) | P2 B1 | 2.5 | pending | 10.01 + 2.7 est |
+| 2026-07-16 | 55985445 cgl2-b1-s1-s3 (B1 carousel33 S1 seed 3, ditto, slurm/p2_b1_s1_seed3.slurm) | P2 B1 | 2.5 | pending | 10.01 + 5.2 est |
+| 2026-07-16 | 55985446 cgl2-b1-s6b (B1 carousel33 S6b MAP-multistart-billed + ensemble-preconditioned MAMS-alone λ=1, seed 2, slurm/p2_b1_s6b.slurm) | P2 B1 | 2.0 | pending | 10.01 + 7.2 est |
+| 2026-07-16 | 55985447 cgl2-b2-dspl (B2 dspl20_orig + dspl20_ratio control, S1 N=512 seed 2 each, one job, slurm/p2_b2_dspl.slurm) | P2 B2 | 1.5 | pending | 10.01 + 8.7 est |
+| 2026-07-16 | 55985448 cgl2-b4-t2 (B4 T2 foundry_marg46 prior-seeded S1 N=256 f64 seed 2, Path B, slurm/p2_b4_t2.slurm) | P2 B4 | 3.0 | pending | 10.01 + 11.7 est |
+| 2026-07-16 | 55985449 cgl2-b5-s1 (B5 T3 foundry_v3b74 per-basin S1 MAMS low@128 + steep@96, f32, seed 2, Path B, slurm/p2_b5_s1.slurm) | P2 B5 | 3.0 | pending | 10.01 + 14.7 est |
+| 2026-07-16 | 55985450 cgl2-b5-s2 (B5-G3 T3 low@128 S2 MCLMC-mutation diagnostic arm, f32, seed 2, Path B, slurm/p2_b5_s2_mclmc.slurm) | P2 B5 | 1.5 | pending | 10.01 + 16.2 est |
+| 2026-07-16 | 55985451 cgl2-l0g2 (P3 L0-G2 scene-API v3b CORRELATED per-basin refit low@128 + steep@96, production-recipe mirror, seed 2, slurm/p3_l0g2.slurm) | P3 L0 | 2.0 | pending | 10.01 + 18.2 est |
 
 ## Gate record
 
@@ -113,6 +121,208 @@ downstream ΔlogZ gate, as planned).
 - sshproxy refreshed 2026-07-15 (user). Jobs charge `cosmo_g` (D5), single-GPU shared QOS.
 
 ## Stage log (newest first)
+
+### 2026-07-16 — P2 BENCHMARK WAVE: design checkpoints (B1/B2/B4/B5 + P3 L0-G2), written BEFORE submission (this session submits all cells; ops rules = the P1 pattern)
+
+**Wave scope (tasking of record):** B1 carousel33 (S1 ×2 seeds + S6b), B2 dspl20
+orig+ratio, B4 T2 foundry_marg46, B5 T3 foundry_v3b74 (S1 per-basin + S2 MCLMC arm),
+P3 L0-G2 scene-API v3b correlated refit. NOT this wave (pre-declared): **S7
+flow-MAMS** (prep note in the B1 checkpoint below) and **S4/S5 LAPS arms** (their
+unpublished research code, not deployed — bright line §8.2; stated honestly: this
+benchmark's baselines are S6b and published-class kernels only). Budget: est 18.0
+A100-h this wave — P2 rows 16.0 (cap 24; +0.2 deploy-verify already committed),
+P3 row 2.0 (cap 17). Campaign after this wave: 10.01 actual + 18.2 est of 100.
+
+**New code this wave (runners call the FROZEN drivers with FROZEN constants; no
+frozen-protocol numerics touched):** `23_run_p2_scene.py` (B1/B2 arms),
+`24_run_p2_oldstack.py` (B4/B5, Path B), `25a_export_v3b_basin_x46.py` +
+`25_run_l0g2_scene.py` (L0-G2), `slurm/p2_*.slurm`, `slurm/p3_l0g2.slurm`.
+**One documented driver deviation (T1.1 keyword-only precedent):**
+`cgl2/samplers/common.py::run_tempered_smc` gains keyword-only
+`loglik_batch_fn=None`; default None reproduces the validated full-vmap weight
+step BIT-FOR-BIT (54-test suite re-run green; toy bit-identity stock-vs-chunked:
+max particle diff 0.0, identical logZ digits). Needed because the B1 weight step
+at N=512 does not fit any A100 (measured below).
+
+**PRE-FLIGHT (login A100-40G, this session — wiring checks, no results read):**
+- Scene adapters under cgl2-pm: carousel33 / dspl20_orig / dspl20_ratio ALL build;
+  logp finite at 8 prior draws; **adapter-vs-native ProbModel.log_prob parity
+  max|d| = 0.0** (all three) — the B0 parity gate content reproduced on PM native.
+- **Carousel sizing (B1):** vmapped value_and_grad **837 MB/particle** (8→16
+  slope); forward loglik ~158 MB/particle (@128 requested 20.2 GB, OOM on 40 GB).
+  ⇒ N=512: weight step ~81 GB > 76 GB usable on hbm80g ⇒ mutation chunk 32
+  (26.8 GB) + **chunked weight step chunk 64** (~10 GB transient) via the
+  loglik_batch_fn seam. dspl fits stock at chunk 128.
+- Path B (OLD venv + PYTHONPATH): T2 built 73 s, logp finite at 4 prior draws
+  (f64); T3 built 55 s, q_k fits reproduce the 45/3 chain split, logp+logq finite
+  at 2 q draws per basin, gamma(q draws) low {1.289,1.309} / steep {2.408,2.477}
+  (f32, GIGALENS_X64=0). Ops catch: cgl.zoo.runtime DEFAULT_GPU="9" (phoenix)
+  breaks any process where slurm/user leaves CUDA_VISIBLE_DEVICES unset — all 8
+  slurm scripts gained `CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0}`.
+- L0-G2 step 1 executed (login, OLD venv, CPU, bijector-only):
+  `25a_export_v3b_basin_x46.py` → CFS `data/l0g2_basin_x46.npz` (md5 e5daca7413…),
+  low 2400 draws γ_med 1.0997 (source e2_v3b_low_canary_svicov.npz md5 551be806…),
+  steep 4096 draws γ_med 2.6696 (source e2_v3b.npz md5 1d2ee2c4…, == local git).
+- Cross-stack mapping validated on phoenix CPU beforehand: x46→scene-z q fit
+  round-trips gamma to 4e-5 at the v3b z_ref; scene correlated logp finite there.
+
+**MD5 audits (recorded):** campaign deploy.md5 **208 files PASS both sides**
+(includes the 4 new runners, 8 new slurm files, and
+`../claude-giga-lens/data/whitener_v3b.npz` staged for L0-G2, md5 4242fd98…);
+OLD exec tree **71/71 CLEAN** vs local git (the T0.2/T1.1 list);
+foundry-i `_data_lib.py` identical (00d75458…); **B4/B5/L0-G2 data inputs 12/12
+identical** local↔PM (svi_v12_v3br, hmc_v13_v3b, map_v11_v3b_{cold,cold2d,warm},
+map_marg_pd, hess_marg_pd, cutout_v3b, cutout_F140W, empirical_psf,
+long_diagraw_s0/s7 spot pair) + e2_v3b.npz fit npz identical; every job runs
+`md5sum -c deploy.md5` before touching the GPU.
+
+---
+
+**B1 DESIGN CHECKPOINT (carousel33; 8 A100-h cap, est 7.0; cgl2-pm venv):**
+- **DATA DECLARATION (honesty rule, governs every B1 claim):** the real MUSE
+  cutouts remain permission-blocked (re-verified this session:
+  `/global/u1/l/linusu/GIGALens-Code/experiments/sim_carousel/newnewcutouts/`
+  Permission denied). B1 therefore runs on zoo.py's documented SEEDED MOCK
+  stand-in (their model/priors VERBATIM; data = in-model render + noise, seed 33).
+  The posterior geometry is NOT theirs: this cell certifies sampler MACHINERY,
+  self-consistency, and cost accounting on a carousel-CLASS multi-plane lstsq
+  system. Any "hardest ESS-limited system" benchmark claim is DEFERRED until the
+  team transfers the cutouts (memo request stands — the precise missing piece:
+  newnewcutouts/source4-5.fits + source9.fits with DATA/STAT/PSF/MASK).
+- **Arms:** S1 prior-seeded MAMS-SMC N=512, seeds {2, 3} (mutation chunk 32,
+  weight-step chunk 64 — execution order only, bit-identity proven); S6b
+  MAMS-alone-warm ×1 (seed 2): MAP multistart 64×350 optax.adabelief(1e-2) (their
+  pipeline default, replicated w/ attribution — the vendored inference.py MAP is
+  broken under jax 0.6.2, ledgered defect E3) with **MAP cost billed in the grad
+  ledger**, then 64 chains from the best MAP endpoints, ensemble-preconditioned
+  MAMS at λ=1 (same preconditioning class as the SMC kernel ⇒ the comparison
+  isolates tempering+resampling): 30 burn rounds (re-tune+re-precondition) + 120
+  frozen sampling rounds × 4 draws.
+- **Gates (PLAN §6 B1 verbatim, harvest-phase):** self-consistency 2 seeds,
+  worst-param diff < 0.27σ at ESS≥128; logZ repeatability ≤ 2 nats; efficiency
+  ESS/10⁶ grads vs S6b: WIN ≥2×, PARITY [0.7,2), LOSS <0.7; cold-start gate:
+  prior-seeded S1 width-ratio vs the S6b warm reference ∈ [0.7,1.4] and |z|<3.
+  conv=float64 (x64 process).
+- **Pre-registered honest prediction:** parity-to-3× (S1 does not WIN raw
+  efficiency on a unimodal-ish mock); S1's structural value here is logZ +
+  cold-start. **Falsifier:** unique particles < N/4 = 128 at λ≳0.8
+  (rotating-ridge geometry defeating affine per-λ preconditioning).
+- **S7 PREP NOTE (not this wave, pre-declared):** minimal flow-preconditioned
+  MAMS needs a flow library absent from the certified cgl2-pm pins; the minimal
+  compliant build is a tfp-0.25-bijector IAF/RealNVP preconditioner trained on
+  the S1 λ=1 ensemble (keeps Path A pins untouched — deployment-plan item 3),
+  wired as a bijector wrap of the MAMS logdensity; anything heavier (flowjax) is
+  a ledgered dep decision. S7 runs AFTER B1 artifacts exist (its comparison arm
+  needs them); results to the team first (D4).
+- **S4/S5 OMISSION (bright line, stated plainly):** LAPS warm/cold arms are NOT
+  run — their unpublished research code is not deployed here and stays internal
+  reference only per PLAN §8.2. The benchmark's baselines are S6b (classic
+  MAP→warm-MAMS) and published-class kernels.
+
+**B2 DESIGN CHECKPOINT (dspl20_orig + dspl20_ratio control; 2 A100-h cap, est 1.5):**
+- **Hypothesis:** prior-seeded MAMS-SMC in the ORIGINAL pathological
+  (Om0,w0)+NormalCDF coordinates recovers the correct arm mass without their
+  bespoke exact reparameterization — per-λ ensemble preconditioning + tempering
+  handles the ridge their LAPS/MCLMC runs needed ratio coordinates for.
+- **Design:** one job, both targets sequential (same GPU ⇒ same seeded-mock
+  realization class; their own generation recipe, data_seed 0 — their baseline
+  realization is unreproducible per their note, recorded in zoo provenance);
+  S1 N=512 seed 2, chunk 128, stock weight step.
+- **Gates (PLAN §6 B2 verbatim):** |m̂(Om0<0.146) − 0.103| ≤ 0.045 on dspl20_orig;
+  control dspl20_ratio must reproduce their Run A r2 ≈ N(1.32417, 6.7e-4)
+  (weighted r2 = u_fn(Om0,w0) evaluated at harvest via the copied ratio-coords
+  module). Falsifier: orig-coords arm mass outside the band while the control
+  passes ⇒ the sampler does NOT fix the coordinate pathology (honest negative row).
+- Both runs also gate on SMC sanity: λ=1 reached, unique particles ≥ N/4, finite
+  logliks (fail-loud in the driver).
+
+**B4 DESIGN CHECKPOINT (T2 foundry_marg46; 3 A100-h cap, est 3.0; Path B):**
+- **Hypothesis (PLAN §6 B4):** per-λ ensemble preconditioning replaces the
+  two-stage recipe on the cond~1e14 real marg posterior — prior-seeded SMC (no
+  warm start, no Laplace metric) lands on the P2c reference posterior.
+- **Design:** prior-seeded S1, N=256, float64, seed 2, MAMS chunk 64, stock
+  weight step; target = the P0-gated 46-dim marg model (parity logp
+  −45840.984005998456 provenance in the zoo builder); inputs verified present +
+  md5-identical on PM (map_marg_pd, hess_marg_pd, cutout_F140W, empirical_psf,
+  long_diagraw_s0..7).
+- **Gates (verbatim):** worst-param |z| < 3 vs the P2c reference; ESS ≥ 0.3N
+  (=77). Falsifier: resample-collapse (T1.1-control class: unique ≪ N/4) or
+  worst-param blowout ⇒ the two-stage recipe stays necessary on brutal
+  conditioning — reported as such.
+
+**B5 DESIGN CHECKPOINT (T3 foundry_v3b74; 6 A100-h cap, est 4.5; Path B):**
+- **DTYPE DECLARATION:** the T3 target is strict-float32 BY CONSTRUCTION
+  (assert_dtype_env: x64 would silently promote the tfp prior constants off the
+  stored-chain posterior). Both jobs run GIGALENS_X64=0; the MH-acceptance f32
+  noise floor on this diagonal likelihood is O(1e-3..1e-2) nats — recorded as a
+  caveat on ΔlogZ at the ~0.01-nat level, irrelevant at the gate's 5.36-nat floor.
+- **Design:** basin-local q_k → posterior anneal, EXACTLY the
+  24_basin_evidence_v3b (P2c) evidence construction (q_k from the stored
+  hmc_v13_v3b chains split at γ=1.8 by chain mean — 45 low / 3 steep; n_fit 8000,
+  cov_inflate 2.0, guard-floored; logprior:=log q_k, loglike:=log_prob−log q_k ⇒
+  logZ_k = basin-restricted evidence), mutation kernel swapped to OURS through
+  the generalized frozen driver. Job 1 (S1): MAMS low@128 then steep@96 (separate
+  processes). Job 2 (S2, B5-G3): MCLMC low@128 — MCLMC is DEMOTED
+  (B0 bias screen 30σ) — this arm is DIAGNOSTIC BY DESIGN, never evidence.
+- **Gates (PLAN §6 B5 + finalized thresholds):** both basins converged at λ=1
+  with basin retention (frac_gamma on the right side of 1.8; the harvested
+  mode weight w_low = σ(logZ_low−logZ_steep) within binomial agreement of the
+  P2c mode-weight reference); basin ΔlogZ within **3·√(σ_boot² + 1.79²) nats
+  (floor 5.36)** of the P2c reference (the P1-finalized σ_seed row); **B5-G3
+  pre-registered prediction:** the MCLMC-mutation arm distorts the minor-mode
+  weight by 1.5–3× (resampling does NOT launder unadjusted-kernel bias);
+  falsifier of G3: MCLMC ΔlogZ within the MAMS repeatability band ⇒ resampling
+  DOES launder the bias (a genuinely useful negative).
+- **Deviation note:** PLAN's B5 modal wording ("minor-basin occupancy") maps to
+  the per-basin-evidence construction exactly as in P1c/P2c — occupancy is
+  DERIVED from per-basin logZ, not from a single prior-seeded run (same
+  convention as the certified diagonal basin-evidence linchpin).
+
+**L0-G2 DESIGN CHECKPOINT (P3 budget; ~2 A100-h est 2.0; cgl2-pm venv, hbm80g):**
+- **Gate (PLAN §6 P3 + finalized σ row, verbatim):** the scene-API v3b-low
+  CORRELATED refit reproduces γ_binned(corr,low) = 1.1032 within
+  2√(σ_stat²+σ_seed²) = **0.017**, AND the low-basin logZ preference keeps its
+  sign (ΔlogZ(steep−low) < 0; old-stack per-matched-seed value −28.9). L0-G2
+  licenses all X1-class real-lens claims on the new substrate. Falsifier:
+  γ outside the band or sign flip ⇒ the ported likelihood is NOT
+  substrate-faithful at posterior level ⇒ P3 payload stays old-stack (PLAN kill).
+- **Design:** production sampler recipe mirrored parameter-for-parameter from
+  cgl.e2.run_correlated_smc (HMC mutation 4×8 @ step 0.1, metric = q cov,
+  target_ess 0.7, max 400; the VERBATIM driver copy run_adaptive_tempered_smc) —
+  sampler held fixed so the cell isolates the SUBSTRATE question. Likelihood =
+  build_pm('v3b', diagonal=False): parity-certified marg scene model +
+  CorrelatedImageData with ported whitener_v3b (checkpointed whitening), parity
+  conventions applied. Legs: low@128 (γ gate) then steep@96 (logZ-sign
+  comparator), seed 2. Memory: 128×367.6 MB ≈ 47 GB ⇒ hbm80g pin.
+- **Documented deviation (cross-stack q hand-off):** the production q lives in
+  OLD-stack z; the scene bijector differs, so q is REBUILT in scene-z from the
+  production q-fit draws exported in CONSTRAINED x46 (25a artifact above),
+  mapped via param_map, Gaussian-refit with the production cov_inflate 3.0 +
+  guard floor. q only defines the λ=0 reference of the basin anneal — logZ_basin
+  and the λ=1 posterior are q-independent in exact arithmetic; declared, not
+  silent. Inputs: l0g2_basin_x46.npz (e5daca74…), whitener_v3b.npz (4242fd98…),
+  cutout_v3b.npz (a91ad318…), parity_refs.npz (manifest).
+
+**Ops:** all 8 jobs pin `#SBATCH -C gpu&hbm80g` (SMC-wave rule), shared QOS 1×GPU
+on cosmo_g, `md5sum -c deploy.md5` before GPU work, hot I/O on $PSCRATCH with cp
+to CFS results/ per step, watchdog registration at submission, **no results read
+this session** (harvest is a later pre-registered phase; pre-flight logp/sizing
+numbers above are wiring checks, and the 25a export prints only warm-start
+PROVENANCE quantities, T1.1 precedent).
+
+**SUBMITTED 2026-07-16 ~10:40 PT (all 8, cosmo_g shared QOS, ledger rows above,
+checkpoints above written BEFORE sbatch):** 55985444 (b1-s1-s2), 55985445
+(b1-s1-s3), 55985446 (b1-s6b), 55985447 (b2-dspl), 55985448 (b4-t2), 55985449
+(b5-s1), 55985450 (b5-s2-mclmc), 55985451 (l0g2). All 8 registered with the
+watchdog (max_pending 24 h / max_run = walltime+0.5 h / expect_artifact = CFS
+result npz / on_stall resubmit:<CFS slurm path>); loop verified alive (PID
+118755). NOTE (fail-loud by design, P1 pattern): expect_artifact paths are CFS
+paths checked on phoenix's filesystem, so COMPLETION raises
+COMPLETED_NO_ARTIFACT until the harvest session pulls results and deregisters —
+that alert doubles as the harvest reminder. Budget confirmation: P2 rows this
+wave 16.0 est (cap 24; cumulative P2 incl. deploy-verify 16.2), P3 row 2.0 est
+(cap 17); campaign 10.01 actual + 18.2 est of the 100-h HARD STOP. NOT
+committed (house rule: user commits).
 
 ### 2026-07-16 — P2 DEPLOYMENT Path A + Path B on Perlmutter (scout plan research/p2_deployment_plan.md executed; verify job 55980038, 0.2 A100-h est)
 

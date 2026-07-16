@@ -335,7 +335,8 @@ def run_tempered_smc(logprior_fn: Callable, loglik_fn: Callable,
                      target_ess: float = 0.7, max_stages: int = 400,
                      n_boot: int = 200, pilot_size: int = 64,
                      eps0: float = 0.5, precondition: bool = True,
-                     boot_seed: int = 20260715) -> dict:
+                     boot_seed: int = 20260715,
+                     loglik_batch_fn: Optional[Callable] = None) -> dict:
     """Adaptive tempered SMC (prior -> posterior anneal) with a generalized,
     per-lambda-tuned mutation kernel.
 
@@ -356,6 +357,14 @@ def run_tempered_smc(logprior_fn: Callable, loglik_fn: Callable,
         lambda=0 distribution is exactly the z-space prior of z0_particles.
       z0_particles: (N, dim) prior draws.
       kernel: a MutationKernel (smc_micro.make_kernel('hmc'|'mams'|'mclmc')).
+      loglik_batch_fn: OPTIONAL keyword-only override for the weight-step
+        batch evaluator ((N, dim) -> (N,)); None (default) reproduces the
+        validated jax.jit(jax.vmap(loglik_fn)) path BIT-FOR-BIT. Added
+        2026-07-16 (P2 wave, B1 carousel memory: 512-wide forward does not
+        fit an 80 GB A100 at ~158 MB/particle) following the accepted
+        keyword-only-default-identical pattern (T1.1 --data-file precedent);
+        callers pass an execution-order-only chunked evaluator (lax.map of
+        the same vmap) -- per-particle math identical by construction.
 
     Returns dict(particles, logZ, logZ_boot_sigma, lambda_schedule, ess_trace,
       unique_particle_trace, accept_trace, step_size_trace, n_int_trace,
@@ -368,7 +377,8 @@ def run_tempered_smc(logprior_fn: Callable, loglik_fn: Callable,
     n, dim = z.shape
     kernel.build(logprior_fn, loglik_fn, dim)
 
-    loglik_batch = jax.jit(jax.vmap(loglik_fn))
+    loglik_batch = (loglik_batch_fn if loglik_batch_fn is not None
+                    else jax.jit(jax.vmap(loglik_fn)))
 
     rng = np.random.default_rng(boot_seed)
     lam = 0.0
