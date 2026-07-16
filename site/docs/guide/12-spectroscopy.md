@@ -1,4 +1,4 @@
-# Redshifts and what a spectrum tells you
+# 12. Redshifts and what a spectrum tells you
 
 Every chapter so far has treated an image as the whole of the data: a grid of
 pixels, a point-spread function, a noise model. A spectrum measures the same

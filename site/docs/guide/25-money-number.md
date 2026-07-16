@@ -1,4 +1,4 @@
-# Spine 1: the 191-nat flip and the verdict on 1.103
+# 25. Spine 1: the 191-nat flip and the verdict on 1.103
 
 Chapter 1 handed you the destination and asked you to write down a guess
 before you knew the argument. This chapter is the argument. It walks the full

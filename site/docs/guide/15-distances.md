@@ -1,4 +1,4 @@
-# Distances that do not add, and Sigma_crit
+# 15. Distances that do not add, and $\Sigma_{\mathrm{cr}}$
 
 Chapter 14 gave you one object, `FlatLambdaCDM(H0=70, Om0=0.3)`, and the
 equation that makes it tick. This chapter turns that object into distances you

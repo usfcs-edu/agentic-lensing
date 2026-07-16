@@ -1,4 +1,4 @@
-# What you know now, and where the frontier is
+# 29. What you know now, and where the frontier is
 
 Twenty-eight chapters ago this book named its destination: a single galaxy's
 density-profile slope, $\gamma = 1.103 \pm 0.008$

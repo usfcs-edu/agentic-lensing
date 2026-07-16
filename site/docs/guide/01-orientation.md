@@ -1,4 +1,4 @@
-# What this repository does, and what one number costs
+# 1. What this repository does, and what one number costs
 
 This repository does two jobs that share almost nothing except the word
 "lens." The first job is a search: comb through tens of millions of galaxy

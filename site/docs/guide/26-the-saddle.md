@@ -1,4 +1,4 @@
-# Spine 2: the saddle, the invalid metric, and the SMC rescue
+# 26. Spine 2: the saddle, the invalid metric, and the SMC rescue
 
 [Ch. 25](25-money-number.md#the-chain) walks the chain that produces
 $\gamma_{\mathrm{binned}}(\mathrm{corr,low}) = 1.103$ and asks whether the

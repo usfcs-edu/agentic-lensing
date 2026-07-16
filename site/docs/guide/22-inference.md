@@ -1,4 +1,4 @@
-# Lens modelling as inference
+# 22. Lens modelling as inference
 
 Chapters 17 through 21 built the mathematics of a single ray: how one point
 on the sky maps to one point in the source plane, and how the Jacobian of

@@ -1,4 +1,4 @@
-# Integrals, projection, and where the logarithm comes from
+# 3. Integrals, projection, and where the logarithm comes from
 
 By the end of this chapter you can derive, from nothing but the definition of
 an integral, two facts that look like they come from nowhere in every lensing

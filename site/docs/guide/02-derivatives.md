@@ -1,4 +1,4 @@
-# Derivatives, Taylor, and why linearization is the whole game
+# 2. Derivatives, Taylor, and why linearization is the whole game
 
 Everything hard in this book — the deflection field, the magnification, the
 Laplace approximation to a posterior, the mass matrix an HMC sampler needs to

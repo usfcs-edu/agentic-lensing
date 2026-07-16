@@ -1,4 +1,4 @@
-# From photons to pixels: PSF, noise, and drizzle
+# 11. From photons to pixels: PSF, noise, and drizzle
 
 Every number this book eventually fits — a slope, a shear, an Einstein radius —
 comes from an array of floating-point numbers that started as photons hitting

@@ -1,4 +1,4 @@
-# Eigenvalues, saddles, and conditioning
+# 5. Eigenvalues, saddles, and conditioning
 
 Every lens Jacobian this book differentiates turns out to be a *symmetric*
 $2\times2$ matrix, and a symmetric $2\times2$ matrix is one of the few objects

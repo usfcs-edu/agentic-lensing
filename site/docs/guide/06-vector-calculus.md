@@ -1,4 +1,4 @@
-# Divergence, Laplacian, Green's functions: the potential trio
+# 6. Divergence, Laplacian, Green's functions: the potential trio
 
 This chapter derives one equation and one convolution, and everything from
 Ch. 16 onward cashes them in without re-deriving them. The equation is

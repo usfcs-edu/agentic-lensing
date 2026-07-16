@@ -1,4 +1,4 @@
-# The correlated-noise likelihood: whitening a real telescope
+# 24. The correlated-noise likelihood: whitening a real telescope
 
 [Ch. 11](11-observation.md#why-drizzle-correlates-noise) told you drizzle
 correlates pixel noise and a diagonal likelihood assumes it does not; [Ch.

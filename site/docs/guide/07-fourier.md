@@ -1,4 +1,4 @@
-# Fourier, power spectra, and whitening
+# 7. Fourier, power spectra, and whitening
 
 This chapter has no lensing in it. It is entirely about signals: what a
 convolution is, what its cross-correlation cousin is and why the difference

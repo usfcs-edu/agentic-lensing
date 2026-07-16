@@ -1,4 +1,4 @@
-# HMC, SMC, and flows: three log-dets, one idea
+# 23. HMC, SMC, and flows: three log-dets, one idea
 
 Chapter 22 built the machine: a real, differentiable, 46-dimensional
 log-posterior with the Occam term already inside it. This chapter is about

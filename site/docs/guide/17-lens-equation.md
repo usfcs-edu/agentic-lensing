@@ -1,4 +1,4 @@
-# The lens equation: beta = theta - alpha
+# 17. The lens equation: $\beta = \theta - \alpha$
 
 Chapter 16 established that mass bends light and by how much. This chapter
 turns that fact into a single equation you can actually solve, and asks the

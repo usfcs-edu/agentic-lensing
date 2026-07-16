@@ -1,4 +1,4 @@
-# SIS, SIE, EPL: what gamma actually means
+# 20. SIS, SIE, EPL: what $\gamma$ actually means
 
 [Ch. 19](19-einstein-radius.md) built the Einstein radius on top of one
 special mass profile — a circular, isothermal sphere — because that is the

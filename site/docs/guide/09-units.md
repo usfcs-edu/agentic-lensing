@@ -1,4 +1,4 @@
-# Arcseconds, magnitudes, and the units of the sky
+# 9. Arcseconds, magnitudes, and the units of the sky
 
 Every number this guide computes from here on is quoted in one of four units:
 an angle in arcsec, a brightness in magnitudes, a surface brightness in

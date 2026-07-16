@@ -218,8 +218,12 @@ def assemble() -> str:
         t = html_figure_to_markdown(t)  # ...then fold <figure> into one image
         t = namespace_anchors(t, slug)  # ...then de-collide the anchors
         t = blocks_to_divs(t)
-        # Demote H1 -> H2 so the whole guide is one document with one title.
-        t = re.sub(r"^# ", "## ", t, flags=re.M)
+        # NB: headings are NOT demoted here. Rewriting `# ` -> `## ` by regex
+        # demotes the chapter title but leaves its own `##` sections at `##`
+        # too, so chapter and section collapse to the same level and the PDF
+        # contents page becomes a flat list. pandoc's --shift-heading-level-by=1
+        # shifts the whole tree and keeps the hierarchy (build_reports.py uses
+        # it for the same reason).
         parts.append(t)
     return "\n\n\\newpage\n\n".join(parts)
 
@@ -236,6 +240,10 @@ def build(fmt: str, body: str) -> Path:
             # future reader can see what the pipeline actually depends on.
             "--from", "markdown+fenced_divs+link_attributes+tex_math_dollars"
                       "+header_attributes",
+            # Shift the whole heading tree down one: each chapter's H1 becomes
+            # an H2 under the document title, and its sections follow to H3.
+            # With toc-depth=2 the contents page then lists CHAPTERS only.
+            "--shift-heading-level-by=1",
             "--standalone", "--toc", "--toc-depth=2",
             "--resource-path", f"{GUIDE}:{FIGDIR}",
             "--metadata", "title=From Calculus to the Money Number",

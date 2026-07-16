@@ -1,4 +1,4 @@
-# Likelihood, posterior, evidence, and the nat
+# 8. Likelihood, posterior, evidence, and the nat
 
 This chapter turns "fit a Gaussian to pixel residuals" into a full Bayesian
 machine: a likelihood, a prior, and an evidence integral whose logarithm is

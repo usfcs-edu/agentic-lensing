@@ -1,4 +1,4 @@
-# Galaxies, Sersic profiles, and velocity dispersion
+# 10. Galaxies, Sersic profiles, and velocity dispersion
 
 Every lens in this repository is a galaxy first and a set of equations second.
 Before the mass model, the sampler, and the evidence integral, there is a

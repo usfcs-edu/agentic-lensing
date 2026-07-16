@@ -1,4 +1,4 @@
-# Finding lenses: the survey, the nets, and the resolution wall
+# 27. Finding lenses: the survey, the nets, and the resolution wall
 
 Every chapter in Parts IV and V started from a lens already on someone's desk:
 a cutout, a redshift pair, a PSF file. This chapter is about how it got there.

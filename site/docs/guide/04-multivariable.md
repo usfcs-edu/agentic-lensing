@@ -1,4 +1,4 @@
-# Gradient, Jacobian, Hessian: det J is an area scaling
+# 4. Gradient, Jacobian, Hessian: det J is an area scaling
 
 This chapter takes three objects you already compute — the gradient, the
 Jacobian, the Hessian — and asks what the determinant of a Jacobian actually

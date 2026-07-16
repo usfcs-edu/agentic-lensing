@@ -1,4 +1,4 @@
-# The expanding universe and redshift
+# 13. The expanding universe and redshift
 
 This chapter answers a question every redshift number in this repository quietly
 assumes you can already read: what does $z$ mean? Cikota's Einstein cross, the

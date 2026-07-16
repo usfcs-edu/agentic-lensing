@@ -1,4 +1,4 @@
-# How much light bends, and the factor of two
+# 16. How much light bends, and the factor of two
 
 This chapter buys you the right to treat every galaxy in this repository as a
 flat sheet of surface density $\Sigma(\boldsymbol\theta)$, and every

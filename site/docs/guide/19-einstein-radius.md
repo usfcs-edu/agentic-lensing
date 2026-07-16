@@ -1,4 +1,4 @@
-# The Einstein radius: the one thing lensing measures cleanly
+# 19. The Einstein radius: the one thing lensing measures cleanly
 
 Every number this book eventually argues about — the EPL slope $\gamma$, the
 external shear, the source's shape — is a fit: a quantity pulled out of noisy

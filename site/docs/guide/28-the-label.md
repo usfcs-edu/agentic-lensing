@@ -1,4 +1,4 @@
-# The label is the problem
+# 28. The label is the problem
 
 You are reading this chapter second because it needs none of the calculus
 Part I is about to build, and it carries the finding this guide treats as

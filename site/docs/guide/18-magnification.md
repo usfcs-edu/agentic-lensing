@@ -1,4 +1,4 @@
-# Magnification, critical curves, and caustics
+# 18. Magnification, critical curves, and caustics
 
 Chapter 17 gave you the lens equation, $\boldsymbol\beta = \boldsymbol\theta - \boldsymbol\alpha(\boldsymbol\theta)$
 ([Ch. 17](17-lens-equation.md#the-lens-equation)), and the fact that it can have more than one

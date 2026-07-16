@@ -1,4 +1,4 @@
-# Degeneracies: the directions where the data says nothing
+# 21. Degeneracies: the directions where the data says nothing
 
 Every inverse problem has directions in parameter space where the data cannot
 tell you anything: change the parameter, and every quantity you can measure

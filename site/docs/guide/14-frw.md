@@ -1,4 +1,4 @@
-# FRW and the Friedmann equations
+# 14. FRW and the Friedmann equations
 
 Chapter 13 gave you the scale factor $a(t)$ and showed that redshift is a
 record of how much $a$ has grown since a photon left its source. This chapter
