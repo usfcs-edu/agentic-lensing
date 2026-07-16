@@ -1,0 +1,118 @@
+/* Styling for the standalone offline guide.html.
+ *
+ * Inlined by pandoc --embed-resources, so the single file needs no network.
+ * Math is native MathML (pandoc --mathml), not MathJax, for the same reason.
+ * Deliberately close to the site's USF palette so the two readings feel like
+ * one document, but self-contained — none of Material's CSS is available here.
+ */
+
+:root {
+  --ink: #212121;
+  --muted: #5f6368;
+  --bg: #ffffff;
+  --usf-green: #00543c;
+  --usf-gold: #a8730a;
+  --rule: #e3e5e8;
+  --code-bg: #f5f6f7;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #bfc0c6;
+    --muted: #8c8d95;
+    --bg: #1e2029;
+    --usf-green: #6fc7a3;
+    --usf-gold: #fdbb30;
+    --rule: #33353f;
+    --code-bg: #262832;
+  }
+}
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 6rem;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        "Helvetica Neue", Arial, sans-serif;
+}
+
+h1, h2, h3, h4 { line-height: 1.25; margin: 2.2em 0 0.6em; }
+h1 { font-size: 2rem; color: var(--usf-green); margin-top: 0; }
+h2 { font-size: 1.5rem; border-bottom: 2px solid var(--rule); padding-bottom: 0.3em; }
+h3 { font-size: 1.2rem; color: var(--muted); }
+
+a { color: var(--usf-green); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+a:hover { color: var(--usf-gold); }
+
+/* Wide content must scroll inside itself; the page body must never scroll. */
+pre, table, .math.display { overflow-x: auto; max-width: 100%; }
+
+pre {
+  background: var(--code-bg);
+  border-radius: 6px;
+  padding: 0.8em 1em;
+  font-size: 0.86em;
+}
+code { background: var(--code-bg); border-radius: 3px; padding: 0.1em 0.3em; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+
+img, svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+
+figure { margin: 1.8em 0; }
+figcaption {
+  font-size: 0.86em;
+  color: var(--muted);
+  margin-top: 0.6em;
+  text-align: left;
+  border-left: 2px solid var(--rule);
+  padding-left: 0.8em;
+}
+
+table { border-collapse: collapse; display: block; margin: 1.4em 0; font-size: 0.92em; }
+th, td { border: 1px solid var(--rule); padding: 0.45em 0.7em; text-align: left; }
+th { background: var(--code-bg); }
+
+/* --- admonitions, emitted by site/filters/guide.lua ---------------------- */
+.adm {
+  border-left: 3px solid var(--usf-green);
+  background: var(--code-bg);
+  padding: 0.8em 1em;
+  margin: 1.4em 0;
+  border-radius: 0 4px 4px 0;
+}
+.adm-title { font-weight: 700; margin: 0 0 0.4em; color: var(--usf-green); }
+.adm.tip { border-left-color: #127a80; }
+.adm.tip .adm-title { color: #127a80; }
+.adm.warning, .adm.danger, .adm.failure, .adm.bug { border-left-color: #b3282d; }
+.adm.warning .adm-title { color: #b3282d; }
+
+/* Exercises keep the site's collapse behaviour, with no JavaScript. */
+details.adm {
+  border-left-color: var(--usf-gold);
+  padding: 0.6em 1em;
+}
+details.adm > summary {
+  font-weight: 700;
+  color: var(--usf-gold);
+  cursor: pointer;
+  list-style: revert;
+}
+details.adm.success { border-left-color: var(--usf-green); margin: 1em 0 0.2em; }
+details.adm.success > summary { color: var(--usf-green); }
+details[open] > summary { margin-bottom: 0.6em; }
+
+/* pandoc's TOC */
+nav#TOC { border: 1px solid var(--rule); border-radius: 6px; padding: 1em 1.4em; margin: 2em 0; }
+nav#TOC ul { padding-left: 1.1em; }
+nav#TOC > ul { padding-left: 0.6em; }
+
+@media print {
+  body { max-width: none; color: #000; }
+  details.adm { border: 1px solid #ccc; }
+  details.adm > summary { color: #000; }
+  a { color: #000; }
+}

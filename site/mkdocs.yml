@@ -47,6 +47,10 @@ theme:
     - content.code.annotate
     # NOTE: deliberately no toc.integrate — keeps the right-side page TOC.
 
+validation:
+  links:
+    anchors: warn
+
 plugins:
   - search
 
@@ -85,6 +89,49 @@ extra_javascript:
 # or `mkdocs serve`); they are gitignored and built in CI.
 nav:
   - Home: index.md
+  # Prerequisite material: what you read BEFORE the reports, so it sits first.
+  # navigation.indexes is OFF (see the theme block), so "Overview" must be an
+  # explicit first child — the section will not adopt index.md by itself.
+  # The nested "Part N" entries are pure grouping and need no index page.
+  - Guide:
+      - Overview: guide/index.md
+      - "Part 0 — Orientation":
+          - What this repository does: guide/01-orientation.md
+      - "Part I — The mathematical spine":
+          - Derivatives & linearization: guide/02-derivatives.md
+          - Integrals & projection: guide/03-integrals.md
+          - Jacobians, Hessians, det J: guide/04-multivariable.md
+          - Eigenvalues, saddles, conditioning: guide/05-linear-algebra.md
+          - Vector calculus & Green's functions: guide/06-vector-calculus.md
+          - Fourier, power spectra & whitening: guide/07-fourier.md
+          - Likelihood, evidence & the nat: guide/08-probability.md
+      - "Part II — The physical universe":
+          - Units of the sky: guide/09-units.md
+          - Galaxies & velocity dispersion: guide/10-galaxies.md
+          - PSF, noise & drizzle: guide/11-observation.md
+          - Redshifts & spectra: guide/12-spectroscopy.md
+      - "Part III — Cosmology":
+          - The expanding universe: guide/13-expansion.md
+          - FRW & Friedmann: guide/14-frw.md
+          - Distances & Sigma_crit: guide/15-distances.md
+      - "Part IV — Gravitational lensing":
+          - Deflection & the factor of two: guide/16-deflection.md
+          - The lens equation: guide/17-lens-equation.md
+          - Magnification & caustics: guide/18-magnification.md
+          - The Einstein radius: guide/19-einstein-radius.md
+          - SIS, SIE, EPL — what gamma means: guide/20-profiles.md
+          - Degeneracies: guide/21-degeneracies.md
+      - "Part V — This repo's science, decoded":
+          - Lens modelling as inference: guide/22-inference.md
+          - HMC, SMC & flows: guide/23-samplers.md
+          - The correlated-noise likelihood: guide/24-correlated-noise.md
+          - "Spine 1 — the 191-nat flip": guide/25-money-number.md
+          - "Spine 2 — the saddle": guide/26-the-saddle.md
+      - "Part VI — Discovery":
+          - Finding lenses & the resolution wall: guide/27-discovery.md
+          - The label is the problem: guide/28-the-label.md
+      - "Part VII — Synthesis":
+          - Where the frontier is: guide/29-how-to-read.md
   - Current:
       - LensJudge: current/lensjudge/index.md
       - LensJudge — Honest Residuals: current/lensjudge-residual/index.md

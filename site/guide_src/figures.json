@@ -1,0 +1,270 @@
+{
+  "ch04-det-j-area": {
+    "caption_hint": "det J is an area scaling factor \u2014 the whole of magnification",
+    "chapter": 4,
+    "source_fn": "det_j_area",
+    "variants": {
+      "dark": {
+        "bytes": 49431,
+        "file": "ch04-det-j-area-dark.svg",
+        "fmt": "svg",
+        "sha256": "ba7a3d82f4f77f907b12a4cc87031182af281cba0236e42391b8262d1f2dc347"
+      },
+      "light": {
+        "bytes": 49431,
+        "file": "ch04-det-j-area-light.svg",
+        "fmt": "svg",
+        "sha256": "7da6ad74d5b98b30efd09d0cbe12bee3f9447d8510f0ed711dbd4deeea46bfd0"
+      }
+    },
+    "width": "90%",
+    "worked_values": {
+      "det_A": 0.485,
+      "mu": 2.061855670103093
+    }
+  },
+  "ch05-kappa-gamma-eigen": {
+    "caption_hint": "Eigen-decomposing A splits convergence from shear",
+    "chapter": 5,
+    "source_fn": "kappa_gamma_eigen",
+    "variants": {
+      "dark": {
+        "bytes": 27828,
+        "file": "ch05-kappa-gamma-eigen-dark.svg",
+        "fmt": "svg",
+        "sha256": "5b1a6310beb00549e6e631b98978015705cfddf967c19a74ee2a117ff7bfd7d2"
+      },
+      "light": {
+        "bytes": 27828,
+        "file": "ch05-kappa-gamma-eigen-light.svg",
+        "fmt": "svg",
+        "sha256": "bc62b55f319e18e2f2f24fd55aee97f926d74d06667056eddfd006ba2b66b709"
+      }
+    },
+    "width": "90%",
+    "worked_values": {
+      "eig_radial": 1.0,
+      "eig_tangential": 0.39999999999999997
+    }
+  },
+  "ch10-sersic-profiles": {
+    "caption_hint": "Sersic profiles: n=1 exponential disc to n=4 de Vaucouleurs",
+    "chapter": 10,
+    "source_fn": "sersic_profiles",
+    "variants": {
+      "dark": {
+        "bytes": 52148,
+        "file": "ch10-sersic-profiles-dark.svg",
+        "fmt": "svg",
+        "sha256": "8bbdcf335dfa06d3efe4f570fc42daf856310f9f6a74e9a8112e096a82063209"
+      },
+      "light": {
+        "bytes": 52148,
+        "file": "ch10-sersic-profiles-light.svg",
+        "fmt": "svg",
+        "sha256": "18709093968d9287e5a8d1b1a69f720c01fca762d3f4fe490639f66f0398e489"
+      }
+    },
+    "width": "90%",
+    "worked_values": {
+      "bn_n1": 1.6721000000000001,
+      "bn_n4": 7.669700000000001
+    }
+  },
+  "ch11-drizzle-correlation": {
+    "caption_hint": "Why drizzling correlates noise: t(1)=(r-1)/(r-1/3)",
+    "chapter": 11,
+    "source_fn": "drizzle_correlation",
+    "variants": {
+      "dark": {
+        "bytes": 45176,
+        "file": "ch11-drizzle-correlation-dark.svg",
+        "fmt": "svg",
+        "sha256": "2b2f83c16da4ef6b3637da5e4c0880039cc5b0765af15edb0bed858f13614c1b"
+      },
+      "light": {
+        "bytes": 45176,
+        "file": "ch11-drizzle-correlation-light.svg",
+        "fmt": "svg",
+        "sha256": "3c0d47deba143c03d99ab09c3a2aa2d8820f670d70b958599345dc39168922e4"
+      }
+    },
+    "width": "90%",
+    "worked_values": {
+      "t1_fine": 0.7680487097709482,
+      "t1_r2": 0.6
+    }
+  },
+  "ch17-lens-equation": {
+    "caption_hint": "Solving beta = theta - alpha graphically for an SIS",
+    "chapter": 17,
+    "source_fn": "lens_equation_1d",
+    "variants": {
+      "dark": {
+        "bytes": 39216,
+        "file": "ch17-lens-equation-dark.svg",
+        "fmt": "svg",
+        "sha256": "c5bf447dc47e9f5af151dc684004824c701f28ce767772581707141ec7532ad6"
+      },
+      "light": {
+        "bytes": 39216,
+        "file": "ch17-lens-equation-light.svg",
+        "fmt": "svg",
+        "sha256": "0d8184fbcf0fa52b0fa8ceac60e314edb3384d4c41bb94d70d9d703e324ba022"
+      }
+    },
+    "width": "90%",
+    "worked_values": {
+      "image_1": 1.4,
+      "image_2": -0.6,
+      "separation": 2.0
+    }
+  },
+  "ch18-sie-caustics": {
+    "caption_hint": "Critical curves and caustics for an SIE, from det A = 0",
+    "chapter": 18,
+    "source_fn": "sie_caustics",
+    "variants": {
+      "dark": {
+        "bytes": 68924,
+        "file": "ch18-sie-caustics-dark.svg",
+        "fmt": "svg",
+        "sha256": "91af0c2ec80564224e2dec705b40185e63e474f603bbd90a878c9fcc106fdfde"
+      },
+      "light": {
+        "bytes": 68924,
+        "file": "ch18-sie-caustics-light.svg",
+        "fmt": "svg",
+        "sha256": "06cd0dfa2000fa7833d1db2a780c3357a6fe1ba386ac9e8d588d0be95d0fb19b"
+      }
+    },
+    "width": "90%",
+    "worked_values": {
+      "astroid_extent": 0.9999266980051081,
+      "cut_radius_max": 0.8102368876963119,
+      "n_critical_segments": 1,
+      "q": 0.7,
+      "theta_E": 1.0
+    }
+  },
+  "ch19-mean-kappa": {
+    "caption_hint": "Mean convergence inside theta_E is exactly 1 \u2014 the definition",
+    "chapter": 19,
+    "source_fn": "mean_kappa",
+    "variants": {
+      "dark": {
+        "bytes": 39779,
+        "file": "ch19-mean-kappa-dark.svg",
+        "fmt": "svg",
+        "sha256": "8f150cb100e543c19110acfff49f5bbe84d5dff55842e2a7a386d03daa3e65a9"
+      },
+      "light": {
+        "bytes": 39779,
+        "file": "ch19-mean-kappa-light.svg",
+        "fmt": "svg",
+        "sha256": "b53ebd3f83ba47e591b95413287e0244e26be3b2412a0b980bd56aaa472b8c8c"
+      }
+    },
+    "width": "90%",
+    "worked_values": {
+      "kbar_at_theta_e": 0.999995
+    }
+  },
+  "ch20-epl-slope": {
+    "caption_hint": "The EPL slope gamma, and where the money number sits",
+    "chapter": 20,
+    "source_fn": "epl_slope",
+    "variants": {
+      "dark": {
+        "bytes": 51559,
+        "file": "ch20-epl-slope-dark.svg",
+        "fmt": "svg",
+        "sha256": "dd1b97a6530371a08b26b1153dabdcc068921c0483ffc604ba6a43ecf761696d"
+      },
+      "light": {
+        "bytes": 51559,
+        "file": "ch20-epl-slope-light.svg",
+        "fmt": "svg",
+        "sha256": "debda8ce747b1b7baf480445931e01ca9b7910853733154f53e85833dc4a0361"
+      }
+    },
+    "width": "90%",
+    "worked_values": {
+      "kappa_at_theta_e_g2": 0.5
+    }
+  },
+  "ch25-basin-flip": {
+    "caption_hint": "The 191-nat evidence flip: +162.2 -> -28.9",
+    "chapter": 25,
+    "source_fn": "basin_flip",
+    "variants": {
+      "dark": {
+        "bytes": 41697,
+        "file": "ch25-basin-flip-dark.svg",
+        "fmt": "svg",
+        "sha256": "aab0920a8ecd723c2a6e5814dcb74f0545f5c0c33755f4072936316c13a218c1"
+      },
+      "light": {
+        "bytes": 41697,
+        "file": "ch25-basin-flip-light.svg",
+        "fmt": "svg",
+        "sha256": "21a1f8b2d82273c4a27573dde6380cb9ab33be8a292d2aaa09005d339bed410a"
+      }
+    },
+    "width": "90%",
+    "worked_values": {
+      "log10_bayes": 82.99,
+      "swing": 191.1
+    }
+  },
+  "ch25-gamma-bracket": {
+    "caption_hint": "Nine gamma values for one galaxy \u2014 the bracket, not a unification",
+    "chapter": 25,
+    "source_fn": "gamma_bracket",
+    "variants": {
+      "dark": {
+        "bytes": 67485,
+        "file": "ch25-gamma-bracket-dark.svg",
+        "fmt": "svg",
+        "sha256": "2012155f9bfdb98fa22053dc4340fcfbba01c8e25840f5e6ef7353f8bdce25e3"
+      },
+      "light": {
+        "bytes": 67485,
+        "file": "ch25-gamma-bracket-light.svg",
+        "fmt": "svg",
+        "sha256": "8b5248e475aae98f4c96c31ef8ed27f1f421f0e1a0f027c6a03e561ba6683f8c"
+      }
+    },
+    "width": "90%",
+    "worked_values": {
+      "anchor": 1.433,
+      "money": 1.103,
+      "spread": 1.482
+    }
+  },
+  "ch28-flat-purity": {
+    "caption_hint": "Purity is flat across human grades; the grade is ~chance vs truth",
+    "chapter": 28,
+    "source_fn": "flat_purity",
+    "variants": {
+      "dark": {
+        "bytes": 39593,
+        "file": "ch28-flat-purity-dark.svg",
+        "fmt": "svg",
+        "sha256": "2231777b43167836a0aafafdeb15c6860d2d057234ede37327702e5a12ebf56f"
+      },
+      "light": {
+        "bytes": 39593,
+        "file": "ch28-flat-purity-light.svg",
+        "fmt": "svg",
+        "sha256": "e55d9ba45c08817013101301c7108130872f0e84e42ca5eb74c71e29bcf7f4c4"
+      }
+    },
+    "width": "90%",
+    "worked_values": {
+      "purity_A": 0.9518072289156626,
+      "purity_B": 0.92,
+      "purity_C": 0.9090909090909091
+    }
+  }
+}

@@ -1,0 +1,451 @@
+# The frozen chapter table. Authored BEFORE fan-out; chapter agents may not
+# invent a chapter, an anchor, a figure, or a cross-reference target that is not
+# listed here. One agent writes exactly one file.
+#
+# Reading order note: Ch 28 is deliberately placed to be read SECOND, right
+# after Ch 01. It needs zero physics, it is pure ML epistemics, it carries the
+# repo's most striking result — and it earns the calculus ramp that follows.
+# A reader who starts at Ch 02 is doing homework; one who starts at Ch 28 is
+# on a case.
+
+meta:
+  title: "From Calculus to the Money Number"
+  subtitle: "The astrophysics, cosmology and mathematics behind this repository"
+  destination: >-
+    gamma_binned(corr, low) = 1.103 +/- 0.008 — why that number is wrong, and
+    how you would know.
+
+# The book's spine. Referenced by many chapters; state it the same way each time.
+devices:
+  log_det_ledger: >-
+    log|det| of a matrix appears three times in this repo wearing three
+    costumes: (1) lensing magnification mu = 1/|det A|; (2) the normalizing-flow
+    change of variables -log|det J| in cgl/flows.py; (3) the Gaussian-evidence
+    "Occam" term -1/2 log det A in cgl/marg.py. Each chapter that meets one adds
+    a row to the ledger. Ch 23 closes it.
+  gamma_ledger: >-
+    Every chapter that constrains gamma adds a row: what it now rules in or out
+    about 1.103. Ch 25 closes it and the reader votes.
+  you_already_know_this: >-
+    A recurring "!!! tip" box mapping the astro concept to something a CS
+    professor already owns. Never condescending, always load-bearing.
+
+chapters:
+  - n: 1
+    slug: 01-orientation
+    title: What this repository does, and what one number costs
+    part: "Part 0 — Orientation"
+    prereqs: []
+    abstract: >-
+      The two halves (discovery, modelling); the Rosetta-stone table; the money
+      number stated up front as the destination; how to read this guide; the
+      sealed-envelope exercise (guess whether 1.103 is right, open it in Ch 25).
+    anchors: [the-two-halves, the-rosetta-stone, the-money-number, how-to-read]
+    figures: []
+    examples: []
+
+  - n: 2
+    slug: 02-derivatives
+    title: Derivatives, Taylor, and why linearization is the whole game
+    part: "Part I — The mathematical spine"
+    prereqs: [1]
+    abstract: >-
+      Derivative as local linear map. Taylor to 2nd order. Why every hard object
+      later (deflection, magnification, Laplace, HMC) is a 1st- or 2nd-order
+      local model. Skip-box: you know limits and epsilon-delta; we do not redo them.
+    anchors: [derivative-as-linear-map, taylor, why-second-order]
+    figures: []
+    examples: []
+
+  - n: 3
+    slug: 03-integrals
+    title: Integrals, projection, and where the logarithm comes from
+    part: "Part I — The mathematical spine"
+    prereqs: [2]
+    abstract: >-
+      Integral as accumulation. Projecting a 3-D density to a 2-D surface density
+      (the Abel projection): rho ~ r^-gamma gives Sigma ~ R^(1-gamma). Gauss's law
+      in 2-D and why a 2-D point mass has a LOGARITHMIC potential — the reason
+      lensing math looks the way it does.
+    anchors: [accumulation, the-abel-projection, why-log-potential]
+    figures: []
+    examples: []
+
+  - n: 4
+    slug: 04-multivariable
+    title: "Gradient, Jacobian, Hessian: det J is an area scaling"
+    part: "Part I — The mathematical spine"
+    prereqs: [2, 3]
+    abstract: >-
+      Gradient, Jacobian, Hessian. The change-of-variables theorem. det J as the
+      local area ratio — which IS magnification, and IS the normalizing-flow
+      log-det the reader already knows. Opens the Log-Det Ledger (row 1 and 2).
+    anchors: [gradient-jacobian-hessian, change-of-variables, det-j-as-area-scaling,
+              the-log-det-ledger]
+    figures: [ch04-det-j-area]
+    examples: []
+
+  - n: 5
+    slug: 05-linear-algebra
+    title: Eigenvalues, saddles, and conditioning
+    part: "Part I — The mathematical spine"
+    prereqs: [4]
+    abstract: >-
+      Eigendecomposition of a symmetric 2x2 -> convergence and shear. Definiteness;
+      what a SADDLE is and why a zero gradient is not a mode. Condition number;
+      cond ~ 1e14 is not an abstraction in this repo. Sets up both spines.
+    anchors: [symmetric-2x2, definiteness-and-saddles, conditioning]
+    figures: [ch05-kappa-gamma-eigen]
+    examples: []
+
+  - n: 6
+    slug: 06-vector-calculus
+    title: "Divergence, Laplacian, Green's functions: the potential trio"
+    part: "Part I — The mathematical spine"
+    prereqs: [3, 4]
+    abstract: >-
+      Divergence and the Laplacian. Green's function of the 2-D Laplacian = the
+      log. Poisson's equation, and the statement everything in Part IV rests on:
+      laplacian(psi) = 2 kappa, alpha = grad psi.
+    anchors: [divergence-laplacian, greens-function, poisson-for-lensing]
+    figures: []
+    examples: []
+
+  - n: 7
+    slug: 07-fourier
+    title: Fourier, power spectra, and whitening
+    part: "Part I — The mathematical spine"
+    prereqs: [4]
+    abstract: >-
+      Convolution vs cross-correlation (they differ, and the repo's conv code
+      says so). The FFT. Autocorrelation, PSD, Wiener-Khinchin. Whitening as
+      dividing by sqrt(PSD) — the same move as decorrelating features. Positive
+      semi-definiteness. This chapter is what makes P1 readable and it is absent
+      from every standard lensing primer.
+    anchors: [convolution-vs-correlation, psd-and-autocorrelation, whitening,
+              positive-semidefiniteness]
+    figures: []
+    examples: []
+
+  - n: 8
+    slug: 08-probability
+    title: Likelihood, posterior, evidence, and the nat
+    part: "Part I — The mathematical spine"
+    prereqs: [5]
+    abstract: >-
+      Bayes. The Gaussian likelihood and chi-squared. The evidence Z as an
+      integral, in NATS — the same unit as a cross-entropy loss. Laplace
+      approximation and its failure at a saddle. Bayes factors. Ridge = Gaussian
+      prior = weight decay. Occam. Log-Det Ledger row 3.
+    anchors: [bayes, chi-squared, evidence-and-nats, laplace, ridge-is-a-prior]
+    figures: []
+    examples: []
+
+  - n: 9
+    slug: 09-units
+    title: Arcseconds, magnitudes, and the units of the sky
+    part: "Part II — The physical universe"
+    prereqs: [1]
+    abstract: >-
+      Arcsec, parsec, the small-angle approximation and the 206265 factor.
+      Magnitudes (backwards, logarithmic, and everywhere). Flux vs surface
+      brightness. Pixel scale and seeing. Enough to read a caption.
+    anchors: [angles-on-the-sky, magnitudes, surface-brightness, pixel-scale]
+    figures: []
+    examples: []
+
+  - n: 10
+    slug: 10-galaxies
+    title: Galaxies, Sersic profiles, and velocity dispersion
+    part: "Part II — The physical universe"
+    prereqs: [9]
+    abstract: >-
+      What a massive elliptical is. The Sersic profile and b_n. Velocity
+      dispersion sigma_v and why it predicts theta_E. Dark matter, and why the
+      isothermal gamma=2 "conspiracy" is a real physical puzzle.
+    anchors: [ellipticals, the-sersic-profile, velocity-dispersion, the-isothermal-conspiracy]
+    figures: [ch10-sersic-profiles]
+    examples: []
+
+  - n: 11
+    slug: 11-observation
+    title: "From photons to pixels: PSF, noise, and drizzle"
+    part: "Part II — The physical universe"
+    prereqs: [7, 9]
+    abstract: >-
+      CCDs. The PSF and why it is a convolution. The noise model
+      err = sqrt(sigma_bkg^2 + model/t_exp) (background + Poisson). DRIZZLE, and
+      the one line that starts Spine 1: t(1) = (r-1)/(r-1/3). Why resampling
+      correlates noise and therefore breaks a diagonal likelihood.
+    anchors: [ccds-and-psf, the-noise-model, drizzle, why-drizzle-correlates-noise]
+    figures: [ch11-drizzle-correlation]
+    examples: [ch11]
+
+  - n: 12
+    slug: 12-spectroscopy
+    title: Redshifts and what a spectrum tells you
+    part: "Part II — The physical universe"
+    prereqs: [9]
+    abstract: >-
+      Emission and absorption lines. Redshift as a measurement, not a guess.
+      sigma_v from line width. Why the DESI Foundry papers exist: a lens without
+      redshifts is a picture, not a mass.
+    anchors: [spectral-lines, measuring-redshift, sigma-v-from-lines]
+    figures: []
+    examples: []
+
+  - n: 13
+    slug: 13-expansion
+    title: The expanding universe and redshift
+    part: "Part III — Cosmology"
+    prereqs: [12]
+    abstract: >-
+      Scale factor, Hubble's law, redshift as expansion. What "H0 = 70" means.
+      Skip-box: this Part is the most detachable in the guide — the lens-modelling
+      likelihood contains no cosmology at all. Read it before your first meeting
+      with an astronomer, not before Ch 14.
+    anchors: [scale-factor, hubbles-law, redshift-is-expansion]
+    figures: []
+    examples: []
+
+  - n: 14
+    slug: 14-frw
+    title: FRW and the Friedmann equations
+    part: "Part III — Cosmology"
+    prereqs: [13]
+    abstract: >-
+      The FRW metric without tensor calculus. The Friedmann equation as energy
+      conservation. Omega_m, Omega_Lambda, flatness. What FlatLambdaCDM(70, 0.3)
+      actually asserts.
+    anchors: [the-frw-metric, friedmann, the-density-parameters]
+    figures: []
+    examples: []
+
+  - n: 15
+    slug: 15-distances
+    title: "Distances that do not add, and Sigma_crit"
+    part: "Part III — Cosmology"
+    prereqs: [14]
+    abstract: >-
+      Comoving, angular-diameter and luminosity distance. The gotcha that bites
+      everyone: D_ds != D_s - D_d (1097 vs 468 Mpc at z=0.5,2.0). Sigma_crit, and
+      the Carousel worked example reproducing the repo's 2.376e15 and 4.62e13.
+    anchors: [three-distances, distances-do-not-add, sigma-crit, the-carousel]
+    figures: []
+    examples: [ch15]
+
+  - n: 16
+    slug: 16-deflection
+    title: How much light bends, and the factor of two
+    part: "Part IV — Gravitational lensing"
+    prereqs: [6, 14]
+    abstract: >-
+      The Newtonian deflection, the GR deflection 4GM/c^2b, and why GR is exactly
+      twice Newton. Eddington 1919. The thin-lens approximation and why a galaxy
+      collapses to a 2-D sheet.
+    anchors: [newtonian-deflection, the-factor-of-two, the-thin-lens]
+    figures: []
+    examples: []
+
+  - n: 17
+    slug: 17-lens-equation
+    title: "The lens equation: beta = theta - alpha"
+    part: "Part IV — Gravitational lensing"
+    prereqs: [16]
+    abstract: >-
+      The lens equation, solved graphically and then numerically. Why it is
+      nonlinear and therefore multi-valued — which IS multiple imaging. Doubles,
+      quads, rings. The potential/deflection/convergence trio.
+    anchors: [the-lens-equation, multiple-images, the-psi-alpha-kappa-trio]
+    figures: [ch17-lens-equation]
+    examples: []
+
+  - n: 18
+    slug: 18-magnification
+    title: Magnification, critical curves, and caustics
+    part: "Part IV — Gravitational lensing"
+    prereqs: [4, 5, 17]
+    abstract: >-
+      mu = 1/det A, computed by differentiating the lens map. Critical curves
+      (det A = 0) and caustics (their image). The astroid and the cut. Why
+      crossing a caustic changes the image count by two. Parity. Log-Det Ledger
+      row 1, paid off.
+    anchors: [magnification-is-a-jacobian, critical-curves, caustics, parity]
+    figures: [ch18-sie-caustics]
+    examples: [ch18]
+
+  - n: 19
+    slug: 19-einstein-radius
+    title: "The Einstein radius: the one thing lensing measures cleanly"
+    part: "Part IV — Gravitational lensing"
+    prereqs: [15, 17]
+    abstract: >-
+      theta_E from first principles. The defining identity: mean kappa inside
+      theta_E is exactly 1 — a definition, not a coincidence. theta_E from
+      sigma_v (Hsu Eq. 1), worked for Cikota's Einstein cross. Why M(<theta_E) is
+      profile-independent and therefore the field's most trusted number.
+    anchors: [what-theta-e-is, the-mean-convergence-identity, theta-e-from-sigma-v,
+              mass-inside-theta-e]
+    figures: [ch19-mean-kappa]
+    examples: [ch19]
+
+  - n: 20
+    slug: 20-profiles
+    title: "SIS, SIE, EPL: what gamma actually means"
+    part: "Part IV — Gravitational lensing"
+    prereqs: [19]
+    abstract: >-
+      SIS -> SIE -> EPL. rho ~ r^-gamma; gamma=2 is isothermal. Ellipticity
+      (e1,e2) -> (q,phi) and the half-angle as a spin-2 signature. External
+      shear. Sersic and shapelet sources. The gamma-overloading warning, paid in
+      full. Opens the gamma Ledger properly.
+    anchors: [sis-to-sie, the-epl-and-gamma, ellipticity, external-shear, source-models]
+    figures: [ch20-epl-slope]
+    examples: []
+
+  - n: 21
+    slug: 21-degeneracies
+    title: "Degeneracies: the directions where the data says nothing"
+    part: "Part IV — Gravitational lensing"
+    prereqs: [18, 20]
+    abstract: >-
+      The mass-sheet degeneracy, proved in four lines: every imaging observable
+      is invariant, and only the time delays move. Hence H0 from time delays is
+      degenerate with a sheet you cannot see. The source-vs-mass degeneracy. A
+      degeneracy IS a flat loss direction IS a zero Hessian eigenvalue IS
+      cond -> infinity — the gauge-symmetry bridge.
+    anchors: [the-mass-sheet-degeneracy, time-delays-and-h0, source-vs-mass,
+              degeneracy-is-gauge-symmetry]
+    figures: []
+    examples: []
+
+  - n: 22
+    slug: 22-inference
+    title: Lens modelling as inference
+    part: "Part V — This repo's science, decoded"
+    prereqs: [8, 20]
+    abstract: >-
+      The forward model: EPL+shear mass, 4 Sersic lens lights, Sersic+shapelet
+      source; render, supersample, convolve with the PSF, compare per pixel.
+      74 parameters -> 46 by marginalising the 28 linear shapelet amplitudes
+      analytically. The Cholesky, and the -1/2 logdet A Occam term gigalens omits
+      — Log-Det Ledger row 3, in production. GIGA-Lens' MAP -> SVI -> HMC recipe.
+    anchors: [the-forward-model, marginalising-linear-amplitudes, the-occam-term,
+              the-gigalens-recipe]
+    figures: []
+    examples: []
+
+  - n: 23
+    slug: 23-samplers
+    title: "HMC, SMC, and flows: three log-dets, one idea"
+    part: "Part V — This repo's science, decoded"
+    prereqs: [8, 22]
+    abstract: >-
+      Why gradients change everything. HMC and the mass matrix (M = Sigma^-1 ~ H,
+      a real convention trap). Tempering = annealing. SMC = a particle filter.
+      Normalizing flows and NeuTra. R-hat and ESS. CLOSES the Log-Det Ledger:
+      magnification, flow density and Occam term are the same operation.
+    anchors: [why-gradients, hmc-and-the-metric, tempering-and-smc, flows-and-neutra,
+              closing-the-log-det-ledger]
+    figures: []
+    examples: []
+
+  - n: 24
+    slug: 24-correlated-noise
+    title: "The correlated-noise likelihood: whitening a real telescope"
+    part: "Part V — This repo's science, decoded"
+    prereqs: [7, 11, 22]
+    abstract: >-
+      C = D^{1/2} K D^{1/2}. Fitting a stationary kernel on model-subtracted
+      residuals. The convolutional whitener with h_hat ~ 1/sqrt(K_hat), its
+      operator-norm gate e_op <= 0.02, and the whiten-then-drop mask rule. Why the
+      machinery must reduce EXACTLY to the diagonal case (gate D) — a regression
+      test as methodology.
+    anchors: [the-covariance-model, fitting-the-kernel, convolutional-whitening,
+              the-diagonal-limit]
+    figures: []
+    examples: []
+
+  - n: 25
+    slug: 25-money-number
+    title: "Spine 1: the 191-nat flip and the verdict on 1.103"
+    part: "Part V — This repo's science, decoded"
+    prereqs: [18, 20, 23, 24]
+    abstract: >-
+      The chain, link by link, each with its artifact. The 191-nat evidence flip
+      (+162.2 -> -28.9): the steep basin was a noise artifact, H1 confirmed. But
+      gamma = 1.103 +/- 0.008 against a 1.433 anchor: H2 rejected. The reader does
+      the sigma arithmetic and discovers the report's "~17 sigma" reconciles with
+      nothing (9.7 / 9.4 / 41, never 17). The prior's hard wall at 1.0. The
+      gamma Ledger closes; the reader votes.
+    anchors: [the-chain, the-evidence-flip, the-money-number, the-sigma-arithmetic,
+              the-verdict]
+    figures: [ch25-gamma-bracket, ch25-basin-flip]
+    examples: [ch25]
+
+  - n: 26
+    slug: 26-the-saddle
+    title: "Spine 2: the saddle, the invalid metric, and the SMC rescue"
+    part: "Part V — This repo's science, decoded"
+    prereqs: [5, 23, 25]
+    abstract: >-
+      The MAP is a saddle (min eigenvalue -14.85, five negative directions), so
+      the metric V diag(1/|lambda|) V^T is invalid — the SAME formula that is
+      correct as a saddle-free-Newton descent direction and fatal as a covariance.
+      R-hat 22 was a nuisance (a source-centre degeneracy), decoupled from gamma.
+      Tempered SMC crossed what HMC froze on, and returned the evidence too.
+      A formula is not a fact; it is a fact about a purpose.
+    anchors: [the-map-is-a-saddle, the-same-matrix-twice, the-nuisance,
+              why-smc-rescued-it]
+    figures: []
+    examples: []
+
+  - n: 27
+    slug: 27-discovery
+    title: "Finding lenses: the survey, the nets, and the resolution wall"
+    part: "Part VI — Discovery"
+    prereqs: [9, 11]
+    abstract: >-
+      DESI Legacy: grz, 0.262"/px, ~1.3" seeing, 101x101 cutouts, 53.8M galaxies.
+      Derive the wall from the pixel scale: at theta_E ~ 1.2" the ring is thinner
+      than the PSF, so no architecture can help — then confirm it from the repo
+      (a 105x parameter ratio buys 0.003 AUC). AUC, TPR at fixed FPR, and why the
+      operating point is the only metric that matters at 45M cutouts.
+    anchors: [the-survey, deriving-the-wall, the-finders, the-operating-point]
+    figures: []
+    examples: []
+
+  - n: 28
+    slug: 28-the-label
+    title: The label is the problem
+    part: "Part VI — Discovery"
+    prereqs: [1]
+    abstract: >-
+      READ THIS SECOND. Purity is flat across human grades A/B/C
+      (0.952/0.920/0.909) and AUC(grade vs truth) = 0.577, CI [0.396, 0.757] —
+      consistent with chance, though the CI is wide and the follow-up pool is
+      selected, so say "consistent with", not "proven". Two expert graders agree
+      at QWK 0.42. Nothing gets past the label: not 32B, not Claude. The wall of
+      Ch 27 and the wall here are the SAME wall — the labels are noisy because the
+      pixels are ambiguous. An actionable conclusion a CS professor can make on
+      day one.
+    anchors: [the-flat-line, the-reliability-ceiling, nothing-gets-past-the-label,
+              same-wall, what-to-do-instead]
+    figures: [ch28-flat-purity]
+    examples: [ch28]
+
+  - n: 29
+    slug: 29-how-to-read
+    title: What you know now, and where the frontier is
+    part: "Part VII — Synthesis"
+    prereqs: [25, 26, 28]
+    abstract: >-
+      The Log-Det Ledger, final. The gamma Ledger, closed. A decoder mapping this
+      repo's reports section-by-section to these chapters. The five questions to
+      ask in any lensing meeting — each of which has embarrassed this repo at
+      least once. The frontier, and specifically where a CS professor has
+      comparative advantage. An honest list of what this guide skipped.
+    anchors: [the-ledgers-closed, the-paper-decoder, five-questions, the-frontier,
+              what-we-skipped]
+    figures: []
+    examples: []

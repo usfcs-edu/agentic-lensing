@@ -1,0 +1,176 @@
+# The guide's notation contract. MACHINE-CHECKED by lint_guide.py.
+#
+# This file exists because ~26 chapters are authored in parallel and will not
+# agree on notation by being asked nicely. The hazard is concrete and this repo
+# is full of it: gamma means THREE different things in the source material, and
+# beta means two. A chapter that quietly uses gamma for shear is not a typo, it
+# is an unreadable book.
+#
+# Rules here are injected VERBATIM into every chapter-authoring prompt. Never
+# summarise this file into a prompt — a summarised contract is a drifted contract.
+
+symbols:
+  - tex: '\gamma'
+    means: >-
+      The 3-D logarithmic density slope of the EPL profile, rho ~ r^-gamma.
+      gamma = 2 is isothermal. This is the campaign's money parameter.
+    canonical_chapters: [20, 22, 24, 25]
+    forbid_for: [shear, external shear, Jacobian shear component]
+    note: >-
+      The single most dangerous symbol in this repo. gigalens' epl.py sets
+      t = gamma - 1 (the lenstronomy convention), so convergence goes as
+      kappa ~ R^(1-gamma).
+
+  - tex: '\gamma_{\mathrm{ext}}'
+    means: External shear magnitude (the tidal field of mass outside the lens).
+    forbid_alternatives: ['\gamma_{sh}', '\gamma_{shear}']
+    note: Components are gamma_1, gamma_2. Never bare \gamma.
+
+  - tex: '\gamma_1'
+    means: First component of shear (the Jacobian's traceless part, or external shear).
+    note: >-
+      Always say in prose which shear you mean. If both appear in a chapter,
+      subscript the external one \gamma_{\mathrm{ext},1}.
+
+  - tex: '\beta'
+    means: Source-plane angular position. Vector form \boldsymbol{\beta}.
+    forbid_for: [inverse temperature, tempering parameter]
+
+  - tex: '\lambda'
+    means: The SMC tempering / annealing parameter, 0 -> 1.
+    note: >-
+      NOT beta, which every sampling paper outside lensing would use. beta is
+      already the source position and it wins — it is used 100x more often here.
+
+  - tex: '\theta'
+    means: Image-plane angular position. Vector form \boldsymbol{\theta}.
+
+  - tex: '\theta_{\mathrm{E}}'
+    means: Einstein radius, in arcsec.
+    forbid_alternatives: ['\theta_E', 'R_E', 'b']
+    note: Always \mathrm{E}. gigalens calls it theta_E; the report macro is \thetaE.
+
+  - tex: '\alpha'
+    means: Scaled deflection angle, alpha = grad(psi). Lens equation beta = theta - alpha.
+
+  - tex: '\psi'
+    means: The lensing potential. alpha = grad psi; kappa = (1/2) laplacian psi.
+
+  - tex: '\kappa'
+    means: Convergence = surface density in units of Sigma_crit.
+
+  - tex: '\Sigma_{\mathrm{cr}}'
+    means: Critical surface density, c^2 D_s / (4 pi G D_d D_ds).
+    forbid_alternatives: ['\Sigma_{crit}', '\Sigma_c']
+
+  - tex: 'A'
+    means: The lens Jacobian, A = d beta / d theta = (1-kappa) I - Gamma.
+    note: mu = 1 / det A. Not to be confused with the marginalisation normal
+      matrix, also called A in cgl/marg.py — disambiguate in prose when both appear.
+
+  - tex: '\mu'
+    means: Magnification, mu = 1 / det A. Signed; negative = parity flip.
+
+  - tex: 'D_{\mathrm{d}}, D_{\mathrm{s}}, D_{\mathrm{ds}}'
+    means: Angular diameter distances to lens, to source, and between them.
+    note: >-
+      D_ds is NOT D_s - D_d. Angular diameter distances do not add. Say so
+      every single time it appears.
+
+  - tex: 'q'
+    means: Axis ratio, q = (1-c)/(1+c) with c = |e|.
+
+  - tex: '\phi'
+    means: Position angle, phi = atan2(e2, e1)/2.
+
+  - tex: '\hat{R}'
+    means: Gelman-Rubin convergence diagnostic (rank-normalised, split).
+    forbid_alternatives: ['R-hat', 'Rhat']
+    note: In prose write "$\hat{R}$", never "R-hat".
+
+  - tex: 'Z'
+    means: The Bayesian evidence. log Z is quoted in NATS throughout.
+
+units:
+  angles: arcsec (never radians in prose; convert explicitly and show the factor)
+  evidence: nats (never bits, never dex) — log base e
+  distances: Mpc
+  mass: solar masses, written M_\odot
+  velocity_dispersion: km/s, symbol \sigma_v
+
+# --- hard syntax rules; lint_guide.py fails the build on these ------------- #
+syntax_rules:
+  - id: math-delimiters
+    rule: 'Author math as $...$ and $$...$$. NEVER \(...\) or \[...\].'
+    why: >-
+      pymdownx.arithmatex converts $...$ for the site, and pandoc's default
+      markdown reader parses $...$ natively for the PDF/HTML targets. It does
+      NOT parse \(...\) without tex_math_single_backslash, and silently escapes
+      it to literal text. $...$ is the ONLY syntax that serves all three outputs.
+
+  - id: no-boundary-whitespace
+    rule: 'Never write "$ x $" — no leading/trailing space inside $...$.'
+    why: >-
+      pymdownx.arithmatex silently REFUSES to render such math and leaves the
+      raw dollar signs on the page. This regression already cost this repo
+      hundreds of broken equations once.
+
+  - id: eqref-wrapped
+    rule: 'Write $\eqref{eq:foo}$, never a bare \eqref{eq:foo}.'
+    why: >-
+      arithmatex does not wrap a bare \eqref, so it lands in a plain <p>, and
+      mathjax.js has ignoreHtmlClass ".*|" — MathJax never sees it and the
+      literal string "\eqref{eq:foo}" is what the reader gets.
+
+  - id: eqref-same-file
+    rule: 'An \eqref may only target a \label defined in the SAME chapter.'
+    why: >-
+      tags:"ams" numbers per page, and mathjax.js calls texReset() on every
+      instant-navigation. Cross-page equation references are impossible. To
+      reference another chapter''s equation, link to it in prose:
+      "the lens equation ([Ch. 17, Eq. 17.1](17-lens-equation.md#the-lens-equation))".
+
+  - id: explicit-heading-anchors
+    rule: 'Every ## and ### heading carries an explicit { #kebab-anchor }.'
+    why: >-
+      Math in a heading pollutes the generated slug (## The $\theta_E$ scale ->
+      id="the-theta_e-scale"), and any reword silently breaks inbound links.
+
+  - id: figcaption-markdown
+    rule: '<figcaption> MUST carry markdown="span".'
+    why: Without it, **bold** and $math$ inside the caption stay raw text.
+
+  - id: figure-pairs
+    rule: >-
+      Every figure ships both #only-light and #only-dark variants, adjacent,
+      with identical alt text.
+    why: >-
+      A missing/typo''d variant fails SILENTLY — the CSS simply does not match
+      and BOTH images render, stacked.
+
+  - id: exercise-idiom
+    rule: >-
+      Exercises are "??? question" with a nested "??? success \"Solution\"".
+      Never "???+" (an open solution is not an exercise). Exactly two levels.
+
+  - id: repo-links
+    rule: >-
+      Cite repo paths in prose as `path/to/file.py:LINE`; link to
+      https://github.com/usfcs-edu/agentic-lensing/blob/main/<path>#L<line>.
+      Pin to main, never to a SHA.
+
+  - id: report-anchors
+    rule: >-
+      Link to generated report pages via their #sec:* anchors (which come from
+      \label{sec:...} in main.tex and are stable), NEVER via a slugified heading.
+
+  - id: numbers-are-tagged
+    rule: >-
+      Every computed number in prose carries an HTML comment tag:
+      <!-- check: ch19.theta_e_cikota = 2.233 ± 0.01 -->
+      and must be returned by a function in worked_examples.py.
+    why: >-
+      The guide''s whole credibility is that its numbers reproduce. This repo''s
+      own report carries a "~17 sigma" claim that reconciles with none of its
+      quoted uncertainties (its own footnote says ~9.5). One division would have
+      caught it. Tag every number.
