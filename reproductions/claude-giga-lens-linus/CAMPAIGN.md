@@ -25,12 +25,13 @@ Plan of record: `plans/PLAN.md` (approved 2026-07-15). Their-format handoffs: `p
 | 2026-07-15 | 55951084 cgl2-t02-steep-s3 (v3b-steep SMC p96 seed3, slurm/t02_smc_v3b_steep_seed3.slurm) | P1 T0.2 | 2.0 | 0.29 (COMPLETED 00:17:39) | 1.31 |
 | 2026-07-15 | 55951085 cgl2-t02-steep-s4 (v3b-steep SMC p96 seed4, slurm/t02_smc_v3b_steep_seed4.slurm) | P1 T0.2 | 2.0 | 0.31 (COMPLETED 00:18:23) | 1.62 |
 | 2026-07-15 | 55951086 cgl2-t03-compmask (v3b-low SMC p128 seed2, companion-eroded whitener, slurm/t03_smc_v3b_low_compmask.slurm) | P1 T0.3 | 2.0 | 0.59 (COMPLETED 00:35:40) | 2.21 |
-| 2026-07-15 | 55952480 cgl2-t11-i1 (inj1 shift(0,0): svicov prep + SMC p128 seed2, slurm/t11_inj1.slurm) | T1.1 (D7) | 2.0 | — | 4.21 (est) |
-| 2026-07-15 | 55952481 cgl2-t11-i2 (inj2 shift(+.030,−.014)″: svicov prep + SMC p128 seed2, slurm/t11_inj2.slurm) | T1.1 (D7) | 2.0 | — | 6.21 (est) |
+| 2026-07-15 | 55952480 cgl2-t11-i1 (inj1 shift(0,0): svicov prep + SMC p128 seed2, slurm/t11_inj1.slurm) | T1.1 (D7) | 2.0 | 1.89 (COMPLETED 01:53:29, 1×A100 shared, nid008221) | 4.21 (est) |
+| 2026-07-15 | 55952481 cgl2-t11-i2 (inj2 shift(+.030,−.014)″: svicov prep + SMC p128 seed2, slurm/t11_inj2.slurm) | T1.1 (D7) | 2.0 | 2.00 (COMPLETED 02:00:02, nid008221) | 6.21 (est) |
 | 2026-07-15 | 55952482 cgl2-t11-i3 (inj3 shift(−.022,+.034)″: svicov prep + SMC p128 seed2, slurm/t11_inj3.slurm) | T1.1 (D7) | 2.0 | 1.49 (**FAILED** 01:29:15 — step-2 GPU OOM on hbm40g node; prep COMPLETED, artifacts valid; see stage log 2026-07-15 inj3 diagnosis) | 8.21 (est) |
-| 2026-07-15 | 55952483 cgl2-t11-i1d (inj1 DIAGONAL control via delta whitener, slurm/t11_inj1_diagctl.slurm) | T1.1 (D7) | 2.0 | — | 10.21 (est) |
+| 2026-07-15 | 55952483 cgl2-t11-i1d (inj1 DIAGONAL control via delta whitener, slurm/t11_inj1_diagctl.slurm) | T1.1 (D7) | 2.0 | 1.99 (COMPLETED 01:59:32, nid008193) | 10.21 (est) |
 | 2026-07-16 | **P1 T0.2/T0.3 actuals harvested**: 2.21 A100-h vs 9.0 est (shared-QOS single-GPU; sacct -X Elapsed × 1 GPU, AllocTRES gres/gpu=1 each) | P1 | — | 2.21 total | 2.21 actual + 8.0 T1.1 est |
-| 2026-07-15 | 55958518 cgl2-t11-i3 **T1.1 inj3 resubmit** of 55952482 (SMC-only via SKIP_PREP=1, reuses the COMPLETED production prep npz on $PSCRATCH; fix = `-C gpu&hbm80g` pin + PYTHONUNBUFFERED=1, NO numerics change; slurm/t11_inj3.slurm) | T1.1 (D7) | 2.0 | — | 2.21 + 1.49 (failed 55952482) actual + 6.0 T1.1 est outstanding + 2.0 resubmit est |
+| 2026-07-15 | 55958518 cgl2-t11-i3 **T1.1 inj3 resubmit** of 55952482 (SMC-only via SKIP_PREP=1, reuses the COMPLETED production prep npz on $PSCRATCH; fix = `-C gpu&hbm80g` pin + PYTHONUNBUFFERED=1, NO numerics change; slurm/t11_inj3.slurm) | T1.1 (D7) | 2.0 | 0.43 (COMPLETED 00:25:47, nid008193; SKIP_PREP=1) | 2.21 + 1.49 (failed 55952482) actual + 6.0 T1.1 est outstanding + 2.0 resubmit est |
+| 2026-07-15 | **T1.1 actuals harvested**: 7.80 A100-h vs 10.0 est (1.89 + 2.00 + 1.49 FAILED + 1.99 + 0.43; sacct -X Elapsed × 1 GPU each) | T1.1 (D7) | — | 7.80 total | **10.01 actual** (2.21 P1 + 7.80 T1.1) of 100 h cap |
 
 ## Gate record
 
@@ -49,7 +50,7 @@ Plan of record: `plans/PLAN.md` (approved 2026-07-15). Their-format handoffs: `p
 | W | whitener bundles re-validated (e_op reproduction + erosion + hashes) | e_op ≤0.02 strict | **PASS** (v2d/v3b/v3 admissible; v2d_relaxed inadmissible-by-design, e_op 0.0312 vs its own e_target 0.05) | data/whitener_manifest.json |
 | B0 | MC-SMC correctness (adapters, mix2/funnel/illcond, MCLMC bias screen) | PLAN §5 | PENDING | data/smc_b0_report.json |
 | X1-G0 | profile-curvature mechanism entry gate: r_eff ordering must admit the bracket's sign pattern | monotone ordering exists | **FAIL — hypothesis structurally dead** (24/24 robustness variants non-monotone; fine/binned constrain slope at the SAME radius, Δr_eff≈0.008″ < ¼ px, yet Δγ=0.71 ⇒ would need \|dγ_loc/dln r\|≈226 vs O(1) physical) | data/x1_g0_effective_radii.json, research/x1_g0_mechanism_check.md, figs/x1_g0_*.png |
-| T1.1 | injection-recovery on real drizzle noise: does the production stationary-whitened correlated likelihood recover γ_truth=1.433 injected on the REAL v3b residual field? | pre-registered: median(γ_rec−1.433) < −0.072 confirms LOW bias; \|median bias\| < 0.024 exonerates; between = partial, quantified; control (diag likelihood, same data) predicted 1.29–1.43 | PENDING (4 jobs submitted 2026-07-15) | data (CFS) t11_inj{1,2,3}_smc.npz + t11_inj1_diag_smc.npz; build gates data/t11_injection_build_report.json |
+| T1.1 | injection-recovery on real drizzle noise: does the production stationary-whitened correlated likelihood recover γ_truth=1.433 injected on the REAL v3b residual field? | pre-registered (finalized): median(γ_rec−1.43298) < −0.078 confirms LOW bias; \|median bias\| < 0.026 exonerates; between = partial, quantified; control (diag likelihood, same data) predicted 1.29–1.43 | **NO-CONFIRM / NO-EXONERATE — CONFOUNDED (positive-signed result outside both zones)**: γ_rec med 1.5151/1.5719/1.5076, biases +0.0822/+0.1389/+0.0747, own-σ z +2.25/+3.23/+1.82; **median bias +0.0822** (without dup-cluster-flagged inj2: +0.0784 — same zone); **control FAILS HIGH 1.5677 ∉ [1.29,1.43] AND SICK** (total resample collapse: 1/128 unique particles, γ_σ=4e-16; srcS.Ie railed at 10.09≈58× truth) ⇒ per pre-registered honesty clause the INJECTION CONSTRUCTION is implicated (bright-object scene-subtraction residue; recovered source ×1.8–3 bigger, ×2.4 brighter than truth in all 3 corr runs). Whitener-isolating differential corr−diag on same data: −0.0526 (sign consistent w/ mechanism, ≈16% of the 0.33 gap; no error bar — diag leg degenerate). T0.4-1's stationarity rejection UNREFUTED (in-class scene ⇒ mechanism's misfit lever arm absent by construction). n=3, no coverage claims | data/results-perlmutter/t11_*, figs/t11_recovery_overlay.png, data/t11_gate_eval.json, research/t11_injection_recovery.md |
 | Fermat teaser | noise-model Δφ sensitivity (illustrative; NOT a TD lens; synthetic pairs; corr posterior is the known over-correcting product) | report-only | median \|frac shift\| **88%** anchor→corr (10.7σ); same-product diag→corr arm **61%** (17σ) — vs the ~1% TDCOSMO-relevant scale | data/fermat_dt_teaser.json, research/fermat_dt_teaser.md |
 | T0.2 | seed-repeat certification of the P1c money numbers: σ_seed(γ) per basin over seeds {2 (production), 3, 4}; σ_seed(ΔlogZ) | σ_seed(γ)≤0.008 both basins; σ_seed(ΔlogZ)<5 nats; KILL σ_seed(γ)>0.024 | **PASS (both gates; kill not tripped)** — γ_med low {1.1032, 1.0967, 1.1005} → σ_seed=0.00325; steep {2.6393, 2.6522, 2.6485} → σ_seed=0.00664; logZ low {−4771.08, −4769.12, −4771.37} → σ_seed=1.22; steep {−4799.96, −4801.39, −4802.56} → σ_seed=1.30 → σ_seed(ΔlogZ)=1.79 nats; ΔlogZ(steep−low) per matched seed −28.88/−32.27/−31.19 — LOW-basin preference SEED-STABLE (all seeds, ≥16σ_seed). n=3 σ estimates carry ±46% χ-dist sampling error (quoted with every use). γ_binned(corr,low)=1.1032 CERTIFIED at stated significance: σ_tot=√(σ_stat²+σ_seed²)=0.0086 ≈ 1.08×σ_stat | data/t02_t03_gate_eval.json, figs/t02_seed_overlay.png, data/results-perlmutter/ |
 | T0.3 | companion-mask discriminator: does the LL2/LL3 companion misfit transmit into global γ via the whitened likelihood? (whiten-then-drop, keep_w 9273→8247, production seed 2) | UPWARD shift ≥0.024 (3σ_stat) ⇒ mechanism REAL; static within 0.024 ⇒ companion EXONERATED | **COMPANION EXONERATED** — γ_med 1.1011 vs production 1.1032: shift −0.0021 (slightly DOWN, 0.26σ_stat, 0.65σ_seed — statistically static). σ_stat widened 0.0080→0.0085 (+6%, consistent with −11.1% whitened dof). logZ −4339.16 vs −4771.08 NOT comparable (different data: 1026 fewer whitened dof). Convergence indistinguishable from production (λ-steps 28=28, w_ess 127.4 vs 118.1, n_uniq 84 vs 77). The 1.103 over-correction is NOT companion-driven — consistent with the P1 synthesis (noise-model-CLASS misspecification), which stays the prime suspect for T1.1 | data/t02_t03_gate_eval.json, figs/t03_compmask_overlay.png |
@@ -110,6 +111,82 @@ downstream ΔlogZ gate, as planned).
 - sshproxy refreshed 2026-07-15 (user). Jobs charge `cosmo_g` (D5), single-GPU shared QOS.
 
 ## Stage log (newest first)
+
+### 2026-07-15 — T1.1 PRE-REGISTERED READOUT (jobs 55952480/81/83 + 55958518; 7.80 A100-h actual): NO-CONFIRM / NO-EXONERATE — CONFOUNDED BY SCENE RESIDUE
+
+**Harvest ops:** all 24 t11 result files (4 SMC sets + 4 prep sets, npz+json+run.log) +
+5 slurm logs pulled from CFS to `data/results-perlmutter/`; sacct actuals in the ledger
+(1.89/2.00/1.49-FAILED/1.99/0.43 h, single A100 each; T1.1 total 7.80 vs 10.0 est;
+campaign 10.01 A100-h actual of the 100 h cap). Provenance CLEAN: slurm-log md5 echoes
+match the local build report exactly (datafiles 98b2b825/175166b8/81271c7f, delta
+whitener fa167fe2, e2.py 782a268a); the inj3 resubmit (55958518) confirmed SKIP_PREP=1
++ same datafile md5 + warm start `q from t11_inj3_canary_svicov.npz` = the prep the
+failed 55952482 completed (CFS 17:27). Analysis = `08_harvest_t11.py` (OLD cgl venv,
+bijector-only, exact P1-harvest conventions; json weighted quantiles authoritative,
+eqw cross-check ≤0.005). **Plot inspected BEFORE gate math**
+(figs/t11_recovery_overlay.png); plot and numbers agree. Full numbers:
+data/t11_gate_eval.json; full analysis: research/t11_injection_recovery.md.
+
+**Sanity:** all four runs reached λ=1 (λ-steps 27/34/20/37 ≪ 400), n_floored_q=0,
+basin purity clean (frac_γ>1.9 = 0 everywhere), w_ess 107.9–128/128. Saved-particle
+diversity vs the certified production family (14–37 unique rows/128): inj1 52, inj3 81
+(healthier than production), inj2 18 (in-family; flag: dominant duplicate cluster at
+the TOP quantile, γ_med==γ_q84 — same class as T0.2 seed3-low, reported not sick).
+**Diag control SICK:** total resample collapse — 1/128 unique particles (a point mass
+copied 128×), γ_σ=4.4e-16, prep Rhat_max 307, srcS.Ie railed at 10.09 (≈58× truth) +
+LL0/LL2/LL3.Ie + LL2.center_x railed. Mechanism: the diagonal likelihood is ~3× sharper
+in logp scale and the frozen production SMC moves (step 0.1, whitened-geometry metric)
+had ~zero late-tempering acceptance → systematic resampling degenerated. Gates
+evaluated with and without the sick run (verdict unchanged in kind).
+
+**GATES (finalized thresholds, NOT moved — confirm < −0.078, exonerate |·| < 0.026,
+σ_inj = own posterior σ, n=3, no coverage claims):**
+γ_rec = 1.5151 [1.4877,1.5543] / 1.5719 [1.4796,1.5719] / 1.5076 [1.4685,1.5482];
+biases +0.0822/+0.1389/+0.0747; z = +2.25/+3.23/+1.82; logZ −4654.84/−4644.91/−4634.52
+(different data files — reported, not compared). **median bias (n=3) = +0.0822;
+without inj2 = +0.0784** — OUTSIDE both pre-registered zones, POSITIVE-signed
+(opposite the predicted direction; identical verdict under the superseded provisional
+±0.024/−0.072 bands). **Control gate FAIL:** γ_rec(diag) = 1.5677 ∉ [1.29,1.43],
+biased HIGH by +0.135 (farther from truth than the corr runs), logZ −12799.37 (diag
+dof, not comparable).
+
+**INTERPRETATION (per the pre-registered honesty clause, which governs):** the control
+failing HIGH alongside all three injections implicates the INJECTION CONSTRUCTION —
+the real residual field's bright-object scene-subtraction residue (measured before
+submission: G1 decomposition χ²_pp bright 2.71 / center 5.46) — not the whitener. The
+nuisance readout shows the absorption signature in all three corr runs: recovered
+source ×1.8–3 bigger (srcS.R_sersic +3.4σ/+2.6σ/+3.7σ) and ×2.4 brighter than the
+injected truth, LL-block distortions in sympathy; the fits eat the residue and γ
+steepens (+0.07..+0.14 common-mode across BOTH likelihood classes ⇒ data-driven).
+The only whitener-isolating number — same-data differential γ(corr)−γ(diag) on inj1 =
+**−0.0526** — has the mechanism's predicted sign and would explain ≈16% of the 0.330
+real-data gap, but carries no defensible error bar (degenerate diag leg): indicative
+only; the CONFIRM-level ≥24% is NOT supported. Crucial scope note: the injected scene
+is exactly in-class (truth source = fitted ridge shapelets), so the T0.4 mechanism —
+stationary whitening discounting large-scale real-space MISFIT — had little lever arm
+BY CONSTRUCTION; even a clean EXONERATE could not have refuted T0.4-1's direct
+stationarity rejection (p=0.010), which STANDS. **Verdict: T1.1
+INCONCLUSIVE-BY-CONFOUND; the 1.103 over-correction diagnosis (noise-model-CLASS
+misspecification) continues to rest on T0.4's direct evidence — neither confirmed at
+injection level nor exonerated.**
+
+**Implications:** (1) P3 CorrelatedImageData keeps the pluggable locally-stationary
+whitener seam at priority (T0.4-1 untouched); new requirement — a residue-free
+injection path (kernel-sampled noise-only / sky-set bootstrap, or deeper multi-start
+scene subtraction) before any whitener-bias number is quotable. (2) P2 benchmark
+framing STRENGTHENED: the production two-stage+SMC recipe does not transfer to the
+sharper diagonal likelihood (total particle collapse at p128) — per-target tuning is
+part of the thesis; a future diag arm needs its own step-size/metric. (3) Engagement
+memo line: injection-recovery on the real residual field is residue-confounded
+(+0.08..+0.14 common-mode); corr-vs-diag differential −0.05 (mechanism-signed, small
+vs 0.33 at in-class scene specification); definitive test = residue-free injections +
+locally-stationary arm. No headline change from T1.1.
+
+**Housekeeping:** 55952480/81/83 + 55958518 deregistered from the watchdog (all four
+T1.1 registrations — 480/481 were also still registered; all harvested), watchdog now
+empty, loop alive (PID 118755); data/WATCHDOG_ALERT deleted (the 4 COMPLETED_NO_ARTIFACT
+alerts were the designed harvest reminders — artifacts confirmed on CFS + pulled).
+NOT committed (house rule: user commits).
 
 ### 2026-07-15 — T1.1 inj3 FAILURE DIAGNOSIS + RESUBMIT (55952482 FAILED → 55958518; ledger row appended BEFORE any readout)
 
