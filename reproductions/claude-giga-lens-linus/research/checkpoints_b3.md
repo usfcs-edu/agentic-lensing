@@ -142,3 +142,47 @@ posterior read, no gate math)
 data/b3_cells.json (all cells: configs, traces, timings, gate inputs),
 data/b3_<arm>_<sys>.npz (samples/particles), figs/b3_sys{i}_overlay.png +
 figs/b3_cost.png, research/b3_readout.md (gate table + verdicts).
+
+---
+
+## RESTART ENTRY (2026-07-16, before any re-run; gates/seeds/recipe UNTOUCHED)
+
+**What happened (2026-07-15 22:26–22:33, logs data/b3_lane_*.log):**
+1. **A16 OOM — the reference arm does not fit the A16 at ANY pre-registered
+   size.** All four a16 lanes OOM'd the MAP stage at every step of the
+   documented halving ladder: n_samples 500 → 26.9 GiB, 256 → 13.85 GiB,
+   128 → 12.61 GiB requested; all RESOURCE_EXHAUSTED on the 15.3 GB A16
+   (XLA remat floor ~10.4 GiB, but actual peak allocations stayed above the
+   card). The `_oom_retry` ladder exhausted → runner error, no artifacts.
+2. **Parent-exit kill.** The lanes were launched as background children of the
+   agent session (no setsid); when the parent agent exited, the l4-8 sys0 lane
+   died mid-fallback (log ends right after the first OOM at batch 500 — the
+   batch-256 retry, which fits the 23 GB L4, never got to run). No completed
+   b3_run_*.json / b3_*.npz exist; nothing is salvageable.
+
+**Fix (execution-plan-only changes; hypothesis, predictions, gate definitions,
+frozen constants, seeds, and the classic-recipe settings are all UNCHANGED):**
+- **Device deviation (documented):** all 4 cells (hs2_sys{0..3}) now run
+  SEQUENTIALLY on the L4 (GPU 8, 23 GB, CUDA_DEVICE_ORDER=PCI_BUS_ID
+  CUDA_VISIBLE_DEVICES=8), ref arm THEN smc arm per system — the same-device
+  wall-clock pairing is preserved per cell, devtag l4-8. The pre-registered
+  "A16 GPU i runs sys i" layout is IMPOSSIBLE (point 1); the A16-vs-L4
+  cross-device check is DROPPED for the same reason (no A16 reference can
+  exist). GPU 9 (L4) carries the L0 leg and is not touched.
+- **Expected pre-registered fallback on record:** on the L4 the MAP stage will
+  OOM at n_samples=500 (28.1 GiB request, measured) and proceed at the
+  documented 256 fallback (13.85 GiB, fits) — this is the checkpoint's own
+  halving rule, billed at actuals in the cell json (oom_fallbacks field), not
+  a new setting. SVI 250 and HMC 50 chains are expected to fit unchanged.
+- **Detachment discipline:** one driver script 22_run_b3_lanes.sh chains all
+  8 runs; launched via nohup + setsid (survives parent exit, reparented to
+  PID 1, verified at launch); logs data/b3_lane2_sys<i>_<arm>.log; driver PID
+  in data/b3_lane2_driver.pid; phoenix watchdog entry (max_run_h 20,
+  expect_artifact data/b3_cells.json). Budget fence per arm enforced as
+  timeout 18000 s (= the pre-registered 5 h L4 kill criterion).
+- **Harvest:** 22_harvest_b3.py (supersedes 22_run_b3_harvest.py — cell tags
+  now l4-8, cross-device section dropped) runs AFTER the driver finishes
+  (figs first, then gates — house rule); it writes data/b3_cells.json.
+- **Budget outlook:** expected ~9–21 GPU-h on the L4 (ref 1–3.5 h + smc
+  1.1–1.7 h per system), within the 40 GPU-h front cap; worst case bounded by
+  8 × 5 h = 40 h wall via the per-arm fence, watchdog alarm at 20 h.
