@@ -32,16 +32,17 @@ Plan of record: `plans/PLAN.md` (approved 2026-07-15). Their-format handoffs: `p
 | 2026-07-16 | **P1 T0.2/T0.3 actuals harvested**: 2.21 A100-h vs 9.0 est (shared-QOS single-GPU; sacct -X Elapsed × 1 GPU, AllocTRES gres/gpu=1 each) | P1 | — | 2.21 total | 2.21 actual + 8.0 T1.1 est |
 | 2026-07-15 | 55958518 cgl2-t11-i3 **T1.1 inj3 resubmit** of 55952482 (SMC-only via SKIP_PREP=1, reuses the COMPLETED production prep npz on $PSCRATCH; fix = `-C gpu&hbm80g` pin + PYTHONUNBUFFERED=1, NO numerics change; slurm/t11_inj3.slurm) | T1.1 (D7) | 2.0 | 0.43 (COMPLETED 00:25:47, nid008193; SKIP_PREP=1) | 2.21 + 1.49 (failed 55952482) actual + 6.0 T1.1 est outstanding + 2.0 resubmit est |
 | 2026-07-15 | **T1.1 actuals harvested**: 7.80 A100-h vs 10.0 est (1.89 + 2.00 + 1.49 FAILED + 1.99 + 0.43; sacct -X Elapsed × 1 GPU each) | T1.1 (D7) | — | 7.80 total | **10.01 actual** (2.21 P1 + 7.80 T1.1) of 100 h cap |
-| 2026-07-16 | 55980038 cgl2-deploy-verify (P2 Path-A deploy verify: md5 audit + 00_env_check + 01_parity_scene NATIVE gate battery under the new cgl2-pm venv, slurm/deploy_f8_verify.slurm; plain `-C gpu`, 30-min cap, shared 1×GPU) | P2 deploy | 0.2 | pending | 10.01 actual + 0.2 est |
-| 2026-07-16 | 55985444 cgl2-b1-s1-s2 (B1 carousel33 S1 prior-seeded MAMS-SMC N=512 seed 2, mock stand-in DECLARED, chunk 32/fwd 64, slurm/p2_b1_s1_seed2.slurm) | P2 B1 | 2.5 | pending | 10.01 + 2.7 est |
-| 2026-07-16 | 55985445 cgl2-b1-s1-s3 (B1 carousel33 S1 seed 3, ditto, slurm/p2_b1_s1_seed3.slurm) | P2 B1 | 2.5 | pending | 10.01 + 5.2 est |
-| 2026-07-16 | 55985446 cgl2-b1-s6b (B1 carousel33 S6b MAP-multistart-billed + ensemble-preconditioned MAMS-alone λ=1, seed 2, slurm/p2_b1_s6b.slurm) | P2 B1 | 2.0 | pending | 10.01 + 7.2 est |
-| 2026-07-16 | 55985447 cgl2-b2-dspl (B2 dspl20_orig + dspl20_ratio control, S1 N=512 seed 2 each, one job, slurm/p2_b2_dspl.slurm) | P2 B2 | 1.5 | pending | 10.01 + 8.7 est |
-| 2026-07-16 | 55985448 cgl2-b4-t2 (B4 T2 foundry_marg46 prior-seeded S1 N=256 f64 seed 2, Path B, slurm/p2_b4_t2.slurm) | P2 B4 | 3.0 | pending | 10.01 + 11.7 est |
-| 2026-07-16 | 55985449 cgl2-b5-s1 (B5 T3 foundry_v3b74 per-basin S1 MAMS low@128 + steep@96, f32, seed 2, Path B, slurm/p2_b5_s1.slurm) | P2 B5 | 3.0 | pending | 10.01 + 14.7 est |
-| 2026-07-16 | 55985450 cgl2-b5-s2 (B5-G3 T3 low@128 S2 MCLMC-mutation diagnostic arm, f32, seed 2, Path B, slurm/p2_b5_s2_mclmc.slurm) | P2 B5 | 1.5 | pending | 10.01 + 16.2 est |
-| 2026-07-16 | 55985451 cgl2-l0g2 (P3 L0-G2 scene-API v3b CORRELATED per-basin refit low@128 + steep@96, production-recipe mirror, seed 2, slurm/p3_l0g2.slurm) | P3 L0 | 2.0 | pending | 10.01 + 18.2 est |
-| 2026-07-16 | 56004205 cgl2-l0arb (P3-L0 anchor arbitration FRESH Perlmutter run per the pre-registered fallback: `10_anchor_arbitration.py run` UNCHANGED, v2d diagonal scene-API target, MC-SMC MAMS prior-seeded, seed 2, N=128 via the documented L0_N_OVERRIDE fallback ladder; wall-cap 3.5 h inside -t 04:00; plain `-C gpu` on purpose (~93 MB/particle grad ⇒ ~12 GB — don't burn hbm80g); slurm/p3_l0arb.slurm) | P3 L0 | 2.5 | pending | 10.01 + 20.7 est |
+| 2026-07-16 | 55980038 cgl2-deploy-verify (P2 Path-A deploy verify: md5 audit + 00_env_check + 01_parity_scene NATIVE gate battery under the new cgl2-pm venv, slurm/deploy_f8_verify.slurm; plain `-C gpu`, 30-min cap, shared 1×GPU) | P2 deploy | 0.2 | 0.04 (COMPLETED 00:02:22; F8 PASS) | 10.05 actual |
+| 2026-07-16 | 55985444 cgl2-b1-s1-s2 (B1 carousel33 S1 prior-seeded MAMS-SMC N=512 seed 2, mock stand-in DECLARED, chunk 32/fwd 64, slurm/p2_b1_s1_seed2.slurm) | P2 B1 | 2.5 | 4.01 (**TIMEOUT** 04:00:18 — ZERO artifacts; ~5–8 of ~60+ stages, post-mortem below) | 14.06 actual |
+| 2026-07-16 | 55985445 cgl2-b1-s1-s3 (B1 carousel33 S1 seed 3, ditto, slurm/p2_b1_s1_seed3.slurm) | P2 B1 | 2.5 | 4.01 (**TIMEOUT** 04:00:23 — ZERO artifacts) | 18.06 actual |
+| 2026-07-16 | 55985446 cgl2-b1-s6b (B1 carousel33 S6b MAP-multistart-billed + ensemble-preconditioned MAMS-alone λ=1, seed 2, slurm/p2_b1_s6b.slurm) | P2 B1 | 2.0 | 3.01 (**TIMEOUT** 03:00:26 — ZERO artifacts; MAP done 302 s, <20 of 150 MAMS rounds) | 21.07 actual |
+| 2026-07-16 | 55985447 cgl2-b2-dspl (B2 dspl20_orig + dspl20_ratio control, S1 N=512 seed 2 each, one job, slurm/p2_b2_dspl.slurm) | P2 B2 | 1.5 | 2.51 (**TIMEOUT** 02:30:33 — orig arm COMPLETED+wrote at +68 min; ratio control arm lost at 79 min mid-SMC) | 23.58 actual |
+| 2026-07-16 | 55985448 cgl2-b4-t2 (B4 T2 foundry_marg46 prior-seeded S1 N=256 f64 seed 2, Path B, slurm/p2_b4_t2.slurm) | P2 B4 | 3.0 | 3.51 (**TIMEOUT** 03:30:27 — ZERO artifacts; log shows build+warmup only, zero stage observability) | 27.09 actual |
+| 2026-07-16 | 55985449 cgl2-b5-s1 (B5 T3 foundry_v3b74 per-basin S1 MAMS low@128 + steep@96, f32, seed 2, Path B, slurm/p2_b5_s1.slurm) | P2 B5 | 3.0 | 1.02 (**FAILED** 01:01:12 — INFRA-FAIL: low leg reached λ=1 then lost everything to the 24_run_p2_oldstack.py writer defect; steep leg never ran) | 28.11 actual |
+| 2026-07-16 | 55985450 cgl2-b5-s2 (B5-G3 T3 low@128 S2 MCLMC-mutation diagnostic arm, f32, seed 2, Path B, slurm/p2_b5_s2_mclmc.slurm) | P2 B5 | 1.5 | 0.64 (**FAILED** 00:38:10 — same writer defect, λ=1 reached, artifacts lost) | 28.74 actual |
+| 2026-07-16 | 55985451 cgl2-l0g2 (P3 L0-G2 scene-API v3b CORRELATED per-basin refit low@128 + steep@96, production-recipe mirror, seed 2, slurm/p3_l0g2.slurm) | P3 L0 | 2.0 | 0.53 (COMPLETED 00:31:37; harvested + gate PASSED by orchestrator, commit 1993cc6) | 29.27 actual |
+| 2026-07-16 | 56004205 cgl2-l0arb (P3-L0 anchor arbitration FRESH Perlmutter run per the pre-registered fallback: `10_anchor_arbitration.py run` UNCHANGED, v2d diagonal scene-API target, MC-SMC MAMS prior-seeded, seed 2, N=128 via the documented L0_N_OVERRIDE fallback ladder; wall-cap 3.5 h inside -t 04:00; plain `-C gpu` on purpose (~93 MB/particle grad ⇒ ~12 GB — don't burn hbm80g); slurm/p3_l0arb.slurm) | P3 L0 | 2.5 | 0.01 (**FAILED** 00:00:24 — require_vendor_ref path-identity trip in the $PSCRATCH-copy execution pattern; ops note in the 2026-07-16 harvest stage-log entry, diagnosis/resubmit owed by the P3 front) | 29.27 actual + resubmit est TBD (P3) |
+| 2026-07-16 | **P2 WAVE-1 ACTUALS HARVESTED (sacct -X, Elapsed × 1 A100 each):** deploy 0.04 + wave jobs 4.01+4.01+3.01+2.51+3.51+1.02+0.64 = **18.73 P2-phase actual of the 24 cap (headroom 5.27)**; of the wave's 18.69 h, only the B2-orig arm's 1.12 h produced readable science (94% zero-artifact burn — REAL spend, counted). Campaign total **29.27 actual of 100** (P1 2.21 + T1.1 7.80 + P2 18.73 + P3 0.53 l0g2 + 0.01 l0arb); ~70.7 h remain campaign-wide. Post-mortem + costed rerun matrix: research/p2_wave1_postmortem_redesign.md (NOTHING resubmitted this session) | P2 | — | 18.73 P2 total | **29.27 actual** of 100 |
 
 ## Gate record
 
@@ -69,6 +70,11 @@ Plan of record: `plans/PLAN.md` (approved 2026-07-15). Their-format handoffs: `p
 | T0.4-1 | per-block kernel homogeneity (stationarity of the noise-model class) | 2σ blockwise + calibrated p | **REJECTED** — money product v3b max\|z\|=3.67, calibrated p=0.010; arc-excluded v3 p=0.010; replicated spatial pattern; observed cross-block ρ(0,1) spread 16.4× the drizzle-registration envelope. **The stationary kernel class behind γ=1.103 is provably violated by the field.** Verifier CLEAN (all z/p recomputed exactly; power check confirms informative nulls). | data/t04_stationarity*.json, figs/t04_stationarity_*.png, research/t04_free_checks.md |
 | T0.4-2 | λ-arm: does spectrum-flooring cure the fine-low gaming? | ordering table w/ per-λ exact log\|C\| | **NO — "information-discard-at-spectral-zeros" FALSIFIED**; data reject flooring by 3.3k–33k nats; pathology localized to down-weighting of high-S large-scale modes (the w_b≈0.27 background component — exactly the nonstationary component of T0.4-1). Production s_floor=0.05 confirmed (plan's "0.1" corrected); production taps reproduced to 1e-9. Verifier CLEAN (per-λ Szegő anchors verified — no shared constant). | data/t04_lambda_arm.json, figs/t04_lambda_arm.png |
 | T0.4-3 | real-space head-to-head on the SAME v3b pixels | report-only ordering | Binned data in real space prefers **γ≈1.29** (diag-low, χ²_pp 1.58) over BOTH the anchor 1.433 (7.44) and corr-low 1.103 (8.32); the production whitened metric INVERTS this (+501 nats for corr-low). Corr-low's residual = smooth lens-center misfit (same currency as fine-low gaming). Anchor's full-field number carries a cross-product resolution handicap (honest caveat). | data/t04_realspace_headtohead.json, figs/t04_headtohead_residuals.png |
+| L0-G2 | scene-API v3b-low CORRELATED refit reproduces the money number + logZ sign (P3 license for X1-class real-lens claims) | \|γ−1.1032\| ≤ 0.017 AND ΔlogZ(steep−low) < 0 | **PASS** (job 55985451, 31 min; harvested + gate-evaluated by the ORCHESTRATOR, commit 1993cc6; row recorded here at the wave harvest): γ_low = 1.1005 [1.0992, 1.1065], Δ = 0.0027 ≤ 0.017; logZ_low = −4770.97 vs old-stack production −4771.08 (0.11 nats across stacks/machines); ΔlogZ(steep−low) = −29.36, sign + magnitude in the P1 seed family (−28.9/−32.3/−31.2). CorrelatedImageData port LICENSED; γ=1.103 reproduced on two independent stacks | data/results-perlmutter/l0g2_v3b_scene_seed2.{json,npz} |
+| B2 | prior-seeded S1 in ORIGINAL pathological (Om0,w0)+NormalCDF coords recovers their pre-registered arm mass; control dspl20_ratio reproduces Run A r2 ≈ N(1.32417, 6.7e-4) | \|m̂(Om0<0.146) − 0.103\| ≤ 0.045 | **ORIG ARM EVALUATED — m̂ = 0.000 (0/512 particles; 95% rule-of-three < 0.006), OUTSIDE the band ⇒ FAIL AS WRITTEN / CONTROL ARM PENDING-RERUN** (job 55985447 TIMEOUT cut the in-job ratio arm at 79 min mid-SMC). Interpretation PENDING-CONTROL per the pre-registered falsifier (fires only if the control passes on the same data): sampler mode-death vs realization-difference (their 0.103 was measured on THEIR unreproducible realization) undecidable until the control lands. Posterior in ORIGINAL coords: Om0 med 0.470 [0.352, 0.515] eqw (truth 0.3); logZ = 17294.01 ± 0.25 (recorded for repeatability context). SMC sanity CLEAN: λ=1 at 64 stages, min unique 358 ≥ N/4=128 (no resample collapse — if the minor arm died it died by weight decay, not collapse), final incr-ESS 486/512, accept 0.80–0.94. Harvest recompute cross-check vs saved readout max\|d\| = 5.6e-17 | data/b2_gate_eval.json, figs/b2_om0_posterior.png, data/results-perlmutter/b2_dspl20_orig_s1_seed2.{npz,json}, 26_harvest_b2.py |
+| B5 (G1/G2/G3) | both basins at λ=1; mode weight within binomial of P2c; basin ΔlogZ within 3·√(σ_boot²+1.79²) (floor 5.36); G3 MCLMC distortion 1.5–3× | PLAN §6 B5 + finalized σ row | **INFRA-FAIL ×2 — gates NOT EVALUATED, science NOT falsified** (jobs 55985449/50): both runs REACHED λ=1 (structural proof: the crash site is downstream of the driver return, and the driver raises if λ<1) then lost ALL artifacts to a runner writer defect — `TypeError: dict() got multiple values for keyword 'kernel'` at 24_run_p2_oldstack.py:205 (`res.pop("kernel")` missing; runner 23 pops it, which is why B2-orig wrote). NOT OOM/import/data (md5 PASS, build 68 s, warmup logp finite, hbm80g held). Measured completion: low-MAMS λ=1 at ~55 min, MCLMC at ~36 min ⇒ rerun after the one-line fix est 1.9 + 0.65 h | data/results-perlmutter/b5_*_run.log, slurm-55985449/50.out, research/p2_wave1_postmortem_redesign.md |
+| B1 (mock arms) | self-consistency / logZ repeatability / efficiency vs S6b / cold-start | PLAN §6 B1 | **NOT EVALUABLE — all 3 arms TIMEOUT with ZERO artifacts (11.02 A100-h)**: runner writes only at λ=1 and prints no stage progress (RC1); est-hours were calibrated on the old-stack v3b class, not scene N=512 carousel (RC2). Measured anchors: S6b MAP 302 s, round 0 ≈ 25 min, <20/150 rounds in 2.48 h ⇒ S6b true cost ≈ 17–20 h; S1@N=512 ≈ 25–40 h/arm (the 4-h walls bought ~5–8 early stages, λ ≲ 1e-4). Mock arms will NOT be resubmitted (real data landed — B1-REAL-DATA-LANDED amendment); B1-real needs the checkpoint retrofit + a cap decision (rerun matrix in the redesign doc) | data/results-perlmutter/b1_*_run.log, slurm-55985444/45/46.out, research/p2_wave1_postmortem_redesign.md |
+| B4 | prior-seeded S1 replaces the two-stage recipe on cond~1e14: worst-param \|z\|<3 vs P2c ref; ESS ≥ 0.3N | PLAN §6 B4 | **NOT EVALUABLE — TIMEOUT 03:30:27, ZERO artifacts, ZERO stage observability** (log: build 78 s + finite warmup, then silence — RC1). True cost at N=256 unknown, lower-bounded at 3.5 h. CARRIED DEFECT: B4 runs the SAME writer code path as B5 — even on completion it could not have written artifacts; the one-line fix is a precondition for ANY B4 resubmission. Two-stage-seeded variant flagged OFF-PROTOCOL (answers a different hypothesis; would need pre-registration as a NEW arm B4b) | data/results-perlmutter/b4_marg46_s1_seed2_run.log, slurm-55985448.out, research/p2_wave1_postmortem_redesign.md |
 
 **P1 synthesis (2026-07-15): one mechanism spans T0.4-1/2/3 + X1-G0** — a NONSTATIONARY
 correlated-background component priced as stationary lets the whitened metric discount
@@ -122,6 +128,81 @@ downstream ΔlogZ gate, as planned).
 - sshproxy refreshed 2026-07-15 (user). Jobs charge `cosmo_g` (D5), single-GPU shared QOS.
 
 ## Stage log (newest first)
+
+### 2026-07-16 (P2 wave-1 harvest + post-mortem) — B2-orig gate evaluated (m̂=0.000, FAIL-as-written / control PENDING-RERUN); B5 = INFRA-FAIL (one-line writer defect, science completed and was lost); B1/B4 TIMEOUT class post-mortem; ledger actuals filled (P2 18.73/24, campaign 29.27/100); redesign PROPOSED not executed
+
+- **Harvest ops:** sacct -X actuals for all 9 wave-adjacent jobs in the ledger
+  (rows updated above); pulled to data/results-perlmutter/: the completed B2-orig
+  npz+json, all B1/B2/B4/B5 run logs from $PSCRATCH, slurm-5598544*.out +
+  slurm-56004205.out. Timezone note: slurm CANCELLED stamps are UTC; run-log
+  mtimes PT (used together to reconstruct per-leg timings below).
+- **B2 readout (gate row above; plot inspected BEFORE gate math,
+  figs/b2_om0_posterior.png; plot and numbers agree):** the ORIGINAL-coords arm
+  finished healthy (λ=1 in 64 stages, min unique 358, no collapse) but puts
+  ZERO of 512 equal-weight particles below the Om0=0.146 arm split: m̂ = 0.000
+  vs the pre-registered band 0.103±0.045 ⇒ outside the band. The posterior sits
+  entirely in the upper arm (Om0 med 0.470 [0.352,0.515]; truth 0.3;
+  logZ 17294.01±0.25). Because job 55985447's wall killed the in-job
+  dspl20_ratio control at 79 min mid-SMC, the pre-registered falsifier ("orig
+  outside WHILE control passes") is NOT yet decidable — mode-death vs
+  fresh-realization-difference stays open until the control reruns on the same
+  seeded recipe. Extraction: 26_harvest_b2.py (cgl2 venv, CPU, BIJECTOR ONLY;
+  authoritative recompute from z via the deterministic builder; saved readout
+  cross-check 5.6e-17). Numbers: data/b2_gate_eval.json.
+- **B5 root cause (from the run logs, not a hypothesis):** both jobs died at
+  the artifact write — `TypeError: dict() got multiple values for keyword
+  argument 'kernel'` (24_run_p2_oldstack.py:205 builds the summary dict with
+  `kernel=kern.name` AND `**res` without popping res['kernel'];
+  23_run_p2_scene.py pops it — B2-orig wrote fine). INFRASTRUCTURE failure:
+  both SMC runs completed (λ=1 + bootstrap done — the crash is after the
+  driver return), then everything was lost. Low-MAMS ~55 min, MCLMC ~36 min,
+  both healthy to the end (build 68 s, warmup finite, hbm80g held). The steep
+  leg of 55985449 never ran (set -e). B4 shares this code path — its rerun
+  requires the fix regardless of wall/N.
+- **B1/B4 timeout post-mortem (RC1 + RC2, research/p2_wave1_postmortem_redesign.md
+  §2):** RC1 = no progress checkpoint/print in the runners (the frozen driver
+  is write-only-at-λ=1), so 11.02 h (B1) + 3.51 h (B4) burned with zero
+  artifacts AND zero observability. RC2 = est rows calibrated on the old-stack
+  v3b class; the scene class is ~10–30× heavier. Measured anchors: B2 (the
+  cheapest scene cell) = 64 stages × 62 s at N=512; B1-s6b MAP 302 s + round 0
+  ≈ 25 min + <20/150 rounds in 2.48 h ⇒ ≥7 min/round ⇒ S6b ≈ 17–20 h true
+  cost, S1@N=512 ≈ 25–40 h/arm (4-h walls ≈ 5–8 stages, λ ≲ 1e-4); B4 true
+  cost unknown (>3.5 h at N=256, no stage evidence exists). The wave's 18.69 h
+  bought exactly 1.12 h of readable science (B2-orig) — 94% zero-artifact burn.
+- **Budget statement (plain):** P2 = 18.73 of 24 ⇒ **5.27 h headroom**; the
+  B5 rerun (est 2.55) + B2-control rerun (est 2.3) alone ≈ fill it (worst-case
+  walls 6.5 h would breach by ~1.2). **No B1-real or B4 arm fits the standing
+  P2 cap at any N** — every such option needs an orchestrator/user cap
+  decision (campaign-wide affordability exists: 29.27 of 100 used). Full
+  costed matrix incl. N-reduction ladders, the S6b problem (its 17–20 h cost
+  is N-independent), and the OFF-PROTOCOL two-stage-seeded B4 flag:
+  research/p2_wave1_postmortem_redesign.md §5.
+- **Redesign PROPOSED (not executed):** (a) transplant the accepted
+  10_anchor_arbitration.py pattern into 23_run_p2_scene.py (delegating
+  LoggingKernel: per-stage z checkpoint + progress print + wall-cap exit-3
+  PARTIAL protocol; + weight-step ll recording through the existing
+  keyword-only loglik_batch_fn seam so resumed runs keep full logZ/bootstrap —
+  B1's ≤2-nat logZ gate needs that); mirror into 24_run_p2_oldstack.py for B4;
+  (b) the RC3 one-liner (`res.pop("kernel")`); (c) ops rules: pilot-first est
+  calibration on new target classes; ledger est := wall for non-checkpointed
+  jobs; runner write-path smoke test (the 54-test suite covers the driver,
+  not runner summary assembly — the gap RC3 lived in). NOTHING submitted, no
+  code changed, no est rows appended this session.
+- **Observed in passing (P3 front's cell, diagnosis owed there):** 56004205
+  l0arb FAILED in 24 s — guards.require_vendor_ref raised because `import
+  gigalens` resolved to the CFS campaign vendor (the cgl2-pm venv's editable
+  install) while the job executed from the audited $PSCRATCH tree copy
+  (deploy.md5 215/215 PASSED in that copy); a path-identity trip of the
+  copy-tree execution pattern, not a wrong-code import (both trees are
+  audit-identical). Actual 0.01 h ledgered; registration LEFT IN PLACE as the
+  P3 front's reminder.
+- **Housekeeping:** watchdog registrations 55985444–451 deregistered (all
+  terminal, harvested/diagnosed here); 56004205 + phoenix 273079 left;
+  data/WATCHDOG_ALERT deleted after triage (9 alerts = exactly this harvest's
+  designed reminders + the l0arb failure, all triaged above); heartbeat
+  touched. L0-G2 gate row + 55985451 actual folded into this ledger (numbers
+  were previously only in commit 1993cc6's message). NOT committed (house
+  rule: user commits); NOTHING submitted.
 
 ### 2026-07-16 (late) — P3-L0 ANCHOR ARBITRATION: phoenix L4 leg wall-capped at λ=0.418 PER PROTOCOL (not a failure); FRESH Perlmutter run 56004205 submitted per the pre-registered fallback (est 2.5 A100-h, ledger row above BEFORE results)
 
