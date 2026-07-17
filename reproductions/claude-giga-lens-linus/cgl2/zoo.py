@@ -36,6 +36,7 @@ Module is import-light: jax / gigalens are imported inside builders only.
 from __future__ import annotations
 
 import dataclasses
+import os
 from typing import Callable, Optional
 
 import numpy as np
@@ -570,23 +571,74 @@ def build_dspl20(coords: str = "orig", data_seed: int = 0) -> Target:
 # carousel (sim_carousel): multi-plane MUSE-like system, their hardest
 # ESS-limited target
 # --------------------------------------------------------------------------- #
-def build_carousel33(mock_data_seed: int = 33) -> Target:
+def _carousel_dataset_from_fits(path):
+    """Load one real carousel MUSE cutout, conventions VERBATIM from
+    GIGALens-Code@eb2a09b6 experiments/sim_carousel/_h1h2_diag/
+    build_model.py::dataset_from_dir: observed = DATA (f64), error_map =
+    sqrt(STAT) (f64), psf = PSF (f64), mask = MASK as bool. RAISES on any
+    missing file/extension or non-finite/non-positive noise — never defaults.
+    Returns (img, err, psf, mask, md5)."""
+    import hashlib
+
+    from astropy.io import fits  # in both pinned venvs (cgl2 + cgl2-pm)
+
+    path = str(path)
+    if not os.path.isfile(path):
+        raise FileNotFoundError(f"carousel real cutout missing: {path}")
+    md5 = hashlib.md5(open(path, "rb").read()).hexdigest()
+    with fits.open(path) as hdul:
+        names = [h.name for h in hdul]
+        for ext in ("DATA", "STAT", "PSF", "MASK"):
+            if ext not in names:
+                raise KeyError(f"{path}: FITS extension {ext!r} missing "
+                               f"(have {names})")
+        img = np.asarray(hdul["DATA"].data, dtype=np.float64)
+        stat = np.asarray(hdul["STAT"].data, dtype=np.float64)
+        psf = np.asarray(hdul["PSF"].data, dtype=np.float64)
+        mask = np.asarray(hdul["MASK"].data).astype(bool)
+    if img.shape != (300, 300) or stat.shape != img.shape \
+            or mask.shape != img.shape:
+        raise ValueError(f"{path}: unexpected shapes img={img.shape} "
+                         f"stat={stat.shape} mask={mask.shape} "
+                         "(carousel convention is 300x300)")
+    if not np.all(np.isfinite(img)):
+        raise ValueError(f"{path}: non-finite DATA pixels")
+    if not (np.all(np.isfinite(stat)) and np.all(stat > 0)):
+        raise ValueError(f"{path}: STAT must be finite and positive "
+                         "(err = sqrt(STAT))")
+    if not (np.all(np.isfinite(psf)) and psf.ndim == 2):
+        raise ValueError(f"{path}: bad PSF extension")
+    if not mask.any():
+        raise ValueError(f"{path}: MASK keeps zero pixels")
+    return img, np.sqrt(stat), psf, mask, md5
+
+
+def build_carousel33(mock_data_seed: int = 33,
+                     data_dir: Optional[str] = None) -> Target:
     """Carousel scene model, replicated verbatim from GIGALens-Code@eb2a09b6
     experiments/sim_carousel/_h1h2_diag/build_model.py (itself 'EXACTLY as
     prelim_sim_carousel.ipynb cells 0-8'): 3 planes (z=0.49 mass: NFW_ELLIPSE +
     2x EPL + shear; z=1.432 light: Shapelets n_max=8 + n_max=6; z=1.506 light:
     SersicEllipse), wCDM cosmology fixed, lstsq amplitudes.
 
-    DATA BLOCKED: their MUSE cutouts (newnewcutouts/source4-5.fits, source9.fits
-    + STAT/PSF/MASK extensions) are ABSENT from the local GIGALens-Code mirror
-    (they live on Perlmutter under
-    /global/u1/l/linusu/GIGALens-Code/experiments/sim_carousel/newnewcutouts/).
-    This builder substitutes a SEEDED MOCK: unit-amplitude render of the model
-    at a prior draw (PRNGKey(mock_data_seed)), Gaussian PSF stand-in
-    (FWHM 3 pix), constant error map sigma = 0.05*max(img), all-true mask.
-    The POSTERIOR GEOMETRY IS THEREFORE NOT THEIRS -- valid for the B0
-    adapter-parity gate and machinery smoke only; the P2 B1 benchmark cell
-    requires the real cutouts (transfer = the precise missing piece)."""
+    DATA — two modes, selected by `data_dir` (argument, else env
+    CGL2_CAROUSEL_DATA; B1-real extension 2026-07-16):
+
+    REAL (data_dir set): loads the team's MUSE cutouts
+    ``<data_dir>/source4-5.fits`` + ``<data_dir>/source9.fits``
+    (DATA/STAT/PSF/MASK extensions, conventions verbatim from their
+    build_model.py::dataset_from_dir: err = sqrt(STAT), per-dataset PSF
+    kernel, bool mask). RAISE-NEVER-DEFAULT: any missing/ill-formed input
+    raises — this path NEVER falls back to the mock. FITS md5s recorded in
+    meta. The data are the team's UNPUBLISHED cutouts: results to the team
+    first, publication sign-off-gated (D4/D6).
+
+    MOCK (default, unchanged code path — the declared stand-in of the
+    RUNNING B1 mock arms): unit-amplitude render of the model at a prior
+    draw (PRNGKey(mock_data_seed)), Gaussian PSF stand-in (FWHM 3 pix),
+    constant error map sigma = 0.05*max(img), all-true mask. The POSTERIOR
+    GEOMETRY IS THEREFORE NOT THEIRS -- valid for the B0 adapter-parity gate
+    and machinery smoke only."""
     import jax
     import jax.numpy as jnp
     import tensorflow_probability.substrates.jax as tfp
@@ -648,7 +700,50 @@ def build_carousel33(mock_data_seed: int = 33) -> Target:
         Plane(redshift=z9, light=[src9]),
     ], cosmo=cosmo)
 
-    # -- MOCK data stand-in (see docstring; their FITS are BLOCKED) -----------------
+    # -- data: REAL cutouts if requested (raise-never-default), else MOCK -----------
+    if data_dir is None:
+        data_dir = os.environ.get("CGL2_CAROUSEL_DATA") or None
+
+    if data_dir is not None:
+        # REAL DATA path (B1-real, 2026-07-16). Conventions verbatim from their
+        # build_model.py::ds(): per-dataset SimulatorConfig with the FITS PSF,
+        # delta_pix=0.2, num_pix=300, ss=1, likelihood f64 / conv f32.
+        img45, err45, psf45, mask45, md5_45 = _carousel_dataset_from_fits(
+            os.path.join(str(data_dir), "source4-5.fits"))
+        img9, err9, psf9, mask9, md5_9 = _carousel_dataset_from_fits(
+            os.path.join(str(data_dir), "source9.fits"))
+
+        def _cfg(psf):
+            return SimulatorConfig(delta_pix=0.2, num_pix=300, supersample=1,
+                                   kernel=psf, likelihood_precision="float64",
+                                   conv_precision="float32")
+
+        d4_5 = ImageData(img45, _cfg(psf45), error_map=err45, mask=mask45,
+                         sees=[src4, src5])
+        d9 = ImageData(img9, _cfg(psf9), error_map=err9, mask=mask9,
+                       sees=[src9])
+        pm = ProbModel(model, [d4_5, d9], mode="lstsq")
+        return _wrap_prob_model(
+            "carousel33", pm,
+            provenance=(
+                f"scene-API replication of GIGALens-Code@{GIGALENS_CODE_COMMIT} "
+                "experiments/sim_carousel/_h1h2_diag/build_model.py (model "
+                "components/planes/cosmo VERBATIM; delta_pix=0.2 num_pix=300 "
+                "ss=1 lstsq, likelihood f64 / conv f32). DATA = REAL team MUSE "
+                f"cutouts from {data_dir}: source4-5.fits (md5 {md5_45}) + "
+                f"source9.fits (md5 {md5_9}), DATA/STAT/PSF/MASK conventions "
+                "verbatim (err=sqrt(STAT), FITS PSF per dataset, bool mask). "
+                "UNPUBLISHED team data (D4/D6: results to the team first, "
+                "sign-off-gated). Substrate: vendored gigalens-linus "
+                "@80916d2. UNCERTIFIED (external)."),
+            meta=dict(tier="scene", system="carousel",
+                      data="REAL team MUSE cutouts (newnewcutouts)",
+                      data_dir=str(data_dir),
+                      fits_md5=dict({"source4-5.fits": md5_45,
+                                     "source9.fits": md5_9})),
+        )
+
+    # -- MOCK data stand-in (unchanged; the declared B1 mock-arm record) ------------
     psf = _gaussian_psf_kernel(3.0, 7)   # stand-in for the MUSE PSF extension
     cfg = SimulatorConfig(delta_pix=0.2, num_pix=300, supersample=1, kernel=psf,
                           likelihood_precision="float64",

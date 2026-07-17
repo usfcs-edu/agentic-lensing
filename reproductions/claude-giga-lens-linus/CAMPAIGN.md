@@ -41,6 +41,7 @@ Plan of record: `plans/PLAN.md` (approved 2026-07-15). Their-format handoffs: `p
 | 2026-07-16 | 55985449 cgl2-b5-s1 (B5 T3 foundry_v3b74 per-basin S1 MAMS low@128 + steep@96, f32, seed 2, Path B, slurm/p2_b5_s1.slurm) | P2 B5 | 3.0 | pending | 10.01 + 14.7 est |
 | 2026-07-16 | 55985450 cgl2-b5-s2 (B5-G3 T3 low@128 S2 MCLMC-mutation diagnostic arm, f32, seed 2, Path B, slurm/p2_b5_s2_mclmc.slurm) | P2 B5 | 1.5 | pending | 10.01 + 16.2 est |
 | 2026-07-16 | 55985451 cgl2-l0g2 (P3 L0-G2 scene-API v3b CORRELATED per-basin refit low@128 + steep@96, production-recipe mirror, seed 2, slurm/p3_l0g2.slurm) | P3 L0 | 2.0 | pending | 10.01 + 18.2 est |
+| 2026-07-16 | 56004205 cgl2-l0arb (P3-L0 anchor arbitration FRESH Perlmutter run per the pre-registered fallback: `10_anchor_arbitration.py run` UNCHANGED, v2d diagonal scene-API target, MC-SMC MAMS prior-seeded, seed 2, N=128 via the documented L0_N_OVERRIDE fallback ladder; wall-cap 3.5 h inside -t 04:00; plain `-C gpu` on purpose (~93 MB/particle grad ⇒ ~12 GB — don't burn hbm80g); slurm/p3_l0arb.slurm) | P3 L0 | 2.5 | pending | 10.01 + 20.7 est |
 
 ## Gate record
 
@@ -122,7 +123,148 @@ downstream ΔlogZ gate, as planned).
 
 ## Stage log (newest first)
 
-### 2026-07-16 — P2 BENCHMARK WAVE: design checkpoints (B1/B2/B4/B5 + P3 L0-G2), written BEFORE submission (this session submits all cells; ops rules = the P1 pattern)
+### 2026-07-16 (late) — P3-L0 ANCHOR ARBITRATION: phoenix L4 leg wall-capped at λ=0.418 PER PROTOCOL (not a failure); FRESH Perlmutter run 56004205 submitted per the pre-registered fallback (est 2.5 A100-h, ledger row above BEFORE results)
+
+- **L4 completion-leg outcome (data/l0_arbitration_smc.json, status
+  PARTIAL_WALL_CAP):** leg 3 (resumed from stage 26) ran stages 27–67 and hit its
+  pre-registered 12 h wall cap (wall_h_resume_leg 12.26) at λ_reached = 0.4183,
+  N=64, seed 2. This is the runtime protocol executing AS WRITTEN
+  (research/checkpoints_l0.md: "On cap: keep the newest per-stage particle
+  checkpoint, report lambda_reached + PARTIAL posterior, NO gate math on a
+  non-λ=1 ensemble") — sampler health through stage 67 stayed clean (accept
+  0.85–0.94 in the endgame; NO γ numbers read). The L4 f64 endgame cost
+  ~20–26 min/stage (t_tune+t_mutate 1222–1573 s over stages 65–67), so λ→1 was
+  out of reach in any sane L4 envelope — a device-class finding, not a sampler
+  one.
+- **Checkpoints RETAINED as cross-check (68 files, stage_000–067,
+  data/l0_smc_checkpoints/):** md5 stage_000 0a9c9638258e78d7509c039a535273e3,
+  stage_026 74d9bb41fc84bf7f673e61dc46e9509c, stage_067
+  5128615550e840e9c5b3fa391b3cb330 (z (64,46), λ=0.4501, eps 0.0934, n_int 64);
+  aggregate digest (md5 of the sorted 68-line per-file md5 list)
+  e7ca59d48fba2e975c4fc81f1678094c. Any future λ≤0.45 diagnostic can be
+  cross-checked against these ensembles.
+- **Fresh Perlmutter run (Front B's pre-registered fallback) SUBMITTED:
+  job 56004205** (cosmo_g shared QOS, 1×A100, -t 04:00, plain `-C gpu` on
+  purpose — the L4-measured ~93 MB/particle irreducible v2d diag grad tape ⇒
+  N=128 ≈ 12 GB, hbm80g not wasted). Protocol REUSED EXACTLY:
+  `10_anchor_arbitration.py run` (frozen per-λ tuning, MC-SMC MAMS,
+  PRIOR-SEEDED, seed 2, thresholds/bands UNCHANGED: dominant-basin γ median
+  within 2σ_comb of 1.433 [1.400,1.468] + 68% overlap; falsifier disjoint);
+  the ONLY deltas are the script's own documented seams — L0_N_OVERRIDE=128
+  (the pre-registered 512→256→128 fallback ladder; campaign-standard SMC
+  count) and device (A100). L0_REMAT stays UNSET (the remat deviation was an
+  L4 memory measure; A100 doesn't need it). L0_WALL_CAP_H=3.5 inside the 4 h
+  walltime so a slow run exits via the same wall-cap protocol
+  (checkpoint + PARTIAL json + exit 3), never a silent slurm kill. NOTE: this
+  is a FRESH run from prior draws (stage `run`, NOT `resume`) — logZ will be
+  quotable again, and the L4 checkpoints stay untouched on phoenix (remote has
+  no l0 checkpoints; the job runs in an audited $PSCRATCH tree copy).
+- **Ops:** job executes from a $PSCRATCH copy of the audited tree
+  (campaign + foundry-i + claude-giga-lens siblings), `md5sum -c deploy.md5`
+  IN THE EXECUTED COPY (215/215; manifest updated this session — see the B1
+  entry below), hot I/O on $PSCRATCH, results copied to CFS
+  results/l0arb/ (json always; npz only on COMPLETE — a PARTIAL run therefore
+  fires the watchdog artifact alert by design). data/l0_sanity_report.json
+  (md5 5569fc1be3a3ae20b54d160abfe13bec, sanity_ok=true from the 2026-07-15
+  phoenix wiring gates S1/S2/S3/S4 — device-independent) staged to CFS
+  campaign/data/ and added to the manifest; stage_run refuses to start
+  without it. Watchdog: 56004205 registered (max_pending 24 h / max_run 4.5 h /
+  expect_artifact CFS results/l0arb/l0_arbitration_smc.npz / on_stall
+  resubmit:p3_l0arb.slurm), heartbeat touched, loop alive (PID 118755).
+  **NO results read this session** (harvest = plots FIRST then the unchanged
+  pre-registered gates via `10_anchor_arbitration.py harvest`). Budget: P3
+  rows now 2.0 (l0g2) + 2.5 (this) = 4.5 est of cap 17. NOT committed (house
+  rule: user commits).
+
+### 2026-07-16 (late) — B1 REAL DATA LANDED: cutouts arrived + builder extended + smoke PASS + staged to CFS; **the 3 real-data arms are STAGED READY BUT NOT SUBMITTED — P2 budget-overflow flag to the orchestrator (never self-authorized)**
+
+- **THE MISSING PIECE ARRIVED:** the team's real MUSE cutouts are now on phoenix
+  at `newnewcutouts/` (gitignored; exactly what the B1 design checkpoint named:
+  source4-5.fits + source9.fits with DATA/STAT/PSF/MASK). linusu's Perlmutter
+  copy remains permission-blocked (re-verified this session). Verified content:
+  300×300 DATA/STAT/MASK + 19×19 PSF (sum=1.000000) per file; STAT strictly
+  positive (min 0.384 / 1.058); masks keep 89350/90000 and 89550/90000; md5
+  source4-5 4a4f7c0216450e0bad49a7f1c9c3b4ea, source9
+  220b5677ffb802f87c9b978a9380eca9. UNPUBLISHED team data: never committed,
+  staged only inside the campaign CFS area (D4/D6 honored — results to the
+  team first).
+- **Builder extension (cgl2/zoo.py, the only code change):**
+  `build_carousel33` gains a REAL-data mode selected by `data_dir` arg or env
+  `CGL2_CAROUSEL_DATA` — loading conventions VERBATIM from
+  GIGALens-Code@eb2a09b6 build_model.py::dataset_from_dir (err = sqrt(STAT),
+  per-dataset FITS PSF kernel, bool mask; delta_pix 0.2, num_pix 300, ss 1,
+  likelihood f64 / conv f32). **RAISE-NEVER-DEFAULT:** once real data is
+  requested, ANY missing/ill-formed input raises (missing file/extension,
+  non-finite DATA, non-positive STAT, empty mask, wrong shapes) — no silent
+  fallback to mock. The MOCK path is byte-for-byte unchanged (the RUNNING…
+  now ended… mock arms stay the declared mock-arm record; registry default
+  still mock). FITS md5s land in target provenance + meta (run jsons carry
+  them). Runner 23_run_p2_scene.py UNTOUCHED (env seam only — the b1r slurm
+  clones differ from the mock arms ONLY in CGL2_CAROUSEL_DATA + names, as
+  tasked).
+- **Phoenix smoke (FREE A16 GPU 0, CUDA_DEVICE_ORDER=PCI_BUS_ID; GPU 8 left to
+  B3, GPU 9 left free for B3 spillover; scratchpad b1r_smoke.py): PASS** —
+  raise-never-default probe raises FileNotFoundError on a bad dir (no mock
+  fallback); real build 2.2 s, dim=32; 8 prior draws (seed 2): logprior /
+  loglik / native ALL finite (loglik range [−363246.04, −347010.02]);
+  **adapter-vs-native ProbModel.log_prob parity max|d| = 0.0** — the same
+  exact-zero the mock pre-flight recorded, now on the real cutouts. (Known
+  cosmetic: tfp WeakStructRef teardown KeyError at exit + the vendor shear
+  plausibility UserWarning — both in-family with the mock arms' logs.)
+- **Staging + audits:** source4-5.fits + source9.fits →
+  CFS `code/campaign/newnewcutouts/` (md5 VERIFIED both sides, values above);
+  updated cgl2/zoo.py, data/l0_sanity_report.json, and 4 new slurm files
+  (p2_b1r_s1_seed2/p2_b1r_s1_seed3/p2_b1r_s6b + p3_l0arb) staged; deploy.md5
+  regenerated to **215 files — self-check PASS locally AND remotely
+  (215/215)**. Every b1r job additionally echoes the cutout md5s at start.
+- **WHY THE 3 REAL ARMS ARE NOT SUBMITTED (deviation from the tasking,
+  declared; the tasking's own overflow clause governs):** the tasking
+  (+7.0 est: S1 seeds 2+3 @2.5 + S6b @2.0, P2 16.2→23.2 of cap 24) assumed the
+  mock arms were healthy and RUNNING. Observed at session start (sacct, ops
+  metadata only — no results read): **all three mock B1 arms hit their
+  walltime — 55985444 TIMEOUT 04:00:18, 55985445 TIMEOUT 04:00:23, 55985446
+  TIMEOUT 03:00:26 — with ZERO artifacts** (23_run_p2_scene.py writes
+  npz/json only at completion; nothing on $PSCRATCH or CFS but run logs).
+  Ops evidence from the logs (health lines only): the s6b log shows MAP done
+  in 302 s but MAMS rounds at >6 min/round ⇒ 150 rounds ≈ **15 h ≫ the 3 h
+  wall**; the s1 logs contain no progress lines at all (stock driver prints
+  only at completion; last write ~17 min in). (Also observed in passing, other
+  fronts' cells, left to their harvests: 55985447/48 TIMEOUT, 55985449/50
+  FAILED, 55985451 l0g2 COMPLETED with artifacts.) Honest arithmetic for
+  same-pin real arms: expected burn = the full walls, 4.0+4.0+3.0 = **11.0
+  A100-h for near-zero artifact probability**, i.e. P2 est 16.2+11.0 = 27.2 >
+  cap 24 — and the mock arms' own actuals (to be harvested) already exceed
+  their est rows. That is an OVERFLOW + redesign decision, which this front
+  is explicitly NOT authorized to make. **Held: no sbatch, no ledger rows
+  (the +7.0 est was NOT appended — rows are appended at submission), mock
+  arms NOT cancelled (they ended on their own walls; their watchdog
+  registrations left in place — the TIMEOUT alerts double as the harvest
+  reminders).**
+- **Ready-to-fire state for the orchestrator:** slurm/p2_b1r_s1_seed2.slurm
+  (md5 c98276fdb76f81620648566c8787f68e), p2_b1r_s1_seed3.slurm
+  (96a03c402b93f48691830efa51053e3f), p2_b1r_s6b.slurm
+  (9b18560645630e07d89484efd4f998a7) — staged on CFS, audit-covered,
+  identical to the mock arms except CGL2_CAROUSEL_DATA + names, each carrying
+  a loud SUBMISSION-HELD header. Decision points flagged (options, not
+  choices): (i) walltime ≥ ~2× S1 / ~5–6× S6b (needs new est rows ⇒ P2 cap
+  decision), (ii) N reduction (leaves the declared N=512 design), (iii) a
+  progress-print/checkpoint retrofit to the runner BEFORE burning more wall
+  (the runner's write-only-at-end behavior is what turned 11 GPU-h into zero
+  artifacts), (iv) rescope B1. The real cutouts + builder + audits will be
+  ready whichever way the call goes.
+- **Comparison-row record (tasked question — are their carousel POSTERIOR
+  artifacts readable in GIGALens-Code?): 'summary-stats only'.** The local
+  mirror's sim_carousel pipeline outputs (messy_tests/*/{map,mams,mclmc,
+  diag_qz}/) contain ONLY manifest.json files: the manifests declare array
+  payloads (e.g. "arrays": ["samples_z"]) but ALL *.npy/*.npz are globally
+  gitignored (GIGALens-Code .gitignore:48–49) and ABSENT from the mirror;
+  file-type census of experiments/sim_carousel = {py, png, json, log, txt,
+  sh, md, ipynb} — no array formats at all. The why_hard_to_sample
+  results_carousel JSONs are percentile/summary tables, not draws. Their
+  Perlmutter originals (linusu home) are permission-blocked. ⇒ The B1
+  comparison row vs their carousel runs can only be built at
+  summary-statistics level unless the team also transfers posterior arrays —
+  recorded as the next precise missing piece for a draw-level comparison.
 
 **Wave scope (tasking of record):** B1 carousel33 (S1 ×2 seeds + S6b), B2 dspl20
 orig+ratio, B4 T2 foundry_marg46, B5 T3 foundry_v3b74 (S1 per-basin + S2 MCLMC arm),

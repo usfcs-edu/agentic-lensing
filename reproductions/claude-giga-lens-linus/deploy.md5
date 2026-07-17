@@ -35,7 +35,7 @@ b253c3979f3394116dbc1d144a585b7f  ./cgl2/samplers/__init__.py
 e552bcaa0418525752780aae2afe5e22  ./cgl2/samplers/smc_micro.py
 af5d0e778f336dd0260b5ceee4603893  ./cgl2/scene_build.py
 8882b8565ad6817fd70001f72de5da06  ./cgl2/whiten.py
-25163ebce3815285415eab29864ae259  ./cgl2/zoo.py
+43fb909fb5d3f080ffec33eedfc78e94  ./cgl2/zoo.py
 df9e3348c00af3e7d83d8d39ab18a9f5  ./tests/conftest.py
 faa498c306891755c7e38ba647a621ed  ./tests/test_correlated_term.py
 92eb953705117910277f28c511445ede  ./tests/test_guards.py
@@ -206,3 +206,10 @@ c0e380f2684c6711f4468b7726929e87  slurm/t03_smc_v3b_low_compmask.slurm
 f9375a74fe40e81d38e083d89d026288  slurm/t11_inj2.slurm
 1e1e32aa7eb94d6a4a6fc8a1ba19bbb5  slurm/t11_inj3.slurm
 4a2bb7f3cd59f88b83d623b79ed3acfd  vendor/gigalens-linus/VENDORED_REF.txt
+4a4f7c0216450e0bad49a7f1c9c3b4ea  newnewcutouts/source4-5.fits
+220b5677ffb802f87c9b978a9380eca9  newnewcutouts/source9.fits
+5569fc1be3a3ae20b54d160abfe13bec  data/l0_sanity_report.json
+c98276fdb76f81620648566c8787f68e  slurm/p2_b1r_s1_seed2.slurm
+96a03c402b93f48691830efa51053e3f  slurm/p2_b1r_s1_seed3.slurm
+9b18560645630e07d89484efd4f998a7  slurm/p2_b1r_s6b.slurm
+3220ab3b443ef271688afe659336876b  slurm/p3_l0arb.slurm
