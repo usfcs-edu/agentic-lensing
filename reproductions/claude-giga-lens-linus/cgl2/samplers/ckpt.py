@@ -66,6 +66,35 @@ class WallCapReached(RuntimeError):
     """Pre-registered wall cap hit AFTER a stage checkpoint was written."""
 
 
+def round_fence_reason(grads_billed: int, wall_s: float,
+                       grad_budget: int | None,
+                       wall_cap_s: float | None) -> str | None:
+    """Round-boundary fence for ROUND-LOOP arms (B1r S6br Track-A
+    budget-matched descope, research/checkpoint_b1_reduced.md).
+
+    Called at the TOP of each round (never mid-round). Returns None to
+    continue, else a stop-reason string the runner records in the summary and
+    then writes its artifacts NORMALLY (graceful stop — the round loop has no
+    stage checkpoints, so a slurm TIMEOUT there would repeat the RC1
+    zero-artifact loss; this fence is the mitigation).
+
+    * grad fence: stop once total BILLED grads (MAP warm-start + tune +
+      mutate — the pre-registered S6b billing) have reached the budget; the
+      realized budget overshoots the target by at most one round (billed at
+      actuals by the harvest).
+    * wall fence: pre-registered in-job cap strictly inside the slurm wall.
+    Both fences default OFF (None/0) — the frozen 30+120-round design is
+    untouched unless the descoped cell arms them explicitly.
+    """
+    if grad_budget and grads_billed >= int(grad_budget):
+        return (f"grad_budget: billed {int(grads_billed)} >= "
+                f"budget {int(grad_budget)}")
+    if wall_cap_s and wall_s > float(wall_cap_s):
+        return (f"wall_cap: {wall_s:.0f}s > {float(wall_cap_s):.0f}s "
+                "(pre-registered in-job fence)")
+    return None
+
+
 def _jsonable(x):
     """Copied with attribution from 23_run_p2_scene.py (identical in 24)."""
     if isinstance(x, (np.floating, np.integer)):

@@ -89,6 +89,16 @@ S6B_BURN_ROUNDS = 30          # ensemble re-tune + re-precondition per round
 S6B_SAMPLE_ROUNDS = 120       # tuning FROZEN; 4 MAMS draws per round
 NUM_MCMC_STEPS = smc_micro.NUM_MCMC_STEPS   # 4 (frozen P0)
 
+# P2b B1-REDUCED descope seams (research/checkpoint_b1_reduced.md, 2026-07-19;
+# Track-A budget-matched S6br). ALL default OFF/frozen — an unset environment
+# reproduces the frozen 30+120 design above exactly. Only slurm/p2b_b1r_s6b.slurm
+# sets these (grad budget filled by the S1r harvest from its result-json
+# grad_evals.total; sample-round ceiling raised so the FENCES govern the stop).
+S6B_SAMPLE_ROUNDS = int(os.environ.get("CGL2_S6B_SAMPLE_ROUNDS",
+                                       S6B_SAMPLE_ROUNDS))
+S6B_GRAD_BUDGET = int(os.environ.get("CGL2_S6B_GRAD_BUDGET", "0"))   # 0 = off
+S6B_WALL_CAP_H = float(os.environ.get("CGL2_S6B_WALL_CAP_H", "0"))   # 0 = off
+
 
 def _jsonable(x):
     if isinstance(x, (np.floating, np.integer)):
@@ -228,6 +238,7 @@ def arm_s6b(target, args):
         return optax.apply_updates(Z, updates), state, vals
 
     t0 = time.time()
+    t_arm0 = t0    # wall-fence clock: covers MAP + rounds (descope seam)
     best_val = np.full(S6B_MAP_STARTS, np.inf)
     best_Z = np.asarray(Z, dtype=np.float64).copy()
     for it in range(S6B_MAP_STEPS):
@@ -263,8 +274,22 @@ def arm_s6b(target, args):
     trace = []
     tuning = None
     mu = chol = None
+    stopped_reason = None
     t0 = time.time()
     for r in range(S6B_BURN_ROUNDS + S6B_SAMPLE_ROUNDS):
+        # P2b descope fences (round-boundary, graceful: artifacts still
+        # written below — the round loop has no stage checkpoints, so a slurm
+        # TIMEOUT here would be an RC1-class zero-artifact loss). Both fences
+        # default OFF; see research/checkpoint_b1_reduced.md.
+        stopped_reason = ckpt.round_fence_reason(
+            n_grad_map + grad_evals["tune"] + grad_evals["mutate"],
+            time.time() - t_arm0,
+            S6B_GRAD_BUDGET or None,
+            (S6B_WALL_CAP_H * 3600.0) if S6B_WALL_CAP_H else None)
+        if stopped_reason:
+            print(f"[s6b] fence STOP at round {r}: {stopped_reason}",
+                  flush=True)
+            break
         burn = r < S6B_BURN_ROUNDS
         if burn or mu is None:
             mu = z.mean(axis=0)
@@ -293,7 +318,11 @@ def arm_s6b(target, args):
                   f"eps {trace[-1]['eps']:.4f} n_int {trace[-1]['n_int']}",
                   flush=True)
     mams_wall = time.time() - t0
-    draws = np.stack(draws)                      # (T, C, dim)
+    # empty-draws guard: a fence stop during burn leaves zero sampling rounds;
+    # artifacts are STILL written (empty draw block + last ensemble) so the
+    # harvest can read the ledger — never an RC1-class silent loss.
+    draws = (np.stack(draws) if draws
+             else np.zeros((0, C, dim), dtype=np.float64))   # (T, C, dim)
     grad_evals["map"] = n_grad_map
     grad_evals["total"] = sum(grad_evals.values())
     summary = dict(
@@ -301,14 +330,18 @@ def arm_s6b(target, args):
         map_starts=S6B_MAP_STARTS, map_steps=S6B_MAP_STEPS,
         map_best_logpost=float(-best_val.min()), map_wall_s=round(map_wall, 1),
         chains=C, burn_rounds=S6B_BURN_ROUNDS, sample_rounds=S6B_SAMPLE_ROUNDS,
+        rounds_run=len(trace), sample_rounds_run=int(draws.shape[0]),
+        stopped_reason=stopped_reason,
+        grad_budget=S6B_GRAD_BUDGET, wall_cap_h=S6B_WALL_CAP_H,
         num_mcmc_steps=NUM_MCMC_STEPS, mams_wall_s=round(mams_wall, 1),
         grad_evals=grad_evals, round_trace=trace,
         peak_mb=round(gpu_peak_mb(), 1),
         billing_note="grad ledger includes the MAP warm-start cost "
                      "(pre-registered: S6b MAP cost billed)")
+    parts_out = draws[-1] if draws.shape[0] else z
     extras = dict(draws=draws, map_best_z=chains0,
-                  **constrained_readout(target, draws[-1]))
-    return draws[-1], summary, extras
+                  **constrained_readout(target, parts_out))
+    return parts_out, summary, extras
 
 
 def main():

@@ -164,3 +164,25 @@ def test_resume_after_completion_rebuilds_identical(tmp_path):
     _assert_bit_identical(res1, res2)
     # zero new weight-step evaluations were spent
     assert len(sorted(d.glob("ll_*.npy"))) == n_ll
+
+
+# --------------------------------------------------------------------------- #
+# (5) P2b B1-REDUCED round-boundary fences (research/checkpoint_b1_reduced.md):
+#     pure-logic gate for the S6br Track-A budget-matched stop rule — both
+#     fences default OFF (the frozen 30+120 design is untouched), the grad
+#     fence stops AT/AFTER budget only, the wall fence strictly after the cap.
+# --------------------------------------------------------------------------- #
+def test_round_fence_defaults_off_and_semantics():
+    # defaults (unset env => budget None/0, cap None/0): never stops
+    assert ckpt.round_fence_reason(10**12, 10**9, None, None) is None
+    assert ckpt.round_fence_reason(10**12, 10**9, 0, 0) is None
+    # grad fence: strictly below budget continues; at/over budget stops
+    assert ckpt.round_fence_reason(999, 0.0, 1000, None) is None
+    assert ckpt.round_fence_reason(1000, 0.0, 1000, None) is not None
+    assert "grad_budget" in ckpt.round_fence_reason(2000, 0.0, 1000, None)
+    # wall fence: at the cap continues (stop is strict >); past it stops
+    assert ckpt.round_fence_reason(0, 3600.0, None, 3600.0) is None
+    assert "wall_cap" in ckpt.round_fence_reason(0, 3600.1, None, 3600.0)
+    # grad fence is checked first (budget-matched stop reported as such even
+    # when both fences are tripped)
+    assert "grad_budget" in ckpt.round_fence_reason(1000, 9999.0, 1000, 1.0)

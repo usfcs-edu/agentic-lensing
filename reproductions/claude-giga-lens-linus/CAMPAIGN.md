@@ -15,6 +15,7 @@ Plan of record: `plans/PLAN.md` (approved 2026-07-15). Their-format handoffs: `p
 | D5 | Budget cap 100 A100-h (commit ~82), shared-QOS single-GPU on cosmo_g | user, 2026-07-15 |
 | D6 | Bright lines §8 of PLAN verbatim (no unimodal-efficiency publications; nothing from their unpublished repos external without sign-off; Vela untouched; "validated" reserved for the old stack) | PLAN §8 |
 | D7 | **P4 (X1 profile-class fork) RETIRED at zero GPU cost** — pre-registered entry gate X1-G0 FAILED (see gate record). Its 10 A100-h returns to the pool; per PLAN §6 stretch priority order, PSF-marginalization MVP (old stack) is promoted toward core and the evidence-scored source ladder (already in P3's migrate list) absorbs the source-track question. Kill criterion executed as written — not a goalpost move. NOTE the finding's positive content: fine & binned constrain the slope at the SAME radius yet disagree by 0.71 — the bracket driver differs between products AT FIXED RADIUS, which points at the noise/likelihood treatment (whitener) and PSF representation, NOT radial mass structure. First claim on the freed budget: NEXT_DIRECTIONS T1.1 injection-recovery on real drizzle noise (design checkpoint before run), then PSF-marg MVP. | X1-G0, 2026-07-15 |
+| D8 | **B1-REDUCED FUNDED via P2b sub-budget, cap 18 A100-h** — user decision 2026-07-18: the budget-matched reduced B1 carousel cell (S1r = prior-seeded MAMS-SMC N=128 seed 2 on REAL carousel cutouts, 3 chained checkpointed legs; S6br = Track-A budget-matched MAMS-alone-warm baseline) is funded by reallocation: **10 h from the freed-P4 pool (D7) + 8 h of the 20-h stretch pool (stretch 20→12)**. P2b sits OUTSIDE the exhausted P2 cap (24, spent 22.05 + 0.8 est in flight); the global **100 A100-h HARD STOP is UNCHANGED**. Sub-fences: S1r hard cap 12 (3 × 3:55 walls — chain STOPS after leg 3 regardless of λ, NO leg 4 without a NEW user decision), S6br cap 5 (submitted ONLY after S1r COMPLETE fills B\* = grad_evals.total; no auto-burn against a failed primary arm); worst case 16.67 ≤ 18, and the 1.3-h headroom is NOT spendable without a user decision. Design = descope-only amendment `research/checkpoint_b1_reduced.md` (md5 865247b16e90061803c9f4cf67fa1c8f, pre-registered 2026-07-19 BEFORE submission): **no gate threshold moved**; 2-seed self-consistency + ≤2-nat logZ repeatability DESCOPED and stated plainly; original full-scope files p2_b1r_s1_seed{2,3}.slurm + p2_b1r_s6b.slurm HELD FOREVER, superseded by slurm/p2b_b1r_*.slurm | user, 2026-07-18; amendment 2026-07-19 |
 
 ## A100-hour ledger (append BEFORE reading results)
 
@@ -50,6 +51,10 @@ Plan of record: `plans/PLAN.md` (approved 2026-07-15). Their-format handoffs: `p
 | 2026-07-19 | **RECOVERY-LANE ACTUALS HARVESTED (sacct -X, Elapsed × 1 A100 each):** 56006049 0.92 + 56006052 0.58 + 56006065 1.82 = **3.32 P2 (vs est 4.85) ⇒ P2 total 22.05 of 24 (headroom 1.95)**; 56006048 0.17 P3 ⇒ **P3 total 0.71 of 17** (0.53 l0g2 + 0.01 + 0.17 l0arb). Campaign total **32.76 actual of 100**. 3 of 4 recovery jobs produced full readable artifacts (the checkpoint retrofit + RC3 fix did their job); the 2 failures (l0arb OOM, B5-steep chunk-assert) are diagnosed with in-protocol fixes + resubmits below | P2+P3 | — | 3.49 recovery total | **32.76 actual** of 100 |
 | 2026-07-19 | 56168443 cgl2-b5-s1st **B5-S1 STEEP-ONLY resubmit** (low leg NOT rerun — its artifacts are on CFS): science UNCHANGED (T3 v3b74 steep@96 S1 MAMS, f32, seed 2, Path B, ckpt retrofit, wall cap 0.95); FIX = --chunk 48 (divides 96; 56006049's steep leg died on the latent `assert n % chunk == 0` with N=96/chunk 64 — chunking is EXECUTION ORDER ONLY per the runner's own help + per-particle keys split before chunking, "== parent keys", bit-identity vs stock verified in the deployment plan ⇒ design unchanged); stale ckpt dir wiped in-job (held only run_meta + ll_000, no stage ckpts); wall 1:15; slurm/p2_b5_s1_steep.slurm | P2 B5 | 0.8 | — (submitted; row appended BEFORE results) | 32.76 actual + 0.8 P2 est (22.05+0.8 = 22.85 ≤ 24; worst-case wall 23.30 ≤ 24 — SAFE, no breach flag needed) |
 | 2026-07-19 | 56168446 cgl2-l0arb **RESUBMIT of 56006048** — protocol UNCHANGED (`10_anchor_arbitration.py run`, v2d diag scene-API, MC-SMC MAMS prior-seeded, seed 2, N=128, L0_WALL_CAP_H=3.5 in -t 04:00, L0_REMAT stays UNSET); FIX = HARDWARE ONLY: `-C gpu&hbm80g` (56006048 REFUTED the plain-gpu sizing by measurement — first mutate requested a single 21.04 GiB alloc and OOM'd the 40 GB card; the "~93 MB/particle ⇒ 12 GB" figure was an L4 measurement taken WITH the L0_REMAT deviation active, which this run pre-registeredly omits). hbm80g chosen over enabling L0_REMAT as the smaller deviation (pure hardware, zero numerics/graph change; restores the standing SMC pin); slurm/p3_l0arb.slurm | P3 L0 | 2.5 | — (submitted; row appended BEFORE results) | 32.76 actual + 0.8 P2 est + 2.5 P3 est (P3 0.71+2.5 = 3.21 ≤ 17) |
+| 2026-07-19 | 56170216 cgl2-p2b-b1r-s1-L1 (**P2b B1-REDUCED S1r leg 1/3**, D8 + amendment research/checkpoint_b1_reduced.md: carousel33 **REAL MUSE cutouts** — md5s 4a4f7c02…/220b5677… echoed in-job, D4/D6 — prior-seeded MAMS-SMC **N=128 seed 2**, chunk 32/fwd 64, frozen P0 protocol; ckpt retrofit ON: in-job wall cap 3.55 h → exit-3 PARTIAL, per-stage ckpts on $PSCRATCH → CFS via EXIT trap; slurm/p2b_b1r_s1_leg1.slurm) | P2b B1r | 4.0 | — (row appended BEFORE sbatch/results) | 32.76 actual + 0.8 P2 est + 2.5 P3 est + **4.0 P2b est** |
+| 2026-07-19 | 56170219 cgl2-p2b-b1r-s1-L2 (S1r leg 2/3, `--dependency=afterany:56170216`, `--resume` from newest stage ckpt — BIT-IDENTICAL incl. full logZ+bootstrap; NO-OP fast-exit if COMPLETE marker b1r128_carousel33_s1_seed2.json exists; slurm/p2b_b1r_s1_leg2.slurm) | P2b B1r | 4.0 (conditional-resume; ~0.1 if fast-exit) | — (row appended BEFORE sbatch/results) | … + **8.0 P2b est** |
+| 2026-07-19 | 56170221 cgl2-p2b-b1r-s1-L3 (S1r leg 3/3, `--dependency=afterany:56170219`, `--resume`; after this leg the chain **STOPS regardless of λ** — S1r hard cap 12 = 3 × 3:55, worst 11.75; a non-λ=1 end state is PARTIAL per the l0 protocol, NO leg 4 without a NEW user decision; slurm/p2b_b1r_s1_leg3.slurm) | P2b B1r | 4.0 (conditional-resume; ~0.1 if fast-exit) | — (row appended BEFORE sbatch/results) | … + **12.0 P2b est ≤ 18 cap** |
+| 2026-07-19 | S6br **TEMPLATE-HELD — NOT SUBMITTED** (slurm/p2b_b1r_s6b.slurm, GRAD_BUDGET unfilled by design; in-script guards refuse unfilled template or missing S1r COMPLETE marker; the S1r HARVEST fills B\* = grad_evals.total then updates deploy.md5 both sides before any sbatch; NOT submitted if S1r ends PARTIAL — orchestrator decision point) | P2b B1r | 5.0 (reserved, HELD) | — (no job exists) | **P2b committed est 17.0 ≤ 18 cap** (worst case 16.67); campaign 32.76 actual + 20.3 est in flight ≤ 100 |
 
 ## Gate record
 
@@ -135,6 +140,48 @@ downstream ΔlogZ gate, as planned).
 - sshproxy refreshed 2026-07-15 (user). Jobs charge `cosmo_g` (D5), single-GPU shared QOS.
 
 ## Stage log (newest first)
+
+### 2026-07-19 (late) — P2b B1-REDUCED SUBMITTED: S1r 3-leg chain live (D8 funding executed); S6br stays TEMPLATE-HELD; amendment checkpoint of record = research/checkpoint_b1_reduced.md
+
+- **AMENDMENT CHECKPOINT (referenced per the concurrent-agent discipline, not
+  copied):** `research/checkpoint_b1_reduced.md`, md5
+  **865247b16e90061803c9f4cf67fa1c8f**, pre-registered 2026-07-19 BEFORE this
+  submission. Contents of record: descope-only amendment of the 2026-07-16 B1
+  design checkpoint (below) — S1 → S1r N=128 seed-2-only on REAL carousel
+  cutouts; S6b until-converged → S6br Track-A budget-matched (B\* =
+  S1r `grad_evals.total`, MAP billed, 30 burn rounds FROZEN, grad + 4.5-h
+  graceful round fences via ckpt.round_fence_reason, env seams default OFF);
+  **no gate threshold moved** (efficiency ≥2/[0.7,2)/<0.7, cold-start |z|<3 +
+  width [0.7,1.4], falsifier unique<N/4=32 at λ≳0.8, SMC sanity — verbatim);
+  2-seed self-consistency + ≤2-nat logZ repeatability **DESCOPED, stated
+  plainly**; fence-truncation labeling + burn-dominated caveat pre-registered
+  with bias direction (toward S1r) stated before any run. Verifier verdict on
+  the amendment: CLEAN (all thresholds verbatim, budget arithmetic checked,
+  chain semantics verified in code, real-data no-mock-fallback confirmed).
+- **D8 row + P2b ledger rows appended ABOVE, BEFORE sbatch** (est 4.0 × 3 legs
+  + 5.0 S6br reserved = 17.0 ≤ 18 cap; worst case 16.67).
+- **Deploy audit (the re-audit this front owed):** LOCAL self-check PASS
+  223/223 (deploy.md5 includes the p2b_b1r quartet + retrofitted
+  23_run_p2_scene.py/cgl2/samplers/ckpt.py/tests) AND REMOTE CFS audit PASS
+  223/223 with p2b file md5s bit-identical to local
+  (e1fe0d09/cd6af1e1/f0673040/bb14a736). Stale-artifact check: NO b1r ckpt
+  dir / marker on $PSCRATCH or CFS results (leg-1 fresh fence clear).
+- **SUBMISSION (chain, per README_p2b.md; sbatch 2026-07-19 23:06 PT from the
+  CFS slurm/ dir):** **L1 = 56170216** (no dependency, PENDING/Priority),
+  **L2 = 56170219** (squeue Dependency = `afterany:56170216(unfulfilled)`),
+  **L3 = 56170221** (`afterany:56170219(unfulfilled)`) — all three PENDING
+  with walls 3:55, dependency links verified in squeue output at submission.
+  Watchdog: all 3 legs registered (max_run 4.5 h; expect_artifact on the
+  LAST leg only = CFS results/b1r128_carousel33_s1_seed2.npz — legs 1-2
+  intentionally carry none, since exit-3 PARTIAL legs end COMPLETED by
+  design and the ckpt dir is the progress signal; on_stall=alert — NEVER
+  auto-resubmit, a blind resubmit without --resume trips the leg-1 no-mixing
+  fence); watchdog loop RESTARTED on phoenix (tmux `watchdog`, 15-min
+  passes — it was found dead since 2026-07-18) + heartbeat touched.
+- **S6br NOT submitted** (template guards refuse unfilled GRAD_BUDGET or
+  missing S1r marker; awaits the S1r grad ledger — orchestrator decision
+  point if S1r ends PARTIAL).
+- **NOT committed** (house rule: user commits).
 
 ### 2026-07-19 — RECOVERY-LANE HARVEST: B2 falsifier decided (band uncalibrated — pre-registered branch 2), B5-G3 evaluated (ambiguous at frozen thresholds), 2 failures root-caused + resubmitted (56168443 B5-steep chunk fix, 56168446 l0arb hbm80g); P2 22.05/24, campaign 32.76/100
 
