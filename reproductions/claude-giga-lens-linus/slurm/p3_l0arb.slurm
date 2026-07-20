@@ -1,7 +1,14 @@
 #!/bin/bash
 #SBATCH -A cosmo_g
-#SBATCH -C gpu       # plain gpu ON PURPOSE: v2d diag MAMS grad tape ~93 MB/particle
-#SBATCH -q shared    # (l0 L4 measurement) => N=128 ~ 12 GB — do not burn hbm80g
+#SBATCH -C gpu&hbm80g  # 56006048 REFUTED the plain-gpu sizing BY MEASUREMENT: first
+#SBATCH -q shared      # mutate requested a single 21.04 GiB alloc and OOM'd the 40 GB
+# card (RESOURCE_EXHAUSTED, BFC pool exhausted). The old "~93 MB/particle =>
+# N=128 ~ 12 GB" figure was an L4 measurement taken WITH the L0_REMAT memory
+# deviation active; the A100 run keeps L0_REMAT unset (pre-registered: the
+# remat deviation was an L4-only measure), so the no-remat tape is the real
+# footprint. Smallest in-protocol fix = the standing SMC hbm80g pin (pure
+# hardware, zero numerics/protocol change) rather than enabling L0_REMAT
+# (which alters the compute graph). Campaign memory rule restored: pin hbm80g.
 #SBATCH -t 04:00:00
 #SBATCH -N 1
 #SBATCH --gpus 1
