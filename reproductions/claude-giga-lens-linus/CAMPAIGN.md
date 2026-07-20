@@ -141,6 +141,16 @@ downstream ΔlogZ gate, as planned).
 
 ## Stage log (newest first)
 
+### 2026-07-19 (late) — B5-steep resubmit #2 (script-snapshot root cause)
+56168443 failed in 12 s with the ORIGINAL assert signature (96, 64): sbatch snapshots the
+script at submission, and the first resubmit was submitted before the chunk-48 fix landed in
+the file — the fix never rode along. Closure/code path verified sound (make_chunked_mams
+captures the CLI chunk; 96 % 48 = 0 passes). Current CFS script verified to carry --chunk 48
+(×2 occurrences) → resubmitted as **56170614** (est 0.8 A100-h, P2; worst-case P2 23.65 ≤ 24 —
+no breach). Watchdog swapped (56168443 out, 56170614 in); alert flag cleared. OPS LESSON for
+the ledger: fix-then-submit ordering must be verified via `scontrol show job --Batch` or by
+md5-ing the submitted script, not by later file state.
+
 ### 2026-07-19 (late) — P2b B1-REDUCED SUBMITTED: S1r 3-leg chain live (D8 funding executed); S6br stays TEMPLATE-HELD; amendment checkpoint of record = research/checkpoint_b1_reduced.md
 
 - **AMENDMENT CHECKPOINT (referenced per the concurrent-agent discipline, not
