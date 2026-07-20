@@ -73,7 +73,7 @@ import jax  # noqa: E402
 import jax.numpy as jnp  # noqa: E402
 
 from cgl2 import zoo  # noqa: E402
-from cgl2.samplers import common, smc_micro  # noqa: E402
+from cgl2.samplers import ckpt, common, smc_micro  # noqa: E402
 
 # chunked MAMS: reuse 22_run_b3.py's checkpointed subclass (never copy)
 _spec = importlib.util.spec_from_file_location("run_b3", HERE / "22_run_b3.py")
@@ -153,19 +153,30 @@ def arm_s1(target, args):
     kern = make_chunked_mams(int(args.chunk))   # instance; num_mcmc_steps=4 frozen
     llb = (make_chunked_loglik_batch(target.loglik_fn, int(args.forward_chunk))
            if int(args.forward_chunk) > 0 else None)
+    outp = Path(args.out)
+    ckpt_dir = Path(args.ckpt_dir) if args.ckpt_dir else \
+        outp.parent / (outp.name + "_ckpt")
+    holder = []
     t0 = time.time()
-    res = common.run_tempered_smc(
+    # RC1 retrofit (post-mortem §5a): frozen driver untouched — the ckpt
+    # front-end attaches the delegating CheckpointKernel + the weight-step
+    # ll recorder through the existing loglik_batch_fn seam (full-logZ resume).
+    # WallCapReached propagates to main() -> PARTIAL json + exit 3.
+    res = ckpt.run_tempered_smc_ckpt(
         target.logprior_fn, target.loglik_fn, z0, jax.random.PRNGKey(int(args.seed)),
-        kernel=kern, target_ess=smc_micro.TARGET_ESS, max_stages=400,
+        kernel=kern, ckpt_dir=ckpt_dir, wall_cap_h=(args.wall_cap_h or None),
+        resume=args.resume, target_ess=smc_micro.TARGET_ESS, max_stages=400,
         n_boot=200, pilot_size=64, eps0=0.5, precondition=True,
-        boot_seed=20260715 + int(args.seed), loglik_batch_fn=llb)
+        boot_seed=20260715 + int(args.seed), loglik_batch_fn=llb,
+        label=f"23-{args.target}", kern_holder=holder)
     wall = time.time() - t0
     parts = np.asarray(res.pop("particles"), dtype=np.float64)
-    summary = dict(
-        arm="s1", kernel=res.pop("kernel"), wall_s=round(wall, 1),
+    # RC3-safe shared summary assembly (pops res['kernel'] before **-merge)
+    summary = ckpt.summarize_res(
+        res, arm="s1", wall_s=round(wall, 1),
         n_particles=int(args.n), chunk=int(args.chunk),
         forward_chunk=int(args.forward_chunk), seed=int(args.seed),
-        peak_mb=round(gpu_peak_mb(), 1), **_jsonable(res))
+        ckpt_dir=str(ckpt_dir), peak_mb=round(gpu_peak_mb(), 1))
     extras = constrained_readout(target, parts)
     return parts, summary, extras
 
@@ -313,6 +324,16 @@ def main():
                     help="0 = stock full-vmap weight step (validated path); "
                          ">0 = lax.map-chunked weight step (memory only)")
     ap.add_argument("--out", required=True, help="output prefix (no suffix)")
+    # RC1 retrofit (post-mortem §5a): s1 SMC arm only (s6b has no weight steps;
+    # its round loop is a separate design pending the B1 user decision)
+    ap.add_argument("--ckpt-dir", default=None,
+                    help="s1 stage-checkpoint dir (default: <out>_ckpt)")
+    ap.add_argument("--wall-cap-h", type=float, default=0.0,
+                    help="s1 pre-registered wall cap in hours (0 = off); on "
+                         "cap: checkpoint kept, <out>.PARTIAL.json, exit 3")
+    ap.add_argument("--resume", action="store_true",
+                    help="s1: continue from the newest stage checkpoint "
+                         "(bit-identical incl. full logZ; tests/test_ckpt_resume.py)")
     args = ap.parse_args()
 
     guards.require_gpu()
@@ -324,12 +345,42 @@ def main():
           flush=True)
     print(f"[23] provenance: {target.provenance}", flush=True)
 
-    if args.arm == "s1":
-        parts, summary, extras = arm_s1(target, args)
-    else:
-        if args.target != "carousel33":
-            raise SystemExit("s6b is a B1 (carousel33) arm only")
-        parts, summary, extras = arm_s6b(target, args)
+    try:
+        if args.arm == "s1":
+            parts, summary, extras = arm_s1(target, args)
+        else:
+            if args.target != "carousel33":
+                raise SystemExit("s6b is a B1 (carousel33) arm only")
+            parts, summary, extras = arm_s6b(target, args)
+    except ckpt.WallCapReached as e:
+        # l0 exit-3 PARTIAL protocol: checkpoints kept, no gate math on a
+        # non-lambda=1 ensemble; resume with --resume (full logZ retained).
+        outp = Path(args.out)
+        ckpt_dir = Path(args.ckpt_dir) if args.ckpt_dir else \
+            outp.parent / (outp.name + "_ckpt")
+        trace = []
+        for f in sorted(ckpt_dir.glob("stage_*.npz")):
+            ck = np.load(f)
+            trace.append(dict(stage=int(f.stem.split("_")[1]),
+                              lam=float(ck["lam"]), eps=float(ck["eps"]),
+                              n_int=int(ck["n_int"]),
+                              accept=float(ck["accept"])))
+        partial = dict(
+            script="23_run_p2_scene.py", status="PARTIAL_WALL_CAP",
+            note=str(e),
+            generated_utc=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            target=target.name, z_dim=int(target.z_dim),
+            provenance=target.provenance, config=vars(args),
+            ckpt_dir=str(ckpt_dir), n_ckpt_stages=len(trace),
+            lambda_reached=(trace[-1]["lam"] if trace else None),
+            trace=trace)
+        outp.parent.mkdir(parents=True, exist_ok=True)
+        json.dump(partial, open(str(outp) + ".PARTIAL.json", "w"), indent=1,
+                  default=float)
+        print(f"[23] PARTIAL_WALL_CAP: wrote {outp}.PARTIAL.json "
+              f"(lambda={partial['lambda_reached']}) — resume with --resume",
+              flush=True)
+        sys.exit(3)
 
     out = dict(script="23_run_p2_scene.py",
                generated_utc=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),

@@ -17,8 +17,8 @@ cab1f9aca096eafb2396c3eac5f274ba  ./10_anchor_arbitration.py
 d95959a17b775e98d5eb459a9dd18d8c  ./22_run_b3.py
 c0d0d2dcc9f73439b107ef7147d9daa7  ./22_run_b3_harvest.py
 6de53b3774b4b06abfdbece3da36af93  ./22_run_b3_vendorfree_test.py
-65c50469ce04f5f0ae7e227c88e41e43  ./23_run_p2_scene.py
-5da3b39feb0a319cb361f9ecef1a6131  ./24_run_p2_oldstack.py
+154deeccf0e7184413179acefb6dbe85  ./23_run_p2_scene.py
+0f05878af64f4f04753dceae4a511ad8  ./24_run_p2_oldstack.py
 4086a0d16031f0c65eb26a55d823dd0d  ./25_run_l0g2_scene.py
 fdd2a9436483cc73798c8310e6aad040  ./25a_export_v3b_basin_x46.py
 63e3a5fbee5c5b2c46982f34bcdf8909  ./30_sbc_gift.py
@@ -192,8 +192,8 @@ b0f46a02bce85ec59630ed0e35a1798f  slurm/p2_b1_s1_seed2.slurm
 d51cc9fa49db5680eab70309beae6a64  slurm/p2_b1_s6b.slurm
 4dd3790c16235102c3fc4572aa7a54cb  slurm/p2_b2_dspl.slurm
 92908f429c8fbc94bc85691338266cce  slurm/p2_b4_t2.slurm
-750d0c305be265825fdba14e62382112  slurm/p2_b5_s1.slurm
-df9b5b4e625aea92108990396e72aba5  slurm/p2_b5_s2_mclmc.slurm
+b87bce94cec58b88f07977827912295a  slurm/p2_b5_s1.slurm
+154bef7edbdf8dc5d1e9192900fd40a0  slurm/p2_b5_s2_mclmc.slurm
 40f599f835867a490def6debd901fa62  slurm/p3_l0g2.slurm
 9ec487d53772a70e118d24b086b377e0  slurm/parity_f8_nersc.slurm
 1cecfddcd7af101e88b5af7b8359f0ce  slurm/t02_smc_v3b_low_seed3.slurm
@@ -212,4 +212,7 @@ f9375a74fe40e81d38e083d89d026288  slurm/t11_inj2.slurm
 c98276fdb76f81620648566c8787f68e  slurm/p2_b1r_s1_seed2.slurm
 96a03c402b93f48691830efa51053e3f  slurm/p2_b1r_s1_seed3.slurm
 9b18560645630e07d89484efd4f998a7  slurm/p2_b1r_s6b.slurm
-3220ab3b443ef271688afe659336876b  slurm/p3_l0arb.slurm
+9a516730af86d4c3b18e2591b5564485  slurm/p3_l0arb.slurm
+6e1dbbb6dafa0a12fb9934c16c9e4d1b  ./cgl2/samplers/ckpt.py
+150c8df4174c30ce6d345743edbfcadb  ./tests/test_ckpt_resume.py
+2271439d06381990335b01ac3da48677  slurm/p2_b2_ratio.slurm

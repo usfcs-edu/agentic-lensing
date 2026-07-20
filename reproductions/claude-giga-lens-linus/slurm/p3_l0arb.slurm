@@ -34,6 +34,14 @@ echo "[l0arb] host=$(hostname) script md5=$(md5sum 10_anchor_arbitration.py | cu
 module load python
 export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-0}"  # slurm sets this on shared QOS; guard against the DEFAULT_GPU=9 phoenix fallback
 source "$VENV/bin/activate"
+# Vendor-guard path identity (job 56004205 FAILED in 24 s): the venv's
+# gigalens.pth points `import gigalens` at the CFS tree, while cgl2 resolves
+# from this $PSCRATCH copy (script dir), so require_vendor_ref's
+# import-identity check trips. PYTHONPATH precedes site-packages .pth entries,
+# so the AUDITED COPY's vendor wins; the guard itself is UNCHANGED and still
+# enforces ref + import identity against this copy's pinned vendor.
+export PYTHONPATH="$RUN/campaign/vendor/gigalens-linus/src${PYTHONPATH:+:$PYTHONPATH}"
+python -c "import gigalens; print('[l0arb] gigalens ->', gigalens.__file__)"
 export GIGALENS_X64=1 JAX_ENABLE_X64=1 PYTHONUNBUFFERED=1
 export XLA_FLAGS="--xla_gpu_autotune_level=0 --xla_disable_hlo_passes=priority-fusion"
 export XLA_PYTHON_CLIENT_MEM_FRACTION="${MEM_FRACTION:-0.95}"

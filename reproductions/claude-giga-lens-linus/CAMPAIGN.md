@@ -43,6 +43,10 @@ Plan of record: `plans/PLAN.md` (approved 2026-07-15). Their-format handoffs: `p
 | 2026-07-16 | 55985451 cgl2-l0g2 (P3 L0-G2 scene-API v3b CORRELATED per-basin refit low@128 + steep@96, production-recipe mirror, seed 2, slurm/p3_l0g2.slurm) | P3 L0 | 2.0 | 0.53 (COMPLETED 00:31:37; harvested + gate PASSED by orchestrator, commit 1993cc6) | 29.27 actual |
 | 2026-07-16 | 56004205 cgl2-l0arb (P3-L0 anchor arbitration FRESH Perlmutter run per the pre-registered fallback: `10_anchor_arbitration.py run` UNCHANGED, v2d diagonal scene-API target, MC-SMC MAMS prior-seeded, seed 2, N=128 via the documented L0_N_OVERRIDE fallback ladder; wall-cap 3.5 h inside -t 04:00; plain `-C gpu` on purpose (~93 MB/particle grad ⇒ ~12 GB — don't burn hbm80g); slurm/p3_l0arb.slurm) | P3 L0 | 2.5 | 0.01 (**FAILED** 00:00:24 — require_vendor_ref path-identity trip in the $PSCRATCH-copy execution pattern; ops note in the 2026-07-16 harvest stage-log entry, diagnosis/resubmit owed by the P3 front) | 29.27 actual + resubmit est TBD (P3) |
 | 2026-07-16 | **P2 WAVE-1 ACTUALS HARVESTED (sacct -X, Elapsed × 1 A100 each):** deploy 0.04 + wave jobs 4.01+4.01+3.01+2.51+3.51+1.02+0.64 = **18.73 P2-phase actual of the 24 cap (headroom 5.27)**; of the wave's 18.69 h, only the B2-orig arm's 1.12 h produced readable science (94% zero-artifact burn — REAL spend, counted). Campaign total **29.27 actual of 100** (P1 2.21 + T1.1 7.80 + P2 18.73 + P3 0.53 l0g2 + 0.01 l0arb); ~70.7 h remain campaign-wide. Post-mortem + costed rerun matrix: research/p2_wave1_postmortem_redesign.md (NOTHING resubmitted this session) | P2 | — | 18.73 P2 total | **29.27 actual** of 100 |
+| 2026-07-16 | 56006048 cgl2-l0arb **RESUBMIT of 56004205** — protocol UNCHANGED (`10_anchor_arbitration.py run`, v2d diag scene-API, MC-SMC MAMS prior-seeded, seed 2, N=128 via L0_N_OVERRIDE, L0_WALL_CAP_H=3.5 in -t 04:00, plain `-C gpu` on purpose); FIX = JOB-ENV ONLY: PYTHONPATH points `import gigalens` at the audited $PSCRATCH copy's vendor (the venv's gigalens.pth targets the CFS tree — the path-identity trip; guard UNCHANGED, preflight-proven PASS in a real copy); slurm/p3_l0arb.slurm | P3 L0 | 2.5 | — (submitted; row appended BEFORE results) | 29.27 actual + 2.5 P3 est |
+| 2026-07-16 | 56006049 cgl2-b5-s1 **B5-S1 RERUN of 55985449** (recovery lane R1): science UNCHANGED (T3 v3b74 per-basin S1 MAMS low@128 + steep@96, f32, seed 2, Path B); RC3 writer fix + RC1 checkpoint retrofit ENABLED (per-leg wall caps 1.30/0.85 h, stage ckpts + PARTIAL/exit-3 + bit-identical resume); wall 2:30 vs measured legs ~1.0+0.75; slurm/p2_b5_s1.slurm | P2 B5 | 1.9 | — (submitted; row appended BEFORE results) | 29.27 actual + 1.9 P2 est + 2.5 P3 est |
+| 2026-07-16 | 56006052 cgl2-b5-s2 **B5-S2 MCLMC RERUN of 55985450** (recovery lane R2): science UNCHANGED (B5-G3 low@128 MCLMC diagnostic, f32, seed 2); RC3 fix + retrofit ENABLED (wall cap 1.15 h); wall 1:30 vs measured ~0.65 completion; slurm/p2_b5_s2_mclmc.slurm | P2 B5 | 0.65 | — (submitted; row appended BEFORE results) | 29.27 actual + 2.55 P2 est + 2.5 P3 est |
+| 2026-07-16 | 56006065 cgl2-b2-ratio **B2 ratio-control STANDALONE** (recovery lane R3, decides the B2 falsifier): dspl20_ratio S1 N=512 seed 2 chunk 128, design of the arm lost in 55985447; honest wall 3:00 per the post-mortem (the "1 h" est is REFUTED by the 79-min partial); retrofit ENABLED (wall cap 2.70 h); **LAST-submitted job — if recovery-lane actuals threaten the 24-h P2 cap, THIS job's overflow is the flagged breach (never absorbed silently)**; slurm/p2_b2_ratio.slurm | P2 B2 | 2.3 | — (submitted; row appended BEFORE results) | 29.27 actual + 4.85 P2 est (18.73+4.85 = 23.58 ≤ 24 cap) + 2.5 P3 est |
 
 ## Gate record
 
@@ -129,7 +133,105 @@ downstream ΔlogZ gate, as planned).
 
 ## Stage log (newest first)
 
-### 2026-07-16 (P2 wave-1 harvest + post-mortem) — B2-orig gate evaluated (m̂=0.000, FAIL-as-written / control PENDING-RERUN); B5 = INFRA-FAIL (one-line writer defect, science completed and was lost); B1/B4 TIMEOUT class post-mortem; ledger actuals filled (P2 18.73/24, campaign 29.27/100); redesign PROPOSED not executed
+### 2026-07-18 — B3 harvested (partial-by-budget); recovery-lane state; CERT EXPIRED
+- **B3 outcome:** 4/4 reference posteriors (classic scene-API MAP→SVI→HMC) COMPLETE on the L4;
+  **0/4 MC-SMC arms inside the pre-registered 5 h/arm fence** (all BLOCKED-BY-BUDGET — driver
+  log; the fence worked as designed). Gates not evaluable without the SMC arms; the readable
+  result is the COST row: scene-API MC-SMC at N=512 on hs2-class targets exceeds 5 h/target on
+  an L4 (consistent with the B1/B4 true-cost post-mortem). 12.38 phoenix GPU-h (free tier).
+  Rerun path when funded: retrofit checkpointing (now landed, 58 tests green incl. bit-identical
+  resume) + N=256 or A100. Artifacts: data/b3_cells.json, figs/b3_cost.png.
+- **Recovery-lane agent** was killed by a session exit AFTER completing its work: RC3 fix +
+  checkpoint retrofit (cgl2/samplers/ckpt.py; runners 23/24; bit-identity + regression tests),
+  l0arb resubmit 56006048 (PYTHONPATH job-env fix, guard unchanged), recovery jobs 56006049
+  (B5-S1) / 56006052 (B5-S2) / 56006065 (B2-control) — all submitted + ledgered pre-results.
+  Verified post-mortem: 58/58 tests pass locally; watchdog registrations present.
+- **OPS: sshproxy cert EXPIRED ~2026-07-17 morning.** The 4 Perlmutter jobs finished server-side
+  (walls 1:30–4:00, submitted 07-16 evening); results presumed on CFS; HARVEST BLOCKED pending
+  cert refresh. Watchdog correctly degraded to UNREACHABLE alerts (designed graceful state).
+  Pending readouts on CFS: l0arb = the ANCHOR ARBITRATION verdict; B5-S1/S2 = the B5 gates +
+  MCLMC bias-laundering test; B2-control = the B2 falsifier decision.
+
+### 2026-07-16 (recovery lane + runner hardening) — RC3 fixed + regression-locked; RC1 checkpoint/resume retrofit landed (bit-identity gates PASS, 58-test suite green both sides); l0arb path-identity trip fixed job-env-only (guard UNCHANGED) + resubmitted; B5-S1/B5-S2/B2-ratio reruns submitted CHECKPOINTED (P2 est 4.85 ≤ 5.27 headroom); NO B1/B4 arm (user decision pending)
+
+- **Executes** research/p2_wave1_postmortem_redesign.md parts (a) fix+retrofit +
+  the recovery lane R1/R2/R3 ONLY. The B1/B4 options (§5b R4/R5) are NOT
+  touched — cap decision belongs to the user; nothing here presumes it.
+- **RC3 FIX (24_run_p2_oldstack.py):** summary assembly now goes through the
+  shared `cgl2.samplers.ckpt.summarize_res`, which pops `res['kernel']` (and
+  defensively `'particles'`) from a COPY before the `**`-merge — the exact
+  `dict() got multiple values for keyword argument 'kernel'` crash of
+  55985449/50 is a regression-locked class
+  (tests/test_ckpt_resume.py::test_rc3_summary_kernel_collision_unreproducible
+  asserts the old pattern raises AND the new path succeeds on a fake res
+  carrying 'kernel'). Runner 23's s1 arm routed through the same shared
+  assembly (behavior unchanged — it already popped).
+- **RC1 CHECKPOINT RETROFIT (new module cgl2/samplers/ckpt.py; frozen driver
+  common.run_tempered_smc UNTOUCHED):** transplant of the accepted
+  10_anchor_arbitration.py pattern, upgraded per the approved plan —
+  (i) delegating `CheckpointKernel` (build/tune/mutate verbatim): per-stage
+  FULL-STATE `stage_NNN.npz` (post-mutation z, λ, eps, n_int, accept,
+  per-stage grad/logp ledger) + one progress print + pre-registered
+  `--wall-cap-h` raised AFTER the checkpoint (exit-3 PARTIAL json protocol,
+  no gate math on a non-λ=1 ensemble — l0 verbatim); (ii) weight-step ll
+  recording via the EXISTING keyword-only `loglik_batch_fn` seam
+  (`LoglikRecorder`, delegation-only) — this is what lets a resumed run keep
+  the FULL logZ + per-stage bootstrap (B1's ≤2-nat gate requirement; solves
+  the l0 `logZ_partial_from_resume` limitation); (iii) `--resume`: driver
+  loop copied WITH ATTRIBUTION, jax key chain + numpy Generator
+  FAST-FORWARDED BY REPLAY of the recorded lls ⇒ a resumed run is
+  **BIT-IDENTICAL to an uninterrupted run** — STRONGER than the l0 resume's
+  RNG caveat. Wired into 23_run_p2_scene.py (s1 arm; s6b has no weight steps
+  — its round loop is a separate design pending the B1 decision) AND
+  24_run_p2_oldstack.py (b4+b5). Documented dtype caveat (module docstring):
+  under GIGALENS_X64=0 (B5 strict-f32 only) the checkpointed ensemble is the
+  wrapper's f64 reconstruction from the f32 (mu,chol,U) the kernel sees ⇒
+  resume is protocol-identical with an f32-rounding-level perturbation at the
+  resume point; under x64 (everything else + the CPU gates) it is bit-exact.
+- **VALIDATION (house pattern — prove the expected exact-zero anyway):**
+  tests/test_ckpt_resume.py — (1) RC3 regression; (2) stock-vs-instrumented
+  BIT-IDENTITY (particles/logZ/boot-σ/all traces/ledgers exactly equal);
+  (3) **the retrofit gate: fresh vs interrupted(2 stages)+resumed
+  BIT-IDENTICAL incl. full logZ + bootstrap** + config-desync fence;
+  (4) resume-after-completion rebuilds the identical result with ZERO new
+  forward evals (= the exact B5 lost-at-the-write recovery path). Suite
+  **58 passed** (54 + 4) on phoenix (cgl2 venv, CPU) AND on Perlmutter
+  login (cgl2-pm venv, 85.5 s). Path-B vendor-free import of ckpt verified
+  under the OLD venv on both hosts (gigalens never enters sys.modules).
+- **L0ARB DIAGNOSIS + FIX (owed by this front):** 56004205 failed because the
+  cgl2-pm venv's `gigalens.pth` appends the CFS vendor to sys.path, while the
+  job executes from the audited $PSCRATCH copy (cgl2 resolves from script
+  dir) ⇒ require_vendor_ref's import-identity check tripped exactly as
+  designed. FIX = smallest change preserving the guard's intent, JOB-ENV
+  ONLY (slurm/p3_l0arb.slurm): `export PYTHONPATH=$RUN/campaign/vendor/
+  gigalens-linus/src` — PYTHONPATH precedes site-packages .pth entries, so
+  the AUDITED COPY's vendor wins and the UNCHANGED guard now certifies ref +
+  import identity against that copy. Preflight-PROVEN in a real $PSCRATCH
+  tree copy (login CPU): without fix → CFS resolution (the trip); with fix →
+  copy resolution + `require_vendor_ref: PASS`. Guard code untouched;
+  deploy audit stays mandatory in the copy.
+- **Deploy/audits:** deploy.md5 regenerated **218 files** (adds
+  cgl2/samplers/ckpt.py, tests/test_ckpt_resume.py, slurm/p2_b2_ratio.slurm)
+  — self-check PASS locally AND remotely (218/218) after rsync of the 9
+  changed/new files.
+- **PRE-SUBMISSION CHECKPOINT (frozen BEFORE sbatch, designs unchanged from
+  the pre-registered cells + post-mortem matrix):** R1 B5-S1 rerun est 1.9 /
+  wall 2:30 / per-leg caps 1.30+0.85 h, legs independent (steep runs even if
+  low caps); R2 B5-S2 est 0.65 / wall 1:30 / cap 1.15; R3 B2-ratio
+  STANDALONE est 2.3 / wall 3:00 / cap 2.70 (honest wall; "1 h" refuted).
+  All three: `-C gpu&hbm80g` (standing SMC pin), checkpointing ON, PARTIAL
+  json + ckpt dirs copied to CFS ALWAYS (a wall hit preserves progress by
+  construction). l0arb resubmit est 2.5 / -t 04:00 / L0_WALL_CAP_H=3.5,
+  plain `-C gpu` (own-cell rationale unchanged). Budget: P2 18.73 + 4.85 est
+  = 23.58 ≤ 24 (headroom 0.42 vs worst-case walls 7.0 ⇒ the pre-declared
+  overflow flag sits on the LAST-submitted job, B2-ratio — see its ledger
+  row); P3 4.5 + 2.5 = 7.0 est of cap 17.
+- **Ops:** watchdog — 56004205 deregistered (diagnosis + resubmit done),
+  4 new registrations (max_run per wall + slack, expect_artifact on CFS,
+  on_stall=alert — auto-resubmit without `--resume` would trip the ckpt-dir
+  no-mixing fence by design), heartbeat touched. NO results read this
+  session (submissions + hardening only; harvest is a later phase). NOT
+  committed (house rule: user commits). NO B1/B4 submission of any kind.
 
 - **Harvest ops:** sacct -X actuals for all 9 wave-adjacent jobs in the ledger
   (rows updated above); pulled to data/results-perlmutter/: the completed B2-orig

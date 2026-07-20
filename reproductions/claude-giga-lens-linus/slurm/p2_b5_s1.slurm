@@ -2,7 +2,7 @@
 #SBATCH -A cosmo_g
 #SBATCH -C gpu&hbm80g  # SMC production pin (55952482 OOM lesson)
 #SBATCH -q shared
-#SBATCH -t 04:00:00
+#SBATCH -t 02:30:00
 #SBATCH -N 1
 #SBATCH --gpus 1
 #SBATCH -c 32
@@ -13,6 +13,12 @@
 # per the 24_basin_evidence_v3b (P2c) construction. Path B (OLD venv +
 # PYTHONPATH=campaign). Legs run as SEPARATE processes (single-target-per-
 # process dtype policy; also resets compile-cache memory pressure).
+#
+# RERUN of 55985449 (recovery lane, post-mortem R1): science UNCHANGED; the
+# RC3 writer defect is fixed and the RC1 checkpoint retrofit is enabled
+# (--ckpt-dir + --wall-cap-h; on cap: stage checkpoints kept + PARTIAL json +
+# exit 3, resumable with --resume). Wall 2:30 vs measured legs ~1.0+0.75 h.
+# Legs are independent: the steep leg runs even if the low leg wall-caps.
 set -euo pipefail
 CAMPAIGN=/global/cfs/cdirs/deepsrch/gdbenson/cgl2-linus/code/campaign
 cd "$CAMPAIGN"
@@ -30,17 +36,31 @@ cd "$HOME/claude-giga-lens/repo/reproductions/claude-giga-lens"
 OUTDIR="$PSCRATCH/cgl2-linus/results"
 CFSDIR="/global/cfs/cdirs/deepsrch/gdbenson/cgl2-linus/results"
 mkdir -p "$OUTDIR" "$CFSDIR"
-echo "[b5-s1] host=$(hostname) foundry_v3b md5=$(md5sum cgl/zoo/foundry_v3b.py | cut -d' ' -f1) _data_lib md5=$(md5sum ../foundry-i/_data_lib.py | cut -d' ' -f1) runner md5=$(md5sum $CAMPAIGN/24_run_p2_oldstack.py | cut -d' ' -f1)"
-python "$CAMPAIGN/24_run_p2_oldstack.py" --cell b5 --basin low --n 128 \
-    --seed 2 --kernel mams --chunk 64 --out "$OUTDIR/b5_v3b74_low_mams_seed2" \
-    > "$OUTDIR/b5_v3b74_low_mams_seed2_run.log" 2>&1
-cp "$OUTDIR/b5_v3b74_low_mams_seed2.npz" "$OUTDIR/b5_v3b74_low_mams_seed2.json" \
-   "$OUTDIR/b5_v3b74_low_mams_seed2_run.log" "$CFSDIR/"
-python "$CAMPAIGN/24_run_p2_oldstack.py" --cell b5 --basin steep --n 96 \
-    --seed 2 --kernel mams --chunk 64 --out "$OUTDIR/b5_v3b74_steep_mams_seed2" \
-    > "$OUTDIR/b5_v3b74_steep_mams_seed2_run.log" 2>&1
-cp "$OUTDIR/b5_v3b74_steep_mams_seed2.npz" "$OUTDIR/b5_v3b74_steep_mams_seed2.json" \
-   "$OUTDIR/b5_v3b74_steep_mams_seed2_run.log" "$CFSDIR/"
+echo "[b5-s1] host=$(hostname) foundry_v3b md5=$(md5sum cgl/zoo/foundry_v3b.py | cut -d' ' -f1) _data_lib md5=$(md5sum ../foundry-i/_data_lib.py | cut -d' ' -f1) runner md5=$(md5sum $CAMPAIGN/24_run_p2_oldstack.py | cut -d' ' -f1) ckpt md5=$(md5sum $CAMPAIGN/cgl2/samplers/ckpt.py | cut -d' ' -f1)"
+
+run_leg () {  # run_leg <basin> <n> <wall_cap_h>
+  local BASIN=$1 NPART=$2 CAP=$3 RC=0
+  local TAG="b5_v3b74_${BASIN}_mams_seed2"
+  python "$CAMPAIGN/24_run_p2_oldstack.py" --cell b5 --basin "$BASIN" \
+      --n "$NPART" --seed 2 --kernel mams --chunk 64 \
+      --ckpt-dir "$OUTDIR/${TAG}_ckpt" --wall-cap-h "$CAP" \
+      --out "$OUTDIR/$TAG" > "$OUTDIR/${TAG}_run.log" 2>&1 || RC=$?
+  # results back ALWAYS (PARTIAL json + checkpoints are results too)
+  cp "$OUTDIR/${TAG}_run.log" "$CFSDIR/" || true
+  cp "$OUTDIR/$TAG.npz" "$OUTDIR/$TAG.json" "$CFSDIR/" 2>/dev/null \
+      || echo "[b5-s1] $BASIN: no npz/json (RC=$RC — PARTIAL under wall cap?)"
+  cp "$OUTDIR/$TAG.PARTIAL.json" "$CFSDIR/" 2>/dev/null || true
+  mkdir -p "$CFSDIR/${TAG}_ckpt"
+  cp "$OUTDIR/${TAG}_ckpt"/* "$CFSDIR/${TAG}_ckpt/" 2>/dev/null || true
+  echo "[b5-s1] leg $BASIN exit=$RC (0=COMPLETE, 3=PARTIAL wall-cap protocol)"
+  return $RC
+}
+
+RC_LOW=0; RC_STEEP=0
+run_leg low 128 1.30 || RC_LOW=$?
+run_leg steep 96 0.85 || RC_STEEP=$?
 echo "=== B5 S1 SUMMARY ==="
-grep -E "built|warmup|logZ|stages|Error|Exhausted|Traceback|did not reach" \
+grep -E "built|warmup|logZ|stages|PARTIAL|Error|Exhausted|Traceback|did not reach" \
     "$OUTDIR"/b5_v3b74_*_mams_seed2_run.log | grep -vE "weakref" || true
+RC=$(( RC_LOW > RC_STEEP ? RC_LOW : RC_STEEP ))
+exit $RC

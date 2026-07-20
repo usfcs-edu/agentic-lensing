@@ -60,6 +60,18 @@ def parse_args():
                          "mclmc runs the stock kernel")
     ap.add_argument("--gpu", default=None)
     ap.add_argument("--out", required=True)
+    # RC1 retrofit (post-mortem §5a, 2026-07-16): per-stage checkpoints +
+    # wall-cap exit-3 PARTIAL protocol + bit-identical resume (cgl2.samplers.ckpt)
+    ap.add_argument("--ckpt-dir", default=None,
+                    help="stage-checkpoint dir (default: <out>_ckpt)")
+    ap.add_argument("--wall-cap-h", type=float, default=0.0,
+                    help="pre-registered wall cap in hours (0 = off); on cap "
+                         "the run checkpoints, writes <out>.PARTIAL.json and "
+                         "exits 3 (l0 protocol)")
+    ap.add_argument("--resume", action="store_true",
+                    help="continue from the newest stage checkpoint "
+                         "(bit-identical to an uninterrupted run under x64; "
+                         "f32 caveat documented in cgl2/samplers/ckpt.py)")
     return ap.parse_args()
 
 
@@ -93,7 +105,7 @@ def main():
     import jax
     import jax.numpy as jnp
 
-    from cgl2.samplers import common, smc_micro   # vendor-free (Path B, E1)
+    from cgl2.samplers import ckpt, smc_micro   # vendor-free (Path B, E1)
 
     # chunked MAMS subclass (identical math/keys; 22_run_b3.py, imported by path)
     import importlib.util
@@ -189,12 +201,41 @@ def main():
         kern = smc_micro.make_kernel(
             "mclmc", num_mcmc_steps=smc_micro.NUM_MCMC_STEPS)
 
+    outp = Path(args.out)
+    ckpt_dir = Path(args.ckpt_dir) if args.ckpt_dir else \
+        outp.parent / (outp.name + "_ckpt")
+    holder = []
     t0 = time.time()
-    res = common.run_tempered_smc(
-        logprior_fn, loglik_fn, z0, jax.random.PRNGKey(int(args.seed)),
-        kernel=kern, target_ess=smc_micro.TARGET_ESS, max_stages=400,
-        n_boot=200, pilot_size=64, eps0=0.5, precondition=True,
-        boot_seed=20260715 + int(args.seed))
+    try:
+        res = ckpt.run_tempered_smc_ckpt(
+            logprior_fn, loglik_fn, z0, jax.random.PRNGKey(int(args.seed)),
+            kernel=kern, ckpt_dir=ckpt_dir,
+            wall_cap_h=(args.wall_cap_h or None), resume=args.resume,
+            target_ess=smc_micro.TARGET_ESS, max_stages=400,
+            n_boot=200, pilot_size=64, eps0=0.5, precondition=True,
+            boot_seed=20260715 + int(args.seed),
+            label=f"24-{args.cell}", kern_holder=holder)
+    except ckpt.WallCapReached as e:
+        # l0 exit-3 PARTIAL protocol: checkpoints kept, no gate math on a
+        # non-lambda=1 ensemble; resume with --resume (full logZ retained).
+        kw = holder[0] if holder else None
+        partial = dict(
+            script="24_run_p2_oldstack.py", status="PARTIAL_WALL_CAP",
+            note=str(e),
+            generated_utc=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            cell=args.cell, target=target.name, dim=dim, dtype=info.dtype,
+            config=vars(args), q=qmeta, wall_s=round(time.time() - t0, 1),
+            ckpt_dir=str(ckpt_dir),
+            n_ckpt_stages=(kw.stage if kw else None),
+            lambda_reached=(kw.trace[-1]["lam"] if kw and kw.trace else None),
+            trace=(kw.trace if kw else []))
+        outp.parent.mkdir(parents=True, exist_ok=True)
+        json.dump(partial, open(str(outp) + ".PARTIAL.json", "w"), indent=1,
+                  default=float)
+        print(f"[24] PARTIAL_WALL_CAP: wrote {outp}.PARTIAL.json "
+              f"(lambda={partial['lambda_reached']}) — resume with --resume",
+              flush=True)
+        sys.exit(3)
     wall = time.time() - t0
 
     parts = np.asarray(res.pop("particles"), dtype=np.float64)
@@ -202,18 +243,19 @@ def main():
     gam = np.asarray(phys["gamma"], dtype=np.float64).reshape(-1)
     frac_low = float((gam < GAMMA_THRESHOLD).mean())
     st = jax.local_devices()[0].memory_stats() or {}
-    out = dict(
+    # RC3 fix (jobs 55985449/50): summary assembly via ckpt.summarize_res,
+    # which pops res['kernel'] BEFORE the **-merge (mirrors runner 23).
+    out = ckpt.summarize_res(
+        res,
         script="24_run_p2_oldstack.py",
         generated_utc=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         cell=args.cell, target=target.name, dim=dim, dtype=info.dtype,
-        kernel=kern.name, config=vars(args), q=qmeta,
+        config=vars(args), q=qmeta,
         wall_s=round(wall, 1),
         peak_mb=round(float(st.get("peak_bytes_in_use", 0)) / 2**20, 1),
         gamma_eqw_median=float(np.median(gam)),
         frac_gamma_lt_split=frac_low,
-        jax=jax.__version__, device=str(jax.local_devices()[0]),
-        **_jsonable(res))
-    outp = Path(args.out)
+        jax=jax.__version__, device=str(jax.local_devices()[0]))
     outp.parent.mkdir(parents=True, exist_ok=True)
     np.savez(outp.with_suffix(".npz"), particles=parts,
              gamma=gam, labels=np.array(list(target.labels), dtype=object))
