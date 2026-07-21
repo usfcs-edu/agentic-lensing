@@ -105,3 +105,57 @@ campaign (correlated-noise likelihood; sampler benchmark) predate this work and 
 *Prepared 2026-07-15 as part of the claude-giga-lens-linus campaign (P0). Campaign plan:
 `reproductions/claude-giga-lens-linus/plans/PLAN.md`. Contact for technical details: the
 campaign ledger CAMPAIGN.md carries every gate and number.*
+
+---
+
+## Addendum — 2026-07-21 (experimental program complete; 53.5 of 100 A100-h)
+
+What's new since the memo was drafted. Full claims register (your lab-notebook format, every
+verdict `proposed (UNCERTIFIED — external)`): `papers/handoff/CLAIMS.md`.
+
+1. **The scene-API certification gift is delivered.** Forward image / design columns match our
+   validated old stack to ≤6e-15 rel, gradients to 1.5e-11, on both phoenix and Perlmutter —
+   the first external certification evidence for the scene API (EPL+shear+Sérsic/shapelet
+   class), given three documented convention reconciliations. One heads-up: the two stacks use
+   different Sérsic b_n approximants (~2e-3 model-level).
+
+2. **The correlated-noise port works cross-stack at posterior level.** The scene-API
+   `CorrelatedImageData` refit reproduces our money number γ=1.103 to Δ0.0027 and its logZ to
+   0.11 nats across stacks and machines. The Occam −½logdet A term is in (your lstsq drops it).
+
+3. **Carousel — thank you for the real MUSE cutouts.** We ran the descoped real-data cell:
+   prior-seeded SMC spent 11.3 A100-h reaching only λ=0.15 (sampler healthy, killed by cost),
+   and the budget-matched warm MAMS baseline never finished burn — **neither vehicle converges
+   at campaign-affordable budgets on this target class**, which corroborates your min-ESS
+   12/16000 experience rather than beating it. Everything is in your hands first, as promised.
+   One limitation: your carousel posterior arrays are gitignored/absent from our mirror, so our
+   comparison rows are summary-stats-only — **if you can transfer posterior draws, we can build
+   a draw-level comparison.**
+
+4. **SBC (gift #2, delivered as ranks-not-verdicts) + one validity question.** At reduced
+   budgets on our certified port, the pipeline class shows a severe one-sided lens-light rank
+   miscalibration (|z| up to 5.8) and 2/32 healthy fits — with our own glass-house E1c
+   precedent (sampler-induced rank failure that vanished on healthy reruns) argued against
+   ourselves in the doubt report. A question, not an accusation: the frozen
+   `100SystemsStandard80px` set appears (per your own t13_resim STEP 0) to be generated from a
+   narrower prior than today's modeling prior, which would fail SBC by construction — is that
+   intended? We ran on prior-matched regenerated mocks instead.
+
+5. **A warning relevant to your sampler work:** unadjusted-MCLMC mutations inside tempered SMC
+   inflated a minor-mode's evidence **×56** [22–146] while leaving the within-basin location
+   untouched (Δγ 0.0016) — resampling does not launder the bias. MAMS (adjusted) is clean.
+   Internal-channel material; sign-off rules apply as before.
+
+6. **Also in hand:** stationarity of our stationary-kernel noise class is REJECTED on the real
+   field (calibrated p=0.010 — the standing caveat on our own 1.103); the noise-model choice
+   moves Fermat Δφ by 60–90% (illustrative); and a B5 gate failure that indicts **our old
+   campaign's** frozen evidence reference's coverage — our lesson, shared in case you freeze
+   MCMC-derived references as gates too.
+
+7. **Honesty items:** the S7 flow-MAMS arm and S4/S5 LAPS arms were NOT run (wave-1 costs ate
+   the budget; bright line kept); the HessianSurrogateStage restore (gift #4) was never
+   started — strike it or tell us it's still wanted; the anchor arbitration on v2d closed
+   PARTIAL (four vehicles all reproduce the known target-intrinsic difficulty; no stack
+   discrepancy found).
+
+— Greg
