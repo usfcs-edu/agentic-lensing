@@ -15,12 +15,24 @@
 #   n % chunk == 0; N=96 with --chunk 64 never divides).
 # The bug was LATENT in the original 55985449 design too — that job's set -e
 # killed it on the low leg's writer defect before steep ever executed, so this
-# assert had never been reached. FIX = --chunk 48 for the steep leg (divides
-# 96; two chunks of 48 <= the low leg's 64-particle chunk memory). Chunking is
-# EXECUTION ORDER ONLY by the runner's own declaration (24_run_p2_oldstack.py
-# --chunk help; 22_run_b3.py splits per-particle keys BEFORE chunking —
-# "== parent keys" — and bit-identity vs the stock kernel was verified in the
-# deployment plan E-row), so the science design is UNCHANGED.
+# assert had never been reached.
+# ATTEMPT HISTORY: #2 (56168443) died on the ORIGINAL (96, 64) signature —
+# sbatch snapshots the script at submission and the chunk-48 fix had not
+# landed in the file yet (ops lesson: verify the SUBMITTED SNAPSHOT via
+# `scontrol show job <id> --Batch`, never later file state). #3 (56170614)
+# died at 1:52 on AssertionError (64, 48): chunk 48 makes the FULL pass
+# divisible (96 % 48 = 0) but breaks the PILOT subset — the dual-averaging
+# step-size pilot (common.run_tempered_smc pilot_size=64, the runner's frozen
+# 24_run_p2_oldstack.py:215 value) mutates a 64-particle subset through the
+# SAME chunked kernel, and 64 % 48 != 0 trips the same 22_run_b3.py:135
+# assert. CONSTRAINT: chunk must divide BOTH N (96, full pass) AND
+# pilot_size (64, tuning pilot). FIX = --chunk 32 (divides both: three
+# chunks of 32 at full-N, two at the pilot; 32 <= the low leg's 64-particle
+# chunk memory — even safer). Chunking is EXECUTION ORDER ONLY by the
+# runner's own declaration (24_run_p2_oldstack.py --chunk help; 22_run_b3.py
+# splits per-particle keys BEFORE chunking — "== parent keys" — and
+# bit-identity vs the stock kernel was verified in the deployment plan
+# E-row), so the science design is UNCHANGED.
 # Science otherwise UNCHANGED: T3 foundry_v3b74 per-basin S1 MAMS steep@96,
 # seed 2, float32, Path B, checkpoint retrofit enabled (wall cap 0.95 h).
 # The stale ckpt dir from the crashed run holds NO stage checkpoints (only
@@ -49,7 +61,7 @@ TAG="b5_v3b74_steep_mams_seed2"
 rm -rf "$OUTDIR/${TAG}_ckpt"   # crashed-run residue: run_meta + ll_000 only, NO stage ckpts
 RC=0
 python "$CAMPAIGN/24_run_p2_oldstack.py" --cell b5 --basin steep \
-    --n 96 --seed 2 --kernel mams --chunk 48 \
+    --n 96 --seed 2 --kernel mams --chunk 32 \
     --ckpt-dir "$OUTDIR/${TAG}_ckpt" --wall-cap-h 0.95 \
     --out "$OUTDIR/$TAG" > "$OUTDIR/${TAG}_run.log" 2>&1 || RC=$?
 # results back ALWAYS (PARTIAL json + checkpoints are results too)

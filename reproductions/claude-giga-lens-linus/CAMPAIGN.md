@@ -61,7 +61,7 @@ Plan of record: `plans/PLAN.md` (approved 2026-07-15). Their-format handoffs: `p
 | 2026-07-20 | 56251555 cgl2-b5-s1st **B5-S1 STEEP-ONLY attempt #4** (science UNCHANGED: T3 v3b74 steep@96 S1 MAMS, f32, seed 2, Path B, ckpt retrofit, wall cap 0.95 in -t 01:15): FIX = **--chunk 32** — chunk must divide BOTH N=96 (full pass, 3 chunks) AND pilot_size=64 (tuning pilot, 2 chunks); 32 ≤ 48 ≤ 64 so memory is even safer; chunking remains execution-order-only (per-particle keys split before chunking, bit-identity vs stock verified in the deployment plan). Submitted-SNAPSHOT verified (the 07-19 ops lesson; `--Batch` prints nothing on this slurm, so `scontrol write batch_script 56251555 -` was used): snapshot md5 **51c7ae1bca9c294c50d00d3cf593c774 = local = CFS**, carries `--chunk 32` (line 64 command + line 29 constraint comment); remote deploy self-check PASS 223/223 pre-sbatch; stale ckpt dir wiped in-job | P2 B5 | 0.8 | — (submitted; row appended BEFORE results) | 36.37 actual + 0.8 P2 est (P2 22.08+0.8 = 22.88 ≤ 24; **worst-case wall 22.08+1.25 = 23.33 ≤ 24 — SAFE, no breach flag needed**) |
 | 2026-07-20 | **P2b S1r ACTUALS HARVESTED (sacct -X, Elapsed × 1 A100 each): 56170216 3.84 + 56170219 3.73 + 56170221 3.77 = 11.33 P2b actual (vs est 12.0; hard cap 12 respected)** — chain ended **PARTIAL-BY-BUDGET at λ=0.150576, 36 stages** (D9: cell CLOSED, no leg 4). Harvest: PARTIAL json + run.log + checkpoint-replay sidecar (identity fence PASS 36/36; **grad_evals.total = 3,078,912** = tune 1,689,856 + mutate 1,389,056) in data/results-perlmutter/b1r128_carousel33_s1_seed2*, traces figs/b1r_s1_partial_traces.png (plotted BEFORE gate text per house rule); ckpt dir stays on CFS remote (73 files, stages 000–035 contiguous). Sampler healthy to λ=0.15 (uniq 92–104/128, accept 0.871–0.934, ESS pinned 0.7N); NO gate math on the non-λ=1 ensemble. Leg-3 COMPLETED_NO_ARTIFACT watchdog alert = resolved-by-design (PARTIAL end state), entry deregistered. Close-out: research/checkpoint_b1r_close.md | P2b B1r | — | 11.33 P2b total | **47.70 actual** of 100 (36.37 + 11.33 P2b) |
 | 2026-07-20 | 56252401 cgl2-p2b-b1r-s6b (**P2b S6br Track-A BUDGET-MATCHED MAMS-alone-warm baseline**, D9: `GRAD_BUDGET=3078912` = S1r REALIZED grad ledger; marker guard accepts the PARTIAL json — mechanical amendment, in-script comment; frozen MAP 64×350 billed + 30 burn rounds frozen + sampling to the grad-fence-at-B\* OR 4.5-h graceful wall fence; hbm80g pin, wall 4:55, shared cosmo_g, -c 32; deploy.md5 updated BOTH sides + full remote audit PASS pre-sbatch; **submitted-SNAPSHOT verified**: `scontrol write batch_script 56252401 -` md5 **c65d3a719cb68c55acabaa9151f19a7f = local = CFS**, carries GRAD_BUDGET=3078912 (line 47) + --chunk 32 (line 73); watchdog registered max_run 5.2 h, expect CFS b1r128_carousel33_s6b_seed2.json, on_stall=alert; slurm/p2b_b1r_s6b.slurm) | P2b B1r | 5.0 | — (submitted; ledger text pre-registered in research/checkpoint_b1r_close.md BEFORE sbatch; this table row deferred past sbatch by the 2026-07-20 CAMPAIGN.md concurrency rule) | **P2b 11.33 actual + 5.0 est = 16.33 ≤ 18 cap** (worst-case wall 11.33 + 4.92 = 16.25); campaign 47.70 actual + 5.8 est in flight (0.8 B5-steep#4 + 5.0 S6br) = 53.50 ≤ 100 |
-| 2026-07-20 | JOBID-PENDING cgl2-l0arbc **P3-L0 anchor arbitration — CLASSIC-RECIPE ARM (PRIMARY vehicle per the 2026-07-20 protocol amendment, research/checkpoints_l0.md, appended BEFORE this run):** 3 MC-SMC attempts wall-capped below λ=1 (L4 λ≈0.45 @~18 h, ckpts stage_000–067; A100 hbm80g 56168446 λ=0.587 @3.5 h, ckpts stage_000–075 — healthy sampler, budget-infeasible VEHICLE), so pre-registered optional arm (b) is PROMOTED: classic scene-API MAP→SVI→HMC (B3 reference-arm replication, frozen settings: MAP adabelief(1e-2)×350 warm single-start; SVI 250×500 w/ OOM ladder 250→128→64; HMC 50 chains 250/750 + single 500/1500 escalation, R̂<1.05/ESS≥200; seeds 0/1/2), WARM-started from the mapped foundry-i MAP (param_map of refs v2d:z_ref:x46, the S1-certified path) on the SAME v2d diagonal parity-certified target — the SAME algorithm class that produced the 1.433 anchor on the old stack. **Gates and bands UNCHANGED; MC-SMC partials retained as SECONDARY evidence, PARTIAL status recorded; trade-off declared: the warm arm inherits the warm-start basin (as the old-stack anchor fit did) — prior-seeded alternative-basin coverage was the SMC arm's job and REMAINS OPEN.** Vehicle 11_arbitration_classic.py (LOCAL CPU TOY TEST PASS — driver-only synthetic target, exercised escalation + blocked-by-reference paths, lensing likelihood never run on CPU; stage-wise artifact writes so a walltime kill loses ≤1 stage; outputs γ posterior + per-param R̂/ESS worst-param; NO in-job gate math) via slurm/p3_l0arb_classic.slurm — plain `-C gpu` ON PURPOSE (56006048's 21-GiB OOM was the N=128 MAMS mutate tape; this arm's tapes: MAP n=1, SVI ladder, HMC ~4.7 GB), wall 2:00, $PSCRATCH audited-copy + PYTHONPATH vendor pin; staged md5 3f4787fc (script) / 2a042788 (slurm) identical local/CFS, deploy.md5 → **225 files** (merged with the concurrent B1r front's s6b line c65d3a71 after a cross-front clobber was caught and repaired — stage entry), remote self-check PASS 225/225 pre-sbatch | P3 L0 | 1.5 | — (submitted; row appended BEFORE sbatch/results) | 47.70 actual + **1.5 P3 est** (P3 4.29+1.5 = 5.79 ≤ 17; worst-case wall 4.29+2.0 = 6.29 ≤ 17); campaign 47.70 + 7.3 est in flight (0.8 B5#4 + 5.0 S6br + 1.5 l0arbc) = 55.00 ≤ 100 |
+| 2026-07-20 | 56252932 cgl2-l0arbc **P3-L0 anchor arbitration — CLASSIC-RECIPE ARM (PRIMARY vehicle per the 2026-07-20 protocol amendment, research/checkpoints_l0.md, appended BEFORE this run):** 3 MC-SMC attempts wall-capped below λ=1 (L4 λ≈0.45 @~18 h, ckpts stage_000–067; A100 hbm80g 56168446 λ=0.587 @3.5 h, ckpts stage_000–075 — healthy sampler, budget-infeasible VEHICLE), so pre-registered optional arm (b) is PROMOTED: classic scene-API MAP→SVI→HMC (B3 reference-arm replication, frozen settings: MAP adabelief(1e-2)×350 warm single-start; SVI 250×500 w/ OOM ladder 250→128→64; HMC 50 chains 250/750 + single 500/1500 escalation, R̂<1.05/ESS≥200; seeds 0/1/2), WARM-started from the mapped foundry-i MAP (param_map of refs v2d:z_ref:x46, the S1-certified path) on the SAME v2d diagonal parity-certified target — the SAME algorithm class that produced the 1.433 anchor on the old stack. **Gates and bands UNCHANGED; MC-SMC partials retained as SECONDARY evidence, PARTIAL status recorded; trade-off declared: the warm arm inherits the warm-start basin (as the old-stack anchor fit did) — prior-seeded alternative-basin coverage was the SMC arm's job and REMAINS OPEN.** Vehicle 11_arbitration_classic.py (LOCAL CPU TOY TEST PASS — driver-only synthetic target, exercised escalation + blocked-by-reference paths, lensing likelihood never run on CPU; stage-wise artifact writes so a walltime kill loses ≤1 stage; outputs γ posterior + per-param R̂/ESS worst-param; NO in-job gate math) via slurm/p3_l0arb_classic.slurm — plain `-C gpu` ON PURPOSE (56006048's 21-GiB OOM was the N=128 MAMS mutate tape; this arm's tapes: MAP n=1, SVI ladder, HMC ~4.7 GB), wall 2:00, $PSCRATCH audited-copy + PYTHONPATH vendor pin; staged md5 3f4787fc (script) / 2a042788 (slurm) identical local/CFS, deploy.md5 → **225 files** (merged with the concurrent B1r front's s6b line c65d3a71 after a cross-front clobber was caught and repaired — stage entry), remote self-check PASS 225/225 pre-sbatch | P3 L0 | 1.5 | — (submitted; row appended BEFORE sbatch/results) | 47.70 actual + **1.5 P3 est** (P3 4.29+1.5 = 5.79 ≤ 17; worst-case wall 4.29+2.0 = 6.29 ≤ 17); campaign 47.70 + 7.3 est in flight (0.8 B5#4 + 5.0 S6br + 1.5 l0arbc) = 55.00 ≤ 100 |
 
 ## Gate record
 
@@ -147,6 +147,90 @@ downstream ΔlogZ gate, as planned).
 - sshproxy refreshed 2026-07-15 (user). Jobs charge `cosmo_g` (D5), single-GPU shared QOS.
 
 ## Stage log (newest first)
+
+### 2026-07-20 — TWO PERLMUTTER FIXES: B5-steep attempt #4 SUBMITTED (56251555, chunk 32 — the PILOT divisibility root cause) + L0-arb VEHICLE AMENDMENT executed (classic-recipe arm PRIMARY, 56252932 submitted); cross-front deploy.md5 clobber caught + repaired; P2 22.08/24, P3 4.29/17, campaign 47.70/100
+
+- **Session ops:** cert FRESH; WATCHDOG_ALERT triaged then deleted (JOB_FAILED
+  56170614 + 56168446 = exactly this wave's two fixes; COMPLETED_NO_ARTIFACT
+  56170221 = the B1r front's lane — resolved by their concurrent D9 harvest,
+  see their rows). Fix-wave actuals sacct'd into the ledger (56168443 0.00,
+  56170614 0.03, 56168446 3.58); the 56170614 table row is RETRO-RECORDED
+  (deviation declared: the previous wave declared est+cap math in its stage
+  entry but omitted the table row).
+- **FIX 1 — B5-steep attempt #4 = 56251555 (P2, est 0.8, wall 1:15).** Root
+  cause of #3 (56170614, `AssertionError: (64, 48)` at 1:52): chunk 48 fixed
+  the FULL pass (96 % 48 = 0) but broke the PILOT — common.run_tempered_smc's
+  dual-averaging step-size pilot (pilot_size=64, frozen at
+  24_run_p2_oldstack.py:215) mutates a 64-particle subset through the SAME
+  chunked kernel, and 64 % 48 ≠ 0 trips the same 22_run_b3.py:135 assert.
+  The real constraint: **chunk must divide BOTH N and pilot_size** ⇒ chunk 32
+  (3 chunks at N=96, 2 at the pilot; ≤ the proven chunk-64 memory). Edited
+  slurm/p2_b5_s1_steep.slurm (both occurrences + comment now states the
+  constraint) LOCALLY AND ON CFS, md5 **51c7ae1bca9c294c50d00d3cf593c774**
+  identical both sides, THEN sbatch, THEN the 07-19 ops lesson executed:
+  **submitted-SNAPSHOT verified** — `scontrol show job --Batch` prints
+  nothing on this slurm build, so `scontrol write batch_script 56251555 -`
+  was used: snapshot md5 = 51c7ae1b… (bit-identical to local/CFS), `--chunk
+  32` present at the command line. Watchdog: 56251555 registered (max_run
+  2.0, expect CFS steep npz, on_stall=alert), 56170614 deregistered.
+- **FIX 2 — L0-arb protocol amendment + classic arm = 56252932 (P3, est 1.5,
+  wall 2:00, plain gpu).** AMENDMENT appended to research/checkpoints_l0.md
+  (dated 2026-07-20, BEFORE the run; pushed to CFS with the tree): after
+  THREE wall-capped MC-SMC attempts (L4 λ≈0.45 @ ~18 h, ckpts stage_000–067;
+  A100 plain-gpu OOM; A100 hbm80g 56168446 λ=0.587 @ 3.5 h at stage 76,
+  ckpts stage_000–075 on CFS — sampler HEALTHY, accept ~0.88, no OOM: the
+  VEHICLE is budget-infeasible, ~1.2×/stage λ growth), the pre-registered
+  optional arm (b) — classic vendor-recipe MAP→SVI→HMC — is PROMOTED to
+  PRIMARY arbitration vehicle. λ readouts above are wall-cap-protocol ops
+  telemetry; NO gate math was done on any non-λ=1 ensemble, NO γ read.
+  **Gates/bands UNCHANGED** (dominant-basin γ_med within 2σ_comb of 1.433
+  [1.400,1.468] + 68% overlap + multimodality clause verbatim — the GATE is
+  about the POSTERIOR, not the sampler); MC-SMC partials retained as
+  SECONDARY prior-seeded evidence with PARTIAL status recorded; trade-off
+  declared: the warm classic arm inherits the warm-start basin (as the
+  old-stack anchor fit did — that is exactly the arbitration question);
+  prior-seeded alternative-basin coverage REMAINS OPEN. Build: NEW
+  11_arbitration_classic.py — imports 10_anchor_arbitration's certified
+  build_pm/γ machinery + 22_run_b3's replicated MAP/SVI/HMC by path; warm
+  single-start MAP refine from param_map(refs v2d:z_ref:x46) (multi-start
+  from one fixed point is degenerate — declared); B3 frozen settings incl.
+  R̂/ESS acceptance + single escalation + SVI OOM ladder; stage-wise artifact
+  writes (post-SVI/post-HMC/final) so a walltime kill loses ≤1 stage;
+  outputs γ posterior + per-param R̂/ESS worst-param; no in-job gate math.
+  **Local CPU toy test PASS** (synthetic quadratic target only — the lensing
+  likelihood was never run on CPU; exercised escalation AND
+  blocked-by-reference paths; posterior median within 0.02 of truth).
+  Staged: script md5 3f4787fc, slurm 2a042788 identical local/CFS;
+  submitted-SNAPSHOT verified (`scontrol write batch_script 56252932 -` md5
+  = 2a042788… bit-identical, `-C gpu` plain + wall 2:00 confirmed).
+  Watchdog: 56252932 registered (max_run 2.5, expect CFS
+  results/l0arb/l0_arbitration_classic.npz — note stage-wise json may exist
+  even when the npz is missing); 56168446 deregistered (terminal, artifacts
+  + ckpts already on CFS).
+- **CROSS-FRONT deploy.md5 CLOBBER (caught + repaired):** the B1r front was
+  staging its D9 S6br concurrently; this front's deploy.md5 push overwrote
+  the B1r manifest update while their 56252401 was PENDING (remote audit
+  then FAILED on slurm/p2b_b1r_s6b.slurm — which is how it was caught).
+  Repair: their s6b line (c65d3a71, file verified bit-identical local/CFS)
+  merged into THIS front's manifest ⇒ deploy.md5 is now the **UNION manifest
+  (225 files: +11_arbitration_classic.py, +slurm/p3_l0arb_classic.slurm,
+  updated p2_b5_s1_steep.slurm, B1r's s6b hash kept)**, pushed, **remote
+  self-check PASS 225/225** — both fronts' pending jobs' in-job audits
+  green. OPS RULE for concurrent fronts: deploy.md5 is a shared
+  single-writer file — pull/merge the CURRENT remote manifest before
+  pushing, and re-verify the remote audit AFTER every push while another
+  front is active. (Local self-check transiently shows the other front's
+  in-flight files by design — the REMOTE audit is binding, per the 07-19
+  precedent.)
+- **Queue at close:** 56251555 (B5-steep#4) PENDING, 56252932 (l0arbc)
+  PENDING, 56252401 (B1r S6br, theirs) PENDING; watchdog 3 jobs, heartbeat
+  touched, tmux loop alive.
+- **Budget statement:** P2 **22.08 of 24** actual (+0.8 est in flight =
+  22.88; worst-case wall 23.33 ≤ 24 — no breach flag); P3 **4.29 of 17**
+  (+1.5 est = 5.79; worst-case 6.29); P2b 11.33 + 5.0 est (B1r's lane);
+  campaign **47.70 actual of 100** + 7.3 est in flight = 55.00. NO results
+  read (λ/exit telemetry only, per the wall-cap protocol); NOT committed
+  (house rule: user commits).
 
 ### 2026-07-19 (late) — B5-steep resubmit #2 (script-snapshot root cause)
 56168443 failed in 12 s with the ORIGINAL assert signature (96, 64): sbatch snapshots the

@@ -218,3 +218,84 @@ basin-occupancy resolution 1/64.
   (b) new-n_int pilot compile requesting a pathological 10.23 GB temp under
   priority-fusion (fixed by disabling the pass); (c) v3b correlated 367.6
   MB/particle. L4 f64 stage cost at N=64: ~190-950 s depending on n_int.
+
+---
+
+## 2026-07-20 — L0-ARB PROTOCOL AMENDMENT: classic-recipe arm PROMOTED to primary arbitration vehicle (written BEFORE the classic-arm run; gates and bands UNCHANGED)
+
+**Observed (ops record only — no gate math, no gamma read):** three MC-SMC
+arbitration attempts have now ended at wall caps without reaching lambda=1:
+1. phoenix L4 (N=64 + remat, legs 1-3): lambda ~0.45 at stage 67 after ~18
+   wall-h total (data/l0_arbitration_smc.json status=PARTIAL_WALL_CAP,
+   lambda_reached=0.418 at the resume-leg cap trigger, last trace row
+   lambda=0.450; checkpoints data/l0_smc_checkpoints/stage_000-067).
+2. Perlmutter A100 plain-gpu (56006048): OOM before stage 0 (hardware,
+   ledgered 2026-07-19 — never a lambda datum).
+3. Perlmutter A100 hbm80g (56168446, N=128): HEALTHY MAMS (accept ~0.88, no
+   OOM, peak 22.7 GB) but PARTIAL_WALL_CAP at stage 76, lambda=0.587 inside
+   the 3.5-h cap (CFS results/l0arb/l0_arbitration_smc.json + checkpoints
+   stage_000-075).
+The prior-seeded MC-SMC lambda-schedule on this target needs a multiple of
+any wall this campaign can budget (~1.2x lambda growth per stage measured on
+both machines). The VEHICLE is budget-infeasible here — the sampler is not
+sick, and nothing in this amendment reinterprets its partial output.
+
+**Amendment (vehicle only — every gate, band, and clause UNCHANGED):** the
+original 2026-07-15 checkpoint listed optional arm (b): "classic recipe
+(vendor MAP->SVI->HMC) on the same ProbModel — two arbitration arms beat
+one." That arm is hereby PROMOTED to PRIMARY arbitration vehicle:
+- Classic scene-API recipe MAP -> SVI -> HMC on the SAME v2d diagonal
+  scene-API target (build_pm("v2d", diagonal=True) — the F-gate-certified
+  likelihood, verbatim), via the vendored ModellingSequence recipe
+  REPLICATED single-device with attribution per the B3 checkpoint amendment
+  (the vendored MAP raises the known jax-0.6.2 shard_map cotangent
+  TypeError; 22_run_b3.py's reference-arm replication ran 4/4 on hs2).
+- Their standard settings = the B3 reference-arm FROZEN constants:
+  MAP adabelief(1e-2, nesterov) x 350 steps; SVI full-rank MVN-TriL,
+  250 draws x 500 steps, adabelief(1e-4, b1=.95, b2=.99); HMC 50 chains,
+  250 burn + 750 results, init_eps 0.3, init_l 3, max_leapfrog 30, with the
+  single pre-registered escalation to 500/1500 on Rhat/ESS failure
+  (Rhat < 1.05, ESS >= 200); stage seeds 0/1/2 (B3 convention).
+- WARM start: MAP stage starts from the MAPPED foundry-i MAP —
+  param_map.scene_z_from_old_labels(model, labeled_from_vec46(
+  refs["v2d:z_ref:x46"])) — the same object S1 wiring-certified. The
+  multi-start MAP is replaced by a single-start warm refine (multi-start
+  from a fixed warm point is degenerate; declared, not hidden). This is the
+  SAME algorithm class, warm-started the same way, that produced the 1.433
+  anchor on the old stack (hmc_v13_v2d warm-chained from map_marg_pd).
+- The MC-SMC partials are RETAINED as SECONDARY, prior-seeded evidence with
+  their PARTIAL status honestly recorded: L4 checkpoints stage_000-067
+  (lambda ~0.45, N=64) and A100 checkpoints stage_000-075 (lambda 0.587,
+  N=128). The standing rule is unchanged: NO gate math on a non-lambda=1
+  ensemble; their lambda<1 occupancy content is context, never a gate input.
+- GATES AND BANDS UNCHANGED, verbatim from 2026-07-15: dominant-basin
+  gamma_med within 2*sigma_comb of 1.433 (sigma_anchor 0.034), AND
+  overlapping 68% intervals; multimodality clause (plot FIRST, dominant
+  basin by equal-weight occupancy, frac(gamma>1.9) continuity stat) and the
+  falsifier (disjoint 68% intervals => anchor not stack-robust) as written.
+  The arbitration GATE is about the POSTERIOR, not the sampler.
+
+**Trade-off stated honestly (before the run):** the classic arm INHERITS the
+warm-start basin. That is acceptable FOR ARBITRATION because the old-stack
+anchor fit inherited it identically — the arm asks exactly "does the same
+algorithm class, warm-started the same way, on the parity-certified same
+data + likelihood, reproduce the anchor posterior on the new stack?" What
+the warm arm CANNOT provide is prior-seeded coverage of alternative basins
+— that was the MC-SMC arm's job and it REMAINS OPEN; the retained partials
+are the honest record of how far that coverage got.
+
+**Vehicle script:** 11_arbitration_classic.py (new operator; imports
+10_anchor_arbitration.py's certified builders by path; refuses to run
+without data/l0_sanity_report.json sanity_ok). Writes
+data/l0_arbitration_classic.{npz,json}: gamma posterior samples + per-param
+Rhat/ESS incl. worst-param + stage walls; artifacts written stage-wise
+(post-SVI, post-HMC, post-escalation) so a walltime kill loses at most one
+stage. NO gate math in the script — harvest stays plots-first.
+
+**Runtime protocol:** Perlmutter plain `-C gpu` (40 GB) on purpose: the
+56006048 21-GiB OOM was the N=128 MAMS mutate tape; this arm's tapes are
+MAP n=1 (trivial), SVI <= 250-draw ELBO grad with the B3 OOM halving ladder
+250->128->64 (ladder hits = recorded fallbacks, not failures), HMC 50-chain
+batch (~50 x ~93 MB ~ 4.7 GB). Wall 2:00, est 1.5 A100-h, P3 ledger row
+BEFORE results (slurm/p3_l0arb_classic.slurm, $PSCRATCH audited-copy
+pattern + PYTHONPATH vendor pin from p3_l0arb.slurm).
