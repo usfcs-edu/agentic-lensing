@@ -11,10 +11,13 @@
 # P2b B1-REDUCED S6br — Track-A BUDGET-MATCHED MAMS-alone-warm baseline
 # (DESCOPE amendment research/checkpoint_b1_reduced.md; replaces the
 # until-converged 30+120 design whose measured true cost is 17-20 h).
-# *** TEMPLATE — HELD until the S1r harvest fills GRAD_BUDGET below with
-# *** B* = grad_evals.total from b1r128_carousel33_s1_seed2.json (the S1r
-# *** COMPLETE result). Fill procedure + deploy.md5 update: slurm/README_p2b.md.
-# *** The guards below refuse to run unfilled or without the S1r marker.
+# *** FILLED 2026-07-20 per USER DECISION D9 (research/checkpoint_b1r_close.md):
+# *** S1r CLOSED at PARTIAL (lambda=0.1506, 12-h fence final, no leg 4); S6br
+# *** runs Track-A budget-matched at S1r's REALIZED total grad ledger,
+# *** B* = grad_evals.total = 3078912 from the PARTIAL checkpoints (replay
+# *** sidecar b1r128_carousel33_s1_seed2_partial_replay.json, identity fence
+# *** PASS 36/36). Marker guard below accepts the PARTIAL json (mechanical
+# *** amendment, D9 — no numerics/fence/threshold change).
 # Design: frozen MAP multistart 64x350 (billed) + 30 burn rounds (frozen) +
 # sampling rounds until a fence stops the loop: grad fence at B* OR graceful
 # in-job wall fence 4.5 h (cap 5 A100-h; wall 4:55 worst case 4.92). Env seams
@@ -40,17 +43,22 @@ S1R_JSON="$CFSDIR/b1r128_carousel33_s1_seed2.json"
 NAME=b1r128_carousel33_s6b_seed2
 mkdir -p "$OUTDIR" "$CFSDIR"
 
-# ---- Track-A matched budget (TODO: harvest fills this) ----------------------
-GRAD_BUDGET="TODO_FILL_FROM_S1R_HARVEST"  # <- B* = grad_evals.total from $S1R_JSON
+# ---- Track-A matched budget (filled by the 2026-07-20 harvest, D9) ----------
+GRAD_BUDGET="3078912"  # B* = S1r REALIZED grad_evals.total (tune 1689856 + mutate 1389056, 36 stages to lambda=0.1506)
 # -----------------------------------------------------------------------------
 if ! [[ "$GRAD_BUDGET" =~ ^[0-9]+$ ]]; then
   echo "S6BR TEMPLATE UNFILLED: GRAD_BUDGET='$GRAD_BUDGET' — fill B* from the"
   echo "S1r COMPLETE json (grad_evals.total) per slurm/README_p2b.md. Refusing."
   exit 2
 fi
-if [ ! -f "$S1R_JSON" ]; then
-  echo "S1R COMPLETE MARKER MISSING ($S1R_JSON) — S6br is conditioned on S1r"
-  echo "COMPLETE (amendment: no auto-burn against a failed primary arm). Refusing."
+# D9 mechanical amendment (research/checkpoint_b1r_close.md): S1r CLOSED at
+# PARTIAL by user decision 2026-07-20, so the marker is the PARTIAL json, not
+# the COMPLETE json. Accept either (the user decision resolved the amendment's
+# "orchestrator decision point" — this is NOT an auto-burn against a failed arm).
+S1R_PARTIAL_JSON="$CFSDIR/b1r128_carousel33_s1_seed2.PARTIAL.json"
+if [ ! -f "$S1R_JSON" ] && [ ! -f "$S1R_PARTIAL_JSON" ]; then
+  echo "S1R MARKER MISSING ($S1R_JSON | $S1R_PARTIAL_JSON) — S6br is conditioned"
+  echo "on the S1r arm having run (D9: PARTIAL accepted per user decision). Refusing."
   exit 2
 fi
 export CGL2_S6B_GRAD_BUDGET="$GRAD_BUDGET"
