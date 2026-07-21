@@ -35,6 +35,17 @@ Run (Perlmutter, plain gpu — see slurm/p3_l0arb_classic.slurm):
 Local CPU toy test of the driver (synthetic quadratic prob-model, tiny
 constants; the lensing likelihood is NEVER evaluated on CPU):
     python 11_arbitration_classic.py --toy
+Local GPU smoke of the REAL path (added 2026-07-21 after job 56252932; the
+toy passed but missed the production shape regime — ToyPM returns batched
+chisq while the real bs==1 squeeze does not, see _map_warm_refine note):
+same target build, same warm start, same stage plumbing, tiny budgets only
+(MAP 5, SVI 16x50, HMC 4 chains 5/5; escalation path exercised because the
+frozen Rhat/ESS thresholds cannot pass at 5 draws — expected end state is
+"NONE (blocked-by-reference)" with a clean exit 0). Writes *_smoke artifacts
+(never the production stems). Requires a GPU (lensing likelihood never on
+CPU):
+    CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=<gpu> GIGALENS_X64=1 \
+        python 11_arbitration_classic.py --smoke
 """
 from __future__ import annotations
 
@@ -105,6 +116,14 @@ def _map_warm_refine(prob_model, z_start, optimizer, num_steps):
 
     def loss(z):
         lp, chisq = map_prob.log_prob(z)
+        # FIX 2026-07-21 (job 56252932 IndexError, reproduced locally on the
+        # real v2d target at --smoke budgets): cgl2 CorrelatedImageData
+        # mirrors the stock term's bs==1 squeeze (correlated.py log_like:
+        # `return ll[0], chi2[0]`), so for THIS arm's single-row warm batch
+        # chisq comes back 0-d while lp is re-broadcast to (1,) by the batched
+        # log_prior — `chisq[i]` below then raises. Normalize both to 1-d;
+        # identity for every batched caller (B3's n>1 path unchanged).
+        lp, chisq = jnp.atleast_1d(lp), jnp.atleast_1d(chisq)
         return -jnp.mean(lp) / map_prob.loss_normalization, (lp, chisq)
 
     loss_and_grad = jax.value_and_grad(loss, has_aux=True)
@@ -292,7 +311,11 @@ def drive(pm, z_warm, gamma_fn, cfg, out_stem, extra_prov=None):
 
 
 # --------------------------------------------------------------------------- #
-def main_production():
+SMOKE = dict(map_steps=5, svi_steps=50, svi_ladder=(16, 8),
+             hmc_n=4, hmc_burn=5, hmc_res=5, esc_burn=10, esc_res=10)
+
+
+def main_production(smoke=False):
     sane = json.loads((DATA / "l0_sanity_report.json").read_text())
     if not sane.get("sanity_ok"):
         raise RuntimeError("sanity gates not passed — refusing to run")
@@ -330,7 +353,15 @@ def main_production():
     def gamma_fn(Z):
         return anchor_arb.gamma_of(pm, Z)
 
-    drive(pm, z_warm, gamma_fn, REF, OUT_STEM, extra_prov=prov)
+    cfg, out_stem = REF, OUT_STEM
+    if smoke:
+        cfg = dict(REF)
+        cfg.update(SMOKE)          # budgets only; thresholds/seeds frozen
+        out_stem = OUT_STEM + "_smoke"
+        prov["smoke"] = True
+        print("[l0-classic] SMOKE mode: real target/warm-start/plumbing, "
+              f"tiny budgets {SMOKE} -> data/{out_stem}.*", flush=True)
+    drive(pm, z_warm, gamma_fn, cfg, out_stem, extra_prov=prov)
 
 
 # --------------------------------------------------------------------------- #
@@ -392,8 +423,12 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--toy", action="store_true",
                     help="CPU driver test (synthetic target, tiny constants)")
+    ap.add_argument("--smoke", action="store_true",
+                    help="REAL-path GPU smoke: production target + warm start "
+                         "+ stage plumbing at tiny budgets; writes *_smoke "
+                         "artifacts only (see module docstring)")
     args = ap.parse_args()
     if args.toy:
         main_toy()
     else:
-        main_production()
+        main_production(smoke=args.smoke)
