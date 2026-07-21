@@ -151,6 +151,26 @@ downstream ΔlogZ gate, as planned).
 
 ## Stage log (newest first)
 
+### 2026-07-21 — ANCHOR ARBITRATION: classic arm NO-VERDICT (unconverged); arbitration closed PARTIAL-BY-VEHICLE-EXHAUSTION
+Job 56267678 COMPLETED (54 min, 0.90 A100-h actual vs 1.5 est) but the readout is
+**NO-VERDICT under the worst-parameter rule**: R̂_worst 44.3 (escalated 11.7 ≫ 1.05 gate),
+ESS_min 63; all chains railed to γ≈1.987 [1.983, 1.991] at the prior edge (frac>1.9 = 100%) —
+γ NOT quotable. This is the KNOWN single-stage-HMC pathology of the 46-dim cond-1e14 v2d
+posterior (the P2/T2 lineage finding: single-stage R̂ 3.1 on the old stack; only the two-stage
+re-preconditioned recipe converges) now REPRODUCED on the scene API at B3-reference settings —
+a useful benchmark datum (the difficulty is target-intrinsic, not stack-specific), not a stack
+discrepancy.
+**Arbitration disposition: PARTIAL-BY-VEHICLE-EXHAUSTION** after four vehicles (L4 MC-SMC
+λ=0.45@18h; A100 MC-SMC λ=0.587@3.5h, healthy; classic-arm unconverged ×2 settings) — every
+vehicle reproduces the known difficulty of this posterior rather than revealing a stack
+difference. The arbitration's premise-check value is carried by the evidence already in hand:
+(i) F1–F6 machine-precision likelihood parity (the scene API evaluates the SAME function to
+1e-12 at matched points), and (ii) L0-G2's CONVERGED cross-stack posterior-level reproduction
+on the harder correlated v3b target (γ Δ0.0027, logZ Δ0.11 nats). A converged v2d scene-API
+posterior would require porting the two-stage re-preconditioning recipe (~0.5 day + 2–4 A100-h)
+— left as a USER decision / follow-on, not spent unilaterally. P3 4.31+0.90=5.21/17;
+campaign **53.51/100 actual, nothing in flight**.
+
 ### 2026-07-21 — FINAL-WAVE HARVEST: B5 gates closed (G1 PASS / G2 comparability-resolved-then-FAIL / G3 occupancy completed) + B1r decision matrix = "NEITHER converges" + classic-arm 0-d-chisq root cause fixed, locally smoke-proven, resubmitted (56267678); P2 22.45/24, P2b 15.85/18 CLOSED, P3 4.31/17, campaign 52.61/100
 
 - **Session ops:** cert VALID (tested first); mid-session ~25-min Perlmutter
