@@ -1626,3 +1626,12 @@ pre-registered readout).
 - D3 recorded: reference-artifact parity design (gigalens package-name collision).
 - cgl2 skeleton: paths.py (vendor bootstrap + jax pin), guards.py (carried + new fences),
   pyproject, x64 bootstrap __init__.
+
+### 2026-07-22 — E1 amendment 3 (v3b OOM → group geometry)
+v3b production lane (PID 184374) OOM'd in the main scan (10.1 GB alloc atop the working set;
+its smoke had already peaked at 8.0 GB with 8 chains — the 130² lstsq-marg tape is ~4× v2d's).
+Amendment: N_CHAINS/N_GROUPS made env-overridable; v3b relaunched (PID 189281, GPU 8) at
+**16 chains × 4 groups — pooled 64 chains UNCHANGED**, so gate E1-G1's pooled count is
+untouched; svi_mass_matrix_weight follows the wrapper's own 10·n_chains rule (160 for the
+16-chain groups vs 320 for v2d — the vendor's documented scaling, not a tuning change).
+Gates/bands unmoved. v2d lane unaffected (still running its original config).

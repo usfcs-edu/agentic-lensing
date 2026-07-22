@@ -51,8 +51,8 @@ OLD_PY = "/raid/benson/.venvs/cgl/bin/python"
 N_MAP = 512                 # warm draws mapped per product
 MAP_SEED = {"v2d": 424242, "v3b": 424243}
 V3B_GAMMA_CUT = 1.7         # physical-branch conditional (fermat-teaser convention)
-N_CHAINS = 32               # per seed group
-N_GROUPS = 2
+N_CHAINS = int(os.environ.get("MCLMC_CHAINS", "32"))   # per seed group (E1 OOM amendment: env-overridable)
+N_GROUPS = int(os.environ.get("MCLMC_GROUPS", "2"))     # pooled chains = N_CHAINS*N_GROUPS (gate counts pooled)
 BURN = 2000
 DRAWS = 4000
 FRAC_TUNE = (0.2, 0.6, 0.2)         # MCLMC_JIT wrapper defaults
