@@ -131,3 +131,18 @@ weighted-vs-resampled summary conventions).
 (scene-API posterior draws) — cited by the gate ledger but only the summary .json is
 on this repo; the draws npz remained on Perlmutter $PSCRATCH. rfig_crossstack_l0g2
 therefore plots the scene side from summary quantiles (stated in its caption).
+
+<!-- BEGIN rfig_modeler_summary (40_modeler_summary_figs.py) -->
+
+## Modeler-summary figures (PI request, 40_modeler_summary_figs.py)
+
+| figure | placement | caption |
+|---|---|---|
+| figs/rfig_critcurves.png | up-front modeler summary | Critical curves (lens plane, over the v3b binned cutout, asinh stretch) and caustics (source plane; stars = median Sérsic-source centers) for the three posterior-median mass models on disk: corr-low γ=1.1032 (the certified but artifact-diagnosed correlated fit; per-dim z-median of the 128 production SMC particles, t04 convention), diagonal-low γ=1.29325 (hmc_v13_v3b low basin — the real-space preference), and steep γ=2.639 (evidence-disfavored, ΔlogZ≈−29). Curve overlays follow the team's GIGA-Lens (Gu et al. 2022) conventions (critical curves in the image plane, caustics + source star in the source plane); per-model colors + line styles because three models share each panel. Sanity: outer critical-curve median radius matches θ_E to <5% for all three (low 2.6321" vs θ_E 2.62395"); the low/diagonal models (γ<2) show the expected inner radial critical curve/caustic. Deflections: vendored gigalens-linus EPL(50)+Shear at the certified scene conventions; grid Jacobian via jax autodiff (1201², ±5.2"). |
+| figs/rfig_corner.png | up-front modeler summary | Corner plot of the six mass parameters (θ_E, γ, e_1, e_2, γ_ext,1, γ_ext,2) from the stored equal-weight v3b-low correlated SMC particles, seeds 2/3/4 overlaid (this is the SMC convergence visual: SMC has no R̂; the seed-repeat spread σ_seed = 0.00325 plus per-stage ESS/acceptance are the analogues), steep basin (seeds 2–4 pooled) in grey. Weighted medians of record (from the run JSONs) γ = 1.1032/1.0967/1.1005; the equal-weight particle medians reproduce them to ≤0.0027 (≪ σ_stat 0.008; the resampled-particle convention). γ zoom panel shows the three repeats with weighted medians. The cross-stack scene-API repeat (γ 1.1005, Δγ 0.0027, logZ to 0.11 nats) is reported in the text; its draws remain on Perlmutter $PSCRATCH (summary-JSON only locally). |
+
+Derived input: data/rfig_modeler_params.npz — Stage-A (OLD cgl venv, CPU,
+bijector-only) physical-space export of the six stored particle sets + the three
+median mass models (25a/01a/07 precedent). Regenerate with --refresh.
+
+<!-- END rfig_modeler_summary -->
