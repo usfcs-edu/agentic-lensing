@@ -13,8 +13,8 @@ Astronomy and the DESI Strong Lens Foundry group: a complete public-data
 reproduction of the 16-paper Huang-group strong gravitational lensing corpus —
 discovery, modeling, and follow-up spectroscopy, plus the AION-1 astronomy
 foundation model — executed end-to-end with coding agents, one LaTeX tech
-report per paper. Four pieces of **current work** (LensJudge, ClaudeNet,
-Claude-GIGA-Lens, Redshifty) build on the reproduced stack.
+report per paper. Five pieces of **current work** (LensJudge, ClaudeNet,
+Claude-GIGA-Lens, CGL2-Linus, Redshifty) build on the reproduced stack.
 
 Every report page on this site is generated directly from its `main.tex`; each
 offers a **PDF download** and a link to the code and artifacts on **GitHub**.
@@ -101,6 +101,35 @@ hardest real posteriors defeat off-the-shelf samplers outright — the 46-dim
 condition-10¹⁴ target converges only under the campaign's own two-stage
 re-preconditioning recipe (R̂ 2.11 → 1.003), and the 74-dim bimodal one yields a
 trustworthy mode weight only via per-basin SMC evidence.
+
+**[CGL2-Linus](current/claude-giga-lens-linus/index.md)** — the scene-API
+bridge campaign (certification + cross-stack port + decision matrix): carries
+the Claude-GIGA-Lens assets onto the GIGA-Lens team's next-generation
+scene-API rewrite under a pre-registered, budget-fenced proposer≠grader
+protocol (53.5 of 100 A100 h; scene-substrate results labeled *proposed,
+uncertified-external* pending upstream sign-off). **Delivered:** (i) the first
+external certification of the scene-API forward model for the EPL+shear +
+Sérsic/shapelet class — machine-precision cross-stack parity on both machines
+(forward image 5.7×10⁻¹⁵, gradients 1.5×10⁻¹¹), with three documented
+convention reconciliations including a real ~2×10⁻³ Sérsic-b_n approximant
+difference; (ii) a ported correlated-noise likelihood, exact in its analytic
+limits, that **reproduces the money number cross-stack** — γ = 1.1005 (offset
+0.0027) with per-basin log-evidence agreement to 0.11 nats, so γ = 1.103 now
+stands on two independent implementations; (iii) a sampler decision matrix
+from the first microcanonical-SMC benchmark on lens posteriors — prior-seeded
+MAMS-SMC is the only vehicle that produced evidence at all, and where it
+fails it fails *by cost, never by health*, while the classic single-stage
+MAP→SVI→HMC recipe reproduces its known pathology on the new substrate;
+unadjusted-MCLMC mutations are demoted for evidence work (20.1σ bias screen,
+×56 minor-mode evidence inflation). Two negatives bind future evidence
+claims: bootstrap log-Z errors understate the truth (+3.06 nats where the
+truth is ≈0) and a frozen MCMC reference was itself indicted by an 11σ gate
+failure — frozen references need coverage certificates. The anchor
+arbitration (does the 1.433 native anchor reproduce end-to-end?) closed
+partial-by-vehicle-exhaustion, and scale-stationarity of the noise-model
+class behind γ = 1.103 is **rejected** (calibrated p = 0.010) — the
+correlated-slope bracket is a standing mechanism, with data-side injections
+the designated next discriminant.
 
 **[Redshifty](current/redshifty/index.md)** — reproduces the Approach-A
 "redshift ignition" NERSC result on a single commodity GPU: sustained

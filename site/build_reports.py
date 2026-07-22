@@ -31,7 +31,7 @@ MIN_PANDOC = (3, 1, 7)  # first release with the tex_math_gfm extension
 
 SLUGS = {
     "current": ["lensjudge", "claudenet", "redshifty", "dr11-campaign",
-                "claude-giga-lens"],
+                "claude-giga-lens", "claude-giga-lens-linus"],
     "reproductions": [
         "aion-1", "cikota-2023", "dawes-2022", "foundry-i", "foundry-ii",
         "foundry-iii", "foundry-iv", "gu-2022", "hsu-2025", "huang-2020",
@@ -90,7 +90,11 @@ TOOLIO = re.compile(
 )
 
 USEPACKAGE_STY = re.compile(r"\\usepackage\{\.\./\.\./tech-report\}")
-SUBTITLE = re.compile(r"\\subtitle\{([^}]*)\}")
+# The \subtitle argument may itself carry one level of braced macros
+# (\texttt{...}, \citet{...}), so match balanced-at-depth-1 rather than
+# stopping at the first closing brace; subtitle_md() then converts the
+# light LaTeX for direct markdown injection.
+SUBTITLE = re.compile(r"\\subtitle\{((?:[^{}]|\{[^{}]*\})*)\}")
 WIKILINK = re.compile(r"\[\[([^\]]+)\]\]")
 
 # Most reports keep figures in papers/figures/, but some (claude-giga-lens)
@@ -134,6 +138,34 @@ def check_pandoc():
             "the tex_math_gfm extension)"
             % (".".join(map(str, version)), ".".join(map(str, MIN_PANDOC)))
         )
+
+
+# pandoc resolves \input{...}/\include{...} from disk at conversion time —
+# AFTER this script's source-string fixes have run — so none of the regex
+# passes in preprocess() (figure-path rewrites, resizebox, cmidrule, toolio)
+# ever applied to \input'ed section files, and copy_assets() never saw their
+# ../ figure dirs (this is how the 5 ClaudeNet campaign_section figures
+# broke). inline_inputs() therefore splices sub-files into the source string
+# (recursively, resolved relative to papers/) before anything else looks at
+# it; build_report feeds the inlined string to preprocess() and copy_assets()
+# alike.
+INPUT_TEX = re.compile(r"\\(?:input|include)\{([^}]+)\}")
+
+
+def inline_inputs(tex: str, papers: Path) -> str:
+    def splice(m):
+        line_start = tex.rfind("\n", 0, m.start()) + 1
+        if re.search(r"(?<!\\)%", tex[line_start:m.start()]):
+            return m.group(0)  # commented out (e.g. usage notes in headers)
+        name = m.group(1)
+        path = papers / (name if name.endswith(".tex") else name + ".tex")
+        if not path.is_file():
+            path = papers / name
+        if not path.is_file():
+            return m.group(0)  # not a papers/ sub-file; leave for pandoc
+        return "\n%s\n" % inline_inputs(path.read_text(), papers)
+
+    return INPUT_TEX.sub(splice, tex)
 
 
 def preprocess(tex: str) -> str:
@@ -185,6 +217,18 @@ def parse_markers(out: str) -> dict:
 
 def one_line(s: str) -> str:
     return re.sub(r"\s*\n\s*", " ", s).strip()
+
+
+def subtitle_md(s: str) -> str:
+    r"""Convert the \subtitle argument for markdown injection. It is
+    regex-harvested and never goes through pandoc, so translate the light
+    LaTeX it may carry: \texttt/\code -> code spans, \citet/\citep ->
+    bracketed keys, ties and thin spaces -> spaces."""
+    s = re.sub(r"\\(?:texttt|code)\{([^{}]*)\}", r"`\1`", s)
+    s = re.sub(r"\\cite[tp]\*?\{([^{}]*)\}", r"[\1]", s)
+    s = re.sub(r"\\[,;]", " ", s)
+    s = s.replace("~", " ")
+    return one_line(s)
 
 
 def plain_text(s: str) -> str:
@@ -278,12 +322,13 @@ def build_report(slug: str, section: str, texname: str = "main",
     out.mkdir(parents=True, exist_ok=True)
     pdf_name = "%s.pdf" % texname
 
-    tex = (papers / ("%s.tex" % texname)).read_text()
+    tex = inline_inputs((papers / ("%s.tex" % texname)).read_text(), papers)
     subtitle_m = SUBTITLE.search(tex)
     md = run_pandoc(SHIM + preprocess(tex), papers)
     meta = parse_markers(md)
-    page = assemble(meta, subtitle_m.group(1) if subtitle_m else "", slug,
-                    pdf_name=pdf_name)
+    page = assemble(meta,
+                    subtitle_md(subtitle_m.group(1)) if subtitle_m else "",
+                    slug, pdf_name=pdf_name)
 
     write_if_changed(out / "index.md", page)
     copy_assets(papers, out, pdf_name, tex=tex)
