@@ -80,6 +80,28 @@ L2 decomposition, X1-G0/G1/G2/G3) as pre-registered in `plans/PLAN.md` §6 — P
 the frozen thresholds; provisional values (e.g. X1-G1's ~15 nats) are finalized from P1's
 measured σ_seed and the finalization is itself a ledger row, not a goalpost move.
 
+## Status
+
+**COMPLETE (2026-07-21).** Experimental program closed at 53.5 of the 100 A100-h cap; report at
+`papers/main.pdf` (40 pp, adversarially number-audited — every headline traced to an artifact).
+Headlines: **(1) first external certification of the scene API** (F1–F8 pass on both machines,
+incl. the Sérsic-b_n convention finding) and the **correlated-noise port reproduces the money
+number cross-stack** (γ 1.1005 vs 1.1032, logZ to 0.11 nats — L0-G2 PASS); **(2) the bracket
+mechanism narrowed decisively**: profile curvature dead (X1-G0), companion exonerated (T0.3),
+flooring falsified, **stationarity REJECTED (p=0.010)** = the standing mechanism, with
+γ = 1.1032 ± 0.0086 seed-certified and injection methodology requiring data-side redesign;
+**(3) the sampler decision matrix**: MC-SMC evidence layer validated on bimodal/real targets
+(B5 G1 pass; MCLMC ×56 evidence inflation confirms the MAMS-primary rule) but carousel-class
+targets defeat both vehicles at campaign budgets (NEITHER row), the frozen P2c reference is
+itself coverage-indicted (B5-G2, 11σ), and the anchor arbitration closed
+PARTIAL-BY-VEHICLE-EXHAUSTION; **(4) gifts delivered**: X2 SBC (their frozen benchmark set is
+invalid for SBC; lens-light miscalibration), Fermat sensitivity, CLAIMS.md register +
+sign-off checklist + refreshed engagement memo in `papers/handoff/`.
+Full closure: `research/gate_ledger_final.md` (every gate's final disposition) +
+`research/synthesis_tables.md` (the artifact-traced spine). Follow-on offers (not debts):
+two-stage-recipe port for a converged v2d scene posterior; B4 rerun; data-side injections;
+L1/L2; PSF-marg MVP.
+
 ## Honest status / what is a proxy / what is blocked
 
 - 2026-07-15: **parity battery run (v2d+v3b, z_ref+3 perts): F1–F5, F7 PASS; F6 FAIL

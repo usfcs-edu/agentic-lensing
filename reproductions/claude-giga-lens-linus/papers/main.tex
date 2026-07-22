@@ -1,0 +1,65 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  claude-giga-lens-linus --- TECHNICAL REPORT (P5 build).
+%%
+%%  Bridging a Correlated-Noise Likelihood and Evidence-Based Inference onto
+%%  the Next-Generation GIGA-Lens Scene API: a Certification, Benchmark, and
+%%  Mechanism Campaign.
+%%
+%%  Companion to reproductions/claude-giga-lens/papers/main.tex, whose
+%%  preamble/build pattern this mirrors (shared ../../tech-report.sty,
+%%  natbib + bibtex; builds with vanilla TeX Live >= 2022: make pdf).
+%%
+%%  Structure: three section files, \input in order.
+%%    sec_a_front_methods.tex  --- title/abstract, Intro, Methods I--III
+%%    sec_b_results_mech.tex   --- Results I (certification), II (mechanism),
+%%                                 III (Fermat teaser)
+%%    sec_c_bench_disc.tex     --- decision matrix, gifts/handoff,
+%%                                 discussion, reproducibility
+%%
+%%  Every number is artifact-traced per research/synthesis_tables.md (the
+%%  spine); its seven DISCREPANCY FLAGS are binding and the ARTIFACT value is
+%%  quoted wherever ledger prose disagrees. Scene-substrate results carry the
+%%  "proposed (UNCERTIFIED --- external)" label throughout; the campaign's
+%%  bright lines (PLAN section 8) bind this text.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[11pt,letterpaper]{article}
+\usepackage{../../tech-report}
+\usepackage{lmodern}   % scalable Type1 fonts (microtype auto-expansion needs them)
+
+% --- Lensing / method math macros (superset of the companion report's set) ---
+\newcommand{\thetaE}{\ensuremath{\theta_{\mathrm{E}}}}
+\newcommand{\gammaEPL}{\ensuremath{\gamma}}
+\newcommand{\gext}{\ensuremath{\gamma_{\mathrm{ext}}}}
+\newcommand{\eone}{\ensuremath{e_{1}}}
+\newcommand{\etwo}{\ensuremath{e_{2}}}
+\newcommand{\Rhat}{\ensuremath{\hat{R}}}
+\newcommand{\ESS}{\textrm{ESS}}
+\newcommand{\eop}{\ensuremath{e_{\mathrm{op}}}}
+\newcommand{\Neff}{\ensuremath{N_{\mathrm{eff}}}}
+\newcommand{\foundry}{DESI--165.4754$-$06.0423}
+\newcommand{\gigalens}{\textsc{GIGA-Lens}}
+\newcommand{\gigalenstwo}{\textsc{GIGA-Lens\,2.0}}
+\newcommand{\lenstronomy}{\textsc{lenstronomy}}
+\newcommand{\blackjax}{\textsc{BlackJAX}}
+\newcommand{\art}[1]{\footnote{Source artifact: \texttt{#1}.}}
+\newcommand{\dfile}[1]{\texttt{#1}}
+
+% --- Macros specific to this report --------------------------------------
+\newcommand{\sboot}{\ensuremath{\sigma_{\mathrm{boot}}}}
+\newcommand{\sseed}{\ensuremath{\sigma_{\mathrm{seed}}}}
+\newcommand{\logZ}{\ensuremath{\log Z}}
+\newcommand{\dlogZ}{\ensuremath{\Delta\log Z}}
+\newcommand{\sceneapi}{scene API}
+\newcommand{\vendorpin}{\texttt{80916d2}}
+\newcommand{\mcsmc}{prior-seeded MAMS-SMC}
+
+\begin{document}
+
+\input{sec_a_front_methods}
+\input{sec_b_results_mech}
+\input{sec_c_bench_disc}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}

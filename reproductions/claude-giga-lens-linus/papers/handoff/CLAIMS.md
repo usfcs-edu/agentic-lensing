@@ -14,6 +14,8 @@ claude-giga-lens stack. This register follows `docs/logs/lab-notebook-TEMPLATE.m
 > the rest. "Validated" is reserved for our old certified stack; scene-API results are
 > "reproduced/measured, UNCERTIFIED (external)" in your vocabulary.
 
+**Sign-off checklist:** `papers/handoff/SIGNOFF_CHECKLIST.md` lists the five report passages characterizing unpublished code state — team sign-off required before ANY external release; internal use fine.
+
 ---
 
 ## Current state
