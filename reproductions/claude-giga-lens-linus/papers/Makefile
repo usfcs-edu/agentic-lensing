@@ -10,7 +10,7 @@
 # Same skeleton as the claude-giga-lens papers/Makefile.
 # =============================================================================
 PAPERS      := main
-SECTIONS    := sec_a_front_methods.tex sec_summary_modelers.tex sec_b_results_mech.tex sec_c_bench_disc.tex
+SECTIONS    := sec_a_front_methods.tex sec_summary_modelers.tex sec_b_results_mech.tex sec_c_bench_disc.tex sec_appendix_convergence.tex
 BIB_SOURCE  := references.bib
 SHARED_STY  := ../../tech-report.sty
 PDFLATEX    := pdflatex -interaction=nonstopmode -halt-on-error

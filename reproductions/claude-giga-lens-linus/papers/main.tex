@@ -25,6 +25,18 @@
 \documentclass[11pt,letterpaper]{article}
 \usepackage{../../tech-report}
 \usepackage{lmodern}   % scalable Type1 fonts (microtype auto-expansion needs them)
+\usepackage{longtable} % Appendix A per-fit convergence ledger spans pages
+\usepackage{lscape}    % ... and prints landscape (pdflscape absent from this
+                       % TinyTeX; the 4 lines below add pdflscape's viewer
+                       % page rotation to lscape's landscape environment)
+\makeatletter
+\let\cglold@landscape\landscape
+\let\cglold@endlandscape\endlandscape
+\renewcommand{\landscape}{\cglold@landscape
+  \ifdefined\pdfpageattr\global\pdfpageattr{/Rotate 90}\fi}
+\renewcommand{\endlandscape}{\cglold@endlandscape
+  \ifdefined\pdfpageattr\global\pdfpageattr{}\fi}
+\makeatother
 
 % --- Lensing / method math macros (superset of the companion report's set) ---
 \newcommand{\thetaE}{\ensuremath{\theta_{\mathrm{E}}}}
@@ -58,6 +70,7 @@
 \input{sec_a_front_methods}
 \input{sec_b_results_mech}
 \input{sec_c_bench_disc}
+\input{sec_appendix_convergence}
 
 \bibliographystyle{plainnat}
 \bibliography{references}

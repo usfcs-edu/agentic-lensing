@@ -1,0 +1,594 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  claude-giga-lens-linus --- APPENDIX A: convergence diagnostics for EVERY
+%%  fit the campaign ever ran, one row per fit, including failed / rejected /
+%%  collapsed / budget-blocked arms.  \input into main.tex AFTER the section
+%%  files and BEFORE the bibliography.
+%%
+%%  Every number is artifact-traced (research/synthesis_tables.md binds; its
+%%  DISCREPANCY FLAGS are honored where ledger prose disagrees with the
+%%  on-disk artifact: FLAG-1 20.1-sigma not "30-sigma"; FLAG-5 classic-arm
+%%  ESS_min quoted per stage; FLAG-6 the L4 arbitration lambda quoted from
+%%  data/l0_arbitration_smc.json with the ledger figure noted).
+%%
+%%  Requires longtable + lscape with the /Rotate 90 shim (loaded in main.tex;
+%%  pdflscape is absent from this offline TinyTeX).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\appendix
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Convergence Diagnostics for Every Fit}
+\label{app:convergence}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Table~\ref{tab:convergence-all} is the complete per-fit convergence ledger:
+one row for every fit this campaign ever ran, including the failed,
+rejected, collapsed, budget-blocked, and zero-artifact arms that the
+headline tables summarize or omit. It extends the consolidated ledger of
+Table~\ref{tab:conv-modelers} (\S\ref{sec:modelers}, item~4) from ``every
+fit quoted in this report'' to ``every fit executed,'' and backs each cell
+of the decision matrix (Table~\ref{tab:decision}, \S\ref{sec:matrix}).
+
+Two provenance rules govern the table. First, the two inherited
+companion-campaign diagonal fits (the anchor $\gammaEPL=1.433\pm0.034$ and
+the diagonal-low $\gammaEPL=1.293\pm0.012$) appear as provenance rows
+only.\footnote{Provenance footnote for the companion diagonal fits: those
+posteriors were produced by the companion campaign's two-stage
+re-preconditioned recipe, and their per-fit \Rhat/\ESS\ convergence
+diagnostics live in the companion report's campaign ledger
+\citep{cgl2026companion}. They are cited here, never re-derived and never
+invented; this campaign consumed the fits only as inherited draws (e.g.\
+the L0-G2 $q$-fit construction and the head-to-head model points of
+Table~\ref{tab:gof-modelers}).} Second, arms that ran the sampler but left
+no readable ensemble on disk (the zero-artifact wave-1 losses) are still
+given rows: their diagnostics cells quote the postmortem and ledger record
+(``no artifacts --- TIMEOUT'') because that is all that exists to quote.
+Only the X2 free-tier SBC census ($N{=}32$ classic-recipe fits, summarized
+with the gift) and pure infrastructure failures that never reached a
+sampler are ledgered in the coverage notes after the table rather than
+rowed.
+
+Conventions. For SMC fits the diagnostics are: tempering endpoint
+($\lambda$ reached; $\lambda{=}1$ is completion), stage count, final-stage
+weighted ESS (wESS; the adaptive schedule holds per-stage wESS at $0.7N$ by
+construction), unique particles after the final resample, MAMS acceptance
+against its 0.90 target, and \sseed\ where independent-seed repeats exist.
+For MCMC arms: $\Rhat_{\rm worst}$ and $\ESS_{\min}$ across parameters,
+against the frozen acceptance rule $\Rhat<1.05 \wedge \ESS\ge200$. Verdicts
+use a fixed vocabulary: {\bf CONVERGED} (sampler completed with healthy
+diagnostics; any science-gate outcome is annotated separately), {\bf
+PARTIAL-BY-BUDGET} (healthy sampler stopped by a pre-registered wall cap
+short of $\lambda{=}1$), {\bf REJECTED} (completed but fails the frozen
+acceptance rule), {\bf COLLAPSED} (degenerate terminal population), and
+{\bf BLOCKED} (no readable ensemble --- killed by a budget fence, a
+walltime TIMEOUT, or a since-fixed artifact-writer defect; the cause is
+named in each row). Every
+number is quoted from the artifact named in the last column; the spine
+\dfile{research/synthesis\_\allowbreak tables.\allowbreak md} binds, and its discrepancy flags are
+honored here (the MCLMC bias screen is quoted at its artifact value
+$20.1\sigma$, not the ledger's ``30$\sigma$''; the classic-arm
+$\ESS_{\min}$ is quoted per stage; the L4 arbitration $\lambda$ is quoted
+from the on-disk resume-leg summary with the ledger's multi-leg figure
+noted).
+
+% Group-header rows: a wrappable \parbox as wide as the table grid minus the
+% l-cell's own padding (sum of the p-column widths, 0.94\linewidth, plus 10
+% of the 12 interior \tabcolsep gaps), so a long header can never widen the
+% alignment. The width lives in a register set inside the landscape
+% environment (where \linewidth is the rotated dimension); pandoc-side, the
+% \setlength is ignored and \parbox keeps its text (\dimexpr inline would
+% make pandoc drop the cell content, and @{} inside any \multicolumn spec
+% makes pandoc fail the whole table parse -- both avoided here on purpose).
+\newlength{\cglgrpw}
+\newcommand{\cglgrouprow}[1]{\multicolumn{7}{l}{\parbox[b]{\cglgrpw}{\raggedright\textbf{#1}\strut}}}
+
+\begingroup
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.25}
+\begin{landscape}
+\setlength{\cglgrpw}{\dimexpr0.94\linewidth+10\tabcolsep\relax}
+% NB: \linewidth, not \textwidth --- inside lscape's landscape environment
+% \linewidth is the rotated (long) dimension while \textwidth keeps its
+% portrait value; fractions total 0.94 so the grid + 12\tabcolsep fits.
+\begin{longtable}{@{}p{0.125\linewidth}p{0.13\linewidth}p{0.105\linewidth}p{0.065\linewidth}p{0.295\linewidth}p{0.10\linewidth}p{0.12\linewidth}@{}}
+\caption{Convergence diagnostics for every fit the campaign ran. wESS =
+final-stage weighted ESS; ``uniq'' = unique particles after the final
+resample (for T0.2-family runs the stored-draw unique-row count is also
+given where it differs); accept = MAMS Metropolis acceptance (target 0.90;
+unadjusted MCLMC accepts by construction and its acceptance is not
+quoted). $\sigma_{\rm boot}$ = per-stage bootstrap \logZ\ error. Verdict
+vocabulary as defined in the text.}
+\label{tab:convergence-all}\\
+\toprule
+fit / arm & data + likelihood & vehicle & $N$ or ch$\times$draws &
+diagnostics & verdict & artifact \\
+\midrule
+\endfirsthead
+\multicolumn{7}{l}{\scriptsize Table~\ref{tab:convergence-all}, continued.}\\
+\toprule
+fit / arm & data + likelihood & vehicle & $N$ or ch$\times$draws &
+diagnostics & verdict & artifact \\
+\midrule
+\endhead
+\midrule
+\multicolumn{7}{r}{\scriptsize continued on next page}\\
+\endfoot
+\bottomrule
+\endlastfoot
+% Sacrificial zero-height row: pandoc's longtable reader eats the first
+% cell after \endlastfoot, which would otherwise swallow the group-A
+% header on the site page; LaTeX collapses this row via the negative skip.
+\multicolumn{7}{l}{}\\[-1.25\baselineskip]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%% A. B0 correctness gate %%%%%%%%%%%%%%%%%%%%%%%%%
+\cglgrouprow{A. SMC correctness gate (B0) --- analytic
+targets with exact references; local GPU, 0 A100-h; seed 0}\\
+\midrule
+B0 mix2, MAMS &
+analytic 2-d bimodal mixture (no image data) &
+tempered SMC, MAMS mutation & 512 &
+$\lambda{=}1$ @6 stages; wESS 464/512; uniq 440; accept 0.89--0.93; \logZ\
+err 0.073 ($\sboot{=}0.068$); $\hat w_{\rm minor}$ 0.219 vs 0.2 &
+\textbf{CONVERGED} (gate PASS) &
+\dfile{data/smc\_\allowbreak b0\_\allowbreak report.\allowbreak json} \\
+B0 mix2, HMC-mutation &
+same &
+tempered SMC, HMC mutation & 512 &
+$\lambda{=}1$ @6 stages; wESS 486/512; uniq 463; accept 0.75--0.95; \logZ\
+err 0.003; $\hat w_{\rm minor}$ 0.191 &
+\textbf{CONVERGED} (gate PASS) &
+same \\
+B0 mix2, MCLMC &
+same &
+tempered SMC, unadjusted-MCLMC mutation & 512 &
+$\lambda{=}1$ @6 stages; wESS 483/512; uniq 471; \logZ\ err 0.009;
+$\hat w_{\rm minor}$ 0.205 &
+\textbf{CONVERGED} (gate PASS) &
+same \\
+B0 funnel10, MAMS &
+analytic 10-d Neal funnel &
+tempered SMC, MAMS & 512 &
+$\lambda{=}1$ @7 stages; wESS 508/512; uniq 500; accept 0.88--0.94; \logZ\
+$-0.664$ vs 0 ($\sboot{=}0.070$) &
+\textbf{CONVERGED} (\logZ\ gate FAIL --- sampler-class limitation,
+reproduced in the old validated stack) &
+same \\
+B0 funnel10, HMC-mutation &
+same &
+tempered SMC, HMC & 512 &
+$\lambda{=}1$ @8 stages; wESS 512/512; uniq 498; accept 0.76--0.86; \logZ\
+$-0.545$ vs 0 &
+\textbf{CONVERGED} (\logZ\ gate FAIL) &
+same \\
+B0 funnel10, MCLMC &
+same &
+tempered SMC, MCLMC & 512 &
+$\lambda{=}1$ @7 stages; wESS 461/512; uniq 446; \logZ\ $-0.383$ vs 0 &
+\textbf{CONVERGED} (\logZ\ gate FAIL) &
+same \\
+B0 illcond46, MAMS &
+analytic 46-d ill-conditioned Gaussian &
+tempered SMC, MAMS & 512 &
+$\lambda{=}1$ @187 stages; wESS 407/512; uniq 415; accept 0.89--1.00;
+worst-param $|z|$ 1.83 (rule $<3$); \logZ\ $-145.80$ vs ref $-148.20$: err
+2.40 nats at $\sboot{=}0.37$ ($6.6\sboot$ --- finding A) &
+\textbf{CONVERGED} (location gate PASS; \logZ\ error noted) &
+same \\
+B0 illcond46, HMC-mutation &
+same &
+tempered SMC, HMC & 512 &
+$\lambda{=}1$ @195 stages; wESS 417/512; uniq 417; accept 0.71--0.98;
+worst-$|z|$ 1.87; \logZ\ err 21.6 nats at $\sboot{=}0.41$ &
+\textbf{CONVERGED} (location PASS; \logZ\ error noted) &
+same \\
+B0 illcond46, MCLMC &
+same &
+tempered SMC, MCLMC & 512 &
+$\lambda{=}1$ @185 stages; wESS 445/512; uniq 425; worst-$|z|$ 2.93; \logZ\
+err 13.2 nats; \dlogZ\ vs MAMS $+10.79\pm0.54=20.1\sigma$ &
+\textbf{CONVERGED}; kernel \textbf{DEMOTED} to diagnostic ($>3\sigma$
+rule) &
+same \\
+\midrule
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%% B. T0.2 / T0.3 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\cglgrouprow{B. T0.2 seed certification + T0.3 companion
+mask --- the production correlated fit family (old validated stack; seed-2
+legs inherited from the companion campaign)}\\
+\midrule
+\dfile{v3b} corr low, seed 2 (\textbf{money fit}) &
+real HST/WFC3-IR \dfile{v3b} binned drizzle; whitened-correlated
+likelihood ($n_{\rm keep,w}=9273$) &
+prior-seeded MAMS-SMC & 128 &
+$\lambda{=}1$ @28 stages; wESS 118.1/128; uniq 77 (37 stored rows);
+$\gammaEPL$ 1.1032; \logZ\ $-4771.08$ &
+\textbf{CONVERGED} &
+companion \dfile{e2\_\allowbreak v3b\_\allowbreak low\_\allowbreak smc\_\allowbreak canary\_\allowbreak fix.\allowbreak json};
+\dfile{data/t02\_\allowbreak t03\_\allowbreak gate\_\allowbreak eval.\allowbreak json} \\
+\dfile{v3b} corr low, seed 3 &
+same &
+same & 128 &
+$\lambda{=}1$ @28; wESS 127.7/128; uniq 82 (14 stored rows ---
+dup-cluster, reported not sick); $\gammaEPL$ 1.0967; \logZ\ $-4769.12$ &
+\textbf{CONVERGED} &
+\dfile{e2\_\allowbreak v3b\_\allowbreak low\_\allowbreak smc\_\allowbreak seed3.\allowbreak json} \\
+\dfile{v3b} corr low, seed 4 &
+same &
+same & 128 &
+$\lambda{=}1$ @28; wESS 127.5/128; uniq 79 (27 stored rows); $\gammaEPL$
+1.1005; \logZ\ $-4771.37$. Across seeds 2--4:
+$\sseed(\gammaEPL)=0.00325$ (kill $\sigma>0.024$ not tripped),
+$\sseed(\logZ)=1.22$ nats &
+\textbf{CONVERGED} + seed-certified ($n{=}3$: $\pm46\%$ on \sseed\
+itself) &
+\dfile{e2\_\allowbreak v3b\_\allowbreak low\_\allowbreak smc\_\allowbreak seed4.\allowbreak json} \\
+\dfile{v3b} corr steep, seed 2 &
+same &
+same & 96 &
+$\lambda{=}1$ @21; wESS 36.0/96 (final resample low); uniq 50; $\gammaEPL$
+2.6393 &
+\textbf{CONVERGED} &
+companion \dfile{e2\_\allowbreak v3b\_\allowbreak steep\_\allowbreak smc\_\allowbreak canary\_\allowbreak p96.\allowbreak json};
+\dfile{data/t02\_\allowbreak t03\_\allowbreak gate\_\allowbreak eval.\allowbreak json} \\
+\dfile{v3b} corr steep, seed 3 &
+same &
+same & 96 &
+$\lambda{=}1$ @21; wESS 96.0/96; uniq 59; $\gammaEPL$ 2.6522 &
+\textbf{CONVERGED} &
+\dfile{e2\_\allowbreak v3b\_\allowbreak steep\_\allowbreak smc\_\allowbreak seed3.\allowbreak json} \\
+\dfile{v3b} corr steep, seed 4 &
+same &
+same & 96 &
+$\lambda{=}1$ @22; wESS 90.3/96; uniq 58; $\gammaEPL$ 2.6485. Across
+seeds: $\sseed(\gammaEPL)=0.00664$;
+$\dlogZ(\mathrm{steep}-\mathrm{low})=-28.9/-32.3/-31.2$ per matched seed,
+$\sseed(\dlogZ)=1.79$ nats &
+\textbf{CONVERGED}; low-basin preference seed-stable &
+\dfile{e2\_\allowbreak v3b\_\allowbreak steep\_\allowbreak smc\_\allowbreak seed4.\allowbreak json} \\
+T0.3 companion-masked refit (seed 2) &
+same data, whiten-then-drop companion mask ($n_{\rm keep,w}$
+$9273\to8247$) &
+same & 128 &
+$\lambda{=}1$ @28; wESS 127.4/128; uniq 84 (17 stored rows); $\gammaEPL$
+1.1011 (shift $-0.0021$ vs production, 0.26$\sigma_{\rm stat}$) &
+\textbf{CONVERGED} (companion exonerated) &
+\dfile{e2\_\allowbreak v3b\_\allowbreak low\_\allowbreak smc\_\allowbreak compmask.\allowbreak json};
+\dfile{data/t02\_\allowbreak t03\_\allowbreak gate\_\allowbreak eval.\allowbreak json} \\
+\midrule
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%% C. T1.1 injections %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\cglgrouprow{C. T1.1 injection recovery ---
+$\gammaEPL_{\rm truth}=1.433$ arcs injected into the real \dfile{v3b}
+drizzle residual field (Perlmutter A100)}\\
+\midrule
+T1.1 inj1, corr &
+injected scene 1; whitened-correlated ($n_{\rm keep,w}=9273$) &
+prior-seeded MAMS-SMC & 128 &
+$\lambda{=}1$ @27 stages; wESS 125.6/128; uniq 76 (52 stored rows);
+$\gamma_{\rm rec}$ $1.5151\pm0.036$ ($z=+2.25$) &
+\textbf{CONVERGED} (bias $+0.082$, outside both pre-registered zones) &
+\dfile{t11\_\allowbreak inj1\_\allowbreak smc.\allowbreak json};
+\dfile{data/t11\_\allowbreak gate\_\allowbreak eval.\allowbreak json} \\
+T1.1 inj2, corr &
+injected scene 2 (dup-flagged shift) &
+same & 128 &
+$\lambda{=}1$ @34; wESS 124.4/128; uniq 85 (18 stored rows ---
+dup-cluster flag); $\gamma_{\rm rec}$ $1.5719\pm0.043$ ($z=+3.23$) &
+\textbf{CONVERGED} (flagged; dropping it leaves the median bias $+0.078$,
+same zone) &
+\dfile{t11\_\allowbreak inj2\_\allowbreak smc.\allowbreak json} \\
+T1.1 inj3, corr &
+injected scene 3 &
+same & 128 &
+$\lambda{=}1$ @20; wESS 107.9/128; uniq 81; $\gamma_{\rm rec}$
+$1.5076\pm0.041$ ($z=+1.82$) &
+\textbf{CONVERGED} &
+\dfile{t11\_\allowbreak inj3\_\allowbreak smc.\allowbreak json} \\
+T1.1 inj1, diag control &
+same injected scene 1; delta-diagonal likelihood (16{,}653 px) &
+same & 128 &
+$\lambda{=}1$ @37; wESS 128.0/128 (degenerate); \textbf{1/128 unique
+particle rows}; $\gamma_\sigma\approx4\times10^{-16}$;
+srcS.$I_e$ railed $\sim$58$\times$ truth; $\gammaEPL$ 1.5677
+$\notin[1.29,1.43]$ &
+\textbf{COLLAPSED} (total resample collapse; per the honesty clause the
+injection construction is implicated) &
+\dfile{t11\_\allowbreak inj1\_\allowbreak diag\_\allowbreak smc.\allowbreak json};
+\dfile{data/t11\_\allowbreak gate\_\allowbreak eval.\allowbreak json} \\
+\midrule
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%% D. L0-G2 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\cglgrouprow{D. L0-G2 cross-stack reproduction --- the
+correlated fit re-run on the \sceneapi\ port, Perlmutter A100 (proposed,
+UNCERTIFIED --- external)}\\
+\midrule
+L0-G2 low leg, seed 2 &
+\dfile{v3b} binned; ported \dfile{CorrelatedImageData} whitened-correlated
+likelihood &
+prior-seeded MAMS-SMC on the \sceneapi & 128 &
+$\lambda{=}1$ @27 stages; wESS 123.5/128; uniq 81; $\gammaEPL$ 1.1005
+[1.0992, 1.1065]; \logZ\ $-4770.97$ &
+\textbf{CONVERGED} (PASS: $\Delta\gammaEPL=0.0027$; \logZ\ agrees with the
+old stack to 0.11 nats) &
+\dfile{l0g2\_\allowbreak v3b\_\allowbreak scene\_\allowbreak seed2.\allowbreak json} \\
+L0-G2 steep leg, seed 2 &
+same &
+same & 96 &
+$\lambda{=}1$ @22; wESS 47.6/96; uniq 54; \logZ\ $-4800.33$;
+$\dlogZ(\mathrm{steep}-\mathrm{low})=-29.36$, in the P1 seed family &
+\textbf{CONVERGED} (\logZ\ agreement 0.37 nats) &
+same \\
+\midrule
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%% E. B5 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\cglgrouprow{E. B5 --- T3 74-d bimodal
+(\dfile{foundry\_\allowbreak v3b74}, diagonal likelihood, f32; Perlmutter A100)}\\
+\midrule
+B5 low basin, MAMS &
+\dfile{v3b} binned, diagonal likelihood (old-stack target) &
+prior-seeded MAMS-SMC & 128 &
+$\lambda{=}1$ @31 stages; basin retention 1.000; min uniq 88; accept
+0.862--0.998; \logZ\ $38376.33\pm0.33_{\rm boot}$; $\gamma_{\rm eqw}$
+1.0919 &
+\textbf{CONVERGED} (G1 PASS; the 11$\sigma$ G2 FAIL indicts the frozen
+reference's within-basin coverage, \S\ref{sec:matrix:b5}) &
+\dfile{b5\_\allowbreak v3b74\_\allowbreak low\_\allowbreak mams\_\allowbreak seed2.\allowbreak json};
+\dfile{data/b5\_\allowbreak gate\_\allowbreak eval.\allowbreak json} \\
+B5 steep basin, MAMS &
+same &
+same & 96 &
+$\lambda{=}1$ @22 stages; retention 1.000 (frac-low 0.0); min uniq 70
+$\ge N/4$; accept 0.886--0.998; \logZ\ $38518.23\pm0.31_{\rm boot}$;
+$\gamma_{\rm eqw}$ 2.5552 &
+\textbf{CONVERGED} (G1 PASS) &
+\dfile{b5\_\allowbreak v3b74\_\allowbreak steep\_\allowbreak mams\_\allowbreak seed2.\allowbreak json} \\
+B5 low basin, MCLMC (diagnostic arm) &
+same &
+tempered SMC, unadjusted-MCLMC mutation (demoted kernel) & 128 &
+$\lambda{=}1$ @36 stages; \logZ\ $38380.36\pm0.36_{\rm boot}$;
+$\gamma_{\rm eqw}$ 1.0935 (within-basin $\Delta\gammaEPL=0.0016$ vs MAMS);
+minor-mode weight inflated $\times$56 [CI$_{95}$ 22--146] &
+\textbf{CONVERGED} (diagnostic only; G3 ambiguous at frozen thresholds ---
+never an evidence kernel) &
+\dfile{b5\_\allowbreak v3b74\_\allowbreak low\_\allowbreak mclmc\_\allowbreak seed2.\allowbreak json};
+\dfile{data/b5\_\allowbreak gate\_\allowbreak eval.\allowbreak json} \\
+B5 S1 low leg, wave-1 attempt (job 55985449) &
+same &
+prior-seeded MAMS-SMC & 128 &
+no artifacts: the RC3 artifact-writer defect (\texttt{TypeError} after the
+driver returned) destroyed the write; $\lambda{=}1$ was reached
+(structural: the driver raises if $\lambda{<}1$), diagnostics lost;
+\texttt{set -e} killed the job before the steep leg; 1.02 A100-h. Fix
+landed + regression-locked; the converged rows above are the reruns &
+\textbf{BLOCKED} (writer defect --- infra, not science) &
+\dfile{research/p2\_\allowbreak wave1\_\allowbreak postmortem\_\allowbreak redesign.\allowbreak md} \\
+B5 S2 MCLMC low leg, wave-1 attempt (55985450) &
+same &
+tempered SMC, MCLMC mutation & 128 &
+no artifacts: same RC3 defect at the write ($\sim$36 min in);
+$\lambda{=}1$ reached (structural), diagnostics lost; 0.64 A100-h &
+\textbf{BLOCKED} (writer defect) &
+same \\
+\midrule
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%% F. B2 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\cglgrouprow{F. B2/B2$'$ --- DSPL thin-ridge cosmology
+(21-d, seeded mock per the team's generation recipe; Perlmutter A100)}\\
+\midrule
+B2 \dfile{dspl20\_\allowbreak orig}, seed 2 &
+DSPL mock, diagonal likelihood, original $(\Omega_{m0},w_0)$ coords &
+prior-seeded MAMS-SMC & 512 &
+$\lambda{=}1$ @64 stages; min uniq 358 ($\ge N/4$), final 468; min
+incremental ESS 358.4; \logZ\ $17294.01\pm0.25_{\rm boot}$;
+$\Omega_{m0}$ med 0.4701 &
+\textbf{CONVERGED} (falsifier NOT-DECIDABLE-AS-REGISTERED: band
+uncalibrated for this realization, \S\ref{sec:matrix:b2}) &
+\dfile{b2\_\allowbreak dspl20\_\allowbreak orig\_\allowbreak s1\_\allowbreak seed2.\allowbreak json};
+\dfile{data/b2\_\allowbreak gate\_\allowbreak eval.\allowbreak json} \\
+B2$'$ \dfile{dspl20\_\allowbreak ratio} control, seed 2 &
+identical data, exact ratio-coordinate reparameterization &
+same & 512 &
+$\lambda{=}1$ @64 stages; min uniq 360, final 424; accept 0.822--0.927;
+\logZ\ $17290.95\pm0.24_{\rm boot}$; $r_2$ shape PASS (width ratio 0.79
+$\in[0.67,1.5]$); $\dlogZ(\mathrm{orig}-\mathrm{ratio})=+3.06\pm
+0.35_{\rm boot}$ where true $\Delta\approx0$ (finding A, measured) &
+\textbf{CONVERGED} (PASS-UNDER\-POWERED) &
+\dfile{b2\_\allowbreak dspl20\_\allowbreak ratio\_\allowbreak s1\_\allowbreak seed2.\allowbreak json};
+\dfile{data/b2\_\allowbreak gate\_\allowbreak eval.\allowbreak json} \\
+\midrule
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%% G. B3 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\cglgrouprow{G. B3 --- easy scene, 22-d unimodal
+$\times4$ (\dfile{hs2} seeded mocks; free-tier L4, 0 A100-h)}\\
+\midrule
+B3 \dfile{hs2\_\allowbreak sys0} classic reference &
+\dfile{hs2\_\allowbreak sys0} mock, diagonal (ForwardProbModel conventions) &
+classic MAP$\to$\allowbreak SVI$\to$\allowbreak HMC, frozen settings &
+50ch$\times$750 (250 burn); esc.\ 50$\times$1500 (500) &
+$\Rhat_{\rm worst}$ 7.65 (esc.\ 7.57) vs rule $<1.05$; $\ESS_{\min}$ 62.9
+(esc.\ 64.0) vs $\ge200$ &
+\textbf{REJECTED} (blocked-by-reference) &
+\dfile{data/b3\_\allowbreak run\_\allowbreak ref\_\allowbreak sys0\_\allowbreak l4-8.\allowbreak json} \\
+B3 \dfile{hs2\_\allowbreak sys1} classic reference &
+\dfile{hs2\_\allowbreak sys1} mock, same &
+same & same &
+$\Rhat_{\rm worst}$ 8.81 (esc.\ 7.87); $\ESS_{\min}$ 65.0 (esc.\ 63.7) &
+\textbf{REJECTED} &
+\dfile{data/b3\_\allowbreak run\_\allowbreak ref\_\allowbreak sys1\_\allowbreak l4-8.\allowbreak json} \\
+B3 \dfile{hs2\_\allowbreak sys2} classic reference &
+\dfile{hs2\_\allowbreak sys2} mock, same &
+same & same &
+$\Rhat_{\rm worst}$ 4.90 (esc.\ 5.66); $\ESS_{\min}$ 74.5 (esc.\ 74.5) &
+\textbf{REJECTED} &
+\dfile{data/b3\_\allowbreak run\_\allowbreak ref\_\allowbreak sys2\_\allowbreak l4-8.\allowbreak json} \\
+B3 \dfile{hs2\_\allowbreak sys3} classic reference &
+\dfile{hs2\_\allowbreak sys3} mock, same &
+same & same &
+$\Rhat_{\rm worst}$ 4.44 (esc.\ 4.36); $\ESS_{\min}$ 82.5 (esc.\ 83.9) &
+\textbf{REJECTED} &
+\dfile{data/b3\_\allowbreak run\_\allowbreak ref\_\allowbreak sys3\_\allowbreak l4-8.\allowbreak json} \\
+B3 \dfile{hs2\_\allowbreak sys0} SMC arm &
+same data &
+prior-seeded MAMS-SMC & 512 &
+none written: killed at the pre-registered 18{,}000-s (5-h) per-arm L4
+fence before completion; no readable ensemble &
+\textbf{BLOCKED} (by budget) &
+\dfile{data/b3\_\allowbreak cells.\allowbreak json};
+\dfile{data/b3\_\allowbreak lane2\_\allowbreak sys0\_\allowbreak smc.\allowbreak log} \\
+B3 \dfile{hs2\_\allowbreak sys1} SMC arm &
+same & same & 512 &
+same (5-h fence) &
+\textbf{BLOCKED} (by budget) &
+\dfile{data/b3\_\allowbreak lane2\_\allowbreak sys1\_\allowbreak smc.\allowbreak log} \\
+B3 \dfile{hs2\_\allowbreak sys2} SMC arm &
+same & same & 512 &
+same (5-h fence) &
+\textbf{BLOCKED} (by budget) &
+\dfile{data/b3\_\allowbreak lane2\_\allowbreak sys2\_\allowbreak smc.\allowbreak log} \\
+B3 \dfile{hs2\_\allowbreak sys3} SMC arm &
+same & same & 512 &
+same (5-h fence) &
+\textbf{BLOCKED} (by budget) &
+\dfile{data/b3\_\allowbreak lane2\_\allowbreak sys3\_\allowbreak smc.\allowbreak log} \\
+\midrule
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%% H. B4 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\cglgrouprow{H. B4 --- T2 \dfile{foundry\_\allowbreak marg46}
+(\dfile{v2d} 46-d marg-ridge, cond${\sim}10^{14}$; Perlmutter A100,
+wave-1)}\\
+\midrule
+B4 marg46 S1, seed 2 (job 55985448) &
+\dfile{v2d} native, marg46 ridge-marg likelihood (old validated stack) &
+prior-seeded MAMS-SMC & 256 &
+no artifacts --- TIMEOUT 3:30 (3.51 A100-h): run log shows build (78\,s) +
+warmup log-prob only; zero stage observability (no per-stage
+checkpointing, RC1), and the since-fixed RC3 writer defect sat on the same
+code path; measured cost lower bound 3.5\,h at $N{=}256$, never re-funded &
+\textbf{BLOCKED} (TIMEOUT; ledger disposition: proposed
+NOT-EVALUABLE-WITHIN-BUDGET) &
+\dfile{b4\_\allowbreak marg46\_\allowbreak s1\_\allowbreak seed2\_\allowbreak run.\allowbreak log};
+\dfile{research/gate\_\allowbreak ledger\_\allowbreak final.\allowbreak md} \S B.1 \\
+\midrule
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%% I. B1 / B1r %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\cglgrouprow{I. B1/B1r --- carousel 33-d multi-plane
+(Perlmutter A100): wave-1 mock arms, then B1r on REAL MUSE cutouts
+(sign-off-gated)}\\
+\midrule
+B1 S1 cold-start SMC, seed 2 (mock; job 55985444) &
+carousel33 seeded-mock stand-in (real cutouts not yet landed), diagonal &
+prior-seeded MAMS-SMC & 512 &
+no artifacts --- TIMEOUT 4:00 (4.01 A100-h), zero per-stage observability
+(RC1); postmortem estimate: the 4-h wall bought $\sim$5--8 early stages,
+$\lambda\lesssim10^{-4}$ &
+\textbf{BLOCKED} (TIMEOUT; mock arms retired by the
+B1-REAL-DATA-LANDED amendment, superseded by B1r) &
+\dfile{b1\_\allowbreak carousel33\_\allowbreak s1\_\allowbreak seed2\_\allowbreak run.\allowbreak log};
+\dfile{research/p2\_\allowbreak wave1\_\allowbreak postmortem\_\allowbreak redesign.\allowbreak md} \\
+B1 S1 cold-start SMC, seed 3 (mock; 55985445) &
+same & same & 512 &
+no artifacts --- TIMEOUT 4:00 (4.01 A100-h), same failure mode &
+\textbf{BLOCKED} (TIMEOUT; retired by amendment) &
+\dfile{b1\_\allowbreak carousel33\_\allowbreak s1\_\allowbreak seed3\_\allowbreak run.\allowbreak log} \\
+B1 S6b warm MAMS-alone, seed 2 (mock; 55985446) &
+same &
+MAP warm start $\to$ MAMS-alone & 64 chains &
+no artifacts --- TIMEOUT 3:00 (3.01 A100-h); run log: MAP done (302\,s,
+22{,}400 grads), burn round 0 only ($\sim$25 min/round incl.\ compile) &
+\textbf{BLOCKED} (TIMEOUT; retired by amendment; motivated the checkpoint
+retrofit that made the B1r rows below readable) &
+\dfile{b1\_\allowbreak carousel33\_\allowbreak s6b\_\allowbreak seed2\_\allowbreak run.\allowbreak log} \\
+B1r S1r cold-start SMC, seed 2 &
+real MUSE cutouts (\dfile{source4-5.\allowbreak fits}, \dfile{source9.\allowbreak fits}),
+diagonal &
+prior-seeded MAMS-SMC, 3 chained checkpoint legs (11.33 A100-h) & 128 &
+$\lambda=0.1506$ @36 stages ($\lambda{=}1$ structurally out of reach);
+uniq 92--104/128 every stage; accept 0.871--0.934 (mean 0.899 vs 0.90);
+stage wESS pinned at $0.7N$; \textbf{0 posterior samples} &
+\textbf{PARTIAL-BY-BUDGET} (sampler healthy --- a cost verdict,
+\S\ref{sec:matrix:b1r}) &
+\dfile{b1r128\_\allowbreak carousel33\_\allowbreak s1\_\allowbreak seed2.\allowbreak PARTIAL.\allowbreak json};
+\dfile{data/b1r\_\allowbreak decision\_\allowbreak matrix.\allowbreak json} \\
+B1r S6br warm MAMS-alone, seed 2 &
+same &
+MAP (64$\times$350) warm start $\to$ MAMS-alone, budget-matched at
+$B^{*}=3{,}078{,}912$ grads &
+64 chains, 0 draws &
+4.5-h wall fence fired at burn round 11/30 --- \textbf{sampling never
+started}: draws $(0,64,32)$, $\ESS=0$, \Rhat\ not computable; burn healthy
+(accept 0.873--0.902); realized 1{,}277{,}632 grads $=41.5\%$ of $B^{*}$;
+throughput within $\sim$5\% of S1r &
+\textbf{BLOCKED} (burn-fenced; a target-cost fact, not arm pathology) &
+\dfile{b1r128\_\allowbreak carousel33\_\allowbreak s6b\_\allowbreak seed2.\allowbreak json};
+\dfile{data/b1r\_\allowbreak decision\_\allowbreak matrix.\allowbreak json} \\
+\midrule
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%% J. L0 arbitration %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\cglgrouprow{J. L0 anchor arbitration --- \dfile{v2d}
+native diagonal, parity-certified \sceneapi\ target (T2 class,
+cond${\sim}10^{14}$)}\\
+\midrule
+L0arb MC-SMC, L4 leg &
+\dfile{v2d} native, diagonal masked-err ridge-marg &
+prior-seeded MAMS-SMC (phoenix L4, checkpoint-chained) & 64 &
+resume leg from stage 26: summary $\lambda_{\rm reached}=0.4183$ (stage-66
+checkpoint; the trace's last row is stage 67 at $\lambda=0.4501$), 12.26-h
+leg; accept 0.853--0.946 (the ledger's $\lambda\approx0.45$ @$\sim$18 h
+presumably folds in the earlier leg's wall; the on-disk summary binds) &
+\textbf{PARTIAL-BY-BUDGET} (healthy; wall-capped) &
+\dfile{data/l0\_\allowbreak arbitration\_\allowbreak smc.\allowbreak json} \\
+L0arb MC-SMC, A100 hbm80g (job 56168446) &
+same &
+same (Perlmutter A100 80\,GB) & 128 &
+$\lambda=0.587$ @stage 76 at the 3.5-h cap; MAMS healthy (accept
+$\sim$0.88); peak 22.7\,GB; third consecutive wall-capped MC-SMC attempt
+$\Rightarrow$ vehicle amendment &
+\textbf{PARTIAL-BY-BUDGET} (vehicle budget-infeasible on this target) &
+\dfile{CAMPAIGN.\allowbreak md} ledger row 56168446 (ckpts stage\_000--075 on CFS) \\
+L0arb classic warm arm, initial &
+same &
+warm MAP$\to$\allowbreak SVI$\to$\allowbreak HMC, B3-frozen settings (seeds 0/1/2) &
+50ch$\times$750 (250 burn) &
+$\Rhat_{\rm worst}=44.3$; $\ESS_{\min}=53.6$; all chains railed
+$\gammaEPL\approx1.987$ $[1.983,1.991]$ at the prior edge &
+\textbf{REJECTED} (NO-VERDICT: $\gammaEPL$ not quotable; reproduces the
+known T2 single-stage pathology on the \sceneapi,
+\S\ref{sec:matrix:classic}) &
+\dfile{l0\_\allowbreak arbitration\_\allowbreak classic.\allowbreak json} \\
+L0arb classic warm arm, escalated &
+same &
+same &
+50ch$\times$1500 (500 burn) &
+$\Rhat_{\rm worst}=11.7$; $\ESS_{\min}=63.0$ (escalated stage --- the
+initial-stage value is 53.6; quoted per stage); chains still railed &
+\textbf{REJECTED} (NO-VERDICT) &
+same \\
+\midrule
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%% K. companion provenance %%%%%%%%%%%%%%%%%%%%%%%%
+\cglgrouprow{K. Companion-campaign diagonal fits ---
+provenance rows (cited, not re-derived; see the provenance footnote in the
+appendix text)}\\
+\midrule
+anchor $\gammaEPL=1.433\pm0.034$ &
+\dfile{v2d} native, diagonal &
+companion two-stage re-preconditioned recipe & see companion ledger &
+per-fit \Rhat/\ESS\ ledgered in the companion report &
+converged there; \textbf{cited} &
+\citet{cgl2026companion} \\
+diag-low $\gammaEPL=1.293\pm0.012$ &
+\dfile{v3b} binned, diagonal &
+same & see companion ledger &
+per-fit \Rhat/\ESS\ ledgered in the companion report &
+converged there; \textbf{cited} &
+\citet{cgl2026companion} \\
+\end{longtable}
+\end{landscape}
+\endgroup
+
+\paragraph{Coverage notes (what is summarized rather than rowed).} For
+completeness of the ``every fit ever ran'' claim: (i) the \textbf{X2} SBC
+lane ran $N{=}32$ classic-recipe fits on the free tier; they are gift
+deliverables scored as a set, so their health census (2/32 healthy, 30/32
+unhealthy at that budget) is reported with the SBC gift rather than as 32
+rows (\S\ref{sec:gifts:x2}, \dfile{data/x2\_\allowbreak sbc.\allowbreak json}) --- consistent with
+the B3 and arbitration classic-arm rows here. (ii) The $q$-fit proposal
+constructions (SVI-cov canaries, e.g.\
+\dfile{t11\_\allowbreak inj*\_\allowbreak canary\_\allowbreak svicov.\allowbreak json}) are prep stages of the
+prior-seeded-SMC vehicle, not posterior fits, and are subsumed in their
+fit's row. (iii) Pure infrastructure failures that never yielded a sampler
+state --- the T1.1 inj3 and l0arb OOMs, the vendor-guard path-identity
+trip, the B5-steep snapshot-ordering reruns, and the classic-arm attempt
+\#1 \texttt{IndexError} at MAP --- are ledgered per-job in
+\dfile{CAMPAIGN.\allowbreak md}; their successful reruns are the corresponding rows
+above.
