@@ -153,6 +153,130 @@ downstream ΔlogZ gate, as planned).
 
 ## Stage log (newest first)
 
+### 2026-07-22 — E1 — PI-REQUESTED MCLMC DIAGONAL FITS (post-campaign epilogue): DESIGN CHECKPOINT, frozen BEFORE launch
+
+**Context (PI directives, 2026-07-22):** Xiaosheng: (1) γ=1.1 is only expected near galaxy
+centers — the γ=1.1 solution is DISCARDED; (2) for this system MCLMC should do the job (SMC
+not needed); (3) the five modeler bullets are to be regenerated once MCLMC is run. Perlmutter
+is down for maintenance — everything runs on phoenix L4s (free tier: **NO A100-h ledger rows;
+GPU-h noted at harvest**). This entry is the pre-registered design checkpoint, written and
+committed to the ledger BEFORE any smoke or production step ran.
+
+**Hypothesis:** the physical-branch diagonal posteriors are MCLMC-recoverable to full
+convergence on BOTH products (v2d native, v3b binned) — i.e. the PI's own sampler, warm-started
+in the physical basin, certifies the diagonal-likelihood posteriors that so far exist only as a
+healthy foundry-i HMC chain (v2d) and an unconverged conditional slice (v3b).
+
+**Predictions (pre-registered):**
+- v2d: γ_med consistent with the healthy foundry-i anchor chains within 1σ_comb —
+  reference **1.4330 [1.3995, 1.4685]** (hmc_v13_v2d, R̂ 1.0163, ESS 5714);
+  σ_comb = √(σ_ref² + σ_scene²), σ_ref = CI68 half-width.
+- v3b: γ_med consistent with the physical-branch conditional marginal
+  **1.2941 [1.2832, 1.3085]** (hmc_v13_v3b, mass_gamma<1.7 conditional slice) within 1σ_comb.
+  CAVEAT stated up front: that reference chain is globally bimodal/unconverged (R̂ 843) — it is
+  used ONLY as an init cloud, and **this run is the first convergence-certified diagonal fit of
+  this branch**; the conditional marginal is a consistency check, not an anchor.
+- Predictions are predictions, not gates; the gates below are convergence-only.
+
+**Gates (FROZEN before launch; no goalpost moves):**
+- **E1-G1 (convergence, per product):** R̂_worst < 1.01 AND min-ESS ≥ 1000, computed with
+  arviz (rank-normalized split-R̂; bulk ESS) over the POOLED 2 seed groups × 32 chains = 64
+  chains × 4000 kept draws; worst-param over ALL 46 sampled scene-z params PLUS the 8 physical
+  mass params (θ_E, γ, e1, e2, cx, cy, γ1, γ2). Per-seed-group values recorded alongside (the
+  2-group pooling IS the R̂-across-seed-groups check).
+- **E1-G2 (basin containment):** the run is SINGLE-BASIN BY DESIGN (PI directed discarding the
+  γ=1.1 solution; the steep basin is evidence-disfavored, ΔlogZ≈−29): no chain may wander to
+  γ>2.0 or γ<1.15 in its kept draws. Any violating chain is REPORTED (chain id + fraction of
+  draws outside), never silently dropped.
+- **Escalation:** ONE allowed per product, per the B3 pattern — double the draws (4000→8000,
+  burn/tuning unchanged, seed offset +10), then report honestly. γ is quoted ONLY on gate pass
+  (a post-escalation pass is quotable, labeled as escalated).
+
+**Sampler (the PI's own implementation, vendored, UNPATCHED per D1):**
+`full_mclmc_with_adapt_sharded` + `_build_kernel_shardmap(isokinetic_mclachlan_smart)` from
+`vendor/gigalens-linus/src/gigalens/jax/experimental/{mclmc,blackjax_updated_utils}.py`
+(imports cleanly under the cgl2 venv, blackjax 1.3 — verified 2026-07-22). The old-API-coupled
+`MCLMC_JIT` wrapper is BYPASSED (it hard-codes the old model_seq/qz interface); the driver +
+kernel + adaptation code are executed verbatim with a plain scene-API logdensity
+(logprior+loglik from `10_anchor_arbitration.build_pm(tag, refs, diagonal=True)` /
+`make_closures`), `init_multi` chain init, and `MCLMCAdaptationState` warm init. Single L4 =
+1 shard (mesh of 1 device) — the sharded driver degenerates to the single-device case.
+
+**Frozen config (both products):** n_chains 32 per seed group × 2 seed groups (jax rng_key
+seeds 220722+g, init-row-selection seeds 880+g, g∈{0,1}); num_burnin_steps 2000 (frac_tune
+0.2/0.6/0.2), num_results 4000; desired_energy_variance 5e-4; windowed_mass_matrix True;
+regularize_mass_matrix False (the PI's baseline); step_size_adapt_use_psmile False;
+num_effective_samples 100; svi_mass_matrix_weight 10×32=320; init_L=√46,
+init_step_size=0.25√46 (wrapper defaults); inverse-mass init = warm-cloud scene-z covariance
+regularized via `cgl2.samplers.common.regularize_cov(cov, n=512)`; svi_mean = warm-cloud mean;
+f64 (GIGALENS_X64=1). Memory: ~93 MB/chain v2d grad tape ⇒ 32 chains ≈ 3 GB + ~3.3 GB
+scan-history (the driver records the 46×46 mass matrix per step) — fits a 23 GB L4 with margin;
+the two seed groups run SEQUENTIALLY in one lane process per product (memory-safe option).
+
+**Targets:** parity-certified DIAGONAL scene-API likelihoods, ready-made from
+`10_anchor_arbitration.build_pm(tag, refs, diagonal=True)` (delta bundle on masked_err, marg
+view, Lambda_diag from `data/parity_refs.npz`): v2d native (80², 0.13″, ss2) and v3b binned
+(130², 0.08″, ss2).
+
+**Warm starts (physical basin ONLY — single-basin by design, see E1-G2):**
+- v2d: init chains subsampled from the HEALTHY anchor chains `foundry-i/data/hmc_v13_v2d.npz`
+  (512 z74 draws, rng 424242) → `cgl.e2.paper_z_to_marg_z` (ie_scale = conversion_factor) →
+  x46 constrained → `cgl2.param_map` scene-z — the S1-certified hand-off path (as used in
+  10_anchor_arbitration + 40_modeler_summary_figs stage_a), with KEYED label transport
+  (index_labels stored in the cache; never order-assumed). Chain-init covariance from the same
+  512 mapped scene-z draws (regularize_cov).
+- v3b: init from `foundry-i/data/hmc_v13_v3b.npz` LOW-basin conditional draws (mass_gamma<1.7;
+  512 draws, rng 424243), same mapping path. That chain is globally bimodal/unconverged
+  (R̂ 843) and is used ONLY as an init cloud (see prediction caveat).
+
+**AMENDMENT (ledgered deviation, 2026-07-22, pre-production; found by the smoke gate doing
+its job):** first smoke attempt crashed on BOTH products at the first kernel call with
+`TypeError: cotangent type does not match function output ... complex128[1,33,H,W] {V:device}`
+— jax 0.6.2 `jax.shard_map(check_vma=True)` rejects the scene likelihood's FFT-convolution
+vjp cotangent inside the shard_map body (H×W = each product's rfft grid; the team's own file
+already documents adjacent VMA workarounds, e.g. the igamma/Wilson-Hilferty note). Fix =
+runtime rebind of the module-level `_shard_map` to `functools.partial(..., check_vma=False)`
+from the campaign script (`50_run_mclmc_diag.py::_apply_vma_workaround`) — the vendored file
+stays byte-identical on disk (D1). check_vma is a STATIC replication/varying-axes CHECK, not
+numerics, and this run's mesh is a SINGLE device (1 L4 = 1 shard) where every collective is
+the identity — the check is vacuous here. Root cause reproduced minimally on the real v2d
+target (4-point shard_map value_and_grad: default FAILS with the exact signature,
+check_vma=False returns finite logdensity/grads) BEFORE the fix landed; recorded in the run
+jsons as `config.vma_check_disabled=true`. No gate, threshold, or sampler setting changed.
+
+**AMENDMENT 2 (ledgered deviation, 2026-07-22, pre-production; second smoke finding):** with
+the VMA workaround in, the tiny smoke (4 chains × 50+50) ran to completion and passed the
+originally-worded gates (finite draws, handle-nans success 1.0, basin contained) but its
+kernel-level telemetry exposed the PI's own documented F3/F4 failure mode:
+`extras.kernel_nonan = 0.19` — healthy exactly until the mass-matrix window-2 install, then an
+81% NaN-rejection cascade. Mechanism (matches the F4 comment in the vendored mclmc.py
+verbatim): windows 2/3 accumulate from an EMPTY Welford; the tiny smoke's window-2 covariance
+had 24 samples in 46 dims ⇒ rank-deficient ⇒ cholesky NaN in the kernel ⇒ every step
+NaN-rejected; downstream, the NaN-zeroed energy changes starve the EEVPD controller (xi floor
+1e-8 votes "step too small") ⇒ step-size runaway to ~2174. Probes on the real v2d target
+(single-kernel-step scans, 8 warm chains × 64 steps): kernel_nonan = 1.000 at ALL step sizes
+0.0125–8.0 under the GOOD warm-covariance metric (no NaN cliff; EEVPD equilibrium ≈ eps 2.5
+with med |dE| 0.115 at 2.4) — the cascade is METRIC-INSTALL-driven, not step-size-driven.
+Amendments, both pre-production and neither touching E1-G1/G2 or any comparison band:
+(1) `regularize_mass_matrix=True` — the PI's OWN opt-in Stan-style window shrinkage, present
+in the vendored driver and documented by them as the cure for exactly this cascade (supersedes
+the frozen "False (PI baseline)" line; adaptation-metric hygiene only, target untouched);
+(2) smoke redesigned to exercise the tuning schedule meaningfully: 8 chains × 300 burn + 100
+draws (window 2 ≈ 34 steps × 8 chains = 272 samples ≫ 46) with the smoke pass gate now on the
+HONEST metric `kernel_nonan ≥ 0.99` (plus the original finite/contained/handle-nans checks).
+Production config otherwise unchanged (PI defaults: eps0 = 0.25√46, L0 = √46, EEVPD 5e-4).
+
+**Vehicle:** `50_run_mclmc_diag.py` (stages: prep = old-venv CPU bijector-only warm-start
+mapping; smoke = 4 chains × 50/50 per product on the L4s — finiteness, energy/NaN health,
+basin containment, grad-timing horizon — REQUIRED PASS before production; run = production).
+Smoke gates: all draws finite, non-NaN step fraction ≥ 0.99, all smoke draws inside the E1-G2
+band. Production artifacts: `data/mclmc_diag_{v2d,v3b}.npz` (scene-z chains + physical mass
+params, both seed groups) + `.json` (R̂/ESS worst-param tables, γ quantiles, config,
+provenance md5s). Logs `data/mclmc_lane_{v2d,v3b}.log`; lanes detached (nohup+setsid,
+reparenting verified), v3b on GPU 8 + v2d on GPU 9 (CUDA_DEVICE_ORDER=PCI_BUS_ID), watchdog
+max_run_h 12 each, expect_artifact = the result npz. NO harvest in this session: gate math and
+the five-bullet regeneration happen at harvest, plots first, per house rule.
+
 ### 2026-07-21 — ANCHOR ARBITRATION: classic arm NO-VERDICT (unconverged); arbitration closed PARTIAL-BY-VEHICLE-EXHAUSTION
 Job 56267678 COMPLETED (54 min, 0.90 A100-h actual vs 1.5 est) but the readout is
 **NO-VERDICT under the worst-parameter rule**: R̂_worst 44.3 (escalated 11.7 ≫ 1.05 gate),
