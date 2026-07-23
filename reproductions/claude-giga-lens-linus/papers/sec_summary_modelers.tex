@@ -447,3 +447,69 @@ artifacts: \dfile{data/mclmc\_diag\_v3b.json} (\texttt{gates.E1\_G2});
 \dfile{data/e1\_harvest.json}.}
 \label{fig:e1migration}
 \end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  Closing box (added 2026-07-23): what is new here vs. classic GIGA-Lens,
+%%  and what is deliberate confirmation.  Framed with plain \rule + quote:
+%%  the shared preamble loads neither tcolorbox nor mdframed, and an
+%%  \fbox{\parbox{...}} construction is silently DROPPED by the site's
+%%  pandoc pass (verified on pandoc 3.8.3), while quote + \rule convert
+%%  cleanly (blockquote + hr) and minipage becomes a plain div.  The
+%%  minipage keeps heading + rules + content unbreakable (without it the
+%%  frame split across the fig:corner float page).  Every number in this
+%%  box is a quotation of a statement made elsewhere in this report; it
+%%  introduces NO new numbers.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\medskip
+\noindent\begin{minipage}{\linewidth}
+\subsection*{What is new here, and what is deliberate confirmation}
+
+\noindent\rule{\linewidth}{0.8pt}
+\begin{quote}\footnotesize
+\textbf{Confirmation (by design).} The headline native-product MCLMC fit
+($\gammaEPL=1.4683$) is, by design, the team's own \gigalens\ methodology
+--- their vendored sampler and their standard likelihood class --- executed
+on the new \sceneapi\ substrate. Its value is the cross-implementation
+check: agreement with the old-stack anchor at $0.72\sigma_{\rm comb}$
+(item~4 above). A confirmation is only evidence if the two implementations
+are independently trustworthy --- which is what item~(i) below provides.
+
+\textbf{New (methodology and infrastructure).} (i)~The first external
+certification of the \sceneapi\ forward model: the F1--F8 parity battery,
+on both campaign machines, including the S\'ersic-$b_n$ convention finding
+(\S\ref{sec:cert}, \S\ref{sec:conventions}). This is what elevates
+cross-code agreement from coincidence to measurement. (ii)~The
+correlated-noise (drizzle) likelihood ported as a \sceneapi\
+\texttt{LikelihoodTerm} with the Gaussian Occam term
+(\S\ref{sec:corrport}), reproducing $\gammaEPL=1.1032$ across stacks and
+machines to $\Delta\gammaEPL=0.0027$ and $0.11$~nats in \logZ\
+(\S\ref{sec:l0g2}). (iii)~A per-basin evidence layer (tempered SMC,
+\S\ref{sec:matrix:b5}) and a measured scope rule for MCLMC: accurate
+within-basin location ($\Delta\gammaEPL=0.0016$ vs.\ the
+Metropolis-adjusted kernel on the 74-d bimodal target) but $\times56$
+minor-mode evidence inflation --- use it for single-basin posterior fits
+(as in E1 here), not for evidence or basin weights.
+
+\textbf{New (findings).} (iv)~The binned data product is the pathology
+carrier, established from two independent directions: on the noise side,
+stationarity of the noise-model class is rejected at calibrated $p=0.010$
+(\S\ref{sec:t041}); on the sampling side, the E1 result that all 64 MCLMC
+chains migrate out of the physical band from the $\gammaEPL=1.2941$ warm
+start to $\approx1.10$ under the plain \emph{diagonal} likelihood
+(Fig.~\ref{fig:e1migration}) --- so the old $1.29$ diagonal value was a
+stuck-chain conditional, and the migration endpoint sits $0.0015$ from the
+correlated-likelihood result. (v)~The first formal SBC calibration
+exercise for this pipeline class (X2, \S\ref{sec:gifts:x2}), including the
+finding that the pre-existing frozen benchmark mock set cannot be used for
+SBC as generated: its generation prior is narrower than the fitting prior,
+under which SBC fails by construction. (vi)~A cost-bounded sampler
+decision matrix on real lens posteriors (Table~\ref{tab:decision},
+\S\ref{sec:matrix}).
+
+\textbf{Scope.} Items (i)--(iii) are upstream-ready and ship in the
+handoff package (\S\ref{sec:gifts:handoff}); items (iv)--(vi) are the
+campaign's scientific claims; every verdict on the team's substrate
+carries the \emph{proposed (UNCERTIFIED --- external)} label.
+\end{quote}
+\noindent\rule{\linewidth}{0.8pt}
+\end{minipage}
