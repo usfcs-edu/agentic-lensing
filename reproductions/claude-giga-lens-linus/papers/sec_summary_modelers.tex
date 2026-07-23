@@ -19,6 +19,13 @@
 %%  (critical curves / caustics) and \ref{fig:corner} (posterior corner) are
 %%  produced by the figure lane; place them in or near this section.  All
 %%  other \ref targets exist in sections A--C.
+%%
+%%  E1 UPDATE (2026-07-22 post-campaign epilogue, PI-requested MCLMC fits):
+%%  the five bullets are regenerated with the E1 results.  New numbers trace
+%%  to data/e1_harvest.json, data/mclmc_diag_{v2d,v3b}.json, and
+%%  data/e1_mclmc_home_chi2.json; the regenerated rfig_corner/rfig_critcurves
+%%  carry the v2d MCLMC additions, and figs/e1_{mclmc_traces,v3b_migration}
+%%  are new (fig:e1traces, fig:e1migration).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Guarded local shorthands (harmless if already defined by the preamble).
@@ -41,7 +48,12 @@ the three competing mass models are the native-diagonal \textbf{anchor}
 ($\gammaEPL=1.433\pm0.034$), the correlated-likelihood binned-low
 \textbf{money number} ($\gammaEPL=1.1032\pm0.0086$), and the same-product
 \textbf{diagonal-low} solution ($\gammaEPL=1.293\pm0.012$), the first and
-third inherited from the companion campaign \citep{cgl2026companion}.
+third inherited from the companion campaign \citep{cgl2026companion}. A
+post-campaign epilogue (E1, 2026-07-22) adds a fourth, PI-requested fit:
+\textbf{MCLMC} on the \dfile{v2d} native diagonal target,
+$\gammaEPL = 1.4683\,[1.4343, 1.5048]$ --- the first fully
+convergence-certified posterior on that target, consistent with the anchor
+at $0.72\sigma_{\rm comb}$ (item~4).\art{data/e1\_harvest.json}
 
 \paragraph{(1) Data, model, residual --- and the caustic structure.}
 Figure~\ref{fig:headtohead} is the key diagnostic: data, model, and
@@ -54,27 +66,33 @@ solution (\S\ref{sec:t043}) --- our diagnosis is that $1.103$ is a
 whitened-metric optimum standing on a stationarity assumption the field
 measurably violates (\S\ref{sec:t041}). Figure~\ref{fig:critcurves}
 completes the geometric view with the lens-plane critical curves and
-source-plane caustics of the same three models (money-model
-$\thetaE=2.624\pm0.005$), making the mass-model disagreement visible as
-caustic structure rather than only as a slope number.
+source-plane caustics of the same three models plus the E1 \dfile{v2d}-native
+MCLMC fit (money-model $\thetaE=2.624\pm0.005$; MCLMC $\thetaE=2.654$),
+making the mass-model disagreement visible as caustic structure rather than
+only as a slope number.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.98\textwidth]{../figs/rfig_critcurves.png}
 \caption{Critical curves (lens plane, over the \dfile{v3b} binned cutout,
 asinh stretch) and caustics (source plane; stars mark the median
-S\'ersic-source centers) for the three posterior-median mass models,
+S\'ersic-source centers) for the four posterior-median mass models on disk,
 following the critical-curve/caustic display conventions of the team's
 \gigalens\ discovery paper \citep{gu2022gigalens}: corr-low
 $\gammaEPL=1.103$ (the certified but artifact-diagnosed correlated fit),
-diagonal-low $\gammaEPL=1.293$ (the real-space preference), and steep
-$\gammaEPL=2.639$ (evidence-disfavored, $\dlogZ\approx-29$). Scale sanity:
-the outer critical curve's median radius matches each model's \thetaE\ to
-$<5\%$ (money model: $2.632''$ vs.\ $\thetaE=2.624''$), and the two
-shallow ($\gammaEPL<2$) models show the expected inner radial critical
+diagonal-low $\gammaEPL=1.293$ (the real-space preference), steep
+$\gammaEPL=2.639$ (evidence-disfavored, $\dlogZ\approx-29$), and the E1
+\dfile{v2d}-native MCLMC fit $\gammaEPL=1.468$ (violet on the source panel;
+neutral white dotted on the image panel, where no fourth hue clears the
+dark-background palette floors). Scale sanity: the outer critical curve's
+median radius matches each model's \thetaE\ to $<5\%$ for all four (money
+model: $2.632''$ vs.\ $\thetaE=2.624''$; MCLMC $2.652''$ vs.\ $2.654''$),
+and the $\gammaEPL<2$ models show the expected inner radial critical
 curve and caustic. Deflections from the vendored \sceneapi\ EPL(50)+shear
-at the certified conventions; source artifact
-\dfile{data/rfig\_modeler\_params.npz}.}
+at the certified conventions; source artifacts
+\dfile{data/rfig\_modeler\_params.npz},
+\dfile{data/mclmc\_diag\_v2d.npz},
+\dfile{data/rfig\_modeler\_checks.json}.}
 \label{fig:critcurves}
 \end{figure}
 
@@ -106,19 +124,28 @@ stationary kernel class is \emph{rejected} by the field at calibrated
 $p=0.010$ (\S\ref{sec:t041}), and the same metric prefers the money model
 over diagonal-low by $+63$~nats in $\log L$ ($+501$ in log-posterior),
 inverting the real-space ordering --- a reduced $\chi^2$ of $0.965$ here
-certifies internal consistency, not noise-model correctness.
+certifies internal consistency, not noise-model correctness. The E1 MCLMC
+row is evaluated by the same machinery on its \emph{home} native product:
+$\chi^2/\mathrm{px}=1.228$ full-keep ($1.484$ arc band) at its posterior
+median --- marginally better than the anchor point's home $1.251$ on the
+same pixels (the evaluator was cross-checked against the old-stack
+head-to-head value to $0.01\%$ at the anchor
+point).\art{data/e1\_mclmc\_home\_chi2.json}
 
 \begin{table}[htbp]
 \centering
-\caption{Goodness of fit for the three best-fit models on the same
+\caption{Goodness of fit for the three campaign best-fit models on the same
 \dfile{v3b} binned pixels: real-space $\chi^2/\mathrm{px}$
 (diagonal-solved amplitudes; 16{,}653 keep px full field, 7{,}825 px arc
 band $r\in[1.2,4.2]''$) and, for the production correlated fit, the
-whitened reduced $\chi^2$ over the 9{,}273 whitened dof. Whitened
-$\log L$ for all three models is in Table~\ref{tab:headtohead}. Sources:
-\dfile{data/t04\_realspace\_headtohead.json},
+whitened reduced $\chi^2$ over the 9{,}273 whitened dof; plus the E1
+MCLMC fit at its posterior median on its home \dfile{v2d} native product
+(marked $^{\rm a}$; same evaluator convention). Whitened
+$\log L$ for the three \dfile{v3b} models is in Table~\ref{tab:headtohead}.
+Sources: \dfile{data/t04\_realspace\_headtohead.json},
 \dfile{data/summary\_rchi2\_whitened\_corrlow.json},
-\dfile{data/t11\_injection\_build\_report.json}.}
+\dfile{data/t11\_injection\_build\_report.json},
+\dfile{data/e1\_mclmc\_home\_chi2.json}.}
 \label{tab:gof-modelers}
 \small
 \begin{tabular}{lccc}
@@ -129,6 +156,15 @@ band & whitened $\chi^2/\mathrm{dof}$ \\
 diag-low $1.293$ (home reference) & $\mathbf{1.578}$ & $\mathbf{1.929}$ & --- \\
 anchor $1.433$ (from \dfile{v2d}; home $1.251$) & $7.436$ & $3.622$ & --- \\
 corr-low $1.103$ (money) & $8.321$ & $2.756$ & $\mathbf{0.965}$ \\
+MCLMC $1.468$ (E1; home \dfile{v2d} native px$^{\rm a}$) & $1.228^{\rm a}$
+& $1.484^{\rm a}$ & --- \\
+\midrule
+\multicolumn{4}{@{}l@{}}{\footnotesize $^{\rm a}$E1 row only: evaluated on
+its home \dfile{v2d} \emph{native} product (5{,}865 keep px; 2{,}937
+arc-band px at $0.13''$), not the shared} \\
+\multicolumn{4}{@{}l@{}}{\footnotesize \dfile{v3b} binned pixels of the
+other rows --- the direct analogue of the anchor's home $1.251$;
+\dfile{data/e1\_mclmc\_home\_chi2.json}.} \\
 \midrule
 \multicolumn{4}{@{}l@{}}{\footnotesize field's own-model floor (truth model
 of injected scene): full-keep $1.598$; sky subset $0.952$ ---} \\
@@ -157,17 +193,33 @@ own acceptance rule (Table~\ref{tab:conv-modelers}; full decision matrix
 Table~\ref{tab:decision}, \S\ref{sec:matrix:classic},
 \S\ref{sec:matrix:b3}) --- consistent with the companion finding that
 these real lens posteriors need the two-stage re-preconditioned recipe
-\citep{cgl2026companion}.
+\citep{cgl2026companion}. The E1 epilogue adds \textbf{MCLMC proper} ---
+the PI-requested vehicle; the team's own vendored implementation
+(\dfile{full\_mclmc\_with\_adapt\_sharded}: windowed mass-matrix
+adaptation, run with their Stan-style mass-matrix regularization option
+enabled) --- used as the direct posterior sampler on both diagonal targets
+from warm starts in the physical basin. On the native product it delivers
+the first fully convergence-certified posterior of the program (item~4);
+tempered SMC remains the evidence/model-comparison layer --- the two are
+complementary, not competing.\art{data/mclmc\_diag\_v2d.json;
+data/e1\_harvest.json}
 
 \paragraph{(4) Convergence metrics.}
-SMC has no $\Rhat$; the honest analogues are independent-seed repeats,
-the per-stage weighted-ESS floor maintained by the adaptive
+The E1 MCLMC fits supply the campaign's first $\Rhat$/\ESS-certified
+direct-sampler rows, and the \dfile{v2d} native fit leads
+Table~\ref{tab:conv-modelers}: $\Rhat_{\rm worst}=1.0031$,
+$\ESS_{\min}=30{,}334$ against its frozen gate
+$\Rhat<1.01 \wedge \ESS\ge1000$ over the pooled 64 chains
+(Fig.~\ref{fig:e1traces}); its \dfile{v3b} twin fails both frozen gates
+and is reported as a NO-QUOTE migration finding (below). For the SMC
+fits, which have no $\Rhat$, the honest analogues are independent-seed
+repeats, the per-stage weighted-ESS floor maintained by the adaptive
 $\lambda$-schedule, unique-particle retention after resampling, MAMS
 acceptance against its $0.90$ target, and --- strongest of all --- the
 cross-stack, cross-machine reproduction. Table~\ref{tab:conv-modelers} is
 the consolidated convergence ledger for every fit quoted in this report,
-with $\Rhat$/ESS given where classic MCMC arms ran (both are rejections,
-reported as such). For the two inherited diagonal fits (anchor $1.433$,
+with $\Rhat$/ESS given where MCMC arms ran (the classic-recipe arms are
+both rejections, reported as such). For the two inherited diagonal fits (anchor $1.433$,
 diag-low $1.293$) the per-fit $\Rhat$/ESS live in the companion report's
 campaign ledger \citep{cgl2026companion} and are cited, not re-derived
 here. Table~\ref{tab:conv-modelers} covers the fits \emph{quoted} in this
@@ -179,7 +231,11 @@ failed, rejected, collapsed, and budget-blocked arms.
 \centering
 \caption{Consolidated convergence ledger. wESS = final-stage weighted ESS;
 ``unique'' = unique particles after resampling; the adaptive
-$\lambda$-schedule holds per-stage wESS at $0.7N$ by construction. Sources:
+$\lambda$-schedule holds per-stage wESS at $0.7N$ by construction. The two
+E1 MCLMC rows are gated at their own frozen thresholds
+($\Rhat<1.01 \wedge \ESS\ge1000$, pooled 64 chains; containment band
+$\gammaEPL\in[1.15,2.0]$, report-never-drop). Sources:
+\dfile{data/mclmc\_diag\_\{v2d,v3b\}.json} + \dfile{data/e1\_harvest.json},
 \dfile{data/t02\_t03\_gate\_eval.json} (+ per-seed run JSONs),
 \dfile{data/results-perlmutter/l0g2\_v3b\_scene\_seed2.json},
 \dfile{data/b1r\_decision\_matrix.json} +
@@ -194,6 +250,25 @@ $\lambda$-schedule holds per-stage wESS at $0.7N$ by construction. Sources:
 \begin{tabular}{@{}p{0.21\textwidth}p{0.135\textwidth}p{0.37\textwidth}p{0.21\textwidth}@{}}
 \toprule
 fit / arm & vehicle, $n$ & diagnostics & verdict \\
+\midrule
+\dfile{v2d} native diag, \textbf{MCLMC} (E1, PI-requested) ---
+$\gammaEPL=1.4683\,[1.4343,1.5048]$ &
+vendored windowed-adaptation MCLMC; 2 seed groups $\times$ 32 chains
+$\times$ 4000 draws &
+$\Rhat_{\rm worst}=1.0031$ vs gate $<1.01$; $\ESS_{\min}=30{,}334$ vs
+$\ge1000$; $\gammaEPL$: $\Rhat$ 1.0017, \ESS\ 39{,}794; seed-group medians
+agree to 0.0002; 0 containment violations (all 256k draws in
+$[1.324,1.637]$); 1.49\,h on one L4 &
+\textbf{PASS both frozen E1 gates} --- $\gammaEPL$ quotable, not
+escalated; $+0.0353 = 0.72\sigma_{\rm comb}$ from the 1.433 anchor
+(Fig.~\ref{fig:e1traces}) \\
+\dfile{v3b} binned diag, MCLMC (E1) &
+same; 4 seed groups $\times$ 16 chains &
+$\Rhat_{\rm worst}=1.379$, $\ESS_{\min}=139$ (both lens-light $I_e$);
+46/46 scene params over the $\Rhat$ gate; 64/64 chains migrate below the
+$[1.15,2.0]$ band during burn-in (Fig.~\ref{fig:e1migration}) &
+\textbf{NO-QUOTE + FINDING}: structural migration, not sampling depth ---
+the one allowed escalation declined \\
 \midrule
 \dfile{v3b} corr \textbf{low} ---
 $\gammaEPL=1.1032\pm0.0086$ (\textbf{money}) &
@@ -245,6 +320,29 @@ converged there; cited, not re-derived \citep{cgl2026companion} \\
 \end{tabular}
 \end{table}
 
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.98\textwidth]{../figs/e1_mclmc_traces.png}
+\caption{E1 MCLMC trace/rank diagnostics, both diagonal fits (plotted
+before any gate math per house rule). Top row, \dfile{v2d} native: the
+$\gammaEPL$ trace of all 64 chains sits on the anchor band
+$1.4330\,[1.3995,1.4685]$ ($\Rhat_\gamma$ 1.0017), the worst-$\Rhat$
+parameter (a lens-light $n_{\rm s\acute ersic}$, $\Rhat$ 1.0031; the fit's
+min-\ESS, 30{,}334, sits on a lens-light $R_{\rm s\acute ersic}$) mixes
+cleanly, and the per-seed-group pooled-rank histograms are
+flat (groups agree). Bottom row, \dfile{v3b} binned: the kept draws sit
+almost entirely \emph{below} the E1-G2 containment-band edge (1.15;
+per-chain fraction of kept draws outside the band: min 0.94, median 1.00)
+after the chains migrated away from the 1.294 warm start during the
+2000-step burn-in; the
+worst-$\Rhat$ parameter (lens-light $I_e$, $\Rhat$ 1.379, min-\ESS\ 139)
+splits between shelves, and the tilted rank histograms localize the
+disagreement both within and between seed groups. Source artifacts:
+\dfile{data/mclmc\_diag\_\{v2d,v3b\}.\{npz,json\}};
+\dfile{data/e1\_harvest.json}.}
+\label{fig:e1traces}
+\end{figure}
+
 \paragraph{(5) The posterior.}
 Figure~\ref{fig:corner} shows the posterior corner for the production
 correlated \dfile{v3b} fit with the three seed repeats overlaid. The
@@ -258,7 +356,13 @@ $\sigma_{\rm tot}=0.0086$ on the money number
 (\S\ref{sec:t02}).\footnote{Source artifacts: companion
 \dfile{data/results/e2\_v3b\_low\_smc\_canary\_fix.json};
 \dfile{data/t02\_t03\_gate\_eval.json}.}
-The number this posterior constrains, and the standing caveat on
+The regenerated corner now also overlays the E1 \dfile{v2d}-native MCLMC
+posterior (violet; 256{,}000 pooled draws, scene-native keyed extraction;
+its equal-weight draw median reproduces the run artifact's pooled
+$q_{50}=1.4683$ exactly), so the native-vs-binned displacement in
+$\gammaEPL$ is visible in the same axes as the seed-repeat
+spread.\art{data/rfig\_modeler\_checks.json}
+The number the correlated posterior constrains, and the standing caveat on
 interpreting it, are the subject of the rest of this report:
 $\gammaEPL=1.1032\pm0.0086$ is certified, cross-stack reproduced --- and
 diagnosed as an artifact of a stationary noise-model class the field
@@ -278,9 +382,68 @@ Table~\ref{tab:conv-modelers} are the analogues). Grey: the steep basin
 $\approx29$--$32$ nats). Inset: $\gammaEPL$ zoom with the per-seed
 weighted medians of record $\{1.1032, 1.0967, 1.1005\}$; the equal-weight
 particle medians reproduce them to $\le0.0027$, well inside
-$\sigma_{\rm stat}=0.008$. Source artifacts: companion
+$\sigma_{\rm stat}=0.008$. Violet: the E1 \dfile{v2d}-native MCLMC
+diagonal posterior (256{,}000 pooled draws; equal-weight draw median
+asserted equal to the run json's pooled $\gammaEPL$ $q_{50}=1.4683$; it
+lies outside the $\gammaEPL$ zoom inset by construction). Source
+artifacts: companion
 \dfile{data/results/e2\_v3b\_low\_smc\_canary\_fix.json} (+ seed-3/4
 repeats), \dfile{data/t02\_t03\_gate\_eval.json},
-\dfile{data/rfig\_modeler\_params.npz}.}
+\dfile{data/rfig\_modeler\_params.npz}, \dfile{data/mclmc\_diag\_v2d.npz},
+\dfile{data/rfig\_modeler\_checks.json}.}
 \label{fig:corner}
+\end{figure}
+
+\paragraph{The E1 caveat on the binned product --- reported, not smoothed.}
+The \dfile{v3b} arm of E1 is the honest counterweight to the clean
+\dfile{v2d} pass, and we state it plainly: \emph{on the binned product,
+even MCLMC under the plain diagonal likelihood migrates toward the
+unphysical low-$\gammaEPL$ region}. Warm-started inside the physical basin
+(the $\gammaEPL=1.2941$ conditional cloud --- itself only a conditional
+slice of an $\Rhat=843$ bimodal chain), all 64 chains in all four
+independent seed groups left the containment band during the 2000-step
+burn-in and spent essentially all of their kept draws at
+$\gammaEPL\approx1.08$--$1.15$
+(Fig.~\ref{fig:e1migration}); the kept-draw pooled median, $1.1047$, is
+descriptive only (the ensemble is unconverged, $\Rhat_\gamma=1.261$) but
+sits $0.0015$ from the certified correlated-fit $1.1032$. The one
+escalation the frozen protocol allowed was declined, with the reasoning on
+the ledger: the failure mode is structural migration out of the band, not
+sampling depth --- doubling draws cannot un-migrate chains, and
+conditioning post hoc on the band would be a goalpost move --- so the
+verdict is NO-QUOTE plus a finding. The finding is the sampling-side face
+of the campaign's binned-product pathology (\S\ref{sec:t041},
+\S\ref{sec:t043}): the binned pixels themselves prefer the low-$\gammaEPL$
+shelf under likelihoods that discount what the native product resolves ---
+seen with tempered SMC under both the correlated likelihood (the money
+fit) and the diagonal one (the B5 low basin at $\gammaEPL=1.092$,
+\S\ref{sec:matrix:b5}), and now with the PI's own MCLMC under the plain
+diagonal likelihood. The finding's honest scope is what this run tested:
+one product, one likelihood, one warm-start cloud, at a fixed
+$2000+4000$-step budget --- longer runs or other initializations could
+yet behave differently; what is established is the migration itself, not
+the shelf's posterior weight. It further
+undermines the old $1.2941$ conditional as a diagonal reference for this
+product --- and it is why the \dfile{v2d}-\emph{native} MCLMC fit,
+$\gammaEPL=1.4683\,[1.4343,1.5048]$, is the quotable E1 deliverable.%
+\art{data/e1\_harvest.json; data/mclmc\_diag\_v3b.json}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.98\textwidth]{../figs/e1_v3b_migration.png}
+\caption{The E1 \dfile{v3b} migration finding (the run's money visual,
+plotted before gate math). Left: for each of the 64 chains (grouped and
+colored by seed group), the warm-start $\gammaEPL$ (open circle, drawn
+from the 1.2941 diagonal-conditional init cloud) against its kept-draw
+16--84\% interval (bar) and median (dot): every chain exits the
+E1-G2 containment band $[1.15,2.0]$ during burn-in and spends its kept
+draws at $\gammaEPL\approx1.08$--$1.15$ under the \emph{diagonal} likelihood
+(fraction of kept draws outside the band: min 0.94, median 1.00; all 64
+violations reported, none dropped, per the frozen report-never-drop rule).
+Right: init-cloud vs.\ pooled kept-draw marginals; the pooled kept-draw
+median 1.1047 sits 0.0015 from the corr-low certified 1.1032 ---
+descriptive only, as the ensemble fails every convergence gate. Source
+artifacts: \dfile{data/mclmc\_diag\_v3b.json} (\texttt{gates.E1\_G2});
+\dfile{data/e1\_harvest.json}.}
+\label{fig:e1migration}
 \end{figure}

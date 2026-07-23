@@ -1,9 +1,10 @@
-# Sign-off checklist — borderline passages (adversarial audit, 2026-07-21)
+# Sign-off checklist — borderline passages (adversarial audit, 2026-07-21; E1 addendum, 2026-07-22)
 
 **Instruction: each characterizes unpublished code state — requires team sign-off before
 ANY external release; internal use fine.**
 
-The five passages below (flagged by the adversarial audit of the campaign report) describe
+The six passages below (passages 1–5 flagged by the adversarial audit of the campaign
+report; passage 6 added with the E1 post-campaign epilogue) describe
 the state of the GIGALens team's unpublished upstream development branches (the vendored
 scene-API commit `80916d2` and the experimental sampler/SBC assets around it). Under the
 campaign's pre-declared bright line (nothing derived from the upstream branches'
@@ -70,6 +71,26 @@ same unrun-suite characterization).
 > draws must follow the fitting prior). Such a mismatch is a legitimate
 > robustness-testing design if intentional; the question for the team is
 > whether a matched-prior set should exist.
+
+## Passage 6 — E1 epilogue description of the vendored experimental MCLMC driver (added 2026-07-22)
+
+`papers/sec_summary_modelers.tex` (item 3, the E1 sampler sentence)
+
+> The E1 epilogue adds \textbf{MCLMC proper} ---
+> the PI-requested vehicle; the team's own vendored implementation
+> (\dfile{full\_mclmc\_with\_adapt\_sharded}: windowed mass-matrix
+> adaptation, run with their Stan-style mass-matrix regularization option
+> enabled)
+
+Companion locations carrying the same characterization of the unpublished experimental
+sampler's features and state: `papers/sec_appendix_convergence.tex` (group M header + rows —
+"vendored windowed-adaptation MCLMC", "regularization ON", the two BLOCKED launch rows and
+the VMA-check note quoted from the run jsons) and `papers/sec_c_bench_disc.tex` (the E1
+epilogue paragraph in "What it closes": "the team's own vendored MCLMC ... windowed
+mass-matrix adaptation and regularization option"). These describe features and defaults of
+the unpublished `gigalens/jax/experimental/mclmc.py` driver (windowed mass-matrix adaptation;
+opt-in Stan-style covariance regularization; the shard_map/VMA interaction worked around at
+runtime with the vendored file byte-identical on disk) and the E1 result obtained with it.
 
 ---
 

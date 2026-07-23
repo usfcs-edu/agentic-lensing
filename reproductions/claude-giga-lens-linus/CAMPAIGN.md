@@ -98,6 +98,10 @@ Plan of record: `plans/PLAN.md` (approved 2026-07-15). Their-format handoffs: `p
 | B1r decision matrix (S1r vs S6br, D8/D9) | carousel33 REAL-data cell: prior-seeded MC-SMC (S1r) vs warm MAMS-alone (S6br) at matched grad budget B\*=3,078,912 | research/checkpoint_b1_reduced.md + checkpoint_b1r_close.md (framing pre-stated BEFORE S6br results) | **NEITHER CONVERGES AT THIS BUDGET** (figs/b1r_s6br_traces.png plotted BEFORE this text). S1r: 11.33 A100-h → λ=0.1506 @36 stages, 0 posterior samples, ESS/R̂ n/a (healthy sampler, killed by cost — D9 cost row stands). S6br (56252401): the pre-registered 4.5-h wall fence bound FIRST, at burn round 11 of 30 — **sampling never started** (0 draws), realized 1,277,632 grads = **41.5% of B\*** (map 22,400 + tune 894,080 + mutate 361,152), **ESS = 0, worst-param R̂ NOT COMPUTABLE**; burn itself healthy (accept 0.873–0.902 mean 0.887, eps ~9e-4, n_int 64 — ~24 min/round on the 33-dim multi-plane real-MUSE target). Per-grad throughput comparable across arms (~284k vs ~272k grads/h): the truncation is a target-cost fact, not arm inefficiency; matching B\* by grads needed ~10.9 h vs the 4.5-h fence, and until-converged S6b remains est 17–20 h (wave-1 anchors). The close-out's pre-stated "any nonzero ESS ⇒ decisive LOSS for cold-start" branch did NOT fire — the row is the equally-honest anticipated alternative: **carousel-class real-data targets are out of reach for BOTH vehicles at any campaign-affordable budget** (row narrows claim to target class; cold-start WINS/LOSSES on B4/B5/DSPL-class stand separately). Pre-registered caveats carried: burn-dominated comparison (biases the rate metric TOWARD S1r — moot, both ESS exactly 0); descoped gates stay descoped; no science read from either non-converged ensemble | data/b1r_decision_matrix.json, figs/b1r_s6br_traces.png, data/results-perlmutter/b1r128_carousel33_s6b_seed2.{json,npz,_run.log}, data/results-perlmutter/b1r128_carousel33_s1_seed2.PARTIAL.json |
 | B4 | prior-seeded S1 replaces the two-stage recipe on cond~1e14: worst-param \|z\|<3 vs P2c ref; ESS ≥ 0.3N | PLAN §6 B4 | **NOT EVALUABLE — TIMEOUT 03:30:27, ZERO artifacts, ZERO stage observability** (log: build 78 s + finite warmup, then silence — RC1). True cost at N=256 unknown, lower-bounded at 3.5 h. CARRIED DEFECT: B4 runs the SAME writer code path as B5 — even on completion it could not have written artifacts; the one-line fix is a precondition for ANY B4 resubmission. Two-stage-seeded variant flagged OFF-PROTOCOL (answers a different hypothesis; would need pre-registration as a NEW arm B4b) | data/results-perlmutter/b4_marg46_s1_seed2_run.log, slurm-55985448.out, research/p2_wave1_postmortem_redesign.md |
 | B2′ | RE-REGISTERED B2 falsifier resolution (the ledgered amendment the B2 row mandated — scored 2026-07-21 from EXISTING artifacts, 0 A100-h): orig-coords minor-arm mass CONSISTENT with the ratio-control's measured mass on the SAME realization (0/512 vs 5/512; both arms sample the identical dspl20 data_seed=0 posterior; the control is immune to coordinate mode-death by construction) | Fisher exact two-sided on [[0,512],[5,507]] at α=0.01 (campaign ~3σ convention; two-sided — no direction pre-specified after the band recalibration; supersedes, does not double-count, the exploratory one-sided 0.031), rule + attainable-significance clause declared BEFORE scoring: with only 5 total minor-arm particles the most extreme table attains p_min=0.0619 ⇒ NO orig outcome could fail at α (falsifiability needs k_ctrl ≥ 8) — passing label pre-committed as PASS-UNDERPOWERED | **PASS-UNDERPOWERED (CONSISTENT)** — p_two=0.0619 ≥ 0.01 (one-sided 0.0309 = the ledgered 0.031 ✓; two-prop z 2.2415 ✓); orig rule-of-three 95% upper 0.0059 vs control 0.0098±0.0043 (CP95 [0.0032,0.0226]) ⇒ residual minor-arm under-coverage up to ~×2–3 NOT excluded, exact consistency NOT excluded; dominant arms statistically identical (Om0 0.4701 vs 0.4702). B2 headline stands at "no DETECTED coordinate pathology at N=512, n=1 seed" strength — not proven equivalence; decisive B2′ needs ≥2× per-arm sampling (follow-on, not fundable — program complete) | research/checkpoint_b2_prime.md, data/b2_gate_eval.json, data/results-perlmutter/b2_dspl20_{orig,ratio}_s1_seed2.{npz,json} |
+| E1-G1 (v2d) | MCLMC diagonal-fit convergence, v2d NATIVE product (PI-requested epilogue; pooled 2 seed groups × 32 chains × 4000 draws; worst-param over 46 scene-z + 8 physical mass params) | R̂_worst < 1.01 AND min-ESS ≥ 1000 (frozen 2026-07-22 pre-launch) | **PASS (not escalated)** — R̂_worst 1.0031 (planes/0/light/2/n_sersic), min-ESS 30,334 (planes/0/light/0/R_sersic); per-group R̂_worst 1.0034/1.0031; γ R̂ 1.0017, ESS 39,794. **γ QUOTABLE: 1.4683 [1.4343, 1.5048] CI68** — vs the healthy foundry-i anchor 1.4330 [1.3995, 1.4685]: Δ = +0.0353 = **0.72σ_comb** (σ_comb = √(0.0345² + 0.0353²) = 0.0493) ⇒ the pre-registered consistency prediction HOLDS; seed-group medians agree to 0.0002; wall 1.49 h on one L4 (free tier) | data/mclmc_diag_v2d.{npz,json}, data/e1_harvest.json, figs/e1_mclmc_traces.png |
+| E1-G2 (v2d) | basin containment (single-basin by design): no chain wanders to γ < 1.15 or γ > 2.0 in kept draws | 0 violating chains; violators reported, never dropped | **PASS** — 0 violations; all-draw γ range [1.324, 1.637] (256,000 draws) | data/mclmc_diag_v2d.json (gates.E1_G2) |
+| E1-G1 (v3b) | MCLMC diagonal-fit convergence, v3b BINNED product (4 seed groups × 16 chains — amendment-3 OOM geometry, pooled 64 unchanged) | same frozen thresholds | **FAIL — NO-QUOTE** — R̂_worst 1.379 / min-ESS 139 (both planes/0/light/1/Ie); 46/46 scene-z params over the R̂ gate; γ R̂ 1.261 (ESS 181); per-group R̂_worst 1.27/1.64/1.42/1.17 — unconverged WITHIN and BETWEEN groups, worst offenders = lens-light photometrics (Ie/R_sersic/n_sersic 1.35–1.38) + shapelet source centers (1.34–1.35). **Escalation DECLINED** (one was allowed): the failure mode is structural migration out of the band (see E1-G2 row), not sampling depth — doubling draws cannot un-migrate chains, and a within-band conditional would be a goalpost move | data/mclmc_diag_v3b.{npz,json}, data/e1_harvest.json, figs/e1_mclmc_traces.png |
+| E1-G2 (v3b) | basin containment, v3b | 0 violating chains; report-never-drop | **FAIL — 64/64 chains outside** (frac_outside min 0.94, median 1.00; all 4 seed groups): warm-started IN the physical basin (init cloud = the 1.2941 γ<1.7 conditional, per-group init med 1.289–1.294), EVERY chain migrated DOWN during the 2000-step burn-in to γ ≈ 1.08–1.15 (kept-draw pooled med 1.1047, per-group 1.098–1.107 — DESCRIPTIVE, not quotable, 0.0015 from the corr-low 1.1032). **FINDING**: even MCLMC under the DIAGONAL likelihood drifts to the unphysical low-γ region on the binned product — the sampling-side face of the binned-product pathology (T0.4 mechanism family); further undermines the R̂=843 conditional 1.2941 as a diagonal reference | figs/e1_v3b_migration.png (money visual), data/mclmc_diag_v3b.json (gates.E1_G2.violations, all 64), data/e1_harvest.json |
 | B4 — FINAL DISPOSITION (**CONFIRMED by orchestrator 2026-07-21 (consistent with the user's option-1 budget decision)**) | closure-sweep row (2026-07-21): B4 was the record's one gate left with a non-final verdict ("NOT EVALUABLE … precondition for ANY resubmission"); the RC3 writer-fix precondition landed + regression-locked 2026-07-16 but no rerun was ever funded and no closure row ever recorded | measured true-cost lower bound 3.5 h (realistic 3–5 h) vs P2 headroom at program close | **NOT-EVALUABLE-WITHIN-BUDGET (proposed)** — P2 closed 22.45/24 (headroom 1.55 h < 3–5 h need); experimental program COMPLETE 2026-07-21, zero GPU remaining for this cell. The cond~1e14 preconditioning question stays OPEN and is NOT absorbed by any other cell (nearest datum — the l0arbc classic-arm reproduction of the single-stage-HMC pathology — is target-difficulty context, not a B4 answer); the two-stage-seeded variant remains OFF-PROTOCOL (a NEW arm B4b if ever funded). Full closure sweep: research/gate_ledger_final.md (6 dangling gates/arms + 1 D7-promoted item proposed-closed there) | research/gate_ledger_final.md, data/results-perlmutter/b4_marg46_s1_seed2_run.log, research/p2_wave1_postmortem_redesign.md |
 
 **P1 synthesis (2026-07-15): one mechanism spans T0.4-1/2/3 + X1-G0** — a NONSTATIONARY
@@ -152,6 +156,61 @@ downstream ΔlogZ gate, as planned).
 - sshproxy refreshed 2026-07-15 (user). Jobs charge `cosmo_g` (D5), single-GPU shared QOS.
 
 ## Stage log (newest first)
+
+### 2026-07-22 — E1 HARVEST (plots first): v2d PASS both gates — γ = 1.4683 [1.4343, 1.5048] QUOTABLE, 0.72σ_comb from the anchor; v3b FAIL both — escalation DECLINED, verdict NO-QUOTE + FINDING (all 64 chains migrate out of the band)
+
+Plots generated and INSPECTED before any gate math (house rule):
+`figs/e1_mclmc_traces.png` (per-product γ + worst-param traces, per-seed-group
+rank histograms), `figs/e1_v3b_migration.png` (the migration money visual:
+init cloud at 1.29 → every chain's kept-draw interval at 1.08–1.15, colored by
+seed group, containment band + corr-low reference lines), then the regenerated
+`figs/rfig_corner.png` + `figs/rfig_critcurves.png` (40_modeler_summary_figs.py
+extended with the v2d MCLMC posterior — scene-native extraction, KEYED via
+mass_names/z_param_names, PHYS_COLS order; new 4th-series color validated
+against the dataviz palette: slot-7 violet on white panels, neutral white
+dotted on the image panel per the dark all-pairs series cap).
+
+**Gate readout (full rows in the Gate record):**
+- **v2d: PASS E1-G1 + E1-G2, not escalated** — R̂_worst 1.0031, min-ESS 30,334,
+  0 containment violations. γ (pooled 64 × 4000) = **1.4683 [1.4343, 1.5048]**
+  (CI95 [1.4032, 1.5425]); vs anchor 1.4330 [1.3995, 1.4685]: Δ +0.0353 =
+  0.72σ_comb ⇒ pre-registered prediction HOLDS; seed groups agree to 0.0002;
+  wall 1.49 h (L4, GPU 9). **This is THE quotable E1 deliverable** — the first
+  fully convergence-certified (R̂<1.01, ESS>1000) posterior on the v2d native
+  diagonal target, and it certifies the foundry-i anchor with the PI's own
+  sampler.
+- **v3b: FAIL E1-G1 (R̂_worst 1.379, min-ESS 139, 46/46 z-params over gate) +
+  FAIL E1-G2 (64/64 chains out of band, frac_outside min 0.94/median 1.00)**.
+  γ NOT quoted. Wall 8.07 h (L4, GPU 8).
+- **Orchestrator decision — escalation DECLINED** (checkpoint allowed one,
+  never required it): the failure mode is structural migration out of the
+  containment band — every chain, in all 4 independent seed groups, left the
+  1.29 physical-basin init cloud during burn-in and equilibrated at
+  γ ≈ 1.08–1.15 under the DIAGONAL likelihood. Doubling draws cannot
+  un-migrate chains; conditioning post-hoc on the band would be a goalpost
+  move. Verdict recorded as NO-QUOTE + FINDING.
+- **The finding:** even MCLMC — warm-started in the physical basin, with the
+  PI's own vendored driver and F4 mass-matrix regularization — drifts toward
+  the unphysical low-γ region (kept-draw pooled median 1.1047, 0.0015 from the
+  corr-low 1.1032) on the binned product's diagonal likelihood. This is the
+  sampling-side face of the campaign's binned-product pathology (the T0.4
+  mechanism family: the binned data themselves prefer the low-γ shelf under
+  likelihoods that discount what the native product resolves), and it further
+  undermines the old 1.2941 conditional (an R̂=843 bimodal chain) as a
+  diagonal reference. R̂ heterogeneity lives in the lens-light photometric
+  params (Ie/R_sersic/n_sersic, 1.35–1.38) and shapelet source centers — both
+  within AND between groups — i.e. the low-γ shelf is itself glassy, not a
+  clean second basin.
+
+Harvest artifacts: `data/e1_harvest.json` (every quotable number, each
+recomputed from the npz and asserted vs the run jsons: γ quantiles <1e-9,
+γ R̂ arviz re-run <1e-6), `data/rfig_modeler_checks.json` (rfig assertions:
+corner MCLMC γ median ≡ run-json q50 = 1.468336 exact; crit-curve outer radius
+vs θ_E — mclmc 2.6523" vs 2.65353" = 0.05%, all four models <5%; inner radial
+curve present for the γ<2 models). GPU-h at harvest: v2d 1.49 + v3b 8.07 =
+**9.56 L4-h, phoenix free tier (no A100-h rows per checkpoint)**. Bright lines
+held: no characterization of the team's unpublished results anywhere in the
+harvest text or figures.
 
 ### 2026-07-22 — E1 — PI-REQUESTED MCLMC DIAGONAL FITS (post-campaign epilogue): DESIGN CHECKPOINT, frozen BEFORE launch
 
@@ -1635,3 +1694,14 @@ Amendment: N_CHAINS/N_GROUPS made env-overridable; v3b relaunched (PID 189281, G
 untouched; svi_mass_matrix_weight follows the wrapper's own 10·n_chains rule (160 for the
 16-chain groups vs 320 for v2d — the vendor's documented scaling, not a tuning change).
 Gates/bands unmoved. v2d lane unaffected (still running its original config).
+
+### 2026-07-23 — ANCHOR ARBITRATION RESOLVED by E1-v2d (supersedes PARTIAL-BY-VEHICLE-EXHAUSTION)
+The E1 v2d MCLMC fit is a CONVERGED scene-API posterior on the exact arbitration target
+(v2d native diagonal), and it decides the original pre-registered gate: γ = 1.4683
+[1.4343, 1.5048] vs the old-stack anchor 1.4330 [1.3995, 1.4685] — z = 0.72σ_comb, 68%
+intervals overlap ⇒ **ARBITRATION PASS: the anchor is stack-robust**; the 07-21
+PARTIAL-BY-VEHICLE-EXHAUSTION disposition is superseded (the fifth vehicle — the PI-requested
+MCLMC — succeeded where prior-seeded SMC ×2 and the classic recipe ×2 could not; warm-basin
+start + windowed mass matrix + the vendor's regularization was the working combination).
+The 17σ premise stands on both ends now: both 1.433 (native) and 1.103 (binned-correlated)
+are certified, cross-stack numbers; the bracket is real and product-driven.

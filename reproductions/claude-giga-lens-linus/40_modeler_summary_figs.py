@@ -42,6 +42,15 @@ Run:  /raid/benson/.venvs/cgl2/bin/python 40_modeler_summary_figs.py
       [--refresh]   force Stage-A re-extraction
 NOTE: l0g2 scene-leg draws (Perlmutter $PSCRATCH) are NOT local; the corner
 uses the certified e2 old-stack particle sets (the seed-triplet of record).
+
+E1 extension (2026-07-22 epilogue harvest): the v2d-native MCLMC diagonal fit
+(data/mclmc_diag_v2d.{npz,json}, PASS E1-G1/G2) is added to BOTH figures via
+the scene-native extraction branch — the stored draws are scene-z; physical
+params come from the scene model's own bijector (mass draws were already
+mapped at run time by 50_run_mclmc_diag._mass_of, KEYED via mass_names; the
+critcurve median model re-maps the pooled per-dim scene-z median through
+mv.model.bijector.forward, KEYED via z_param_names, PHYS_COLS order).
+Corner medians are asserted against the run json's pooled gamma quantiles.
 """
 from __future__ import annotations
 
@@ -79,13 +88,24 @@ RUNS = {  # (basin, seed) -> (stem, npz key, json basin key)
 REPORT = dict(low_s2=1.1032, low_s3=1.0967, low_s4=1.1005,
               sigma_seed=0.00325, steep_s2=2.6393, diag=1.29325,
               scene_low=1.1005, dlogZ_steep_minus_low=-28.9)
+MCLMC_JSON = ROOT / "data" / "mclmc_diag_v2d.json"   # E1 run json (asserted vs)
+MCLMC_NPZ = ROOT / "data" / "mclmc_diag_v2d.npz"
 
 # categorical slots 1-3 (dataviz reference palette; all-pairs validated).
 # Light steps for white panels, dark steps for the astronomical image panel.
-C_LIGHT = {"low": "#2a78d6", "diag": "#eb6834", "steep": "#1baf7a"}
-C_DARK = {"low": "#3987e5", "diag": "#d95926", "steep": "#199e70"}
-LSTYLE = {"low": "-", "diag": (0, (5, 2.4)), "steep": (0, (4, 1.6, 1, 1.6))}
+# E1 4th series: slot-7 violet #4a3aa7 VALIDATED all-pairs vs the light triple
+# (validator: CVD 9.2, normal 16.3, PASS). No 4th hue passes all-pairs against
+# the dark triple (palette series cap of 3), so on the image panel the MCLMC
+# curve wears NEUTRAL WHITE + its unique dotted style (relief rule; the black
+# halo + legend dash pattern carry identity).
+C_LIGHT = {"low": "#2a78d6", "diag": "#eb6834", "steep": "#1baf7a",
+           "mclmc": "#4a3aa7"}
+C_DARK = {"low": "#3987e5", "diag": "#d95926", "steep": "#199e70",
+          "mclmc": "#ffffff"}
+LSTYLE = {"low": "-", "diag": (0, (5, 2.4)), "steep": (0, (4, 1.6, 1, 1.6)),
+          "mclmc": (0, (1, 1.5))}
 SEED_C = {2: "#2a78d6", 3: "#eb6834", 4: "#1baf7a"}   # corner: slots 1-3
+C_MCLMC = "#4a3aa7"
 GREY = "#8a8a86"
 INK, MUT, GRID, SPINE = "#3a3a38", "#8a8a86", "#e8e7e3", "#d5d4d0"
 
@@ -93,6 +113,8 @@ MODEL_LABEL = {
     "low": r"corr-low $\gamma=1.103$ (certified fit; artifact-diagnosed)",
     "diag": r"diagonal-low $\gamma=1.293$ (real-space preference)",
     "steep": r"steep $\gamma=2.639$ (evidence-disfavored, $\Delta\log Z\approx-29$)",
+    "mclmc": "v2d-native MCLMC $\\gamma=1.468$ (E1, diagonal; converged "
+             "$\\hat{R}$ 1.003; white dotted on image panel)",
 }
 
 
@@ -177,6 +199,60 @@ def mass_params_from_x46(x46, labels):
                 src=(d["srcS.center_x"], d["srcS.center_y"]))
 
 
+def load_mclmc(checks):
+    """E1 v2d MCLMC pooled physical mass draws (N, 8) in PHYS_COLS order
+    (scene-native: mapped at run time by 50_run_mclmc_diag._mass_of, KEYED),
+    + the run-json pooled gamma quantiles they are asserted against."""
+    z = np.load(MCLMC_NPZ, allow_pickle=True)
+    mnames = [str(s) for s in z["mass_names"]]
+    m = np.concatenate([np.asarray(z["mass_g0"], dtype=np.float64),
+                        np.asarray(z["mass_g1"], dtype=np.float64)], axis=0)
+    m = m.reshape(-1, len(mnames))
+    phys = np.stack([m[:, mnames.index(c)] for c in PHYS_COLS], axis=1)
+    jq = json.load(open(MCLMC_JSON))["gamma"]["pooled_quantiles"]
+    gmed = float(np.median(phys[:, PHYS_COLS.index("gamma")]))
+    checks["mclmc_corner_gamma"] = dict(
+        eqw_draw_median=round(gmed, 6), run_json_q50=round(jq["0.5"], 6),
+        n_draws=int(phys.shape[0]),
+        ok=bool(abs(gmed - jq["0.5"]) < 1e-9))
+    assert checks["mclmc_corner_gamma"]["ok"], (gmed, jq["0.5"])
+    return phys, jq
+
+
+def mclmc_median_model(checks):
+    """E1 v2d MCLMC posterior-median mass model for the critcurve figure:
+    pooled per-dim scene-z median -> mv.model.bijector.forward (KEYED via
+    z_param_names; t04 per-dim-median convention, same as the other models)."""
+    import jax.numpy as jnp
+
+    from cgl2 import scene_build
+
+    z = np.load(MCLMC_NPZ, allow_pickle=True)
+    pooled = np.concatenate([np.asarray(z["pos_g0"], dtype=np.float64),
+                             np.asarray(z["pos_g1"], dtype=np.float64)],
+                            axis=0).reshape(-1, 46)
+    zmed = np.median(pooled, axis=0)
+    refs = np.load(ROOT / "data" / "parity_refs.npz", allow_pickle=True)
+    prov = json.loads(str(refs["provenance"]))
+    mv = scene_build.build_scene_model(view="marg", near_xy=prov["near_xy"])
+    assert [str(s) for s in z["z_names"]] == list(mv.model.z_param_names), \
+        "scene-z name/order mismatch vs stored chains"      # KEYED discipline
+    u = mv.model.bijector.forward(jnp.asarray(zmed[None, :]))
+    f = {k: float(np.asarray(v)[0]) for k, v in u.items()}
+    p = dict(theta_E=f["planes/0/mass/0/theta_E"], gamma=f["planes/0/mass/0/gamma"],
+             e1=f["planes/0/mass/0/e1"], e2=f["planes/0/mass/0/e2"],
+             cx=f["planes/0/mass/0/center_x"], cy=f["planes/0/mass/0/center_y"],
+             g1=f["planes/0/mass/1/gamma1"], g2=f["planes/0/mass/1/gamma2"],
+             src=(f["planes/1/light/0/center_x"], f["planes/1/light/0/center_y"]))
+    jq = json.load(open(MCLMC_JSON))["gamma"]["pooled_quantiles"]
+    checks["mclmc_median_model"] = dict(
+        gamma_zmed_forward=round(p["gamma"], 6),
+        run_json_q50=round(jq["0.5"], 6),
+        ok=bool(abs(p["gamma"] - jq["0.5"]) < 1e-3))
+    assert checks["mclmc_median_model"]["ok"], p["gamma"]
+    return p
+
+
 def crit_and_caustics(p, n=1201, L=5.2):
     """detA=0 contours of EPL(50)+Shear at params p -> list of
     (crit_curve (M,2), caustic (M,2)); jax autodiff Jacobian on an n x n grid."""
@@ -236,6 +312,7 @@ def fig_critcurves(cache, checks):
     labels = list(cache["labels46"])
     models = {t: mass_params_from_x46(cache[f"x46_{t}"], labels)
               for t in ("low", "diag", "steep")}
+    models["mclmc"] = mclmc_median_model(checks)         # E1 v2d-native fit
     curves = {t: crit_and_caustics(p) for t, p in models.items()}
 
     # sanity: outer critical curve radius ~ theta_E (theta_E ~ 2.6")
@@ -260,7 +337,7 @@ def fig_critcurves(cache, checks):
     axL.imshow(asinh_img(img), origin="lower", extent=[-L, L, -L, L],
                cmap="magma", vmin=0, vmax=1, interpolation="nearest")
     halo = [pe.withStroke(linewidth=3.1, foreground="black", alpha=0.75)]
-    for t in ("low", "diag", "steep"):
+    for t in ("low", "diag", "steep", "mclmc"):
         for k, (crit, _) in enumerate(curves[t]):
             axL.plot(crit[:, 0], crit[:, 1], color=C_DARK[t], ls=LSTYLE[t],
                      lw=1.7, path_effects=halo,
@@ -272,7 +349,7 @@ def fig_critcurves(cache, checks):
     axL.set_xlabel('x ["]', color=INK, fontsize=9)
     axL.set_ylabel('y ["]', color=INK, fontsize=9)
 
-    for t in ("low", "diag", "steep"):
+    for t in ("low", "diag", "steep", "mclmc"):
         for k, (_, cau) in enumerate(curves[t]):
             axS.plot(cau[:, 0], cau[:, 1], color=C_LIGHT[t], ls=LSTYLE[t],
                      lw=1.6, label=MODEL_LABEL[t] if k == 0 else None)
@@ -290,14 +367,15 @@ def fig_critcurves(cache, checks):
     for ax in (axL, axS):
         style_ax(ax)
     h, l = axS.get_legend_handles_labels()
-    fig.legend(h[:3], l[:3], loc="lower center", ncol=3, frameon=False,
+    fig.legend(h[:4], l[:4], loc="lower center", ncol=2, frameon=False,
                fontsize=8.2, labelcolor=INK, bbox_to_anchor=(0.5, -0.005))
-    fig.suptitle("v3b posterior-median mass models — critical curves & caustics"
+    fig.suptitle("Posterior-median mass models (v3b products + the E1 "
+                 "v2d-native MCLMC fit) — critical curves & caustics"
                  r"  (outer curve radius $\simeq\theta_E\approx2.6$"
                  '"; inner radial structure because '
-                 r"$\gamma_{\rm EPL}<2$ for the low/diagonal fits)",
+                 r"$\gamma_{\rm EPL}<2$ for the low/diagonal/MCLMC fits)",
                  color=INK, fontsize=10, y=0.995)
-    fig.tight_layout(rect=(0, 0.045, 1, 0.97))
+    fig.tight_layout(rect=(0, 0.075, 1, 0.97))
     out = FIGS / "rfig_critcurves.png"
     fig.savefig(out, bbox_inches="tight", facecolor="white")
     plt.close(fig)
@@ -322,6 +400,11 @@ def fig_corner(cache, checks):
     low = {s: cache[f"phys_low_s{s}"][:, idx] for s in (2, 3, 4)}
     steep = np.concatenate([cache[f"phys_steep_s{s}"][:, idx]
                             for s in (2, 3, 4)], axis=0)
+    phys_mclmc, _ = load_mclmc(checks)               # E1 v2d-native, asserted
+    mcl = phys_mclmc[:, idx]
+    rng_m = np.random.default_rng(40)
+    mcl_sc = mcl[rng_m.choice(mcl.shape[0], 2500, replace=False)]
+    mcl_kde = mcl[rng_m.choice(mcl.shape[0], 20000, replace=False)]
 
     # ---- assertions: particle medians reproduce the numbers of record ------ #
     gmed = {s: float(np.median(low[s][:, 1])) for s in (2, 3, 4)}
@@ -345,7 +428,8 @@ def fig_corner(cache, checks):
     n = len(cols)
     rng = []
     for j in range(n):
-        allv = np.concatenate([low[s][:, j] for s in (2, 3, 4)] + [steep[:, j]])
+        allv = np.concatenate([low[s][:, j] for s in (2, 3, 4)]
+                              + [steep[:, j], mcl_sc[:, j]])
         lo, hi = allv.min(), allv.max()
         pad = 0.09 * (hi - lo)
         rng.append((lo - pad, hi + pad))
@@ -364,6 +448,9 @@ def fig_corner(cache, checks):
                 kde_s = gaussian_kde(steep[:, j])(xs)
                 ax.fill_between(xs, kde_s / kde_s.max() * 0.9, color=GREY,
                                 alpha=0.30, lw=0)
+                kde_m = gaussian_kde(mcl_kde[:, j])(xs)
+                ax.plot(xs, kde_m / kde_m.max(), color=C_MCLMC, lw=1.5,
+                        ls=(0, (4, 2)))
                 for s in (2, 3, 4):
                     kd = gaussian_kde(low[s][:, j])(xs)
                     ax.plot(xs, kd / kd.max(), color=SEED_C[s], lw=1.5)
@@ -372,6 +459,8 @@ def fig_corner(cache, checks):
             else:
                 ax.scatter(steep[:, j], steep[:, i], s=4, color=GREY,
                            alpha=0.35, lw=0)
+                ax.scatter(mcl_sc[:, j], mcl_sc[:, i], s=4, color=C_MCLMC,
+                           alpha=0.28, lw=0)
                 for s in (2, 3, 4):
                     ax.scatter(low[s][:, j], low[s][:, i], s=5,
                                color=SEED_C[s], alpha=0.6, lw=0)
@@ -410,11 +499,17 @@ def fig_corner(cache, checks):
                + [mlines.Line2D([], [], color=GREY, lw=6, alpha=0.4,
                                 label=r"steep basin, seeds 2–4 pooled "
                                       r"($\gamma\approx2.64$; "
-                                      r"$\Delta\log Z\approx-29$, disfavored)")])
-    fig.legend(handles=handles, loc="upper left", bbox_to_anchor=(0.40, 0.68),
+                                      r"$\Delta\log Z\approx-29$, disfavored)"),
+                  mlines.Line2D([], [], color=C_MCLMC, lw=2, ls=(0, (4, 2)),
+                                label="v2d-NATIVE MCLMC diagonal fit (E1: "
+                                      r"$\gamma=1.468$ [1.434, 1.505], "
+                                      r"$\hat{R}_{\rm worst}$ 1.003, "
+                                      "min-ESS 30,334)")])
+    fig.legend(handles=handles, loc="upper left", bbox_to_anchor=(0.40, 0.70),
                frameon=False, fontsize=9, labelcolor=INK)
-    fig.suptitle("v3b correlated-likelihood posterior — 6 mass parameters, "
-                 "equal-weight SMC particles (128/seed low, 96/seed steep)",
+    fig.suptitle("Mass-parameter posteriors — v3b correlated SMC particles "
+                 "(128/seed low, 96/seed steep) + the E1 v2d-native MCLMC "
+                 "diagonal posterior (64 chains x 4000 draws)",
                  color=INK, fontsize=11, y=0.985)
     fig.subplots_adjust(hspace=0.06, wspace=0.06, top=0.955)
     out = FIGS / "rfig_corner.png"
@@ -438,8 +533,8 @@ def write_captions(checks):
 
 | figure | placement | caption |
 |---|---|---|
-| figs/rfig_critcurves.png | up-front modeler summary | Critical curves (lens plane, over the v3b binned cutout, asinh stretch) and caustics (source plane; stars = median Sérsic-source centers) for the three posterior-median mass models on disk: corr-low γ=1.1032 (the certified but artifact-diagnosed correlated fit; per-dim z-median of the 128 production SMC particles, t04 convention), diagonal-low γ=1.29325 (hmc_v13_v3b low basin — the real-space preference), and steep γ=2.639 (evidence-disfavored, ΔlogZ≈−29). Curve overlays follow the team's GIGA-Lens (Gu et al. 2022) conventions (critical curves in the image plane, caustics + source star in the source plane); per-model colors + line styles because three models share each panel. Sanity: outer critical-curve median radius matches θ_E to <5% for all three (low {checks.get('critcurve_low', {}).get('outer_r_median', '?')}" vs θ_E {checks.get('critcurve_low', {}).get('theta_E', '?')}"); the low/diagonal models (γ<2) show the expected inner radial critical curve/caustic. Deflections: vendored gigalens-linus EPL(50)+Shear at the certified scene conventions; grid Jacobian via jax autodiff (1201², ±5.2"). |
-| figs/rfig_corner.png | up-front modeler summary | Corner plot of the six mass parameters (θ_E, γ, e_1, e_2, γ_ext,1, γ_ext,2) from the stored equal-weight v3b-low correlated SMC particles, seeds 2/3/4 overlaid (this is the SMC convergence visual: SMC has no R̂; the seed-repeat spread σ_seed = 0.00325 plus per-stage ESS/acceptance are the analogues), steep basin (seeds 2–4 pooled) in grey. Weighted medians of record (from the run JSONs) γ = 1.1032/1.0967/1.1005; the equal-weight particle medians reproduce them to ≤0.0027 (≪ σ_stat 0.008; the resampled-particle convention). γ zoom panel shows the three repeats with weighted medians. The cross-stack scene-API repeat (γ 1.1005, Δγ 0.0027, logZ to 0.11 nats) is reported in the text; its draws remain on Perlmutter $PSCRATCH (summary-JSON only locally). |
+| figs/rfig_critcurves.png | up-front modeler summary | Critical curves (lens plane, over the v3b binned cutout, asinh stretch) and caustics (source plane; stars = median Sérsic-source centers) for the four posterior-median mass models on disk: corr-low γ=1.1032 (the certified but artifact-diagnosed correlated fit; per-dim z-median of the 128 production SMC particles, t04 convention), diagonal-low γ=1.29325 (hmc_v13_v3b low basin — the real-space preference), steep γ=2.639 (evidence-disfavored, ΔlogZ≈−29), and the E1 v2d-NATIVE MCLMC diagonal fit γ={checks.get('mclmc_median_model', {}).get('gamma_zmed_forward', '?')} (the PI-requested converged fit, R̂_worst 1.0031; pooled per-dim scene-z median through the scene bijector, same t04 convention; native 80²@0.13" product, curves overlaid on the binned cutout of the same sky). Curve overlays follow the team's GIGA-Lens (Gu et al. 2022) conventions; per-model colors + line styles because four models share each panel — the MCLMC curve is slot-7 violet on the white source panel (validated all-pairs vs the three existing hues) and neutral WHITE dotted on the image panel (no 4th hue passes the dark all-pairs floors; palette series cap, relief via unique dash + halo). Sanity: outer critical-curve median radius matches θ_E to <5% for all four (low {checks.get('critcurve_low', {}).get('outer_r_median', '?')}" vs θ_E {checks.get('critcurve_low', {}).get('theta_E', '?')}"; mclmc {checks.get('critcurve_mclmc', {}).get('outer_r_median', '?')}" vs {checks.get('critcurve_mclmc', {}).get('theta_E', '?')}"); the γ<2 models show the expected inner radial critical curve/caustic. Deflections: vendored gigalens-linus EPL(50)+Shear at the certified scene conventions; grid Jacobian via jax autodiff (1201², ±5.2"). |
+| figs/rfig_corner.png | up-front modeler summary | Corner plot of the six mass parameters (θ_E, γ, e_1, e_2, γ_ext,1, γ_ext,2) from the stored equal-weight v3b-low correlated SMC particles, seeds 2/3/4 overlaid (this is the SMC convergence visual: SMC has no R̂; the seed-repeat spread σ_seed = 0.00325 plus per-stage ESS/acceptance are the analogues), steep basin (seeds 2–4 pooled) in grey, PLUS the E1 v2d-native MCLMC diagonal posterior in violet (256,000 pooled draws; scene-native physical extraction KEYED via mass_names; equal-weight draw median asserted equal to the run json's pooled γ q50 = {checks.get('mclmc_corner_gamma', {}).get('run_json_q50', '?')}). Weighted medians of record (from the run JSONs) γ = 1.1032/1.0967/1.1005; the equal-weight particle medians reproduce them to ≤0.0027 (≪ σ_stat 0.008; the resampled-particle convention). γ zoom panel shows the three correlated repeats with weighted medians (the MCLMC γ≈1.47 lies outside the zoom by construction). The cross-stack scene-API repeat (γ 1.1005, Δγ 0.0027, logZ to 0.11 nats) is reported in the text; its draws remain on Perlmutter $PSCRATCH (summary-JSON only locally). |
 
 Derived input: data/rfig_modeler_params.npz — Stage-A (OLD cgl venv, CPU,
 bijector-only) physical-space export of the six stored particle sets + the three
@@ -473,6 +568,7 @@ def main():
     os.environ.setdefault("XLA_PYTHON_CLIENT_PREALLOCATE", "false")
     os.environ.setdefault("CGL2_ALLOW_CPU", "1")   # deflection grids only --
     os.environ.setdefault("JAX_ENABLE_X64", "1")   # NEVER the likelihood
+    os.environ.setdefault("GIGALENS_X64", "1")     # scene_build x64 guard
     ensure_cache(args.refresh)
     cache = np.load(CACHE, allow_pickle=True)
 
@@ -492,6 +588,10 @@ def main():
 
     figs = [str(fig_critcurves(cache, checks)), str(fig_corner(cache, checks))]
     write_captions(checks)
+    (ROOT / "data" / "rfig_modeler_checks.json").write_text(
+        json.dumps(dict(generated_utc=__import__("time").strftime(
+            "%Y-%m-%dT%H:%M:%SZ", __import__("time").gmtime()),
+            figures=figs, checks=checks), indent=2))
     print(json.dumps(dict(figures=figs, checks=checks), indent=1))
 
 

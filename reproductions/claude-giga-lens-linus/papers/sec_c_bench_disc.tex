@@ -567,6 +567,32 @@ now shown on both stacks and three independent cells (B3, arbitration, X2
 health rates); the two-stage re-preconditioned recipe remains the only
 known converging direct-sampler path.
 
+A post-campaign epilogue (E1, 2026-07-22; PI-requested MCLMC fits of both
+diagonal targets, \S\ref{sec:modelers}) sharpened two of these after
+close. On (5), the direct-sampler gap is narrower than the campaign body
+suggests: the team's own vendored MCLMC, warm-started and run with its
+windowed mass-matrix adaptation and regularization option, delivered the
+first fully convergence-certified posterior on the \dfile{v2d} native
+diagonal target ($\Rhat_{\rm worst}=1.0031$, $\ESS_{\min}=30{,}334$;
+$\gammaEPL=1.4683\,[1.4343,1.5048]$, $0.72\sigma_{\rm comb}$ from the
+anchor) at 1.49 free-tier L4-hours --- so the convergence failures above
+are specific to the classic single-stage recipe, not to direct samplers
+per se. On (2), the mechanism gains its sampling-side face: on the binned
+product the same vehicle under the same \emph{diagonal} likelihood
+migrated every one of 64 chains, in all four seed groups, out of the
+physical basin it was warm-started in and down to
+$\gammaEPL\approx1.08$--$1.15$ (kept-draw pooled median 1.1047, 0.0015
+from the correlated fit's 1.1032; NO-QUOTE --- the ensemble fails every
+gate, and the one allowed escalation was declined because migration is
+structural, not a depth problem). The binned data's preference for the
+unphysical low-$\gammaEPL$ shelf is therefore a property of the
+\emph{product}, not of any single likelihood or sampler: it is reached by
+tempered SMC under the correlated likelihood and, from a physical-basin
+warm start, by MCLMC under the plain diagonal one --- which is the T0.4 mechanism
+narrative restated from the sampling side, and one more reason the
+mechanism's confirmatory data-side injection test (above) is worth
+running.\art{data/e1\_harvest.json}
+
 \subsection{What it opens}
 
 The honest open list is long, and most of it is deliberate non-spend
@@ -678,8 +704,10 @@ $\lambda\approx0.45$/18-h figure including earlier checkpointed legs). The
 external claims register is \dfile{papers/handoff/CLAIMS.md}
 (\S\ref{sec:gifts:handoff}). External release of this report is gated on
 the sign-off checklist \dfile{papers/handoff/SIGNOFF\_CHECKLIST.md},
-which lists the five passages characterizing unpublished upstream code
-state that require the team's sign-off (internal use is unaffected).
+which lists the six passages characterizing unpublished upstream code
+state that require the team's sign-off (internal use is unaffected; the
+sixth passage is the E1 epilogue's description of the vendored
+experimental MCLMC driver, \S\ref{sec:modelers} item~3).
 
 \paragraph{Pre-registration discipline.} Every experimental cell was
 pre-registered: a design checkpoint with hypothesis, predicted direction
@@ -710,8 +738,9 @@ manifest (225 files at close) before every submission.
 \paragraph{Compute.} Table~\ref{tab:budget} is the phase budget against
 actuals: {\bf 53.51 of 100 A100-h} at program close, nothing in flight
 (per-row \texttt{sacct} rounding makes the component sum 53.52; flagged,
-not smoothed). Free-tier phoenix spend (not A100): 12.38 L4 GPU-h (B3)
-and $\sim$29 A16-h (X2). Zero-artifact and failed jobs are counted at
+not smoothed). Free-tier phoenix spend (not A100): 12.38 L4 GPU-h (B3),
+$\sim$29 A16-h (X2), and --- after program close --- the E1 epilogue's
+9.56 L4-h (\S\ref{sec:modelers}). Zero-artifact and failed jobs are counted at
 full cost in their phases; the wave-1 post-mortem and the recovery-lane
 economics are part of the record, not an embarrassment to be netted out.
 

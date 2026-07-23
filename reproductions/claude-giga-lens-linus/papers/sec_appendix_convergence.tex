@@ -54,7 +54,11 @@ weighted ESS (wESS; the adaptive schedule holds per-stage wESS at $0.7N$ by
 construction), unique particles after the final resample, MAMS acceptance
 against its 0.90 target, and \sseed\ where independent-seed repeats exist.
 For MCMC arms: $\Rhat_{\rm worst}$ and $\ESS_{\min}$ across parameters,
-against the frozen acceptance rule $\Rhat<1.05 \wedge \ESS\ge200$. Verdicts
+against the frozen acceptance rule $\Rhat<1.05 \wedge \ESS\ge200$; the
+post-campaign E1 MCLMC fits (group~M --- lettered for the vehicle, and to
+avoid collision with the campaign's L0/L1/L2 lane names) carry their own,
+stricter frozen gate, $\Rhat<1.01 \wedge \ESS\ge1000$ pooled over 64
+chains plus a $\gammaEPL\in[1.15,2.0]$ containment band. Verdicts
 use a fixed vocabulary: {\bf CONVERGED} (sampler completed with healthy
 diagnostics; any science-gate outcome is annotated separately), {\bf
 PARTIAL-BY-BUDGET} (healthy sampler stopped by a pre-registered wall cap
@@ -572,6 +576,89 @@ same & see companion ledger &
 per-fit \Rhat/\ESS\ ledgered in the companion report &
 converged there; \textbf{cited} &
 \citet{cgl2026companion} \\
+\midrule
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%% M. E1 epilogue %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\cglgrouprow{M. E1 post-campaign epilogue (2026-07-22) --- PI-requested
+MCLMC diagonal fits (vendored windowed-adaptation driver; phoenix L4 free
+tier, 9.56 L4 GPU-h, 0 A100-h; frozen gates $\Rhat<1.01 \wedge
+\ESS\ge1000$ pooled 64 chains + containment $\gammaEPL\in[1.15,2.0]$)}\\
+\midrule
+E1 \dfile{v2d} native MCLMC &
+\dfile{v2d} native ($80^2$@$0.13''$), parity-certified diagonal
+masked-err ridge-marg (\sceneapi) &
+vendored MCLMC (windowed mass matrix, regularization ON; warm start =
+mapped healthy anchor chains) &
+2 grp $\times$ 32ch $\times$ 4000 (2000 burn) &
+$\Rhat_{\rm worst}$ 1.0031 (LL2 $n_{\rm s\acute ersic}$);
+$\ESS_{\min}$ 30{,}334; per-group $\Rhat_{\rm worst}$ 1.0034/1.0031;
+$\gammaEPL$: $\Rhat$ 1.0017, \ESS\ 39{,}794; containment 0/64 violations
+(all draws in $[1.324,1.637]$); kernel-nonan 1.0; 1.49\,h, peak 9.1\,GB.
+$\gammaEPL = 1.4683\,[1.4343,1.5048]$ $= 0.72\sigma_{\rm comb}$ from the
+anchor; seed-group medians $\Delta$ 0.0002 &
+\textbf{CONVERGED} (PASS E1-G1$+$G2, not escalated; $\gammaEPL$ quotable)
+&
+\dfile{mclmc\_\allowbreak diag\_\allowbreak v2d.\allowbreak \{npz,json\}};
+\dfile{data/e1\_\allowbreak harvest.\allowbreak json} \\
+E1 \dfile{v3b} binned MCLMC, seed group 0 &
+\dfile{v3b} binned ($130^2$@$0.08''$), same diagonal construction &
+same (warm start = the 1.2941 $\gammaEPL<1.7$ conditional cloud, init
+ONLY) &
+16ch $\times$ 4000 (2000 burn) &
+$\Rhat_{\rm worst}$ 1.271 (LL2 $n_{\rm s\acute ersic}$), $\ESS_{\min}$
+45.4; init med 1.2914 $\to$ kept med 1.1066; 16/16 chains below the band &
+\textbf{REJECTED} (E1 gate) &
+\dfile{mclmc\_\allowbreak diag\_\allowbreak v3b.\allowbreak \{npz,json\}};
+\dfile{data/e1\_\allowbreak harvest.\allowbreak json} \\
+E1 \dfile{v3b} MCLMC, seed group 1 &
+same & same & same &
+$\Rhat_{\rm worst}$ 1.635 (LL3 $R_{\rm s\acute ersic}$), $\ESS_{\min}$
+26.2; init med 1.2940 $\to$ kept med 1.0981; 16/16 below the band &
+\textbf{REJECTED} &
+same \\
+E1 \dfile{v3b} MCLMC, seed group 2 &
+same & same & same &
+$\Rhat_{\rm worst}$ 1.420 (LL1 $I_e$), $\ESS_{\min}$ 33.2; init med
+1.2900 $\to$ kept med 1.1049; 16/16 below the band &
+\textbf{REJECTED} &
+same \\
+E1 \dfile{v3b} MCLMC, seed group 3 &
+same & same & same &
+$\Rhat_{\rm worst}$ 1.166 (LL2 $R_{\rm s\acute ersic}$), $\ESS_{\min}$
+67.8; init med 1.2937 $\to$ kept med 1.1074; 16/16 below the band &
+\textbf{REJECTED} &
+same \\
+E1 \dfile{v3b} MCLMC, pooled verdict (the 4 groups above) &
+same & same &
+pooled 64ch $\times$ 4000 &
+$\Rhat_{\rm worst}$ 1.379 / $\ESS_{\min}$ 139 (both LL1 $I_e$); 46/46
+scene params over the $\Rhat$ gate; $\gammaEPL$ $\Rhat$ 1.261 (\ESS\
+181); 64/64 chains out of band (frac outside min 0.94, median 1.00; all
+reported, none dropped); kept-draw pooled med 1.1047 (descriptive only,
+0.0015 from the corr-low 1.1032); wall 8.07\,h &
+\textbf{REJECTED} --- NO-QUOTE $+$ FINDING (the binned-product migration,
+\S\ref{sec:modelers}); the one allowed escalation \textbf{declined}:
+structural migration, not sampling depth &
+same; \dfile{figs/e1\_\allowbreak v3b\_\allowbreak migration.\allowbreak png} \\
+E1 \dfile{v3b} launch attempt 1 (PID 184374) &
+same & same (original 32ch $\times$ 2-group geometry) & 2 grp $\times$
+32ch &
+no artifacts: OOM in the main scan
+(\texttt{RESOURCE\_EXHAUSTED}, a 10.1\,GB allocation atop the working set
+--- the $130^2$ lstsq-marg grad tape is $\sim4\times$ \dfile{v2d}'s)
+$\Rightarrow$ ledgered amendment 3: 16ch $\times$ 4 groups, pooled 64
+unchanged, no gate or threshold change &
+\textbf{BLOCKED} (OOM $\to$ geometry amendment) &
+\dfile{data/mclmc\_\allowbreak lane\_\allowbreak v3b.\allowbreak log};
+\dfile{CAMPAIGN.\allowbreak md} E1 amendment 3 \\
+E1 \dfile{v3b} launch attempt 2 (PID 189281) &
+same & same (amendment-3 geometry) & 4 grp $\times$ 16ch &
+no artifacts: silent kill --- the relaunched lane process vanished within
+minutes of launch with no traceback and no log output flushed; the only
+trace is the watchdog's \texttt{VANISHED\_NO\_ARTIFACT} record. The
+subsequent relaunch is the completed run rowed above &
+\textbf{BLOCKED} (silent kill --- infra, cause unattributed) &
+\dfile{data/watchdog\_\allowbreak state.\allowbreak json}
+(\texttt{phoenix:189281}) \\
 \end{longtable}
 \end{landscape}
 \endgroup
@@ -591,4 +678,12 @@ state --- the T1.1 inj3 and l0arb OOMs, the vendor-guard path-identity
 trip, the B5-steep snapshot-ordering reruns, and the classic-arm attempt
 \#1 \texttt{IndexError} at MAP --- are ledgered per-job in
 \dfile{CAMPAIGN.\allowbreak md}; their successful reruns are the corresponding rows
-above.
+above. (iv) After the two dead E1 \dfile{v3b} launches (group~M BLOCKED
+rows), a second concurrent launch of the \emph{same} production lane ---
+identical config and seeds
+(\dfile{data/mclmc\_\allowbreak lane\_\allowbreak v3b\_\allowbreak r3.\allowbreak log})
+--- ran alongside the lane that completed and was killed unread at harvest
+open; it wrote no artifact and none of its draws were read or used, so the
+completed lane's \dfile{npz}/\dfile{json} is the sole \dfile{v3b} E1
+record. It is noted here rather than rowed because it is a duplicate of a
+rowed fit, not a distinct one.
