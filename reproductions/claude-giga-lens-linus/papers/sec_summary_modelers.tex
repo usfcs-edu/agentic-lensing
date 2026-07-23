@@ -26,6 +26,19 @@
 %%  data/e1_mclmc_home_chi2.json; the regenerated rfig_corner/rfig_critcurves
 %%  carry the v2d MCLMC additions, and figs/e1_{mclmc_traces,v3b_migration}
 %%  are new (fig:e1traces, fig:e1migration).
+%%
+%%  P7 UPDATE (2026-07-23, PI review of the site page): item (1) is now
+%%  anchored on figs/rfig_diagnostic_rows.png (fig:diagrows) --- ONE MODEL
+%%  PER ROW (E1 MCLMC 1.4683 lead / diag-low 1.293 / steep 2.639), four
+%%  panels each (observed | model+critical curve | reduced residual |
+%%  reconstructed source+caustic).  The corr-low gamma=1.103 model is
+%%  DROPPED from the summary diagnostics entirely (PI: "we can definitely
+%%  reject" it); it stays in the mechanism sections as the diagnosed
+%%  artifact.  rfig_critcurves regenerated without the 1.103 curve and
+%%  kept as the compact comparison.  Row chi2/px asserted against
+%%  e1_mclmc_home_chi2.json (1.228) and t04 (1.578) by the figure lane;
+%%  steep's 7.588 is computed+stated there
+%%  (data/rfig_modeler_checks.json rows).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Guarded local shorthands (harmless if already defined by the preamble).
@@ -43,53 +56,108 @@ This section collects, up front, the five things a lens modeler checks
 first. Every number is quoted from its on-disk artifact (the campaign spine,
 \dfile{research/synthesis\_tables.md}, binds); results on the \sceneapi\
 substrate carry the report's \emph{proposed (UNCERTIFIED --- external)}
-label. The system throughout is the real {\it HST}/WFC3-IR lens \foundry;
-the three competing mass models are the native-diagonal \textbf{anchor}
-($\gammaEPL=1.433\pm0.034$), the correlated-likelihood binned-low
-\textbf{money number} ($\gammaEPL=1.1032\pm0.0086$), and the same-product
-\textbf{diagonal-low} solution ($\gammaEPL=1.293\pm0.012$), the first and
-third inherited from the companion campaign \citep{cgl2026companion}. A
-post-campaign epilogue (E1, 2026-07-22) adds a fourth, PI-requested fit:
-\textbf{MCLMC} on the \dfile{v2d} native diagonal target,
-$\gammaEPL = 1.4683\,[1.4343, 1.5048]$ --- the first fully
-convergence-certified posterior on that target, consistent with the anchor
-at $0.72\sigma_{\rm comb}$ (item~4).\art{data/e1\_harvest.json}
+label. The system throughout is the real {\it HST}/WFC3-IR lens \foundry.
+The summary diagnostics present the three \emph{surviving} mass models:
+the E1 (PI-requested, 2026-07-22) \textbf{MCLMC} fit on the \dfile{v2d}
+native diagonal target, $\gammaEPL = 1.4683\,[1.4343, 1.5048]$ --- the
+first fully convergence-certified posterior on that target, consistent
+with the native-diagonal anchor ($\gammaEPL=1.433\pm0.034$) at
+$0.72\sigma_{\rm comb}$ (item~4), and the lead model here; the
+\textbf{diagonal-low} solution ($\gammaEPL=1.293\pm0.012$, \dfile{v3b}
+binned; the anchor and diagonal-low fits are inherited from the companion
+campaign \citep{cgl2026companion}); and the \textbf{steep} basin
+($\gammaEPL=2.639$, evidence-disfavored at $\dlogZ\approx-29$). The
+correlated-likelihood binned-low fit ($\gammaEPL=1.1032\pm0.0086$) ---
+the campaign's money \emph{number} --- is deliberately excluded from the
+summary diagnostics: as a lens model of this system we can reject it, and
+it is discussed in this report only as the diagnosed artifact of a
+stationarity-violating noise-model class, in the mechanism sections
+(\S\ref{sec:t041}, \S\ref{sec:t043}).\art{data/e1\_harvest.json}
 
-\paragraph{(1) Data, model, residual --- and the caustic structure.}
-Figure~\ref{fig:headtohead} is the key diagnostic: data, model, and
-residual$/\sigma$ for all three posterior-median models rendered on the
-\emph{same} \dfile{v3b} binned pixels. The one-look read: the correlated
-optimum ($\gammaEPL=1.103$) leaves a strong coherent lens-center residual
-that its own whitened metric prices as ``probably correlated noise,'' while
-in real space the binned data prefer the $\gammaEPL\approx1.29$ diagonal
-solution (\S\ref{sec:t043}) --- our diagnosis is that $1.103$ is a
-whitened-metric optimum standing on a stationarity assumption the field
-measurably violates (\S\ref{sec:t041}). Figure~\ref{fig:critcurves}
-completes the geometric view with the lens-plane critical curves and
-source-plane caustics of the same three models plus the E1 \dfile{v2d}-native
-MCLMC fit (money-model $\thetaE=2.624\pm0.005$; MCLMC $\thetaE=2.654$),
-making the mass-model disagreement visible as caustic structure rather than
-only as a slope number.
+\paragraph{(1) Data, model, residual, source --- and the caustic
+structure.}
+Figure~\ref{fig:diagrows} is \emph{the} summary diagnostic --- one model
+per row, and per row: (a) the observed cutout; (b) the best-fit model
+image, rendered at that model's posterior-median parameters with its
+solved linear amplitudes, critical curve overlaid; (c) the reduced
+residual (data$\,-\,$model)$/\sigma$; and (d) the reconstructed
+(unlensed) source-plane surface brightness --- the sampled-$I_e$
+S\'ersic plus the 28 shapelet columns at their solved amplitudes --- with
+the caustic overlaid. The rows are the three surviving models: the E1
+\dfile{v2d}-native MCLMC fit ($\gammaEPL=1.468$;
+$\chi^2/\mathrm{px}=1.228$ on its home native pixels), diagonal-low
+($\gammaEPL=1.293$; $\chi^2/\mathrm{px}=1.578$ --- the field's attainable
+floor, item~2), and the evidence-disfavored steep basin
+($\gammaEPL=2.639$, $\dlogZ\approx-29$), whose real-space
+$\chi^2/\mathrm{px}=7.588$ (computed for this figure) makes the evidence
+verdict visible to the eye as coherent arc-scale residuals and an
+implausibly extended source reconstruction. The correlated optimum
+$\gammaEPL=1.103$ is dropped from the summary diagnostics deliberately
+--- we can reject it as a lens model; its anatomy (the strong coherent
+lens-center residual its own whitened metric prices as ``probably
+correlated noise'') is the subject of the mechanism sections
+(\S\ref{sec:t041}, \S\ref{sec:t043}; same-pixel side-by-side renders in
+Fig.~\ref{fig:headtohead}). Figure~\ref{fig:critcurves} remains as the
+compact same-axes comparison of the surviving models (MCLMC
+$\thetaE=2.654''$; diag-low $\thetaE=2.603''$), making the mass-model
+disagreement visible as caustic structure rather than only as a slope
+number.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.98\textwidth]{../figs/rfig_diagnostic_rows.png}
+\caption{The summary diagnostic, one model per row --- surviving models
+only (the corr-low $\gammaEPL=1.103$ model is excluded: rejected, and
+diagnosed as a noise-model artifact in \S\ref{sec:t041},
+\S\ref{sec:t043}). Rows: E1 \dfile{v2d}-native MCLMC $\gammaEPL=1.468$
+(lead; $80^2$ @ $0.13''$/px), diagonal-low $\gammaEPL=1.293$
+(\dfile{v3b} binned, $130^2$ @ $0.08''$/px), steep $\gammaEPL=2.639$
+(\dfile{v3b} binned; evidence-disfavored, $\dlogZ\approx-29$). Columns:
+(a) observed cutout (asinh stretch, normalized at the data's 99.9th
+percentile; $1''$ scale bar); (b) model image at the per-dimension
+posterior-median parameters with the ridge-solved linear amplitudes
+(same stretch as the data panel), critical curve overlaid; (c) reduced
+residual (data$\,-\,$model)$/\sigma$ over the keep mask, symmetric
+diverging scale \emph{clipped at $\pm5\sigma$} (masked pixels grey); (d)
+reconstructed unlensed source surface brightness (sampled-$I_e$
+S\'ersic $+$ 28 shapelets at their solved amplitudes) on a source-plane
+grid sized to $1.25\times$ the caustic extent (half-width labeled per
+panel), caustic overlaid. Display conventions follow the team's
+\gigalens\ discovery paper \citep{gu2022gigalens}; renders use the
+parity-certified \sceneapi\ stack (diagonal delta-bundle likelihood
+term). Assertions enforced at build time: each row's render reproduces
+the report's $\chi^2/\mathrm{px}$ --- MCLMC $1.228$
+(\dfile{data/e1\_mclmc\_home\_chi2.json}) and diag-low $1.578$
+(\dfile{data/t04\_realspace\_headtohead.json}) to $<1\%$ (measured
+$<0.1\%$); steep's $7.588$ is computed and stated here --- and each
+outer critical curve's median radius matches its \thetaE\ to $<5\%$.
+Source artifacts: \dfile{data/rfig\_modeler\_params.npz},
+\dfile{data/mclmc\_diag\_v2d.npz},
+\dfile{data/rfig\_modeler\_checks.json}.}
+\label{fig:diagrows}
+\end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.98\textwidth]{../figs/rfig_critcurves.png}
-\caption{Critical curves (lens plane, over the \dfile{v3b} binned cutout,
-asinh stretch) and caustics (source plane; stars mark the median
-S\'ersic-source centers) for the four posterior-median mass models on disk,
-following the critical-curve/caustic display conventions of the team's
-\gigalens\ discovery paper \citep{gu2022gigalens}: corr-low
-$\gammaEPL=1.103$ (the certified but artifact-diagnosed correlated fit),
-diagonal-low $\gammaEPL=1.293$ (the real-space preference), steep
-$\gammaEPL=2.639$ (evidence-disfavored, $\dlogZ\approx-29$), and the E1
-\dfile{v2d}-native MCLMC fit $\gammaEPL=1.468$ (violet on the source panel;
-neutral white dotted on the image panel, where no fourth hue clears the
-dark-background palette floors). Scale sanity: the outer critical curve's
-median radius matches each model's \thetaE\ to $<5\%$ for all four (money
-model: $2.632''$ vs.\ $\thetaE=2.624''$; MCLMC $2.652''$ vs.\ $2.654''$),
-and the $\gammaEPL<2$ models show the expected inner radial critical
-curve and caustic. Deflections from the vendored \sceneapi\ EPL(50)+shear
-at the certified conventions; source artifacts
+\caption{Compact comparison --- critical curves (lens plane, over the
+\dfile{v3b} binned cutout, asinh stretch) and caustics (source plane;
+stars mark the median S\'ersic-source centers) for the surviving
+posterior-median mass models on shared axes, following the
+critical-curve/caustic display conventions of the team's \gigalens\
+discovery paper \citep{gu2022gigalens}: diagonal-low $\gammaEPL=1.293$
+(the real-space preference), steep $\gammaEPL=2.639$
+(evidence-disfavored, $\dlogZ\approx-29$), and the E1 \dfile{v2d}-native
+MCLMC fit $\gammaEPL=1.468$ (violet on the source panel; neutral white
+dotted on the image panel). The corr-low $\gammaEPL=1.103$ curve was
+removed from this figure at PI direction --- the model is rejected and
+appears only in the mechanism sections as the diagnosed artifact
+(\S\ref{sec:t041}, \S\ref{sec:t043}). Scale sanity: the outer critical
+curve's median radius matches each model's \thetaE\ to $<5\%$ for all
+three (diag-low $2.611''$ vs.\ $\thetaE=2.603''$; MCLMC $2.652''$ vs.\
+$2.654''$), and the $\gammaEPL<2$ models show the expected inner radial
+critical curve and caustic. Deflections from the vendored \sceneapi\
+EPL(50)+shear at the certified conventions; source artifacts
 \dfile{data/rfig\_modeler\_params.npz},
 \dfile{data/mclmc\_diag\_v2d.npz},
 \dfile{data/rfig\_modeler\_checks.json}.}

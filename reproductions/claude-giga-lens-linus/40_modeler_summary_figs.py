@@ -51,6 +51,32 @@ mapped at run time by 50_run_mclmc_diag._mass_of, KEYED via mass_names; the
 critcurve median model re-maps the pooled per-dim scene-z median through
 mv.model.bijector.forward, KEYED via z_param_names, PHYS_COLS order).
 Corner medians are asserted against the run json's pooled gamma quantiles.
+
+P7 restructure (2026-07-23, PI review of the site page):
+
+  figs/rfig_diagnostic_rows.png  THE summary diagnostic — ONE MODEL PER ROW
+      for the three surviving models [E1 MCLMC gamma=1.4683 (v2d native,
+      lead); diag-low 1.293 (v3b binned); steep 2.639 (v3b binned,
+      evidence-disfavored dlogZ~-29)], four panels per row: (a) observed
+      cutout (asinh, 1" scale bar), (b) model image at the median params
+      with SOLVED linear amplitudes + critical curve, (c) reduced residual
+      (data-model)/sigma (symmetric diverging scale, clip +-5), (d) the
+      RECONSTRUCTED unlensed source surface brightness (Sersic + shapelets
+      at their solved amplitudes, grid sized to the caustic region) +
+      caustic. Renders: the parity-certified scene stack
+      (10_anchor_arbitration.build_pm(tag, diagonal=True) delta-bundle
+      term; internals() gives model_image + the ridge-solved a*). Per-row
+      chi2/px assertions: MCLMC row must reproduce
+      data/e1_mclmc_home_chi2.json (1.228), diag-low row the t04 artifact
+      (1.578) to ~1%; steep's is computed and STATED (no prior artifact).
+
+  figs/rfig_critcurves.png stays as the compact same-axes comparison but the
+      corr-low gamma=1.103 curve is DROPPED (PI: "we can definitely reject";
+      it remains in the mechanism sections as the diagnosed artifact, not in
+      the summary diagnostics). Three models remain on the combined panels.
+
+Single-render GPU use (A16 from the free 0-7 set) is fine; CGL2_ALLOW_CPU=1
+covers CPU fallback for single forward renders — NEVER likelihood loops.
 """
 from __future__ import annotations
 
@@ -88,6 +114,11 @@ RUNS = {  # (basin, seed) -> (stem, npz key, json basin key)
 REPORT = dict(low_s2=1.1032, low_s3=1.0967, low_s4=1.1005,
               sigma_seed=0.00325, steep_s2=2.6393, diag=1.29325,
               scene_low=1.1005, dlogZ_steep_minus_low=-28.9)
+# report chi2/px of record for the diagnostic rows (sec_summary_modelers.tex
+# item 2 / tab:gof-modelers); asserted to ~1% against the freshly rendered
+# models AND against their source artifacts (e1_mclmc_home_chi2.json, t04).
+REPORT_CHI2 = dict(mclmc=1.228, diag=1.578)   # steep: computed + stated
+RESID_CLIP = 5.0                              # residual panel clip (+- sigma)
 MCLMC_JSON = ROOT / "data" / "mclmc_diag_v2d.json"   # E1 run json (asserted vs)
 MCLMC_NPZ = ROOT / "data" / "mclmc_diag_v2d.npz"
 
@@ -309,9 +340,11 @@ def fig_critcurves(cache, checks):
     from cgl2 import paths as c2paths
     c2paths.bootstrap_vendor()
 
+    # P7: the corr-low 1.103 curve is DROPPED from this summary figure by PI
+    # direction (rejected model; discussed in the mechanism sections only).
     labels = list(cache["labels46"])
     models = {t: mass_params_from_x46(cache[f"x46_{t}"], labels)
-              for t in ("low", "diag", "steep")}
+              for t in ("diag", "steep")}
     models["mclmc"] = mclmc_median_model(checks)         # E1 v2d-native fit
     curves = {t: crit_and_caustics(p) for t, p in models.items()}
 
@@ -326,8 +359,9 @@ def fig_critcurves(cache, checks):
             ok=bool(abs(outer - p["theta_E"]) / p["theta_E"] < 0.05))
         assert checks[f"critcurve_{t}"]["ok"], \
             f"{t}: outer critical curve r={outer:.3f} vs theta_E={p['theta_E']:.3f}"
-    assert checks["critcurve_low"]["n_curves"] >= 2, \
-        "low (gamma<2) must show an inner radial critical curve"
+    for t in ("diag", "mclmc"):
+        assert checks[f"critcurve_{t}"]["n_curves"] >= 2, \
+            f"{t} (gamma<2) must show an inner radial critical curve"
 
     prod = np.load(FI_DATA / "cutout_v3b.npz", allow_pickle=True)
     img = np.asarray(prod["img"], dtype=np.float64)
@@ -337,7 +371,7 @@ def fig_critcurves(cache, checks):
     axL.imshow(asinh_img(img), origin="lower", extent=[-L, L, -L, L],
                cmap="magma", vmin=0, vmax=1, interpolation="nearest")
     halo = [pe.withStroke(linewidth=3.1, foreground="black", alpha=0.75)]
-    for t in ("low", "diag", "steep", "mclmc"):
+    for t in ("diag", "steep", "mclmc"):
         for k, (crit, _) in enumerate(curves[t]):
             axL.plot(crit[:, 0], crit[:, 1], color=C_DARK[t], ls=LSTYLE[t],
                      lw=1.7, path_effects=halo,
@@ -349,7 +383,7 @@ def fig_critcurves(cache, checks):
     axL.set_xlabel('x ["]', color=INK, fontsize=9)
     axL.set_ylabel('y ["]', color=INK, fontsize=9)
 
-    for t in ("low", "diag", "steep", "mclmc"):
+    for t in ("diag", "steep", "mclmc"):
         for k, (_, cau) in enumerate(curves[t]):
             axS.plot(cau[:, 0], cau[:, 1], color=C_LIGHT[t], ls=LSTYLE[t],
                      lw=1.6, label=MODEL_LABEL[t] if k == 0 else None)
@@ -367,16 +401,284 @@ def fig_critcurves(cache, checks):
     for ax in (axL, axS):
         style_ax(ax)
     h, l = axS.get_legend_handles_labels()
-    fig.legend(h[:4], l[:4], loc="lower center", ncol=2, frameon=False,
+    fig.legend(h[:3], l[:3], loc="lower center", ncol=2, frameon=False,
                fontsize=8.2, labelcolor=INK, bbox_to_anchor=(0.5, -0.005))
-    fig.suptitle("Posterior-median mass models (v3b products + the E1 "
-                 "v2d-native MCLMC fit) — critical curves & caustics"
+    fig.suptitle("Posterior-median mass models — compact critical-curve & "
+                 "caustic comparison (corr-low $\\gamma=1.103$ dropped: "
+                 "rejected/diagnosed artifact, mechanism sections only)"
                  r"  (outer curve radius $\simeq\theta_E\approx2.6$"
                  '"; inner radial structure because '
-                 r"$\gamma_{\rm EPL}<2$ for the low/diagonal/MCLMC fits)",
+                 r"$\gamma_{\rm EPL}<2$ for the diagonal/MCLMC fits)",
                  color=INK, fontsize=10, y=0.995)
     fig.tight_layout(rect=(0, 0.075, 1, 0.97))
     out = FIGS / "rfig_critcurves.png"
+    fig.savefig(out, bbox_inches="tight", facecolor="white")
+    plt.close(fig)
+    print(f"[fig] wrote {out}")
+    return out
+
+
+# =========================================================================== #
+# Figure 1b (P7): one-model-per-row summary diagnostic
+# =========================================================================== #
+ROW_SPECS = [  # (row tag, product tag, delta_pix, short title)
+    ("mclmc", "v2d", 0.13,
+     "E1 MCLMC\n$\\gamma=1.468$\n(v2d native, lead)"),
+    ("diag", "v3b", 0.08,
+     "diag-low\n$\\gamma=1.293$\n(v3b binned)"),
+    ("steep", "v3b", 0.08,
+     "steep\n$\\gamma=2.639$\n(v3b binned;\nevid.-disfavored\n"
+     "$\\Delta\\log Z\\approx-29$)"),
+]
+
+
+def _load_arb():
+    """The parity-certified scene likelihood builders (52_e1_chi2_home
+    precedent: import 10_anchor_arbitration by path; its build_pm is the
+    F1-F8-certified configuration for both products)."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "anchor_arb", ROOT / "10_anchor_arbitration.py")
+    arb = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(arb)
+    return arb
+
+
+def _row_eval(pm, mv, refs, prod_tag, zvec, checks, row_tag):
+    """One diagnostic row's numbers: forward render at the median params with
+    the ridge-solved (lstsq/marg) amplitudes via term.internals — the
+    delta-bundle DIAGONAL path (cgl2.correlated), t04/52 conventions.
+
+    Returns dict with Y, model_img, resid (reduced, NaN outside keep), the
+    full constrained param dict f, mass params p, a_star, chi2_pp."""
+    import jax.numpy as jnp
+
+    term = pm.terms[0]
+    u = mv.model.bijector.forward(jnp.asarray(zvec[None, :]))
+    f = {k: float(np.asarray(v)[0]) for k, v in u.items()}
+    it = term.internals(mv.model.to_params(u))
+    Y = np.asarray(term.dataset.image, dtype=np.float64)
+    masked_err = np.asarray(refs[f"{prod_tag}:masked_err"], dtype=np.float64)
+    keep = np.asarray(refs[f"{prod_tag}:keep_mask"]).astype(bool)
+    model_img = np.asarray(it["model_image"], dtype=np.float64)
+    resid = (Y - model_img) / masked_err
+    chi2_pp = float(np.mean(resid[keep] ** 2))
+    p = dict(theta_E=f["planes/0/mass/0/theta_E"],
+             gamma=f["planes/0/mass/0/gamma"],
+             e1=f["planes/0/mass/0/e1"], e2=f["planes/0/mass/0/e2"],
+             cx=f["planes/0/mass/0/center_x"], cy=f["planes/0/mass/0/center_y"],
+             g1=f["planes/0/mass/1/gamma1"], g2=f["planes/0/mass/1/gamma2"],
+             src=(f["planes/1/light/0/center_x"],
+                  f["planes/1/light/0/center_y"]))
+    checks[f"row_{row_tag}"] = dict(
+        gamma=round(p["gamma"], 5), theta_E=round(p["theta_E"], 5),
+        chi2_pp=round(chi2_pp, 5), n_keep=int(keep.sum()),
+        logL_data_whitened=round(float(it["logL_data"]), 3))
+    return dict(Y=Y, model=model_img,
+                resid=np.where(keep, resid, np.nan), f=f, p=p,
+                a_star=np.asarray(it["a_star"], dtype=np.float64),
+                chi2_pp=chi2_pp)
+
+
+def _render_source(f, a_star, half, n=420):
+    """Unlensed source-plane surface brightness at the median params with the
+    SOLVED amplitudes: the sampled-Ie Sersic + the 28 ridge-solved shapelet
+    columns, evaluated with the SAME parity profiles the certified render
+    used (surface brightness is lensing-invariant, so image-plane a* applies
+    unchanged on the source plane; marg-view old-unit convention, no cf)."""
+    import jax.numpy as jnp
+
+    from cgl2.scene_build import ParitySersicEllipse, ParityShapelets
+
+    xs = np.linspace(-half, half, n)
+    X, Y = np.meshgrid(xs, xs)
+    Xj, Yj = jnp.asarray(X), jnp.asarray(Y)
+    ser = ParitySersicEllipse(as_basis=False)
+    sb = np.asarray(ser.light(
+        Xj, Yj,
+        R_sersic=jnp.float64(f["planes/1/light/0/R_sersic"]),
+        n_sersic=jnp.float64(f["planes/1/light/0/n_sersic"]),
+        e1=jnp.float64(f["planes/1/light/0/e1"]),
+        e2=jnp.float64(f["planes/1/light/0/e2"]),
+        center_x=jnp.float64(f["planes/1/light/0/center_x"]),
+        center_y=jnp.float64(f["planes/1/light/0/center_y"]),
+        Ie=jnp.float64(f["planes/1/light/0/Ie"])), dtype=np.float64)
+    shp = ParityShapelets(n_max=6, use_lstsq=True)
+    basis = np.asarray(shp.light(
+        Xj, Yj,
+        center_x=jnp.float64(f["planes/1/light/1/center_x"]),
+        center_y=jnp.float64(f["planes/1/light/1/center_y"]),
+        beta=jnp.float64(f["planes/1/light/1/beta"])), dtype=np.float64)
+    assert basis.shape[0] == a_star.size, (basis.shape, a_star.size)
+    return sb + np.tensordot(a_star, basis, axes=(0, 0)), xs
+
+
+def fig_diagnostic_rows(cache, checks):
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.patheffects as pe
+    import matplotlib.pyplot as plt
+
+    from cgl2 import param_map, paths as c2paths
+    c2paths.bootstrap_vendor()
+
+    arb = _load_arb()
+    refs = arb.load_refs()
+    labels = list(cache["labels46"])
+
+    # ---- per-row model points + certified renders -------------------------- #
+    rows = {}
+    pm2, mv2, _ = arb.build_pm("v2d", refs, diagonal=True)
+    z = np.load(MCLMC_NPZ, allow_pickle=True)
+    assert [str(s) for s in z["z_names"]] == list(mv2.model.z_param_names), \
+        "scene-z name/order mismatch vs stored chains"      # KEYED discipline
+    zmed = np.median(np.concatenate(
+        [np.asarray(z["pos_g0"], dtype=np.float64),
+         np.asarray(z["pos_g1"], dtype=np.float64)], axis=0).reshape(-1, 46),
+        axis=0)
+    rows["mclmc"] = _row_eval(pm2, mv2, refs, "v2d", zmed, checks, "mclmc")
+
+    pm3, mv3, _ = arb.build_pm("v3b", refs, diagonal=True)
+    for t in ("diag", "steep"):
+        labeled = dict(zip(labels, np.asarray(cache[f"x46_{t}"],
+                                              dtype=np.float64)))
+        z46 = param_map.scene_z_from_old_labels(mv3.model, labeled)
+        rows[t] = _row_eval(pm3, mv3, refs, "v3b", z46, checks, t)
+
+    # ---- assertions: gamma + report chi2/px reproduced --------------------- #
+    jq = json.load(open(MCLMC_JSON))["gamma"]["pooled_quantiles"]
+    assert abs(rows["mclmc"]["p"]["gamma"] - jq["0.5"]) < 1e-3
+    t04 = json.load(open(ROOT / "data" / "t04_realspace_headtohead.json"))
+    assert abs(rows["diag"]["p"]["gamma"]
+               - t04["validation"]["diaglow_gamma"]["transformed"]) < 1e-3
+    assert abs(rows["steep"]["p"]["gamma"] - REPORT["steep_s2"]) < 2e-3
+    e1ref = json.load(open(ROOT / "data" / "e1_mclmc_home_chi2.json"))
+    chi2_refs = dict(
+        mclmc=float(e1ref["mclmc_v2d_home"]["chi2_pp"]),
+        diag=float(t04["points"]["diaglow_1.293"]["diag_solve"]["chi2_pp"]))
+    for t, ref in chi2_refs.items():
+        got = rows[t]["chi2_pp"]
+        rel = abs(got - ref) / ref
+        rel_rep = abs(got - REPORT_CHI2[t]) / REPORT_CHI2[t]
+        checks[f"row_{t}"]["chi2_ref"] = dict(
+            artifact=round(ref, 5), report=REPORT_CHI2[t],
+            rel_vs_artifact=round(rel, 6), rel_vs_report=round(rel_rep, 6),
+            ok=bool(rel < 0.01 and rel_rep < 0.01))
+        assert checks[f"row_{t}"]["chi2_ref"]["ok"], (t, got, ref)
+    s = rows["steep"]["chi2_pp"]
+    assert np.isfinite(s) and s > 0
+    checks["row_steep"]["chi2_ref"] = dict(
+        artifact=None, report="computed+stated here",
+        chi2_pp=round(s, 5))
+
+    # ---- crit curves / caustics + theta_E sanity (as before) -------------- #
+    curves = {t: crit_and_caustics(rows[t]["p"]) for t in rows}
+    for t in rows:
+        p = rows[t]["p"]
+        rmed = [float(np.median(np.hypot(c[:, 0] - p["cx"], c[:, 1] - p["cy"])))
+                for c, _ in curves[t]]
+        outer = max(rmed)
+        checks[f"row_{t}"]["critcurve"] = dict(
+            outer_r_median=round(outer, 4), n_curves=len(rmed),
+            ok=bool(abs(outer - p["theta_E"]) / p["theta_E"] < 0.05))
+        assert checks[f"row_{t}"]["critcurve"]["ok"], (t, outer, p["theta_E"])
+        if p["gamma"] < 2.0:
+            assert len(rmed) >= 2, f"{t}: gamma<2 needs a radial curve"
+
+    # ---- figure ------------------------------------------------------------ #
+    halo = [pe.withStroke(linewidth=3.0, foreground="black", alpha=0.75)]
+    thalo = [pe.withStroke(linewidth=2.4, foreground="black")]
+    whalo = [pe.withStroke(linewidth=2.4, foreground="white")]
+    fig, axes = plt.subplots(3, 4, figsize=(12.6, 9.9), dpi=200,
+                             constrained_layout=True)
+    col_titles = ["(a) observed", "(b) model + critical curve",
+                  f"(c) (data $-$ model)/$\\sigma$  (clip $\\pm${RESID_CLIP:.0f})",
+                  "(d) reconstructed source + caustic"]
+    rcmap = matplotlib.colormaps["RdBu_r"].copy()
+    rcmap.set_bad("#d5d4d0")
+    for r, (t, prod, dpx, title) in enumerate(ROW_SPECS):
+        R = rows[t]
+        n = R["Y"].shape[0]
+        L = dpx * n / 2.0
+        ext = [-L, L, -L, L]
+        # shared per-row asinh stretch: normalized on the DATA panel
+        va = np.arcsinh(np.clip(R["Y"], 0, None) / 0.02)
+        norm = np.percentile(va, 99.9)
+        vb = np.arcsinh(np.clip(R["model"], 0, None) / 0.02)
+
+        axA, axB, axC, axD = axes[r]
+        axA.imshow(va / norm, origin="lower", extent=ext, cmap="magma",
+                   vmin=0, vmax=1, interpolation="nearest")
+        axA.plot([-L + 0.5, -L + 1.5], [-L + 0.55, -L + 0.55], color="white",
+                 lw=2)
+        axA.text(-L + 1.0, -L + 0.75, '1"', color="white", ha="center",
+                 fontsize=8)
+        axA.text(0.03, 0.97, f'{prod} {n}$^2$ @ {dpx}"/px',
+                 transform=axA.transAxes, color="white", fontsize=7.5,
+                 va="top", path_effects=thalo)
+        axA.set_ylabel(title, color=INK, fontsize=9)
+
+        axB.imshow(vb / norm, origin="lower", extent=ext, cmap="magma",
+                   vmin=0, vmax=1, interpolation="nearest")
+        for crit, _ in curves[t]:
+            axB.plot(crit[:, 0], crit[:, 1], color=C_DARK[t], ls=LSTYLE[t],
+                     lw=1.7, path_effects=halo)
+        axB.text(0.03, 0.97,
+                 rf"$\gamma={R['p']['gamma']:.3f}$"
+                 "\n" rf"$\theta_E={R['p']['theta_E']:.3f}''$",
+                 transform=axB.transAxes, color="white", fontsize=8,
+                 va="top", path_effects=thalo)
+
+        imC = axC.imshow(np.clip(R["resid"], -RESID_CLIP, RESID_CLIP),
+                         origin="lower", extent=ext, cmap=rcmap,
+                         vmin=-RESID_CLIP, vmax=RESID_CLIP,
+                         interpolation="nearest")
+        axC.text(0.03, 0.97, rf"$\chi^2/\mathrm{{px}}={R['chi2_pp']:.3f}$",
+                 transform=axC.transAxes, color=INK, fontsize=8.5,
+                 va="top", path_effects=whalo)
+
+        # source plane: grid sized to the caustic region
+        caus = np.concatenate([cau for _, cau in curves[t]])
+        half = max(1.25 * float(np.abs(caus).max()), 0.45)
+        src, xs = _render_source(R["f"], R["a_star"], half)
+        vs = np.arcsinh(np.clip(src, 0, None) / 0.02)
+        axD.imshow(vs / max(np.percentile(vs, 99.9), 1e-12), origin="lower",
+                   extent=[-half, half, -half, half], cmap="magma",
+                   vmin=0, vmax=1, interpolation="nearest")
+        for _, cau in curves[t]:
+            axD.plot(cau[:, 0], cau[:, 1], color=C_DARK[t], ls=LSTYLE[t],
+                     lw=1.5, path_effects=halo)
+        axD.set_xlim(-half, half), axD.set_ylim(-half, half)
+        axD.text(0.03, 0.97, rf"$\pm{half:.2f}''$", transform=axD.transAxes,
+                 color="white", fontsize=7.5, va="top", path_effects=thalo)
+        checks[f"row_{t}"]["src_half_arcsec"] = round(half, 4)
+
+        for ax in (axA, axB, axC, axD):
+            style_ax(ax)
+            if r < 2:
+                ax.set_xticklabels([])
+        for ax in (axB, axC):
+            ax.set_yticklabels([])
+        if r == 0:
+            for ax, ct in zip((axA, axB, axC, axD), col_titles):
+                ax.set_title(ct, color=INK, fontsize=9.5)
+        if r == 2:
+            for ax in (axA, axB, axC):
+                ax.set_xlabel('x ["]', color=INK, fontsize=8.5)
+            axD.set_xlabel(r'$\beta_x$ ["]', color=INK, fontsize=8.5)
+
+    cb = fig.colorbar(imC, ax=axes[:, 2], location="bottom", shrink=0.62,
+                      pad=0.045, aspect=30)
+    cb.set_label(r"(data $-$ model)/$\sigma$", color=INK, fontsize=8)
+    cb.ax.tick_params(colors=MUT, labelsize=7)
+    cb.outline.set_edgecolor(SPINE)
+    fig.suptitle(
+        "Summary diagnostic — one model per row (surviving models only; "
+        "corr-low $\\gamma=1.103$ rejected, see mechanism sections): "
+        "observed / model + critical curve / reduced residual / "
+        "reconstructed source + caustic",
+        color=INK, fontsize=10.5)
+    out = FIGS / "rfig_diagnostic_rows.png"
     fig.savefig(out, bbox_inches="tight", facecolor="white")
     plt.close(fig)
     print(f"[fig] wrote {out}")
@@ -533,7 +835,8 @@ def write_captions(checks):
 
 | figure | placement | caption |
 |---|---|---|
-| figs/rfig_critcurves.png | up-front modeler summary | Critical curves (lens plane, over the v3b binned cutout, asinh stretch) and caustics (source plane; stars = median Sérsic-source centers) for the four posterior-median mass models on disk: corr-low γ=1.1032 (the certified but artifact-diagnosed correlated fit; per-dim z-median of the 128 production SMC particles, t04 convention), diagonal-low γ=1.29325 (hmc_v13_v3b low basin — the real-space preference), steep γ=2.639 (evidence-disfavored, ΔlogZ≈−29), and the E1 v2d-NATIVE MCLMC diagonal fit γ={checks.get('mclmc_median_model', {}).get('gamma_zmed_forward', '?')} (the PI-requested converged fit, R̂_worst 1.0031; pooled per-dim scene-z median through the scene bijector, same t04 convention; native 80²@0.13" product, curves overlaid on the binned cutout of the same sky). Curve overlays follow the team's GIGA-Lens (Gu et al. 2022) conventions; per-model colors + line styles because four models share each panel — the MCLMC curve is slot-7 violet on the white source panel (validated all-pairs vs the three existing hues) and neutral WHITE dotted on the image panel (no 4th hue passes the dark all-pairs floors; palette series cap, relief via unique dash + halo). Sanity: outer critical-curve median radius matches θ_E to <5% for all four (low {checks.get('critcurve_low', {}).get('outer_r_median', '?')}" vs θ_E {checks.get('critcurve_low', {}).get('theta_E', '?')}"; mclmc {checks.get('critcurve_mclmc', {}).get('outer_r_median', '?')}" vs {checks.get('critcurve_mclmc', {}).get('theta_E', '?')}"); the γ<2 models show the expected inner radial critical curve/caustic. Deflections: vendored gigalens-linus EPL(50)+Shear at the certified scene conventions; grid Jacobian via jax autodiff (1201², ±5.2"). |
+| figs/rfig_diagnostic_rows.png | up-front modeler summary (THE diagnostic figure) | Summary diagnostic, one model per row — the three surviving models only; the corr-low γ=1.103 model is DROPPED from the summary diagnostics by PI direction (rejected; it remains in the mechanism sections as the diagnosed artifact). Rows: (1) E1 v2d-NATIVE MCLMC γ={checks.get('row_mclmc', {}).get('gamma', '?')} (lead, convergence-certified; 80²@0.13"), (2) diag-low γ={checks.get('row_diag', {}).get('gamma', '?')} (v3b binned 130²@0.08"), (3) steep γ={checks.get('row_steep', {}).get('gamma', '?')} (v3b binned; evidence-disfavored ΔlogZ≈−29). Panels per row: (a) observed cutout (asinh stretch a=0.02, normalized at the data's 99.9th percentile — the SAME stretch is applied to the model panel; 1" scale bar); (b) model image at the model's per-dim posterior-median params with the ridge-SOLVED linear amplitudes (delta-bundle diagonal path, term.internals a*), critical curve overlaid; (c) reduced residual (data−model)/σ over the keep mask, symmetric diverging scale CLIPPED at ±5σ (masked px grey); (d) reconstructed unlensed source surface brightness (sampled-Ie Sérsic + 28 shapelet columns at their solved amplitudes; grid sized to 1.25× the caustic extent, half-width stated per panel) with the caustic overlaid. χ²/px assertions (mean reduced-χ² over keep px): MCLMC row {checks.get('row_mclmc', {}).get('chi2_pp', '?')} vs report 1.228 (artifact e1_mclmc_home_chi2.json), diag-low {checks.get('row_diag', {}).get('chi2_pp', '?')} vs report 1.578 (artifact t04_realspace_headtohead.json), both to <1%; steep's value {checks.get('row_steep', {}).get('chi2_pp', '?')} is computed and stated here (no prior artifact). θ_E sanity: outer critical-curve median radius matches θ_E to <5% per row. Renders: parity-certified scene stack (10_anchor_arbitration.build_pm diagonal delta bundle), vendored gigalens-linus; ApJ Gu et al. (2022) Fig-8 display conventions. |
+| figs/rfig_critcurves.png | up-front modeler summary (compact comparison) | Critical curves (lens plane, over the v3b binned cutout, asinh stretch) and caustics (source plane; stars = median Sérsic-source centers) for the surviving posterior-median mass models — the corr-low γ=1.103 curve was REMOVED from this figure at PI direction (rejected model; discussed via the mechanism sections only): diagonal-low γ=1.29325 (hmc_v13_v3b low basin — the real-space preference), steep γ=2.639 (evidence-disfavored, ΔlogZ≈−29), and the E1 v2d-NATIVE MCLMC diagonal fit γ={checks.get('mclmc_median_model', {}).get('gamma_zmed_forward', '?')} (the PI-requested converged fit, R̂_worst 1.0031; pooled per-dim scene-z median through the scene bijector, t04 convention; native 80²@0.13" product, curves overlaid on the binned cutout of the same sky). Curve overlays follow the team's GIGA-Lens (Gu et al. 2022) conventions; per-model colors + line styles retain their established identities (MCLMC: slot-7 violet on the white source panel, neutral WHITE dotted on the image panel). Sanity: outer critical-curve median radius matches θ_E to <5% for all three (diag {checks.get('critcurve_diag', {}).get('outer_r_median', '?')}" vs θ_E {checks.get('critcurve_diag', {}).get('theta_E', '?')}"; mclmc {checks.get('critcurve_mclmc', {}).get('outer_r_median', '?')}" vs {checks.get('critcurve_mclmc', {}).get('theta_E', '?')}"); the γ<2 models show the expected inner radial critical curve/caustic. Deflections: vendored gigalens-linus EPL(50)+Shear at the certified scene conventions; grid Jacobian via jax autodiff (1201², ±5.2"). |
 | figs/rfig_corner.png | up-front modeler summary | Corner plot of the six mass parameters (θ_E, γ, e_1, e_2, γ_ext,1, γ_ext,2) from the stored equal-weight v3b-low correlated SMC particles, seeds 2/3/4 overlaid (this is the SMC convergence visual: SMC has no R̂; the seed-repeat spread σ_seed = 0.00325 plus per-stage ESS/acceptance are the analogues), steep basin (seeds 2–4 pooled) in grey, PLUS the E1 v2d-native MCLMC diagonal posterior in violet (256,000 pooled draws; scene-native physical extraction KEYED via mass_names; equal-weight draw median asserted equal to the run json's pooled γ q50 = {checks.get('mclmc_corner_gamma', {}).get('run_json_q50', '?')}). Weighted medians of record (from the run JSONs) γ = 1.1032/1.0967/1.1005; the equal-weight particle medians reproduce them to ≤0.0027 (≪ σ_stat 0.008; the resampled-particle convention). γ zoom panel shows the three correlated repeats with weighted medians (the MCLMC γ≈1.47 lies outside the zoom by construction). The cross-stack scene-API repeat (γ 1.1005, Δγ 0.0027, logZ to 0.11 nats) is reported in the text; its draws remain on Perlmutter $PSCRATCH (summary-JSON only locally). |
 
 Derived input: data/rfig_modeler_params.npz — Stage-A (OLD cgl venv, CPU,
@@ -559,15 +862,22 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--stage-a", action="store_true")
     ap.add_argument("--refresh", action="store_true")
+    ap.add_argument("--only", choices=["all", "rows", "critcurves", "corner"],
+                    default="all",
+                    help="figure subset (checks json is complete only on a "
+                         "full 'all' run)")
     args = ap.parse_args()
     if args.stage_a:
         stage_a()
         return
 
     os.environ.setdefault("CUDA_DEVICE_ORDER", "PCI_BUS_ID")
+    # front A16 from the free 0-7 set (GPUs 8/9 are E2 lanes); the rows stage
+    # does SINGLE certified forward renders — never likelihood loops.
+    os.environ.setdefault("CUDA_VISIBLE_DEVICES", os.environ.get("CGL2_GPU", "0"))
     os.environ.setdefault("XLA_PYTHON_CLIENT_PREALLOCATE", "false")
-    os.environ.setdefault("CGL2_ALLOW_CPU", "1")   # deflection grids only --
-    os.environ.setdefault("JAX_ENABLE_X64", "1")   # NEVER the likelihood
+    os.environ.setdefault("CGL2_ALLOW_CPU", "1")   # single renders only --
+    os.environ.setdefault("JAX_ENABLE_X64", "1")   # NEVER likelihood loops
     os.environ.setdefault("GIGALENS_X64", "1")     # scene_build x64 guard
     ensure_cache(args.refresh)
     cache = np.load(CACHE, allow_pickle=True)
@@ -586,12 +896,19 @@ def main():
     assert abs(low_gamma - 1.1032) < 2e-4, low_gamma
     checks["x46_low_gamma"] = round(low_gamma, 6)
 
-    figs = [str(fig_critcurves(cache, checks)), str(fig_corner(cache, checks))]
-    write_captions(checks)
-    (ROOT / "data" / "rfig_modeler_checks.json").write_text(
-        json.dumps(dict(generated_utc=__import__("time").strftime(
-            "%Y-%m-%dT%H:%M:%SZ", __import__("time").gmtime()),
-            figures=figs, checks=checks), indent=2))
+    figs = []
+    if args.only in ("all", "critcurves"):
+        figs.append(str(fig_critcurves(cache, checks)))
+    if args.only in ("all", "rows"):
+        figs.append(str(fig_diagnostic_rows(cache, checks)))
+    if args.only in ("all", "corner"):
+        figs.append(str(fig_corner(cache, checks)))
+    if args.only == "all":
+        write_captions(checks)
+        (ROOT / "data" / "rfig_modeler_checks.json").write_text(
+            json.dumps(dict(generated_utc=__import__("time").strftime(
+                "%Y-%m-%dT%H:%M:%SZ", __import__("time").gmtime()),
+                figures=figs, checks=checks), indent=2))
     print(json.dumps(dict(figures=figs, checks=checks), indent=1))
 
 
