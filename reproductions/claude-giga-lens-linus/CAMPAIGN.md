@@ -157,6 +157,208 @@ downstream ΔlogZ gate, as planned).
 
 ## Stage log (newest first)
 
+### 2026-07-23 — E2-O2 LAUNCHED: odell MCLMC production lane DETACHED on GPU 8 (PID 289202→289204, PPID=1 verified), smoke PASSED all gates; NO harvest this wave
+
+**Vehicle:** `50_run_mclmc_diag.py` extended with `--tag odell` (a REF/cfg entry +
+`_build_pm_odell`): `cgl2.scene_build` build path on the O1-G-passed `data/odell_cutout.npz`
+(md5 9161f049…) at the REGISTERED delta_pix 0.064125″ ss2; diagonal delta bundle on masked_err
+(err→1e10 outside keep, old down-weighting convention); Lambda_diag from `build_scene_model`,
+ASSERTED equal to the parity-refs value; near_xy asserted equal refs-provenance ↔ package meta.
+**Orientation handling (as pre-registered):** the O1 fliplr parity flip + offset are absorbed
+GRID-SIDE — img_X/img_Y overrides = `sean_coords(0.064125, 140, 2)` mapped through
+X = off_x + L[0,1]·v + L[1,1]·u, Y = off_y + L[0,0]·v + L[1,0]·u (fliplr: X = −u + off_x),
+kernel override = `sean_subgrid_kernel(psf_odell, 2)` unflipped — so priors AND warm starts
+remain in the campaign frame; **no parameter (position/angle/ellipticity/shear) was
+re-oriented anywhere**. Warm start = E1 v2d healthy-anchor x46 cloud (`mclmc_warm_v2d_x46.npz`)
+transported via `param_map.scene_z_from_old_labels` (KEYED) → cache `mclmc_warm_odell_scenez.npz`;
+transported cloud γ med **1.4334** [1.342, 1.537 extremes] — healthy anchor cloud confirmed.
+
+**Smoke (E1-amendment-2 design, 8×300+100, GPU 8) — PASS `data/mclmc_diag_odell_smoke.json`:**
+finite_draws ✓, nonan 1.0, **kernel_nonan 1.000** ≥ 0.99, basin_contained ✓ (smoke γ draws med
+1.2650 [1.2418, 1.2829] — inside the [1.15, 2.0] band; the drift off 1.43 in a 400-step
+un-equilibrated smoke is NOTED, not interpreted — production has the full 2000-step tuning
+schedule; E1-v3b migration precedent makes this the thing to watch at harvest). Memory: peak
+2.59 GB smoke / 4.62 GB with the 16-chain grad probe — 16 chains trivially fit the 23 GB L4.
+Horizon: t_batch 0.247 s @16 chains ⇒ **0.99 h/group, 3.95 h projected production** (4 groups,
+sequential; E1 projection under-shot actuals by ~8–25% ⇒ expect ~4.3–5 L4-h; free tier, no
+A100-h row).
+
+**Production lane (launched 2026-07-23 15:51:52 UTC-adjacent local, hardened E1-attempt-3
+discipline):** `setsid nohup env PYTHONUNBUFFERED=1 GIGALENS_X64=1 CGL2_GPU=8
+CUDA_DEVICE_ORDER=PCI_BUS_ID XLA_PYTHON_CLIENT_PREALLOCATE=false XLA_FLAGS=--xla_gpu_autotune_level=0
+MCLMC_CHAINS=16 MCLMC_GROUPS=4 … 50_run_mclmc_diag.py run --tag odell </dev/null … & disown` →
+**PID 289204, verified PPID=1, own session (SESS=PGID=289204), log `data/mclmc_lane_odell.log`**;
+startup healthy: scene-z cache hit, VMA workaround active, init logdensity finite
+[−4444560, −4100344] (large-|logL| init expected: few-% PSF/flux-calibration mismatch at high
+SNR before the light amplitudes re-equilibrate — the free amps absorb global scale), GPU 8 at
+8.5 GB. Config: 16 chains × 4 seed groups (rng 220722+g, init rows 880+g, g∈{0..3}), burn 2000
++ draws 4000, regularize_mass_matrix True, all E1 constants frozen. Expected artifacts
+`data/mclmc_diag_odell.{npz,json}`. **Watchdog registered: job 289204 phoenix, max_run_h 12,
+expect_artifact = the npz, on_stall alert** (1 job watched, heartbeat fresh). Gate math E2-G1/G2
++ the interpretation-fork readout happen at HARVEST (a later session), plots first, per house
+rule — γ is NOT quotable until then.
+
+### 2026-07-23 — E2-O1 CLOSED: O1-G PASS — his cutout registered at **0.064125″/px (= 0.12825/2), fliplr parity flip**, residual 0.30 px; product packaged; two ledgered amendments + a single-epoch-source FINDING
+
+**O1-Ga (registration) PASS** — vehicle `60_odell_prep.py`, artifacts
+`data/odell_registration.json` + `figs/e2_odell_registration.png` (figure inspected
+BEFORE gate math, house rule):
+- **Scale: 0.064125″/px** — the HP-ZNCC scale curve peaks sharply (0.4478 at 0.064 vs 0.331–0.378
+  at the 0.060/0.070 ends), parabola fit 0.063947, snapped to the pre-registered exact hypothesis
+  **0.064125 = 0.12825/2** (within the snap window 2.5e-4; the OTHER hypothesis 0.065 is measurably
+  worse, 0.4434). The `assert_psf_sampling` docstring's warning (0.065 ≠ 0.064125) cuts the other
+  way here: HIS product is at the half-native scale, not the paper 0.065 drizzle.
+- **Orientation: fliplr** (L = [[1,0],[0,−1]]: model x = −his-column direction — a PARITY FLIP
+  vs our raster). Margin over runner-up (flipud) 0.0280 > 0.02 gate; identity/rotations all
+  ≤ 0.403. Sub-pixel offset: his frame center at model (−0.0752, −0.2719)″.
+- **Residual 0.300 px < 0.5** (re-correlation of the fully registered pair), HP-NCC 0.4477,
+  registered-pair NCC 0.4603, in-bounds fraction 1.0. Flux slope his/ours 2.425 vs pixel-area
+  ratio 2.570 (6% — same surface-brightness calibration family).
+- **AMENDMENT (ledgered, pre-GPU, measured basis):** raw full-frame NCC is blob-dominated and
+  near-blind to scale/orientation (measured: scale curve flat to 0.004 over 0.060–0.070; margin
+  0.0027). Registration NCC therefore runs on **arcsinh-stretched + 0.4″-Gaussian-high-passed**
+  images (arc-weighted). Gate wording (residual < 0.5 px + unambiguous orientation) UNCHANGED.
+- **FINDING (single-epoch source census, `source_census` in the json):** NO persistent compact
+  source exists in the common FOV outside the ring. His frame carries **9 his-only compacts**
+  (brightest sm 1.49 at model (−3.57,+0.27)″ — nothing in our v3 there, 0.030) — cosmic-ray /
+  single-visit-class artifacts of HIS stack; all interloper-masked (r ≤ 0.4″, 1125 masked px
+  total incl. the transported v3 mask). Conversely **the bright compact at the LL2/LL3 “nearby”
+  position (−2.34,−2.86)″ exists ONLY in OUR stack** (v3 sm 0.72, masked 81 px by the foundry-i
+  pipeline itself; v2d masks its 2×2 core too) and is ABSENT in his frame (sm 0.10 = ring-wing
+  gradient). The pre-registered neighbor-position check is VOID as designed — orientation
+  evidence = HP margin + ring morphology + residual. Memo item: ask Evan about the epoch/visit
+  selection of his drizzle (transient?); LL2/LL3 will fit ~zero flux on his product.
+**O1-Gb (PSF) PASS (amended basis)** — his 29×29 vs foundry-i `empirical_psf.npy` 27×27@0.065:
+aligned cosine **0.885** (identity) / 0.884 (registered orientation); **sampling-scale verdict
+decisive: his PSF is at the CUTOUT scale** (half-scale hypothesis cosine 0.705 ≪ 0.885) ⇒
+packaged `psf_delta_pix = delta_pix = 0.064125`, supersample 2 internal (assert_psf_sampling
+discipline; caveat: 0.064125 vs 0.065 PSF sampling is a 1.4% width effect, below the measured
+shape differences). Moment-FWHM his (0.449, 0.456)″ vs ours (0.555, 0.475)″ — his PSF is
+SHARPER and more symmetric. **AMENDMENT (ledgered, pre-GPU):** the frozen 0.98-cosine/10%-FWHM
+numbers were MIS-CALIBRATED — foundry-i's own v3b PSF roundtrip gate FAILED on its own product
+(cos 0.864, ceiling 0.872, `psf_gate_cos_ok: false` in the v3b meta), and our ePSF row cuts
+carry alternating comb zeros (drizzle sampling artifact) that break through-peak FWHM
+estimators (measured 0.41″ absurdity). Amended PASS = sampling-scale verdict decisive AND
+aligned cos ≥ 0.86 (the foundry-i self-roundtrip class); FWHM reported via 2-D moments (same
+estimator both PSFs), not gated. Frozen-gate numbers still recorded (`would_pass: false`).
+**O1-Gc (noise, DOCUMENTED v1 ASSUMPTION):** sky level 0.05237 subtracted; background_rms
+**0.02857** (sigma-clipped from his own empty sky, 10,735 sky px, one foundry-i-recipe
+recalibration iteration); `err_map = sqrt(rms² + max(img,0)/1197.7)` (exp_time from foundry-i
+meta; FLAT sky term — no WHT available). To be replaced with Evan's exact numbers.
+**O1-Gd (sky sanity) PASS:** χ²/px over sky = **0.9987** ∈ [0.95, 1.05] under the packaged err_map.
+**Package:** `data/odell_cutout.npz` (load_product layout; img f32 sky-subtracted, err_map f64,
+keep_mask 18475/19600 kept, psf 29² renormalized sum=1 [pre-renorm 1.00082], meta with full
+registration block + both input md5s: cutout 5e1733f8…, psf 3578ff8a…). Package md5
+9161f049702cb5929a3d0b140ac82573. **O1-G = PASS (Ga ✓ Gb ✓ Gc-documented ✓ Gd ✓) — O2 may launch.**
+
+### 2026-07-23 — E2 (Evan Odell's DESI-165 data): DESIGN CHECKPOINT for O1 (registration & preparation) + O2 (apples-to-apples MCLMC fit), frozen BEFORE any GPU work
+
+**Context (plan of record: `/home/benson/.claude/plans/subsequently-xiaosheng-sent-this-spicy-dream.md`,
+approved):** Evan Odell shared his actual DESI-165 cutout + PSF (`odell/desi165_cutout.npy`
+140×140 f32 big-endian, peak 4.380; `odell/psf165.npy` 29×29 f64, sum 1.00082) — but NO error
+map, mask, pixel scale, or exposure metadata (his notebook is stranded by the Perlmutter
+outage). Read-only recon (orchestrator): peak-surface-brightness scaling puts his cutout at
+~0.065″/px (peak 4.38 vs v2d@0.128 16.77 ⇒ 4.19 predicted; v3b@0.08 6.56 ⇒ 4.33 predicted) —
+a FOURTH pixelization of this sky we never fit (ours: 0.128/0.08/0.04). Corroborating
+provenance found this session: foundry-i's own `empirical_psf.npy` is 27×27 **@ 0.065″/px**
+(the paper-team drizzle scale of the parent HST product, per the v2d meta psf_convention_fix
+note), and `cgl2.guards.assert_psf_sampling`'s docstring warns 0.065″ ≠ 0.12825/2 = 0.064125″
+— both exact-scale hypotheses are in the O1a scan. All Evan-derived data is gitignored
+(`odell/` appended to .gitignore this session — team bright-line D6, the newnewcutouts
+pattern; the packaged product lands under the already-ignored `data/`). Everything runs on
+phoenix (free tier: **NO A100-h ledger rows; GPU-h noted at harvest**). GPU 8 = the O2 lane;
+GPU 9 stays free. This entry is written and committed BEFORE any smoke or production step.
+
+**O1 — registration & preparation (CPU; vehicle `60_odell_prep.py`). Gates (FROZEN):**
+- **O1-Ga (registration):** cross-correlate his cutout against our v3 fine product
+  (`foundry-i/data/cutout_v3.npz`, 0.04″/px, 260², the finest calibrated same-sky product)
+  resampled to a candidate-scale grid 0.060–0.070″ (step 5e-4) PLUS the exact hypotheses
+  0.065 and 0.064125, over the 8 dihedral orientations (4 axis flips × transpose). PASS =
+  registration residual **< 0.5 px** (re-correlation of the fully-registered pair peaks
+  within 0.5 px of zero shift) AND an unambiguous best hypothesis (best orientation's NCC
+  peak clearly separated from runner-up). Report: best scale, orientation, offset (px +
+  arcsec), NCC peak.
+- **O1-Gb (PSF):** his 29×29 vs foundry-i `empirical_psf.npy` 27×27@0.065″ — center-crop to
+  common support, cosine similarity + FWHM both axes both PSFs; PASS = cosine ≥ 0.98 AND
+  FWHM agreement ≤ 10% per axis. delta_pix discipline: his PSF is sampled at the cutout's
+  own scale ⇒ packaged with `meta.psf_delta_pix = meta.delta_pix` (kernel handed at
+  delta_pix, simulator supersamples internally via subgrid_kernel — the foundry-i incident
+  convention, enforced by `assert_psf_sampling` in `scene_build.sim_config_for`); PSF
+  renormalized to sum=1 at packaging (v3b convention), pre-renorm sum recorded.
+- **O1-Gc (noise model — DOCUMENTED v1 ASSUMPTION):** his files carry no noise metadata.
+  v1 = the team's model-based σ convention with a FLAT sky term:
+  `err_map = sqrt(background_rms² + max(img_skysub, 0)/exp_time)`, background_rms
+  sigma-clipped from empty-sky regions of HIS OWN cutout (foundry-i 40b recipe: clipped
+  norm-RMS + one recalibration iteration against assembled-map sky χ²), sky level
+  sigma-clipped from the same regions and subtracted, `exp_time = 1197.7 s` from the
+  foundry-i meta (same F140W data). The WHT spatial structure is NOT available ⇒ flat term
+  is the declared approximation, TO BE REPLACED with Evan's exact background/exptime numbers
+  when Perlmutter returns. Mask = our v3 keep_mask transported through the O1-Ga transform
+  (conservative: a target pixel is kept only if all 4 sub-samples land on kept v3 pixels
+  inside the v3 footprint) — mirrors our edge/faint-galaxy/arc-interloper conventions while
+  keeping the lens+arc region.
+- **O1-Gd (sky sanity):** χ²/px over the sky pixels of the PACKAGED product under the
+  packaged err_map ∈ [0.95, 1.05] (the foundry-i gate band).
+- Package `data/odell_cutout.npz` in the `load_product` layout (img/err_map/keep_mask/psf/
+  meta incl. delta_pix, psf_delta_pix, supersample=2, exp_time, registration block, and
+  md5s of BOTH his npy files). O1-G = Ga∧Gb∧Gc-documented∧Gd, ledgered BEFORE O2 launch.
+
+**O2 — the apples-to-apples MCLMC fit (GPU 8 L4; vehicle = `50_run_mclmc_diag.py` extended
+with a `--tag odell` cfgs entry + `build_pm_odell` build path via `cgl2/scene_build` on the
+packaged npz). Gates FROZEN, IDENTICAL to E1 (no goalpost moves):**
+- **E2-G1 (convergence):** R̂_worst < 1.01 AND min-ESS ≥ 1000 (arviz rank-normalized split-R̂,
+  bulk ESS) over POOLED seed groups (pooled chains = 64), worst-param over 46 scene-z + 8
+  physical mass params. Per-group values recorded alongside.
+- **E2-G2 (containment band [1.15, 2.0]):** REPORT violating chains (id + fraction outside),
+  never drop. Warm start = physical basin only.
+- **Seed-group geometry:** 16 chains × 4 seed groups (the E1-v3b OOM-amended geometry —
+  odell's 280² supersampled grid sits just above v3b's 260²), sized/confirmed by the smoke's
+  memory + horizon numbers; ≥ 2 seed groups is the frozen minimum. **Escalation: ONE
+  allowed** (draws 4000→8000, seed offset +10), post-escalation pass quotable, labeled.
+- **Smoke gate (required PASS before production):** the E1-amendment-2 design — 8 chains ×
+  300 burn + 100 draws (window-2 coverage ≫ 46 dims), finite draws + basin-contained +
+  `kernel_nonan ≥ 0.99` + nonan ≥ 0.99. (The plan's "4×50+50" shorthand is superseded by
+  the ledgered E1 amendment 2: the tiny smoke is exactly the geometry that produced the
+  rank-deficient window-2 false alarm.) All E1 amendments carry over: regularize_mass_matrix
+  True (PI's F4 fix), VMA check_vma=False runtime rebind (single-device mesh), frozen
+  sampler constants (burn 2000, draws 4000, EEVPD 5e-4, frac_tune 0.2/0.6/0.2, eps0=0.25√46,
+  L0=√46, svi_mm_weight 10×n_chains).
+- **Warm start:** the E1 mapped healthy anchor cloud `data/mclmc_warm_v2d_x46.npz` (512
+  foundry-i hmc_v13_v2d draws → x46, S1-certified path) transported to the odell scene model
+  via `cgl2.param_map.scene_z_from_old_labels` (KEYED, never order-assumed). **Orientation
+  handling (pre-registered design):** any O1-Ga rotation/flip/offset is absorbed GRID-SIDE —
+  the simulator's img_X/img_Y coordinate grids (sean_coords at the registered delta_pix,
+  140², ss2) are transformed so that model coordinates REMAIN the campaign frame; therefore
+  source positions/angles/ellipticities/shear in priors and warm starts are NOT re-oriented
+  (the alternative — spin-2 re-orientation of every parameter — is error-prone and
+  unnecessary). PSF kernel override = `sean_subgrid_kernel(psf_odell, ss=2)` unflipped, the
+  parity-certified convention. Likelihood = diagonal delta bundle on masked_err (err→1e10
+  outside keep, old down-weighting convention), marg view, Lambda_diag from
+  `build_scene_model` (asserted equal to the parity-refs value). Priors = foundry-i verbatim
+  (his cutout is in OUR products' surface-brightness calibration per the peak-SB check —
+  ie_scale 1; near_xy = the same [-2.34, -2.86] in the preserved campaign frame).
+- **Launch discipline:** E1-attempt-3 hardened detach (`setsid nohup … </dev/null … &
+  disown`, PPID=1 verified, `XLA_PYTHON_CLIENT_PREALLOCATE=false`), GPU 8
+  (CUDA_DEVICE_ORDER=PCI_BUS_ID), log `data/mclmc_lane_odell.log`, watchdog-registered
+  (max_run_h 12, expect `data/mclmc_diag_odell.npz`). NO harvest this wave.
+
+**Pre-registered interpretation forks (ALL publishable; γ quoted only on E2-G1 pass):**
+1. γ consistent with the native anchor family (1.4330 [1.3995,1.4685] foundry-i / 1.4683
+   [1.4343,1.5048] E1 scene-MCLMC, within 1σ_comb) ⇒ the native answer is robust across
+   FOUR pixelizations AND two independent preparation pipelines — the strongest closure
+   available.
+2. γ drifts low (toward the corr-low 1.10 / E1-v3b migration shelf) ⇒ the fine-scale product
+   carries the same drift — extends the binned-product pathology to a second resampled scale
+   and an independent preparation.
+3. Anything else ⇒ preparation-sensitivity quantified (his prep vs ours differ by
+   registration/noise/mask assumptions documented in O1).
+
+**Session ops (this entry):** WATCHDOG_ALERT triaged — the single active alert was
+UNREACHABLE for perlmutter job 56267678 (ssh timeouts; Perlmutter is down for maintenance),
+but that job COMPLETED and was fully harvested 2026-07-21 (classic arm NO-VERDICT entry);
+stale registration deregistered, flag file deleted, heartbeat touched (0 jobs watched until
+the O2 lane registers). `odell/` appended to `.gitignore` (verified via git check-ignore).
+
 ### 2026-07-22 — E1 HARVEST (plots first): v2d PASS both gates — γ = 1.4683 [1.4343, 1.5048] QUOTABLE, 0.72σ_comb from the anchor; v3b FAIL both — escalation DECLINED, verdict NO-QUOTE + FINDING (all 64 chains migrate out of the band)
 
 Plots generated and INSPECTED before any gate math (house rule):

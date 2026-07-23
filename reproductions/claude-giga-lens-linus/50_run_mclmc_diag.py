@@ -29,6 +29,13 @@ Run (one product per L4; v3b -> GPU 8, v2d -> GPU 9):
   PYTHONUNBUFFERED=1 GIGALENS_X64=1 CGL2_GPU=8 CUDA_DEVICE_ORDER=PCI_BUS_ID \
   /raid/benson/.venvs/cgl2/bin/python 50_run_mclmc_diag.py run --tag v3b
 Escalation (ONE allowed per product, per checkpoint): --draws 8000 --seed-offset 10
+
+E2 extension (CAMPAIGN.md 2026-07-23 checkpoint): --tag odell = Evan Odell's
+DESI-165 product (data/odell_cutout.npz, O1-G-passed: 0.064125"/px, fliplr
+parity flip absorbed GRID-SIDE via img_X/img_Y overrides — params/warm starts
+stay in the campaign frame, NEVER re-oriented). No prep stage: warm start =
+the E1 v2d healthy-anchor x46 cloud transported via param_map. E1-frozen
+gates; lane geometry MCLMC_CHAINS=16 MCLMC_GROUPS=4 on GPU 8.
 """
 import argparse
 import hashlib
@@ -91,7 +98,26 @@ REF = {"v2d": dict(med=1.4330, ci68=[1.3995, 1.4685],
                    source="foundry-i hmc_v13_v3b mass_gamma<1.7 conditional "
                           "(GLOBALLY UNCONVERGED rhat 843 — init cloud only; "
                           "this run is the first convergence-certified diagonal "
-                          "fit of this branch)")}
+                          "fit of this branch)"),
+       "odell": dict(med=1.4330, ci68=[1.3995, 1.4685],
+                     source="E2 apples-to-apples (Evan Odell 0.064125\" "
+                            "product): anchor family = foundry-i hmc_v13_v2d "
+                            "1.4330 [1.3995,1.4685] AND E1 scene-MCLMC v2d "
+                            "1.4683 [1.4343,1.5048]; pre-registered forks in "
+                            "the CAMPAIGN.md 2026-07-23 E2 checkpoint "
+                            "(consistent => 4-pixelization closure; low-drift "
+                            "=> binned-pathology extends; else => "
+                            "preparation-sensitivity quantified)")}
+
+# E2 odell product config (CAMPAIGN.md 2026-07-23 checkpoint + O1-G ledger):
+# registered scale 0.064125"/px (= 0.12825/2, snap-confirmed), ss2, PSF at
+# delta_pix (his 29x29, renormalized), warm start = the E1 v2d healthy-anchor
+# x46 cloud transported via param_map. The O1 fliplr parity flip + offset are
+# absorbed GRID-SIDE (img_X/img_Y overrides) so priors/warm starts stay in
+# the campaign frame — parameters are NEVER re-oriented (pre-registered
+# design; the alternative spin-2 re-orientation of every param is error-prone).
+ODELL_NPZ = DATA / "odell_cutout.npz"
+ODELL_WARM_TAG = "v2d"              # x46 source cloud (healthy anchor, E1 prep)
 
 
 def md5(path, chunk=1 << 22):
@@ -195,6 +221,74 @@ def _gpu_setup():
     os.environ.setdefault("XLA_PYTHON_CLIENT_PREALLOCATE", "false")
 
 
+def _build_pm_odell(arb, refs):
+    """E2: ProbModel for the packaged odell product (O1-G-passed npz).
+
+    Mirrors arb.build_pm's diagonal configuration exactly (delta bundle on
+    masked_err err->1e10, marg view, parity grid/PSF conventions) but on
+    data/odell_cutout.npz at the REGISTERED delta_pix, with the O1 fliplr
+    parity flip + sub-pixel offset absorbed into the img_X/img_Y overrides
+    (model coords REMAIN the campaign frame; params never re-oriented).
+    """
+    import json as _json
+
+    import numpy as _np
+
+    from cgl2 import scene_build
+    from cgl2.correlated import CorrelatedImageData, delta_bundle
+    from gigalens.jax.scene_prob_model import ProbModel
+
+    prod = scene_build.load_product(ODELL_NPZ)
+    meta = prod["meta"]
+    reg = meta["registration"]
+    delta_pix = float(meta["delta_pix"])
+    ss = int(meta["supersample"])
+    n_pix = int(prod["img"].shape[0])
+    sim_cfg = scene_build.sim_config_for(prod, delta_pix=delta_pix,
+                                         supersample=ss)  # asserts PSF scale
+
+    prov = _json.loads(str(refs["provenance"]))
+    assert _np.allclose(prov["near_xy"], meta["nearby_arcsec"]), \
+        "near_xy desync between parity refs and the packaged odell meta"
+    mv = scene_build.build_scene_model(view="marg", near_xy=prov["near_xy"])
+    assert _np.allclose(_np.asarray(mv.Lambda_diag),
+                        _np.asarray(refs["v2d:Lambda_diag"])), \
+        "Lambda_diag desync vs parity refs (product-independent ridge)"
+
+    err_raw = _np.asarray(prod["err_map"], dtype=_np.float64)
+    keep = _np.asarray(prod["keep_mask"], dtype=bool)
+    masked_err = _np.where(keep, err_raw, 1e10)   # old down-weighting conv.
+    bundle = delta_bundle(None, None, masked_err=masked_err,
+                          source="E2 odell diag (old masked-err "
+                                 "down-weighting, O1-G packaged product)")
+    ds = CorrelatedImageData(
+        _np.asarray(prod["img"], dtype=_np.float64), sim_cfg, bundle,
+        error_map=err_raw, mask=keep, sees="all",
+        corr_mode="marg", Lambda_diag=_np.asarray(mv.Lambda_diag),
+        checkpoint=True)
+    pm = ProbModel(mv.model, ds, mode="lstsq")
+
+    # parity grid/PSF conventions BEFORE first trace, with the O1 transform
+    # absorbed grid-side: for a supersampled sean coord (u along cols, v
+    # along rows, arcsec from his frame center), the model-frame position is
+    #   X = off_x + L[0,1]*v + L[1,1]*u ;  Y = off_y + L[0,0]*v + L[1,0]*u
+    # (L maps registered-raster displacements to his-raster displacements;
+    #  fliplr: L=[[1,0],[0,-1]] => X = off_x - u, Y = off_y + v).
+    u32, v32 = scene_build.sean_coords(delta_pix, n_pix, ss)
+    L = _np.asarray(reg["orientation_matrix_L_rows"], dtype=_np.float64)
+    off_x, off_y = [float(t) for t in reg["offset_model_xy_arcsec"]]
+    u = u32.astype(_np.float64)
+    v = v32.astype(_np.float64)
+    img_X = (off_x + L[0, 1] * v + L[1, 1] * u).astype(_np.float32)
+    img_Y = (off_y + L[0, 0] * v + L[1, 0] * u).astype(_np.float32)
+    kern = scene_build.sean_subgrid_kernel(
+        _np.asarray(prod["psf"], dtype=_np.float64), ss)
+    scene_build.apply_parity_conventions(pm.terms[0].simulator,
+                                         img_X=img_X, img_Y=img_Y,
+                                         kernel=kern)
+    return pm, mv, meta
+
+
 def _build(tag):
     """Target + warm scene-z cloud. Returns (pm, mv, logdens, Z_scene, warm_meta)."""
     sys.path.insert(0, str(ROOT))
@@ -211,17 +305,30 @@ def _build(tag):
     spec.loader.exec_module(arb)
 
     refs = arb.load_refs()
-    pm, mv, _ = arb.build_pm(tag, refs, diagonal=True)
+    if tag == "odell":
+        pm, mv, odell_meta = _build_pm_odell(arb, refs)
+    else:
+        pm, mv, _ = arb.build_pm(tag, refs, diagonal=True)
+        odell_meta = None
     logprior_fn, loglik_fn = arb.make_closures(pm)
 
     def logdens(z):
         return logprior_fn(z) + loglik_fn(z)
 
-    warm_file = DATA / f"mclmc_warm_{tag}_x46.npz"
+    warm_tag = ODELL_WARM_TAG if tag == "odell" else tag
+    warm_file = DATA / f"mclmc_warm_{warm_tag}_x46.npz"
     warm_md5 = md5(warm_file)
     wz = np.load(warm_file, allow_pickle=True)
     warm_meta = json.loads(str(wz["meta"]))
     warm_meta["warm_x46_md5"] = warm_md5
+    if tag == "odell":
+        warm_meta["transport"] = (
+            "E1 v2d healthy-anchor x46 cloud -> odell scene model via "
+            "cgl2.param_map (KEYED); the O1 fliplr/offset is absorbed "
+            "GRID-SIDE (img_X/img_Y overrides) so warm-start positions/"
+            "angles/shear are NOT re-oriented (campaign frame preserved)")
+        warm_meta["odell_product_md5"] = md5(ODELL_NPZ)
+        warm_meta["odell_registration"] = odell_meta["registration"]
     labels = [str(s) for s in wz["labels46"]]
     x46 = np.asarray(wz["x46"], dtype=np.float64)
 
@@ -412,7 +519,7 @@ def stage_smoke(tag):
     rep["grad_probe"] = dict(n_chains=N_CHAINS, t_batch_s=round(t_batch, 4),
                              grads_per_step=2, margin=1.2)
     rep["projected_hours_per_group"] = round(proj_h_group, 2)
-    rep["projected_hours_production"] = round(2 * proj_h_group, 2)
+    rep["projected_hours_production"] = round(N_GROUPS * proj_h_group, 2)
     rep["peak_mb_with_probe"] = round(_gpu_peak_mb(), 1)
     hist_mb = total_steps * N_CHAINS * (46 * 46 + 46 + 7) * 8 / 2**20
     rep["analytic_history_mb_production"] = round(hist_mb, 0)
@@ -533,7 +640,10 @@ def stage_run(tag, draws_n, seed_offset):
 
     summary = dict(
         generated_utc=utcnow(), stage="run", tag=tag,
-        checkpoint="CAMPAIGN.md 2026-07-22 E1 design checkpoint (pre-registered)",
+        checkpoint=("CAMPAIGN.md 2026-07-23 E2 design checkpoint "
+                    "(pre-registered; E1-frozen gates)" if tag == "odell" else
+                    "CAMPAIGN.md 2026-07-22 E1 design checkpoint "
+                    "(pre-registered)"),
         device=str(jax.local_devices()[0]),
         CUDA_VISIBLE_DEVICES=os.environ["CUDA_VISIBLE_DEVICES"],
         config=dict(n_chains=N_CHAINS, n_groups=N_GROUPS, burn=BURN,
@@ -560,8 +670,9 @@ def stage_run(tag, draws_n, seed_offset):
         provenance=dict(
             warm=warm_meta,
             parity_refs_md5=md5(DATA / "parity_refs.npz"),
-            warm_x46_md5=md5(DATA / f"mclmc_warm_{tag}_x46.npz"),
+            warm_x46_md5=warm_meta["warm_x46_md5"],
             source_chain_md5=warm_meta.get("source_md5"),
+            odell_product_md5=(md5(ODELL_NPZ) if tag == "odell" else None),
             script="50_run_mclmc_diag.py"),
         reference_for_harvest=REF[tag],
         wall_h=[round(grp["wall_s"] / 3600.0, 3) for grp in groups],
@@ -602,13 +713,16 @@ def stage_run(tag, draws_n, seed_offset):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("stage", choices=["prep", "smoke", "run"])
-    ap.add_argument("--tag", required=True, choices=["v2d", "v3b"])
+    ap.add_argument("--tag", required=True, choices=["v2d", "v3b", "odell"])
     ap.add_argument("--draws", type=int, default=DRAWS,
                     help="escalation only (checkpoint: single doubling allowed)")
     ap.add_argument("--seed-offset", type=int, default=0,
                     help="escalation only (checkpoint: +10)")
     a = ap.parse_args()
     if a.stage == "prep":
+        if a.tag == "odell":
+            raise SystemExit("odell has NO prep stage: it reuses the E1 v2d "
+                             "healthy-anchor x46 cloud (ODELL_WARM_TAG)")
         stage_prep(a.tag)
     elif a.stage == "smoke":
         stage_smoke(a.tag)
