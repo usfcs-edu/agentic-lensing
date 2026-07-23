@@ -103,6 +103,11 @@ Plan of record: `plans/PLAN.md` (approved 2026-07-15). Their-format handoffs: `p
 | E1-G1 (v3b) | MCLMC diagonal-fit convergence, v3b BINNED product (4 seed groups × 16 chains — amendment-3 OOM geometry, pooled 64 unchanged) | same frozen thresholds | **FAIL — NO-QUOTE** — R̂_worst 1.379 / min-ESS 139 (both planes/0/light/1/Ie); 46/46 scene-z params over the R̂ gate; γ R̂ 1.261 (ESS 181); per-group R̂_worst 1.27/1.64/1.42/1.17 — unconverged WITHIN and BETWEEN groups, worst offenders = lens-light photometrics (Ie/R_sersic/n_sersic 1.35–1.38) + shapelet source centers (1.34–1.35). **Escalation DECLINED** (one was allowed): the failure mode is structural migration out of the band (see E1-G2 row), not sampling depth — doubling draws cannot un-migrate chains, and a within-band conditional would be a goalpost move | data/mclmc_diag_v3b.{npz,json}, data/e1_harvest.json, figs/e1_mclmc_traces.png |
 | E1-G2 (v3b) | basin containment, v3b | 0 violating chains; report-never-drop | **FAIL — 64/64 chains outside** (frac_outside min 0.94, median 1.00; all 4 seed groups): warm-started IN the physical basin (init cloud = the 1.2941 γ<1.7 conditional, per-group init med 1.289–1.294), EVERY chain migrated DOWN during the 2000-step burn-in to γ ≈ 1.08–1.15 (kept-draw pooled med 1.1047, per-group 1.098–1.107 — DESCRIPTIVE, not quotable, 0.0015 from the corr-low 1.1032). **FINDING**: even MCLMC under the DIAGONAL likelihood drifts to the unphysical low-γ region on the binned product — the sampling-side face of the binned-product pathology (T0.4 mechanism family); further undermines the R̂=843 conditional 1.2941 as a diagonal reference | figs/e1_v3b_migration.png (money visual), data/mclmc_diag_v3b.json (gates.E1_G2.violations, all 64), data/e1_harvest.json |
 | B4 — FINAL DISPOSITION (**CONFIRMED by orchestrator 2026-07-21 (consistent with the user's option-1 budget decision)**) | closure-sweep row (2026-07-21): B4 was the record's one gate left with a non-final verdict ("NOT EVALUABLE … precondition for ANY resubmission"); the RC3 writer-fix precondition landed + regression-locked 2026-07-16 but no rerun was ever funded and no closure row ever recorded | measured true-cost lower bound 3.5 h (realistic 3–5 h) vs P2 headroom at program close | **NOT-EVALUABLE-WITHIN-BUDGET (proposed)** — P2 closed 22.45/24 (headroom 1.55 h < 3–5 h need); experimental program COMPLETE 2026-07-21, zero GPU remaining for this cell. The cond~1e14 preconditioning question stays OPEN and is NOT absorbed by any other cell (nearest datum — the l0arbc classic-arm reproduction of the single-stage-HMC pathology — is target-difficulty context, not a B4 answer); the two-stage-seeded variant remains OFF-PROTOCOL (a NEW arm B4b if ever funded). Full closure sweep: research/gate_ledger_final.md (6 dangling gates/arms + 1 D7-promoted item proposed-closed there) | research/gate_ledger_final.md, data/results-perlmutter/b4_marg46_s1_seed2_run.log, research/p2_wave1_postmortem_redesign.md |
+| E2-G1 (odell) | MCLMC diagonal-fit convergence on Evan Odell's OWN registered 0.064125″ product (E1-frozen thresholds; 4 seed groups × 16 chains, pooled 64 × 4000) | R̂_worst < 1.01 AND min-ESS ≥ 1000 | **FAIL — NO-QUOTE** — R̂_worst 5.459 / min-ESS 66.4 (both planes/0/light/3/n_sersic); γ R̂ 3.384 (ESS 70); per-group R̂_worst 2.39/2.32/2.44/2.60 (min-ESS 18.9–19.8); run health clean (nonan = kernel_nonan = 1.000 all groups; final ε 0.015–0.036 — the glassy-shelf signature, vs v2d's 2.38); worst offenders again the lens-light photometrics + source structure (the E1-v3b pattern). Escalation not taken (structural migration, same rationale as E1-v3b: doubling draws cannot un-migrate chains). Wall 4.49 L4-h | data/mclmc_diag_odell.{npz,json}, data/e2_harvest.json, figs/e2_odell_migration.png |
+| E2-G2 (odell) | basin containment [1.15, 2.0]; warm start = the transported 1.433 healthy-anchor cloud | 0 violating chains; report-never-drop | **FAIL — 64/64 chains outside, frac_outside min 1.00 / median 1.00 (EVERY kept draw)**: warm-started at the anchor (drawn-init med 1.4373, cloud med 1.4334), every chain in all 4 seed groups migrated DOWN during burn-in to the same low-γ shelf — pooled med 1.0999 [1.0727, 1.1103] CI68 (DESCRIPTIVE telemetry, not quotable), per-group med 1.0652/1.0893/1.1033/1.1153; per-chain migration Δγ(init−endpoint) 0.267–0.448 (med 0.341); endpoint −0.0033 from corr-low 1.1032 and −0.0048 from the E1-v3b shelf 1.1047. **PRE-REGISTERED FORK 2 FIRES**: the migration extends to a SECOND resampled product (a FOURTH pixelization of this sky) AND a SECOND independent preparation pipeline — matching Evan's own "very migratory chains" report on his first-stage MCLMC | figs/e2_odell_migration.png (money visual), data/mclmc_diag_odell.json (gates.E1_G2.violations, all 64), data/e2_harvest.json |
+| E2-O4-D1 (v3b rescue) | R̂-blindness demonstration: Evan-style stage-2 MCLMC preconditioned on OUR migrated E1-v3b stage-1 tail converges pristinely AT the shelf (16 × 5000+5000, his stated scale; checkpoint research/checkpoint_e2_o4.md) | stage-2 R̂_worst < 1.01 AND min-ESS ≥ 1000 AND γ_med < 1.15 | **FALSIFIER F1 FIRED (reported as loudly as a pass, per the checkpoint)** — R̂_worst 1.1875 / min-ESS 81 (γ R̂ 1.128): NO pristine-R̂-at-the-shelf at these settings. The rescue IMPROVES the diagnostics most of the way (R̂_worst 1.379 → 1.188, γ R̂ 1.261 → 1.128) while γ stays AT the shelf (stage-2 med 1.0849 telemetry, Δ −0.019 vs the tail 1.1043 — **F2 did NOT fire**, the migration interpretation stands; 16/16 chains 100% out of band); split-half R̂_worst 1.033 (chains 0–7) vs 1.321 (8–15) — an 8-chain practitioner could read either half. What survives (wording via Greg before anything external): a looser threshold (e.g. R̂ < 1.2) WOULD have certified the unphysical solution; at the frozen gates the diagnostics still flag it; Evan's reported R̂ ≪ 1.01 second stage is NOT reproduced on our stored chains at his stated scale. Wall 1.65 L4-h | data/o4_v3b_stage2.{npz,json}, figs/e2_o4_rescue.png, research/checkpoint_e2_o4.md, data/e2_harvest.json |
+| E2-O4-D2 (v2d control) | the identical rescue on the healthy product converges at the E1 posterior | same convergence thresholds AND γ_med within 1σ_comb of E1 v2d | **MET — control prediction HELD exactly as pre-registered** — R̂_worst 1.0029 / min-ESS 8305 (γ R̂ 1.0007); γ 1.4683 [1.4344, 1.5040] (telemetry): 0.0008σ_comb from the E1 quotable 1.4683 (σ_comb 0.0495), Δ vs its own stage-1 tail −0.0001; split-half 1.0033/1.0027; 0/16 chains out of band; F3 did not fire. The property being demonstrated is stage-1-conditional, as designed. Wall 0.49 L4-h | data/o4_v2d_stage2.{npz,json}, figs/e2_o4_rescue.png, data/e2_harvest.json |
+| E2-O3 (odell noise) | T0.4-1 machinery on Evan's product: is HIS preparation's noise correlated/nonstationary like ours? (masked-ACF + 2-component drizzle-family WLS + 3×3 stationarity, B=200 null bootstrap; model-subtracted PRIMARY arm as pre-declared + a NO-MODEL robustness arm added when the best model measured χ²_sky/px ≈ 19 — only both-arm-agreed verdicts claimed) | family-fit ≤ 0.05; stationarity 2σ + calibrated p | **CORRELATED LIKE OURS — CONFIRMED on both arms**: nearest-lag ρ(0,1)/ρ(1,0) = 0.844/0.807 (no-model) and 0.762/0.847 (model-sub) vs the pure-drizzle prediction t1 = 0.600 at his r = 2.0 — excess correlation ABOVE the full drizzle-registration envelope [0.51, 0.66], same drizzle+background family as ours (fitted correlated weight w_tot 0.92 both arms; the 2-component family fits the clean arm at max|resid| 0.0301 ≤ 0.05 — the production gate). **STATIONARITY: NOT ESTABLISHED EITHER WAY (model-quality-limited)** — the clean no-model arm does NOT reject (max|z| 2.20, calibrated p 0.305) while the model-subtracted arm rejects hard (max|z| 6.34, p < 0.005) but is CONFOUNDED: the best available model (max-logdensity kept draw of the FAILED E2 fit, γ 1.0523, χ²/px 26.8; the pooled per-dim median is OFF-MANIFOLD at χ²/px 72.7 — recorded, not used) leaves χ²_sky/px 18.8, so its rejection is model error, not a noise property. Memo lines supported: "your product carries the same correlated-noise structure ours does"; nonstationarity needs his exact noise metadata + a converged fit. Render 0.19 L4-h, audit CPU 8 min | data/e2_odell_noise.json, figs/e2_odell_noise.png, 62_o3_odell_noise.py |
 
 **P1 synthesis (2026-07-15): one mechanism spans T0.4-1/2/3 + X1-G0** — a NONSTATIONARY
 correlated-background component priced as stationary lets the whitened metric discount
@@ -156,6 +161,80 @@ downstream ΔlogZ gate, as planned).
 - sshproxy refreshed 2026-07-15 (user). Jobs charge `cosmo_g` (D5), single-GPU shared QOS.
 
 ## Stage log (newest first)
+
+### 2026-07-23 — E2 HARVEST (plots first): odell fit FAILS both gates → FORK 2 FIRES (the migration extends to HIS product AND HIS prep); O4 F1 FIRED on v3b (rescue improves R̂ 1.38→1.19, does NOT certify; v2d control clean exactly as predicted); O3 noise audit: his product correlated LIKE OURS, stationarity model-quality-limited
+
+Plots generated and INSPECTED before any gate math (house rule):
+`figs/e2_odell_migration.png` (companion to the E1 migration money visual:
+transported 1.433 anchor init cloud → every chain's kept-draw interval at
+1.06–1.14, per-seed-group colors, band + anchor + corr-low references),
+`figs/e2_o4_rescue.png` (stage-1 vs stage-2 R̂/γ both arms: traces, R̂
+dumbbells vs the 1.01 gate, γ-location panel), `figs/e2_odell_noise.png`
+(global ACF vs drizzle family, per-block stationarity vs null, calibrated
+max|z|, confound panel, ours-vs-his table). Full gate rows above
+(E2-G1/E2-G2/E2-O4-D1/E2-O4-D2/E2-O3); every number recomputed from the npz
+and asserted vs the run jsons in `data/e2_harvest.json` (γ quantiles < 1e-9,
+γ R̂ arviz re-runs < 1e-6, O4 stage-1 tail medians re-derived exactly).
+
+- **O2 (Evan's own cutout, the apples-to-apples fit): FAIL E2-G1 + E2-G2 —
+  NO-QUOTE + FINDING; pre-registered FORK 2 FIRES.** On his registered
+  0.064125″ product (his prep, his PSF, parity-flip absorbed grid-side),
+  warm-started at the healthy 1.433 anchor cloud, ALL 64 chains in 4
+  independent seed groups migrated during burn-in to the same low-γ shelf
+  (pooled med 1.0999 telemetry — 0.0033 from corr-low 1.1032, 0.0048 from the
+  E1-v3b shelf; R̂_worst 5.46, min-ESS 66). The low-γ migration is now
+  established on TWO resampled products (0.08″ binned + his 0.064125″
+  half-native) and TWO independent preparation pipelines — and matches Evan's
+  own unprompted "very migratory chains" report. The strongest available
+  closure (fork 1, four-pixelization robustness) is dead for the binned/
+  resampled family; the native-scale anchor (1.4330/1.4683) remains the only
+  convergence-certified answer on this sky.
+- **O4 (R̂-blindness demo on OUR stored chains): FALSIFIER F1 FIRED — the
+  strong claim is NOT supported at 16 × 5000+5000.** Evan-style tail
+  preconditioning on the migrated v3b stage-1 improves R̂_worst 1.379 → 1.188
+  (γ R̂ 1.261 → 1.128) with γ staying AT the shelf (1.0849, F2 not fired),
+  but does NOT reach the frozen gates — reported as loudly as a pass. The
+  v2d control is textbook (R̂ 1.0029, ESS 8305, γ 0.0008σ_comb from E1).
+  Surviving (weaker) methodological point, wording via Greg before anything
+  external: a looser-but-common threshold (R̂ < 1.2) WOULD have certified the
+  unphysical solution, and the split-half readout (1.033 vs 1.321) shows an
+  8-chain run could land either side; at rigorous thresholds the diagnostics
+  still flag stage-1 basin selection. Evan's reported R̂ ≪ 1.01 second stage
+  is not reproduced at his stated scale on our chains — his exact settings
+  are a memo question, not an assumption.
+- **O3 (noise audit of his product): CORRELATED LIKE OURS (both-arm
+  confirmed); stationarity verdict model-quality-limited.** His noise carries
+  the same drizzle+background correlation family as our products: ρ(0,1)
+  0.844/0.762 (no-model/model-sub arms) vs pure-drizzle 0.600 at r = 2.0,
+  excess above the entire drizzle-registration envelope, correlated weight
+  0.92, family fit max|resid| 0.0301 ≤ 0.05 on the clean arm. Stationarity is
+  NOT rejected on the clean no-model arm (calibrated p 0.305) and the
+  model-subtracted rejection (p < 0.005) is confounded — the best model on
+  his grid (MAP-proxy draw of the failed fit) still leaves χ²_sky/px 18.8.
+  NEW FINDING logged en route: even the best kept draw of the odell fit has
+  χ²/px 26.8 (the shelf fit is not just unconverged, it is a GROSSLY BAD fit
+  to his data under the v1 noise model), and the pooled per-dim median of the
+  glassy posterior is off-manifold (χ²/px 72.7) — medians of unconverged
+  multi-basin chains are not models.
+- **Memo lines earned this wave (all through Greg):** (1) his cutout = the
+  fourth pixelization, registered 0.064125″ fliplr; (2) his own product
+  reproduces the migration his "very migratory chains" saw — it is not his
+  bug, it is the resampled-product family; (3) his noise is correlated like
+  ours (numbers above) — the correlated-likelihood question applies to his
+  prep too; (4) asks: exact background/exptime/WHT + drizzle epoch/frame
+  selection + his final γ + his stage-2 chain count/length.
+
+**GPU-h at harvest (phoenix L4 free tier, no A100-h rows per checkpoint):**
+odell fit 4.49 + O4 v3b 1.65 + O4 v2d 0.49 + O3 renders 0.19 = **6.82 L4-h**
+this wave (+ smoke 163 s; O3 audit is CPU). Cumulative E1+E2 epilogue
+16.4 L4-h. Artifacts: data/e2_harvest.json (md5 c8a8b375…, incl. the
+O3_noise_audit block), data/e2_odell_noise.json (88178510…),
+figs/e2_odell_migration.png (a4fdfca9…), figs/e2_o4_rescue.png (325725bd…),
+figs/e2_odell_noise.png, vehicles 61_harvest_e2.py + 62_o3_odell_noise.py.
+Bright lines held: no team-private content in any figure/json/text; no γ
+quoted from a failed fit (all shelf numbers labeled telemetry/descriptive);
+O4 wording ships for Greg's review; odell data stays gitignored; NOT
+committed (orchestrator instruction).
 
 ### 2026-07-23 — E2-O2 LAUNCHED: odell MCLMC production lane DETACHED on GPU 8 (PID 289202→289204, PPID=1 verified), smoke PASSED all gates; NO harvest this wave
 

@@ -593,6 +593,243 @@ narrative restated from the sampling side, and one more reason the
 mechanism's confirmatory data-side injection test (above) is worth
 running.\art{data/e1\_harvest.json}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% E2 epilogue subsection (2026-07-23, second post-campaign epilogue).
+%% Every number traces to data/e2_harvest.json, data/mclmc_diag_odell.json,
+%% data/o4_{v3b,v2d}_stage2.json, data/odell_registration.json (via the
+%% packaged data/odell_cutout.npz meta), and data/e2_odell_noise.json; the
+%% pre-registered records are the CAMPAIGN.md E2 design checkpoint and
+%% research/checkpoint_e2_o4.md (both frozen before any GPU work).  Bright
+%% lines: NO gamma quoted from a failed fit (telemetry/descriptive labels
+%% throughout); O4 is framed as a service finding and, like the rest of the
+%% epilogue's collaborator-facing wording, ships through the PI's review
+%% before anything external (SIGNOFF_CHECKLIST discipline).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Epilogue E2: the collaborator's own data --- registration, the
+apples-to-apples fit, and two service findings}
+\label{sec:e2}
+
+After E1, a collaborator on the team's sampling effort (E.~Odell) shared
+his own working cutout and PSF of \foundry\ --- $140^2$ cutout, $29^2$
+PSF, with no error map, mask, pixel scale, or exposure metadata attached
+--- together with a workflow report (priv.\ comm.): his own first-stage
+MCLMC had ``very migratory chains,'' and a second stage preconditioned on
+the first stage's tail converged $\Rhat\ll1.01$ at $\sim$8--16 chains
+$\times$ $\sim$5000{+}5000 draws. E2 is the pre-registered epilogue on
+that material: registration and packaging (O1), the apples-to-apples
+MCLMC fit under the E1-frozen gates (O2), a noise audit of his
+preparation with the T0.4-1 machinery (O3), and a demonstration of his
+stage-2 rescue on our own stored E1 chains (O4, run on \emph{our} data
+only). All gates were frozen before any GPU work; everything ran on the
+free tier (6.8 L4-h total; no A100-h), and his data stays outside the
+repository per the campaign's data bright line.\art{data/e2\_harvest.json;
+CAMPAIGN.md E2 design checkpoint; research/checkpoint\_e2\_o4.md}
+
+\paragraph{Registration (O1): a fourth pixelization, a parity flip, and a
+stack-dependent companion.}
+Registered against our calibrated $0.04''$ fine product
+(arcsinh-stretched, high-pass-filtered ZNCC over a scale grid and all
+eight dihedral orientations), his cutout sits at $0.064125''$/px ---
+\emph{exactly half our native $0.12825''$}, a fourth pixelization of this
+sky beyond our $0.128''/0.08''/0.04''$ trio, and measurably \emph{not}
+the $0.065''$ paper-drizzle scale --- with a \emph{parity flip} (a
+left-right mirror) relative to our raster; registration residual
+$0.300$\,px against a $0.5$\,px gate. His PSF is sampled at the cutout's
+own scale (decisive: the half-scale hypothesis drops the aligned cosine
+from $0.885$ to $0.705$) and is \emph{sharper and more symmetric} than
+our empirical PSF (moment-FWHM $0.449''\times0.456''$ vs.\
+$0.555''\times0.475''$). Two preparation-level findings fell out of the
+registration census. First, the bright compact companion at
+$(-2.34'',-2.86'')$ --- masked by our pipeline and a named suspect
+earlier in the campaign (T0.3, \S\ref{sec:modelers} item~2 sources) ---
+\emph{exists only in our stack}: his frame shows nothing at that
+position, while carrying nine compact sources ours lacks
+(single-visit-class artifacts; all masked) --- a drizzle
+epoch/frame-selection question for the collaborator, not a science claim.
+Second, his files carry no noise model, so the packaged error map is a
+\emph{documented v1 assumption} (background RMS from his own empty sky
+plus our archival exposure metadata; packaged sky
+$\chi^2/\mathrm{px}=0.9987$), to be replaced by his exact numbers.%
+\art{data/odell\_registration.json; data/odell\_cutout.npz (meta)}
+
+\paragraph{The apples-to-apples fit (O2): pre-registered fork 2 fires.}
+The E1 vehicle --- constants, warm-start path, and both frozen gates
+byte-identical; the registered flip and offset absorbed grid-side so
+priors and warm starts remain in the campaign frame --- was warm-started
+from the transported healthy anchor cloud (median $1.4334$). Every one of
+the 64 chains in all four seed groups migrated during the 2000-step
+burn-in to the same low-$\gammaEPL$ shelf (Fig.~\ref{fig:e2migration}):
+kept-draw pooled median $1.0999\,[1.0727,1.1103]$ --- \emph{descriptive
+telemetry, not a quotable posterior}: the fit fails both frozen gates
+($\Rhat_{\rm worst}=5.46$, $\ESS_{\min}=66$; all 64 chains spend
+\emph{every} kept draw outside the $[1.15,2.0]$ band), and the one
+allowed escalation was declined for the E1 reason (structural migration,
+not sampling depth). Per-chain migration $\Delta\gammaEPL=0.27$--$0.45$;
+the endpoint sits $0.0033$ from the certified corr-low $1.1032$ and
+$0.0048$ from the E1 \dfile{v3b} shelf. Of the three pre-registered
+interpretation forks, fork~1 --- the native answer robust across four
+pixelizations, the strongest closure available --- is dead for the
+resampled family; \textbf{fork~2 fires}: the migration extends to a
+second resampled product \emph{and} a second, fully independent
+preparation pipeline, on the collaborator's own data --- matching his
+independent ``very migratory chains'' report, so the pathology is not an
+artifact of our preparation. A goodness-of-fit finding rode along: even
+the fit's best kept draw leaves $\chi^2/\mathrm{px}=26.8$ under the v1
+noise model (the shelf fit is a grossly bad model of his data, not merely
+an unconverged one), and the pooled per-dimension median is off-manifold
+at $\chi^2/\mathrm{px}=72.7$ --- medians of unconverged multi-basin
+ensembles are not models.\art{data/mclmc\_diag\_odell.\{npz,json\};
+data/e2\_harvest.json; data/e2\_odell\_noise.json (model\_render)}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.98\textwidth]{../figs/e2_odell_migration.png}
+\caption{The E2 apples-to-apples fit on the collaborator's own registered
+$0.064125''$ product (his preparation, his PSF; plotted before gate
+math). Left: for each of the 64 chains (colored by seed group), the
+warm-start $\gammaEPL$ (open circle, drawn from the transported healthy
+$1.433$ anchor cloud) against its kept-draw 16--84\% interval and median:
+every chain exits the E2-G2 containment band $[1.15,2.0]$ during burn-in
+and equilibrates at $\gammaEPL\approx1.06$--$1.14$ (fraction of kept
+draws outside the band: min 1.00, median 1.00 --- every kept draw; all 64
+violations reported, none dropped). Right: init-cloud vs.\ pooled
+kept-draw marginals; the pooled kept-draw median 1.0999 sits 0.0033 from
+the corr-low certified 1.1032 and 0.0048 from the E1 \dfile{v3b}
+migration shelf 1.1047 --- descriptive only (the ensemble fails both
+frozen gates, $\Rhat_{\rm worst}=5.46$, NO-QUOTE). Source artifacts:
+\dfile{data/mclmc\_diag\_odell.\{npz,json\}}
+(\texttt{gates.E1\_G2.violations});
+\dfile{data/e2\_harvest.json}.}
+\label{fig:e2migration}
+\end{figure}
+
+\paragraph{The stage-2 rescue demonstration (O4): falsifier fired,
+control held.}
+This experiment ran entirely on our own stored E1 chains, and is offered
+as a service finding about the shared two-stage recipe (the
+collaborator's rescue is empirically the same move as the two-stage
+re-preconditioned recipe used throughout this program --- ours included).
+The pre-registered prediction: a stage-2 MCLMC preconditioned on the
+migrated \dfile{v3b} stage-1 tail (init draws, tail covariance as inverse
+mass, tail mean; 16 chains $\times$ 5000{+}5000 at the collaborator's
+stated scale) would converge pristinely \emph{at} the shelf ---
+demonstrating that stage-2 convergence metrics cannot detect stage-1
+basin selection. \textbf{The falsifier fired instead}, and per the frozen
+checkpoint it is reported as loudly as a pass: stage-2
+$\Rhat_{\rm worst}=1.1875$, $\ESS_{\min}=81$ ($\Rhat_\gamma$ 1.128) ---
+no pristine-$\Rhat$-at-the-shelf at these settings. What survives is a
+weaker but still useful statement (Fig.~\ref{fig:e2rescue}): the rescue
+moves the diagnostics most of the way toward the pass region
+($\Rhat_{\rm worst}$ $1.379\to1.188$, $\Rhat_\gamma$ $1.261\to1.128$)
+while the chains stay at the shelf ($\gammaEPL$ median 1.0849, telemetry;
+$-0.019$ vs.\ the stage-1 tail --- falsifier F2, a return toward the
+band, did \emph{not} fire, so the E1/E2 migration interpretation stands);
+a looser-but-common threshold ($\Rhat<1.2$) \emph{would} have certified
+the unphysical solution, and the split-half readout ($\Rhat_{\rm worst}$
+1.033 on chains 0--7 vs.\ 1.321 on 8--15) shows an 8-chain practitioner
+could land on either side --- at the rigorous frozen gates
+($\Rhat<1.01$, $\ESS\ge1000$) the diagnostics still flag stage-1 basin
+selection. The control held exactly as pre-registered: the identical
+rescue on the healthy \dfile{v2d} stage-1 converges cleanly at the E1
+posterior ($\Rhat_{\rm worst}=1.0029$, $\ESS_{\min}=8305$;
+$\gammaEPL=1.4683$, $0.0008\sigma_{\rm comb}$ from the E1 quotable value;
+0/16 chains out of band) --- the property probed is stage-1-conditional,
+as designed. The collaborator's reported $\Rhat\ll1.01$ second stage is
+\emph{not} reproduced on our stored chains at his stated scale;
+understanding that difference needs his exact configuration (chain count
+and length, preconditioning details, thresholds) --- a question for him,
+not an assumption in this report.%
+\art{data/o4\_\{v3b,v2d\}\_stage2.\{npz,json\};
+research/checkpoint\_e2\_o4.md; data/e2\_harvest.json}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.98\textwidth]{../figs/e2_o4_rescue.png}
+\caption{The O4 stage-2 rescue demonstration on our stored E1 chains
+(16 $\times$ 5000{+}5000, the collaborator's stated scale; plotted before
+gate math). Top left: the \dfile{v3b} arm's stage-2 $\gammaEPL$ trace
+stays at the migrated shelf but does not certify ($\Rhat_\gamma$ 1.128,
+$\Rhat_{\rm worst}$ 1.1875, min-\ESS\ 81 --- falsifier F1 fired). Top
+right: the \dfile{v2d} control converges cleanly at the anchor family
+($\Rhat_{\rm worst}$ 1.0029, min-\ESS\ 8305), matching the E1 quotable
+posterior to $0.0008\sigma_{\rm comb}$. Bottom left: stage-1 (open)
+$\to$ stage-2 (filled) split-$\Rhat$ dumbbells against the 1.01 gate ---
+the rescue improves the \dfile{v3b} diagnostics but leaves them over the
+gate. Bottom right: both arms equilibrate \emph{at} their stage-1
+location (all $\gammaEPL$ values demonstration telemetry, not science
+quotes): preconditioning does not move the basin. Source artifacts:
+\dfile{data/o4\_\{v3b,v2d\}\_stage2.\{npz,json\}};
+\dfile{research/checkpoint\_e2\_o4.md}; \dfile{data/e2\_harvest.json}.}
+\label{fig:e2rescue}
+\end{figure}
+
+\paragraph{The noise audit (O3): his preparation is correlated like ours;
+the stationarity verdict is model-quality-limited.}
+The T0.4-1 machinery (masked ACF, two-component drizzle-family fit,
+$3\times3$ block stationarity against a 200-draw calibrated null) was run
+on his product in two arms --- the pre-declared model-subtracted arm
+(residuals of the best available model on his grid: the failed fit's
+maximum-log-density kept draw, a residual-minimizing reference point, not
+a certified posterior) and a no-model robustness arm added because that
+model is poor; only verdicts on which \emph{both} arms agree are claimed.
+\textbf{Correlated like ours --- confirmed on both arms}
+(Fig.~\ref{fig:e2noise}): nearest-lag $\rho_{01}/\rho_{10}$ =
+$0.844/0.807$ (no-model) and $0.762/0.847$ (model-subtracted) against the
+pure-drizzle prediction $0.600$ at his scale ratio --- excess correlation
+\emph{above} the entire drizzle-registration envelope $[0.51,0.66]$ ---
+with the same drizzle$+$background kernel family as our products (fitted
+correlated weight $0.92$ on both arms; the two-component family fits the
+clean arm at max$|$resid$|$ $0.030\le0.05$, the production gate).
+\textbf{Stationarity: not established either way.} The clean no-model arm
+does \emph{not} reject (max$|z|=2.20$, calibrated $p=0.305$ --- the same
+non-rejection class as our fine product, $p=0.17$), while the
+model-subtracted arm rejects hard (max$|z|=6.34$, $p<0.005$) but is
+confounded: the best available model still leaves sky
+$\chi^2/\mathrm{px}=18.8$, so its rejection measures model error, not a
+noise property. The supported memo line is ``your product carries the
+same correlated-noise structure ours does''; the sharper nonstationarity
+question needs his exact noise metadata and a converged
+fit.\art{data/e2\_odell\_noise.json}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.98\textwidth]{../figs/e2_odell_noise.png}
+\caption{The O3 noise audit of the collaborator's own product (T0.4-1
+machinery; plotted before gate math). Top row, no-model arm: global
+masked ACF over 10{,}766 sky pixels against the two-component
+drizzle-family fit and the pure-drizzle anchor ($t_1=0.60$); per-block
+$\rho_{01}$ against the stationary null and the drizzle-registration
+spread; per-block $z$-scores; and the multiplicity-calibrated test
+(observed max$|z|$ 2.20, $p=0.305$ --- no rejection on the clean arm).
+Bottom row: the model-subtracted arm is kept for the record but
+\emph{confounded} --- the best available model (the failed E2 fit's
+max-log-density draw) leaves sky $\chi^2/\mathrm{px}=18.8$, so its hard
+rejection (max$|z|$ 6.34) measures model error; the summary table runs
+the same test with the same machinery on our own products (fine $p=0.17$;
+binned $p=0.010$, rejected). Source artifact:
+\dfile{data/e2\_odell\_noise.json}.}
+\label{fig:e2noise}
+\end{figure}
+
+\paragraph{The product-dependence synthesis, updated.}
+E2 sharpens the E1 synthesis into a clean split by product family.
+\emph{The native scale is well-behaved}: the \dfile{v2d} native diagonal
+target has now passed the strictest convergence gates in this program
+twice (the E1 fit; the O4 control), both times at the anchor family.
+\emph{The resampled products migrate}: both resampled products of this
+sky --- our $0.08''$ binned drizzle and his $0.064125''$ half-native
+preparation, produced by two fully independent pipelines --- migrate
+every chain from a physical-basin warm start to the same
+$\gammaEPL\approx1.10$ shelf under the plain diagonal likelihood, in
+every seed group (128 of 128 chains across the two products), and the
+correlated-likelihood money fit sits on the same shelf. Whatever the
+mechanism's final form (the T0.4 stationarity rejection is its
+noise-side face, \S\ref{sec:t041}), it travels with \emph{resampling of
+this data}, not with any one pipeline, likelihood class, or sampler ---
+and the native-scale anchor family ($1.4330$ old stack; $1.4683$
+scene-API MCLMC) remains the only convergence-certified answer on this
+sky.
+
 \subsection{What it opens}
 
 The honest open list is long, and most of it is deliberate non-spend
@@ -740,7 +977,8 @@ actuals: {\bf 53.51 of 100 A100-h} at program close, nothing in flight
 (per-row \texttt{sacct} rounding makes the component sum 53.52; flagged,
 not smoothed). Free-tier phoenix spend (not A100): 12.38 L4 GPU-h (B3),
 $\sim$29 A16-h (X2), and --- after program close --- the E1 epilogue's
-9.56 L4-h (\S\ref{sec:modelers}). Zero-artifact and failed jobs are counted at
+9.56 L4-h (\S\ref{sec:modelers}) plus the E2 epilogue's 6.82 L4-h
+(\S\ref{sec:e2}). Zero-artifact and failed jobs are counted at
 full cost in their phases; the wave-1 post-mortem and the recovery-lane
 economics are part of the record, not an embarrassment to be netted out.
 

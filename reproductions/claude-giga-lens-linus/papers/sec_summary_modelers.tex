@@ -27,6 +27,14 @@
 %%  carry the v2d MCLMC additions, and figs/e1_{mclmc_traces,v3b_migration}
 %%  are new (fig:e1traces, fig:e1migration).
 %%
+%%  E2 UPDATE (2026-07-23 second epilogue, the collaborator's own data): one
+%%  compact paragraph after the E1 caveat --- the apples-to-apples fit on
+%%  E. Odell's own 0.064125" preparation fires pre-registered fork 2 (the
+%%  migration extends to his product AND his pipeline), plus one sentence on
+%%  O4's honest mixed result; full section is sec_c_bench_disc \S sec:e2.
+%%  Numbers trace to data/e2_harvest.json.  NO gamma is quoted from the
+%%  failed fit (telemetry labels throughout, per the campaign bright line).
+%%
 %%  P7 UPDATE (2026-07-23, PI review of the site page): item (1) is now
 %%  anchored on figs/rfig_diagnostic_rows.png (fig:diagrows) --- ONE MODEL
 %%  PER ROW (E1 MCLMC 1.4683 lead / diag-low 1.293 / steep 2.639), four
@@ -515,6 +523,34 @@ artifacts: \dfile{data/mclmc\_diag\_v3b.json} (\texttt{gates.E1\_G2});
 \dfile{data/e1\_harvest.json}.}
 \label{fig:e1migration}
 \end{figure}
+
+\paragraph{The E2 epilogue --- the same sky in the collaborator's own
+preparation.}
+A second post-campaign epilogue (E2, 2026-07-23; \S\ref{sec:e2}) ran the
+identical E1 machinery, gates frozen and unchanged, on a collaborator's
+own preparation of this lens (E.~Odell's cutout and PSF, which register at
+$0.064125''$/px --- exactly half our native scale, a \emph{fourth}
+pixelization of this sky, with a parity flip relative to our raster).
+Warm-started from the healthy $1.433$ anchor cloud, all 64 chains in all
+four seed groups migrated during burn-in to the same low-$\gammaEPL$ shelf
+(kept-draw pooled median $1.0999$, $0.0033$ from the corr-low $1.1032$ ---
+descriptive telemetry only: the fit fails both frozen gates,
+$\Rhat_{\rm worst}=5.46$, NO-QUOTE), firing the pre-registered fork~2: the
+migration of Fig.~\ref{fig:e1migration} extends to a \emph{second}
+resampled product and a second, fully independent preparation pipeline ---
+matching the collaborator's own unprompted ``very migratory chains''
+report on his first-stage MCLMC. A companion demonstration on our own
+stored chains (O4, \S\ref{sec:e2}) returned an honest mixed result,
+reported as loudly as its intended pass: the collaborator-style stage-2
+rescue (a fresh MCLMC preconditioned on the migrated stage-1 tail)
+improves the diagnostics most of the way ($\Rhat_{\rm worst}$
+$1.379\to1.188$) while the chains stay at the shelf, but does \emph{not}
+reach the frozen gates --- so the strong ``$\Rhat$-blindness'' claim is
+not supported at our settings, while the healthy \dfile{v2d} control
+converged exactly as pre-registered. The registration findings, the noise
+audit of his product (correlated like ours), and the updated
+product-dependence synthesis are collected in the epilogue section
+(\S\ref{sec:e2}).\art{data/e2\_harvest.json}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Closing box (added 2026-07-23): what is new here vs. classic GIGA-Lens,

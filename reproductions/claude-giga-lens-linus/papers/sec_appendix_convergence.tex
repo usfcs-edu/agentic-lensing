@@ -55,10 +55,12 @@ construction), unique particles after the final resample, MAMS acceptance
 against its 0.90 target, and \sseed\ where independent-seed repeats exist.
 For MCMC arms: $\Rhat_{\rm worst}$ and $\ESS_{\min}$ across parameters,
 against the frozen acceptance rule $\Rhat<1.05 \wedge \ESS\ge200$; the
-post-campaign E1 MCLMC fits (group~M --- lettered for the vehicle, and to
-avoid collision with the campaign's L0/L1/L2 lane names) carry their own,
-stricter frozen gate, $\Rhat<1.01 \wedge \ESS\ge1000$ pooled over 64
-chains plus a $\gammaEPL\in[1.15,2.0]$ containment band. Verdicts
+post-campaign E1/E2 MCLMC fits (groups~M--N --- lettered for the vehicle,
+and to avoid collision with the campaign's L0/L1/L2 lane names) carry
+their own, stricter frozen gate, $\Rhat<1.01 \wedge \ESS\ge1000$ (the
+E1/E2 production fits pooled over 64 chains; the E2-O4 stage-2 arms over
+their 16 chains at the collaborator's stated scale) plus a
+$\gammaEPL\in[1.15,2.0]$ containment band. Verdicts
 use a fixed vocabulary: {\bf CONVERGED} (sampler completed with healthy
 diagnostics; any science-gate outcome is annotated separately), {\bf
 PARTIAL-BY-BUDGET} (healthy sampler stopped by a pre-registered wall cap
@@ -659,6 +661,90 @@ subsequent relaunch is the completed run rowed above &
 \textbf{BLOCKED} (silent kill --- infra, cause unattributed) &
 \dfile{data/watchdog\_\allowbreak state.\allowbreak json}
 (\texttt{phoenix:189281}) \\
+\midrule
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%% N. E2 epilogue %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\cglgrouprow{N. E2 post-campaign epilogue (2026-07-23) --- the
+collaborator's own $0.064125''$ product (O2 apples-to-apples fit) $+$ the
+stage-2 rescue demonstration on stored E1 chains (O4); phoenix L4 free
+tier, 6.63 L4 GPU-h, 0 A100-h; E1-frozen gates, \S\ref{sec:e2}}\\
+\midrule
+E2 odell fit, seed group 0 &
+collaborator's own cutout $+$ PSF, registered $0.064125''$/px (parity
+flip absorbed grid-side; v1 noise assumption), diagonal masked-err
+ridge-marg (\sceneapi) &
+same vendored MCLMC as E1 (warm start = transported healthy 1.433 anchor
+cloud, med 1.4334) &
+16ch $\times$ 4000 (2000 burn) &
+$\Rhat_{\rm worst}$ 2.389 (LL3 center$_y$), $\ESS_{\min}$ 19.6; kept med
+1.1153 [1.1052, 1.1307]; 16/16 chains below the band &
+\textbf{REJECTED} (E2 gate) &
+\dfile{mclmc\_\allowbreak diag\_\allowbreak odell.\allowbreak \{npz,json\}};
+\dfile{data/e2\_\allowbreak harvest.\allowbreak json} \\
+E2 odell fit, seed group 1 &
+same & same & same &
+$\Rhat_{\rm worst}$ 2.322 (LL3 $n_{\rm s\acute ersic}$), $\ESS_{\min}$
+19.8; kept med 1.0893; 16/16 below the band &
+\textbf{REJECTED} &
+same \\
+E2 odell fit, seed group 2 &
+same & same & same &
+$\Rhat_{\rm worst}$ 2.442 (LL2 $e_1$), $\ESS_{\min}$ 19.4; kept med
+1.1033; 16/16 below the band &
+\textbf{REJECTED} &
+same \\
+E2 odell fit, seed group 3 &
+same & same & same &
+$\Rhat_{\rm worst}$ 2.600 (EPL center$_x$), $\ESS_{\min}$ 18.9; kept med
+1.0652; 16/16 below the band &
+\textbf{REJECTED} &
+same \\
+E2 odell fit, pooled verdict (the 4 groups above) &
+same & same &
+pooled 64ch $\times$ 4000 &
+$\Rhat_{\rm worst}$ 5.459 / $\ESS_{\min}$ 66.4 (both LL3
+$n_{\rm s\acute ersic}$); $\gammaEPL$ $\Rhat$ 3.384 (\ESS\ 70); 64/64
+chains out of band --- frac outside min 1.00, median 1.00 (\emph{every}
+kept draw; all reported, none dropped); kept-draw pooled med 1.0999
+(descriptive only: 0.0033 from the corr-low 1.1032, 0.0048 from the E1
+\dfile{v3b} shelf); health clean (nonan = kernel-nonan 1.000; final
+$\varepsilon$ 0.015--0.036, the glassy-shelf signature); wall 4.49\,h,
+peak 7.4\,GB &
+\textbf{REJECTED} --- NO-QUOTE $+$ FINDING (pre-registered fork 2 fires:
+the migration extends to the collaborator's product AND preparation,
+\S\ref{sec:e2}); the one allowed escalation \textbf{declined}
+(structural migration) &
+same; \dfile{figs/e2\_\allowbreak odell\_\allowbreak migration.\allowbreak png} \\
+E2-O4 \dfile{v3b} stage-2 rescue (demonstration arm) &
+our stored E1 \dfile{v3b} migrated stage-1 chains (same binned diagonal
+target; no collaborator data touched) &
+stage-2 MCLMC preconditioned on the pooled stage-1 tail (init rows, tail
+cov as inverse mass, tail mean) &
+16ch $\times$ 5000 (5000 burn) &
+$\Rhat_{\rm worst}$ 1.1875 (LL0 $R_{\rm s\acute ersic}$), $\ESS_{\min}$
+81.3 (src center$_y$); $\gammaEPL$ $\Rhat$ 1.128; vs stage-1:
+$\Rhat_{\rm worst}$ 1.379 $\to$ 1.188, $\gammaEPL$ $\Rhat$ 1.261 $\to$
+1.128; split-half $\Rhat_{\rm worst}$ 1.033 (ch 0--7) / 1.321 (8--15);
+16/16 chains 100\% out of band; $\gammaEPL$ med 1.0849 (telemetry;
+$-0.019$ vs the stage-1 tail --- F2 not fired); 1.65\,h &
+\textbf{REJECTED} at the frozen gates --- falsifier F1 \textbf{FIRED}
+(no pristine-$\Rhat$-at-the-shelf; the rescue improves but does not
+certify; reported as loudly as a pass, \S\ref{sec:e2}) &
+\dfile{o4\_\allowbreak v3b\_\allowbreak stage2.\allowbreak \{npz,json\}};
+\dfile{research/checkpoint\_\allowbreak e2\_\allowbreak o4.\allowbreak md};
+\dfile{figs/e2\_\allowbreak o4\_\allowbreak rescue.\allowbreak png} \\
+E2-O4 \dfile{v2d} stage-2 rescue (control arm) &
+our stored E1 \dfile{v2d} healthy stage-1 chains (native diagonal
+target) &
+identical rescue &
+16ch $\times$ 5000 (5000 burn) &
+$\Rhat_{\rm worst}$ 1.0029, $\ESS_{\min}$ 8305; $\gammaEPL$: $\Rhat$
+1.0007, \ESS\ 12{,}058; $\gammaEPL$ 1.4683 [1.4344, 1.5040] (telemetry)
+$= 0.0008\sigma_{\rm comb}$ from the E1 quotable 1.4683; split-half
+1.0033/1.0027; 0/16 chains out of band; 0.49\,h &
+\textbf{CONVERGED} (control prediction O4-D2 \textbf{MET} exactly as
+pre-registered; F3 not fired) &
+\dfile{o4\_\allowbreak v2d\_\allowbreak stage2.\allowbreak \{npz,json\}};
+\dfile{data/e2\_\allowbreak harvest.\allowbreak json} \\
 \end{longtable}
 \end{landscape}
 \endgroup
