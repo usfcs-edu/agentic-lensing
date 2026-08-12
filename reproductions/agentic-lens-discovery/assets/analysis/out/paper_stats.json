@@ -1,0 +1,185 @@
+{
+  "n_results_rows": 5391,
+  "verdicts": {
+    "yes": 14,
+    "likely": 1952,
+    "no": 3425
+  },
+  "quadrant_flags": 97,
+  "galaxy_types_all": {
+    "elliptical": 2084,
+    "irregular": 178,
+    "compact": 284,
+    "merger": 291,
+    "spiral": 196,
+    "s0": 1196,
+    "ring": 78,
+    "ambiguous": 212,
+    "star": 307,
+    "edge-on disk": 434,
+    "artifact": 48,
+    "": 83
+  },
+  "confidence_by_verdict": {
+    "yes": {
+      "n": 14,
+      "min": 62.0,
+      "max": 95.0,
+      "mean": 72.85714285714286,
+      "median": 72.0
+    },
+    "likely": {
+      "n": 1952,
+      "min": 15.0,
+      "max": 72.0,
+      "mean": 21.8125,
+      "median": 20.0
+    },
+    "no": {
+      "n": 3425,
+      "min": 0.0,
+      "max": 58.0,
+      "mean": 0.3281751824817518,
+      "median": 0.0
+    }
+  },
+  "n_with_evidence": 2024,
+  "evidence_term_rows": {
+    "residual": 1103,
+    "knot": 1039,
+    "blue": 777,
+    "arc": 549,
+    "curved": 426,
+    "ring": 384,
+    "companion": 344,
+    "concave": 305,
+    "counter-image": 244,
+    "tidal": 224,
+    "tangential": 208,
+    "over-subtraction": 148,
+    "edge-on": 130,
+    "colour contrast": 125,
+    "spiral": 118,
+    "merger": 115,
+    "shell": 90,
+    "crescent": 51,
+    "quad": 41,
+    "spike": 33,
+    "diffraction": 30,
+    "radial": 22,
+    "einstein": 20
+  },
+  "n_verification_judgements": 1050,
+  "n_verified_candidates": 350,
+  "verification_by_persona": {
+    "artifact": {
+      "pass": 17,
+      "fail": 329,
+      "uncertain": 4
+    },
+    "geometry": {
+      "pass": 8,
+      "fail": 342
+    },
+    "morphology": {
+      "pass": 12,
+      "fail": 337,
+      "uncertain": 1
+    }
+  },
+  "fail_alternative_classes": {
+    "spiral arm/ring in host": 386,
+    "tidal/merger debris": 193,
+    "chance alignment/companion": 193,
+    "reduction/model artifact": 106,
+    "edge-on/inclined disk": 60,
+    "other/unspecified": 54,
+    "PSF/diffraction": 16
+  },
+  "grades_all": {
+    "A": 5,
+    "B": 5,
+    "C": 12,
+    "U": 1674,
+    "D": 328
+  },
+  "n_controls": 31,
+  "controls_flagged": 15,
+  "controls_theta_lt0p75": {
+    "n": 11,
+    "flagged": 6
+  },
+  "controls_theta_0p75to1p2": {
+    "n": 7,
+    "flagged": 3
+  },
+  "controls_theta_gt1p2": {
+    "n": 5,
+    "flagged": 2
+  },
+  "controls_no_theta": {
+    "n": 8,
+    "flagged": 4
+  },
+  "controls_cowls_ge3A": {
+    "n": 5,
+    "flagged": 3
+  },
+  "controls_in_top100": 0,
+  "n_known_on_cutouts": 239,
+  "known_flagged": 128,
+  "known_gLS": {
+    "n": 31,
+    "flagged": 22
+  },
+  "known_src_breakdown": {
+    "COWLS": {
+      "n": 29,
+      "flagged": 14
+    },
+    "SIMBAD:LeG": {
+      "n": 115,
+      "flagged": 57
+    },
+    "SIMBAD:LeI": {
+      "n": 55,
+      "flagged": 31
+    },
+    "SIMBAD:LeQ": {
+      "n": 3,
+      "flagged": 3
+    },
+    "SIMBAD:gLS": {
+      "n": 31,
+      "flagged": 22
+    },
+    "SIMBAD:gLe": {
+      "n": 6,
+      "flagged": 1
+    }
+  },
+  "known_flagged_conf_max": 95.0,
+  "top100_grades": {
+    "A": 5,
+    "B": 5,
+    "C": 12,
+    "U": 78
+  },
+  "top100_status": {
+    "known": 7,
+    "new": 90,
+    "field_match": 2,
+    "possible": 1
+  },
+  "top100_with_zspec": 16,
+  "top100_with_zphot": 99,
+  "top100_programmes": 42,
+  "top100_sw_filters": {
+    "F150W": 47,
+    "F115W": 5,
+    "F150W2": 24,
+    "F200W": 13,
+    "": 10,
+    "F090W": 1
+  }
+}

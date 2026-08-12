@@ -53,6 +53,12 @@ are **out of scope** (cosmology, not lens discovery/modeling).
 | **Agarwal 2025** — Foundry III, Keck NIRES (2025) | `foundry-iii` | **6/6 source z to \|dz\|<0.001** via blind Eq.1 line-fit + MC validation; consistency reproduction (KOA serves raw-L0 NIRES only; pypeit won't build aarch64 → real-spectra fit pending x86 PypeIt) | ✅ report (9pp) |
 | **Lin 2025** — Foundry IV, VLT/MUSE (2509.18087) | `foundry-iv` | Pulled 3 public ESO MUSE cubes; **auto z_lens 3/3 within dz<0.02** (2/3 <0.003); guided source z exact for Lens22 (0.821); built an automated line-ID engine (unguided source-ID interloper-prone — intrinsic, why the paper did it by hand) | ✅ report (10pp) |
 
+## Agentic discovery
+
+| Campaign | slug | Headline | Status |
+|---|---|---|---|
+| **Agentic JWST lens search** — *research paper* (Benson, Huang & Kvinnesland) | `agentic-lens-discovery` | NOVEL (not a reproduction): first archive-wide strong-lens search run end-to-end by a general-purpose agentic AI (Claude Code v2.1.224, claude-opus-5): 6,848 public NIRCam obs / 916 fields / 4.48 deg² → **5,391 r<21 LS ellipticals, 100% vision-inspected** → 2,024 flagged → 350 three-persona adversarially verified → grades **A 5 / B 5 / C 12** / D 328; 31 blind COWLS controls (15/31 flagged, 0 in top-100); independent audit of top-100: **10 published lenses recovered (rank 1 = SL2S J02176-0513), 24 cluster-field, 66 no prior ID** (clean A/B unknowns: ranks 2, 8, 10); ~50M tokens / 1,067 subagents / ~2 days on a consumer subscription; 2.2 GB auditable reasoning corpus analyzed in the paper | 🚧 paper draft |
+
 ---
 
 ## Reusable infrastructure (validated, on disk)

@@ -1,0 +1,5 @@
+# Bulk source material stays local (2.2 GB of subagent transcripts, the
+# 1.6 GB tar.gz archive, Slack/docx exports, contact sheet). Only the paper's
+# analysis scripts and their small outputs are tracked.
+assets/*
+!assets/analysis/
