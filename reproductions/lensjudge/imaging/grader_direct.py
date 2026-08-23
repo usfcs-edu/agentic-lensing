@@ -52,6 +52,26 @@ _PRICE = {
 # model plan it.
 _DEFAULT_VIEWS = ("full", "zoom", "residual")
 
+# few-shot wrapper sentences, shared with the golden JWST exemplar builder (golden/fewshot.py)
+# so every in-context arm frames its references with the identical words.
+FEWSHOT_LEAD = ("Below are REFERENCE EXAMPLES with known labels, to calibrate your grading. Study them, "
+                "then grade the CANDIDATE that follows (it is NOT among the examples). Use the FULL p_lens "
+                "range: a clear lens should score near 1.0, a clear non-lens near 0.0; do not default to 0.")
+FEWSHOT_TRAIL = "END OF REFERENCE EXAMPLES. Now grade THIS candidate:"
+
+
+def _repair_text(schema) -> str:
+    """The one text-only repair prompt. ImageGrade keeps grader_lean's verbatim _REPAIR (its
+    key list is ImageGrade's); any other pydantic schema (the golden panel records) gets the
+    same sentence built from its own top-level keys, so a repair never asks for the wrong
+    record."""
+    if schema is ImageGrade:
+        return _REPAIR
+    keys = ", ".join(getattr(schema, "model_fields", {}).keys()) or "the required schema"
+    return ("Your previous reply was not valid JSON for the required schema. Re-emit EXACTLY "
+            f"ONE JSON object with keys {keys} — and nothing else. Here is your previous reply "
+            "to fix:\n\n")
+
 
 def _example_blocks(ex: dict, views) -> Optional[list]:
     """Render one labeled few-shot reference example into content blocks (or None if no cutout)."""
@@ -63,7 +83,12 @@ def _example_blocks(ex: dict, views) -> Optional[list]:
     label = str(ex.get("label", "")).upper()
     hdr = f"REFERENCE EXAMPLE -- {label}"
     if ex.get("grade"):
-        hdr += f" (consensus grade {ex['grade']})"
+        # the manifest may name who graded the example ("expert" for a per-rater label);
+        # default keeps the historical consensus wording for existing DESI manifests.
+        grade_source = ex.get("grade_source") or "consensus"
+        if not isinstance(grade_source, str):   # pandas NaN from an empty CSV cell
+            grade_source = "consensus"
+        hdr += f" ({grade_source} grade {ex['grade']})"
     if ex.get("note"):
         hdr += f": {ex['note']}"
     blocks: list = [{"type": "text", "text": hdr}]
@@ -86,15 +111,12 @@ def _fewshot_prefix(views) -> list:
         rows = pd.read_csv(path).to_dict("records")
     except Exception:
         return []
-    out: list = [{"type": "text", "text":
-                  "Below are REFERENCE EXAMPLES with known labels, to calibrate your grading. Study them, "
-                  "then grade the CANDIDATE that follows (it is NOT among the examples). Use the FULL p_lens "
-                  "range: a clear lens should score near 1.0, a clear non-lens near 0.0; do not default to 0."}]
+    out: list = [{"type": "text", "text": FEWSHOT_LEAD}]
     for ex in rows:
         b = _example_blocks(ex, views)
         if b:
             out.extend(b)
-    out.append({"type": "text", "text": "END OF REFERENCE EXAMPLES. Now grade THIS candidate:"})
+    out.append({"type": "text", "text": FEWSHOT_TRAIL})
     return out if len(out) > 2 else []   # only prefix if at least one example rendered
 
 
@@ -174,17 +196,19 @@ def _build_content(cand: dict, views) -> Optional[list]:
 
 
 async def _grade_openai(cand: dict, content: list, model_id: str, sysp: str,
-                        n_imgs: int, tr, t0: float) -> GradeResult:
+                        n_imgs: int, tr, t0: float, schema=ImageGrade) -> GradeResult:
     """Open-weight backend path (LENSJUDGE_BACKEND=openai): one OpenAI-compatible
     multimodal call with the SAME evidence blocks + rubric, schema-validated by parse.
 
     Mirrors the Anthropic single-call flow (one turn, one text-only repair retry) so the
-    GradeResult is drop-in identical; only the transport differs.
+    GradeResult is drop-in identical; only the transport differs. `schema` is the pydantic
+    record the reply must validate into (ImageGrade by default; the golden panel roles pass
+    their own) — it drives the served json_schema and both parses.
     """
     try:
         res = await llm_client.chat_with_images(
             system=sysp, content=content, model=model_id, max_tokens=2048,
-            json_schema=ImageGrade.model_json_schema())
+            json_schema=schema.model_json_schema())
     except Exception as e:
         return GradeResult(None, "", error=f"{type(e).__name__}: {e}", parse_ok=False,
                            meta={"name": cand.get("name"), "mode": "direct"})
@@ -194,13 +218,17 @@ async def _grade_openai(cand: dict, content: list, model_id: str, sysp: str,
                  output_tokens=res.output_tokens, cost_usd=round(cost, 5),
                  stop_reason=res.finish_reason, text=raw, backend="openai",
                  grade_probs=gp)
-    grade = parse.parse_model(raw, ImageGrade)
+    grade = parse.parse_model(raw, schema)
     if grade is None and raw:  # one text-only repair retry (matches the anthropic path)
         try:
-            r2 = await llm_client.chat_text(system=sysp, text=_REPAIR + raw,
+            r2 = await llm_client.chat_text(system=sysp, text=_repair_text(schema) + raw,
                                             model=model_id, max_tokens=2048)
             cost += r2.cost_usd
-            g2 = parse.parse_model(r2.text, ImageGrade)
+            g2 = parse.parse_model(r2.text, schema)
+            if tr is not None:   # the retry is a paid call: trace it so repair rates are countable
+                tr.write("direct_repair", input_tokens=r2.input_tokens, output_tokens=r2.output_tokens,
+                         cost_usd=round(r2.cost_usd, 5), parse_ok=g2 is not None, text=r2.text,
+                         backend="openai")
             if g2 is not None:
                 grade, raw = g2, r2.text
                 gp = r2.grade_probs or gp
@@ -212,8 +240,10 @@ async def _grade_openai(cand: dict, content: list, model_id: str, sysp: str,
               "backend": "openai", "n_images": n_imgs,
               "wall_s": round(time.time() - t0, 2),
               "trace": str(tr.path) if tr else None,
-              # v5 logprob scoring: raw grade-token distribution + uncalibrated P(A)+P(B)
+              # v5 logprob scoring: raw grade-token distribution + uncalibrated P(A)+P(B);
+              # s_exp = expected ordinal (A=1 .. D=0) over the same distribution (golden E5)
               "grade_probs": gp, "p_lens_logprob": llm_client.logprob_p_lens(gp),
+              "s_exp": llm_client.logprob_ordinal(gp),
               # provenance columns expected by run_batch._row_dict (None in direct mode)
               "tier": None, "escalated": None, "highres_survey": None,
               "p_lens_tier1": None, "p_lens_tier2": None,
@@ -225,9 +255,14 @@ async def grade_candidate(cand: dict, *, model: Optional[str] = None,
                           system_prompt: Optional[str] = None,
                           views=_DEFAULT_VIEWS,
                           content: Optional[list] = None,
-                          trace_path: Optional[str] = None) -> GradeResult:
+                          trace_path: Optional[str] = None,
+                          schema=ImageGrade) -> GradeResult:
     # `content` lets callers supply PRE-RENDERED evidence blocks (e.g. Euclid/HSC high-res views for
     # tier-2 distillation) and reuse this dual-backend single-call path unchanged; default = DESI grz.
+    # `schema` is the pydantic record the reply is validated into (parse.parse_model on both
+    # backends + the repair retry); ImageGrade by default, so every existing caller is unchanged.
+    # The golden panel roles (golden/panel.py) pass AdvocateRecord / CriticRecord / ... and a
+    # reply that fails THAT schema is a parse failure, never an ImageGrade coercion.
     model_id = _resolve_model(model)
     tr = hooks.Trace(trace_path) if trace_path else None
     t0 = time.time()
@@ -240,10 +275,10 @@ async def grade_candidate(cand: dict, *, model: Optional[str] = None,
     sysp = system_prompt or _RUBRIC
     if tr is not None:
         tr.write("direct_request", model=model_id, n_images=n_imgs, views=list(views),
-                 backend=llm_client.get_backend())
+                 backend=llm_client.get_backend(), schema=getattr(schema, "__name__", str(schema)))
     # open-weight backend: route through the OpenAI-compatible client and return.
     if llm_client.is_open():
-        return await _grade_openai(cand, content, model_id, sysp, n_imgs, tr, t0)
+        return await _grade_openai(cand, content, model_id, sysp, n_imgs, tr, t0, schema=schema)
     client = _get_client()
 
     # thinking: off by default (matches lean's default; isolates the loop). When
@@ -277,16 +312,20 @@ async def grade_candidate(cand: dict, *, model: Optional[str] = None,
         tr.write("direct_response", input_tokens=resp.usage.input_tokens,
                  output_tokens=resp.usage.output_tokens, cost_usd=round(cost, 5),
                  stop_reason=resp.stop_reason, text=raw)
-    grade = parse.parse_model(raw, ImageGrade)
+    grade = parse.parse_model(raw, schema)
 
     if grade is None and raw:  # one text-only repair retry (matches lean for fairness)
         try:
             r2 = await client.messages.create(
                 model=model_id, max_tokens=2048, system=sysp,
-                messages=[{"role": "user", "content": _REPAIR + raw}])
+                messages=[{"role": "user", "content": _repair_text(schema) + raw}])
             raw2 = "".join(b.text for b in r2.content if b.type == "text")
             cost += _cost(model_id, r2.usage)
-            g2 = parse.parse_model(raw2, ImageGrade)
+            g2 = parse.parse_model(raw2, schema)
+            if tr is not None:   # the retry is a paid call: trace it so repair rates are countable
+                tr.write("direct_repair", input_tokens=r2.usage.input_tokens,
+                         output_tokens=r2.usage.output_tokens, cost_usd=round(_cost(model_id, r2.usage), 5),
+                         stop_reason=r2.stop_reason, parse_ok=g2 is not None, text=raw2)
             if g2 is not None:
                 grade, raw = g2, raw2
         except Exception:

@@ -36,13 +36,24 @@ def extract_json_block(text: str) -> Optional[dict]:
 
 
 def _try_balanced(text: str) -> Optional[dict]:
-    """Scan for the outermost balanced brace span and parse it (last one wins)."""
+    """Scan for the outermost balanced brace span and parse it (last one wins).
+
+    String state is tracked only INSIDE a brace span: prose before the JSON routinely
+    carries an odd number of double quotes (arcsecond marks such as 3.5", a quoted word),
+    and tracking quotes from the first character would put the record's opening brace
+    "inside a string" and return its last nested object (location / measured / criteria)
+    instead of the record — a systematic parse failure for models that preface the JSON
+    with reasoning."""
     best = None
     depth = 0
     start = -1
     in_str = False
     esc = False
     for i, ch in enumerate(text):
+        if depth == 0:
+            if ch == "{":
+                start, depth, in_str, esc = i, 1, False, False
+            continue
         if in_str:
             if esc:
                 esc = False
@@ -54,18 +65,15 @@ def _try_balanced(text: str) -> Optional[dict]:
         if ch == '"':
             in_str = True
         elif ch == "{":
-            if depth == 0:
-                start = i
             depth += 1
         elif ch == "}":
-            if depth > 0:
-                depth -= 1
-                if depth == 0 and start >= 0:
-                    chunk = text[start:i + 1]
-                    try:
-                        best = json.loads(chunk)
-                    except Exception:
-                        pass
+            depth -= 1
+            if depth == 0 and start >= 0:
+                chunk = text[start:i + 1]
+                try:
+                    best = json.loads(chunk)
+                except Exception:
+                    pass
     return best
 
 

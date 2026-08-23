@@ -1,0 +1,16 @@
+name,ra,dec,survey_key,label,grade,note,grade_source
+DESI-008.6173+02.4228,8.6173,2.4228,ls-dr9,LENS,A,,"expert (Paper II, both graders agreed)"
+DESI-038.8136-21.5095,38.8136,-21.5095,ls-dr9,LENS,A,,"expert (Paper II, both graders agreed)"
+DESI-035.2405-38.5511,35.2405,-38.5511,ls-dr9,LENS,A,,"expert (Paper II, both graders agreed)"
+DESI-020.7960+30.9619,20.796,30.9619,ls-dr9,LENS,B,,"expert (Paper II, both graders agreed)"
+DESI-031.0343-29.3024,31.0343,-29.3024,ls-dr9,LENS,B,,"expert (Paper II, both graders agreed)"
+DESI-203.8331-08.4487,203.8331,-8.4487,ls-dr9,LENS,B,,"expert (Paper II, both graders agreed)"
+DESI-328.0860-43.5877,328.086,-43.5877,ls-dr9,POSSIBLE LENS,C,,"expert (Paper II, both graders agreed)"
+DESI-023.8146-17.4043,23.8146,-17.4043,ls-dr9,POSSIBLE LENS,C,,"expert (Paper II, both graders agreed)"
+DESI-025.0520-20.1055,25.052,-20.1055,ls-dr9,POSSIBLE LENS,C,,"expert (Paper II, both graders agreed)"
+DESI-168.2985-07.9035,168.2984744,-7.903497546,storfer,NON-LENS,D,,expert VI reject (Storfer 2024 / Inchausti 2025 grade-D lists)
+DESI-030.7760+00.0789,30.77600044,0.0789062154,storfer,NON-LENS,D,,expert VI reject (Storfer 2024 / Inchausti 2025 grade-D lists)
+DESI-056.0415-38.7932,56.04147374,-38.79316667,storfer,NON-LENS,D,,expert VI reject (Storfer 2024 / Inchausti 2025 grade-D lists)
+DESI-014.3890-03.6012,14.38902764,-3.601221692,storfer,NON-LENS,D,,expert VI reject (Storfer 2024 / Inchausti 2025 grade-D lists)
+DESI-057.9159-37.9775,57.91586404,-37.97746897,storfer,NON-LENS,D,,expert VI reject (Storfer 2024 / Inchausti 2025 grade-D lists)
+DESI-026.6464-22.0237,26.64639079,-22.02369343,storfer,NON-LENS,D,,expert VI reject (Storfer 2024 / Inchausti 2025 grade-D lists)

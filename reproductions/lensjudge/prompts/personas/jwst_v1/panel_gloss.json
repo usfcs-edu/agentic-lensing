@@ -1,0 +1,181 @@
+{
+  "version": "jwst_v1",
+  "_what": "Layout-conditional, per-role VIEW descriptions for the evidence-first JWST panel (advocate / artifact / geometry / morphology / arbitrator). The persona .md files are layout-neutral on purpose; this file is the only place that says which panels a role is shown and what each one is, so no prompt ever describes a colour panel that is absent. Every `text` / `ctx20_text` string is model-facing (goes into the user message with the images) and is lexicon- and id-checked by tests/test_golden_prompts.py. Boxes are measured from common/jwst_fetch.render_cutout (px=240, gap=8, title strip 18 px, footer from y=540 on the 752x562 canvas); `boxes` exclude the title strip, `boxes_titled` include it. `ctx20` says whether the wide 20\" context view is attached by default (geometry only); every view set carries a `ctx20_text` so an arm that attaches the context to another role (the gated ctx20 arm) appends that sentence without editing this file. `renders` maps a composite view set to its twin for another render of the same stamp (v2r = golden/render_v2.py, slot (f) replaced by a signed-chi SW | LW montage of an elliptical-model residual); a `render_desc: true` view set is always sent with golden/render_v2_desc.md appended (views.view_text refuses otherwise), so the image and its load-bearing description ship as one unit. The circular-subtraction caveat (butterfly / bowtie, concentric rings, off-centre dipole) is stated in the v1 composite texts here and nowhere else, so no role is told two different things about panel (f).",
+  "composite": {
+    "width": 752,
+    "height": 562,
+    "footer_y": 540,
+    "panel_px": 240,
+    "gap": 8,
+    "title_h": 18,
+    "x0": [8, 256, 504],
+    "y0": [26, 292],
+    "boxes": {
+      "a": [8, 26, 248, 266],
+      "b": [256, 26, 496, 266],
+      "c": [504, 26, 744, 266],
+      "d": [8, 292, 248, 532],
+      "e": [256, 292, 496, 532],
+      "f": [504, 292, 744, 532]
+    },
+    "boxes_titled": {
+      "a": [8, 8, 248, 266],
+      "b": [256, 8, 496, 266],
+      "c": [504, 8, 744, 266],
+      "d": [8, 274, 248, 532],
+      "e": [256, 274, 496, 532],
+      "f": [504, 274, 744, 532]
+    }
+  },
+  "layout_aliases": {
+    "color": "color",
+    "gray_sw_only": "gray",
+    "gray_lw_only": "gray"
+  },
+  "layouts": {
+    "color": {
+      "panels": {
+        "a": "normal stretch, 10\" field",
+        "b": "deep stretch, 10\" field (faint low-surface-brightness features; cores saturate)",
+        "c": "two-band colour, 10\" field (red = long-wavelength channel, blue = short-wavelength channel, green = their mean)",
+        "d": "deep stretch, 3.5\" zoom on the catalogued galaxy",
+        "e": "two-band colour, 3.5\" zoom",
+        "f": "deflector-subtracted residual, 3.5\" zoom (a CIRCULAR radial-profile model of the central galaxy removed)"
+      },
+      "fov_arcsec": {
+        "a": 10,
+        "b": 10,
+        "c": 10,
+        "d": 3.5,
+        "e": 3.5,
+        "f": 3.5
+      },
+      "direct": ["a", "b", "c", "d", "e"],
+      "subtracted": ["f"],
+      "has_colour": true
+    },
+    "gray": {
+      "panels": {
+        "a": "normal stretch, 10\" field",
+        "b": "deep stretch, 10\" field (faint low-surface-brightness features; cores saturate)",
+        "c": "deflector-subtracted residual, 10\" field (a CIRCULAR radial-profile model of the central galaxy removed)",
+        "d": "deep stretch, 3.5\" zoom on the catalogued galaxy",
+        "e": "normal stretch, 3.5\" zoom",
+        "f": "deflector-subtracted residual, 3.5\" zoom (the same circular radial-profile subtraction)"
+      },
+      "fov_arcsec": {
+        "a": 10,
+        "b": 10,
+        "c": 10,
+        "d": 3.5,
+        "e": 3.5,
+        "f": 3.5
+      },
+      "direct": ["a", "b", "d", "e"],
+      "subtracted": ["c", "f"],
+      "has_colour": false
+    }
+  },
+  "view_sets": {
+    "composite_color": {
+      "panels": "composite",
+      "crop": "footer",
+      "upscale": 1,
+      "ctx20": false,
+      "text": "VIEW: one JWST NIRCam composite, six panels in two rows, north up and east left in every panel. Row 1, 10\" field: (a) normal stretch; (b) deep stretch (faint low-surface-brightness features, cores saturate); (c) two-band colour (red = long-wavelength channel, blue = short-wavelength channel, green = their mean). Row 2, 3.5\" zoom on the catalogued galaxy: (d) deep stretch; (e) two-band colour; (f) deflector-subtracted residual, a CIRCULAR radial-profile model of the central galaxy removed. Direct (un-subtracted) panels: a, b, c, d, e. Subtracted panels: f. The subtraction is a one-dimensional azimuthally-averaged profile about the stamp centre: no ellipticity, bar, disc or off-centre position is modelled, so on ANY elliptical, barred or inclined galaxy it leaves a four-lobed butterfly / bowtie and concentric positive/negative rings, and on an off-centre or companion-blended deflector a dipole. Those patterns are properties of the subtraction, not of the sky - evidence neither for nor against a lens; never count one as an item or name one as an alternative. A lensed arc in (f) is an OFFSET, tangential feature at roughly constant radius that is also traceable in (d) or (e). Four yellow ticks mark the catalogued galaxy (the putative deflector) in every panel; a 1\" white scale bar sits in the first panel of each row; row-1 panels carry NE/NW/SE/SW corner labels and panel (a) a green N/E compass. Colour is two-band only (one short- and one long-wavelength filter). No tools, scores or photometry are available; the image is the complete evidence set.",
+      "ctx20_text": "Also supplied: a wide context view of the same field, 20\" across, as a deep-stretch tile and a two-band colour tile, same orientation, catalogued galaxy at the centre - for group/cluster-scale assessment (neighbours, envelope, second red members)."
+    },
+    "composite_gray": {
+      "panels": "composite",
+      "crop": "footer",
+      "upscale": 1,
+      "ctx20": false,
+      "text": "VIEW: one JWST NIRCam composite from a SINGLE band - six grayscale panels in two rows and no colour information anywhere; north up and east left in every panel. Row 1, 10\" field: (a) normal stretch; (b) deep stretch (faint low-surface-brightness features, cores saturate); (c) deflector-subtracted residual at 10\", a CIRCULAR radial-profile model of the central galaxy removed. Row 2, 3.5\" zoom on the catalogued galaxy: (d) deep stretch; (e) normal stretch; (f) deflector-subtracted residual at 3.5\", the same circular subtraction. Direct (un-subtracted) panels: a, b, d, e. Subtracted panels: c, f. The subtraction is a one-dimensional azimuthally-averaged profile about the stamp centre: no ellipticity, bar, disc or off-centre position is modelled, so on ANY elliptical, barred or inclined galaxy it leaves a four-lobed butterfly / bowtie and concentric positive/negative rings, and on an off-centre or companion-blended deflector a dipole. Those patterns are properties of the subtraction, not of the sky - evidence neither for nor against a lens; never count one as an item or name one as an alternative. A lensed arc in (c) or (f) is an OFFSET, tangential feature at roughly constant radius that is also traceable in (d) or (e). Four yellow ticks mark the catalogued galaxy (the putative deflector) in every panel; a 1\" white scale bar sits in the first panel of each row; row-1 panels carry NE/NW/SE/SW corner labels and panel (a) a green N/E compass. No tools, scores or photometry are available; the image is the complete evidence set.",
+      "ctx20_text": "Also supplied: a wide context view of the same field, 20\" across, a single-band deep-stretch tile, same orientation, catalogued galaxy at the centre - for group/cluster-scale assessment (neighbours, envelope, second red members)."
+    },
+    "composite_color_v2r": {
+      "panels": "composite",
+      "crop": "footer",
+      "upscale": 1,
+      "ctx20": false,
+      "render_desc": true,
+      "text": "VIEW: one JWST NIRCam composite, six panels in two rows, north up and east left in every panel. Row 1, 10\" field: (a) normal stretch; (b) deep stretch (faint low-surface-brightness features, cores saturate); (c) two-band colour (red = long-wavelength channel, blue = short-wavelength channel, green = their mean). Row 2, 3.5\" zoom on the catalogued galaxy: (d) deep stretch; (e) two-band colour; (f) a SIGNED-CHI residual after removing a smooth ELLIPTICAL model of the central galaxy, shown as two tiles SW | LW on a red/blue scale - NOT a circular subtraction; its description follows this paragraph and governs how (f) is read. Direct (un-subtracted) panels: a, b, c, d, e. Subtracted panels: f (elliptical-model chi residual). Four yellow ticks mark the catalogued galaxy (the putative deflector) in every panel; a 1\" white scale bar sits in the first panel of each row; row-1 panels carry NE/NW/SE/SW corner labels and panel (a) a green N/E compass. Colour is two-band only (one short- and one long-wavelength filter). No tools, scores or photometry are available; the image is the complete evidence set.",
+      "ctx20_text": "Also supplied: a wide context view of the same field, 20\" across, as a deep-stretch tile and a two-band colour tile, same orientation, catalogued galaxy at the centre - for group/cluster-scale assessment (neighbours, envelope, second red members)."
+    },
+    "composite_gray_v2r": {
+      "panels": "composite",
+      "crop": "footer",
+      "upscale": 1,
+      "ctx20": false,
+      "render_desc": true,
+      "text": "VIEW: one JWST NIRCam composite from a SINGLE band - six grayscale panels in two rows and no colour information anywhere; north up and east left in every panel. Row 1, 10\" field: (a) normal stretch; (b) deep stretch (faint low-surface-brightness features, cores saturate); (c) deflector-subtracted residual at 10\", a CIRCULAR radial-profile model of the central galaxy removed. Row 2, 3.5\" zoom on the catalogued galaxy: (d) deep stretch; (e) normal stretch; (f) a SIGNED-CHI residual after removing a smooth ELLIPTICAL model of the central galaxy, a single tile on a red/blue scale - NOT the circular subtraction of (c); its description follows this paragraph and governs how (f) is read. Direct (un-subtracted) panels: a, b, d, e. Subtracted panels: c, f (c: circular radial-profile residual; f: elliptical-model chi residual). The subtraction is a one-dimensional azimuthally-averaged profile about the stamp centre: no ellipticity, bar, disc or off-centre position is modelled, so on ANY elliptical, barred or inclined galaxy it leaves a four-lobed butterfly / bowtie and concentric positive/negative rings, and on an off-centre or companion-blended deflector a dipole. Those patterns are properties of the subtraction, not of the sky - evidence neither for nor against a lens; never count one as an item or name one as an alternative. A lensed arc in (c) is an OFFSET, tangential feature at roughly constant radius that is also traceable in (d) or (e). Four yellow ticks mark the catalogued galaxy (the putative deflector) in every panel; a 1\" white scale bar sits in the first panel of each row; row-1 panels carry NE/NW/SE/SW corner labels and panel (a) a green N/E compass. No tools, scores or photometry are available; the image is the complete evidence set.",
+      "ctx20_text": "Also supplied: a wide context view of the same field, 20\" across, a single-band deep-stretch tile, same orientation, catalogued galaxy at the centre - for group/cluster-scale assessment (neighbours, envelope, second red members)."
+    },
+    "geometry_color": {
+      "panels": ["b", "d", "e"],
+      "crop": "boxes_titled",
+      "upscale": 2,
+      "ctx20": true,
+      "text": "VIEW: three direct (un-subtracted) panels cropped from one JWST NIRCam composite and enlarged 2x, each under its own title strip; north up, east left. (b) deep stretch, 10\" field, NE/NW/SE/SW corner labels; (d) deep stretch, 3.5\" zoom on the catalogued galaxy, with a 1\" white scale bar; (e) two-band colour, 3.5\" zoom (red = long-wavelength channel, blue = short-wavelength channel, green = their mean). No deflector-subtracted panel is included. Four yellow ticks mark the catalogued galaxy (the putative deflector) in every panel; the field of view stated for each panel sets the scale where no bar is drawn. Colour is two-band only. No tools, scores or photometry are available.",
+      "ctx20_text": "Also supplied: a wide context view of the same field, 20\" across, as a deep-stretch tile and a two-band colour tile, same orientation, catalogued galaxy at the centre - for group/cluster-scale assessment (neighbours, envelope, second red members)."
+    },
+    "geometry_gray": {
+      "panels": ["b", "d", "e"],
+      "crop": "boxes_titled",
+      "upscale": 2,
+      "ctx20": true,
+      "text": "VIEW: three direct (un-subtracted) grayscale panels cropped from one SINGLE-BAND JWST NIRCam composite and enlarged 2x, each under its own title strip; north up, east left; no colour information exists for this object. (b) deep stretch, 10\" field, NE/NW/SE/SW corner labels; (d) deep stretch, 3.5\" zoom on the catalogued galaxy, with a 1\" white scale bar; (e) normal stretch, 3.5\" zoom. No deflector-subtracted panel is included. Four yellow ticks mark the catalogued galaxy (the putative deflector) in every panel; the field of view stated for each panel sets the scale where no bar is drawn. No tools, scores or photometry are available.",
+      "ctx20_text": "Also supplied: a wide context view of the same field, 20\" across, a single-band deep-stretch tile, same orientation, catalogued galaxy at the centre - for group/cluster-scale assessment (neighbours, envelope, second red members)."
+    },
+    "morphology_color": {
+      "panels": ["c", "d", "e"],
+      "crop": "boxes_titled",
+      "upscale": 2,
+      "ctx20": false,
+      "text": "VIEW: three direct (un-subtracted) panels cropped from one JWST NIRCam composite and enlarged 2x, each under its own title strip; north up, east left. (c) two-band colour, 10\" field (red = long-wavelength channel, blue = short-wavelength channel, green = their mean), NE/NW/SE/SW corner labels; (d) deep stretch, 3.5\" zoom on the catalogued galaxy, with a 1\" white scale bar; (e) two-band colour, 3.5\" zoom. No deflector-subtracted panel is included. Four yellow ticks mark the catalogued galaxy (the putative deflector) in every panel; the field of view stated for each panel sets the scale where no bar is drawn. Colour is two-band only. No tools, scores or photometry are available.",
+      "ctx20_text": "Also supplied: a wide context view of the same field, 20\" across, as a deep-stretch tile and a two-band colour tile, same orientation, catalogued galaxy at the centre - for group/cluster-scale assessment (neighbours, envelope, second red members)."
+    },
+    "morphology_gray": {
+      "panels": ["a", "d", "e"],
+      "crop": "boxes_titled",
+      "upscale": 2,
+      "ctx20": false,
+      "text": "VIEW: three direct (un-subtracted) grayscale panels cropped from one SINGLE-BAND JWST NIRCam composite and enlarged 2x, each under its own title strip; north up, east left; no colour information exists for this object. (a) normal stretch, 10\" field, with a 1\" white scale bar, NE/NW/SE/SW corner labels and a green N/E compass; (d) deep stretch, 3.5\" zoom on the catalogued galaxy, with a 1\" white scale bar; (e) normal stretch, 3.5\" zoom. No deflector-subtracted panel is included. Four yellow ticks mark the catalogued galaxy (the putative deflector) in every panel. No tools, scores or photometry are available.",
+      "ctx20_text": "Also supplied: a wide context view of the same field, 20\" across, a single-band deep-stretch tile, same orientation, catalogued galaxy at the centre - for group/cluster-scale assessment (neighbours, envelope, second red members)."
+    }
+  },
+  "roles": {
+    "advocate": {
+      "color": "composite_color",
+      "gray": "composite_gray"
+    },
+    "artifact": {
+      "color": "composite_color",
+      "gray": "composite_gray"
+    },
+    "geometry": {
+      "color": "geometry_color",
+      "gray": "geometry_gray"
+    },
+    "morphology": {
+      "color": "morphology_color",
+      "gray": "morphology_gray"
+    },
+    "arbitrator": {
+      "color": "composite_color",
+      "gray": "composite_gray"
+    }
+  },
+  "renders": {
+    "v2r": {
+      "composite_color": "composite_color_v2r",
+      "composite_gray": "composite_gray_v2r"
+    }
+  },
+  "headers": {
+    "items": "EVIDENCE ITEMS located by the scorer (k, what, panel, r_arcsec from the ticked galaxy, pa_deg_from, pa_deg_to with North 0 and East 90, visible_in_direct, criteria):",
+    "items_none": "EVIDENCE ITEMS: none were located.",
+    "scale_class": "Scale class reported by the scorer:",
+    "arbitrator_texts": "REPORTS (the scorer's record, then each critic's record, verbatim JSON):"
+  }
+}

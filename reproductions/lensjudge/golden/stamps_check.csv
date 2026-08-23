@@ -1,0 +1,251 @@
+candidate_id,ref_path,ours_path,bytes_identical,max_abs_diff,frac_pixels_differ,ref_bytes,ours_bytes,note
+J11454711+6555180,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J11454711+6555180.jpg,golden/stamps/J11454711+6555180/J11454711+6555180_v1.jpg,False,,,0,0,no reference
+J19789495-132348,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J19789495-132348.jpg,golden/stamps/J19789495-132348/J19789495-132348_v1.jpg,True,0.0,0.0,89590,89590,
+J804181+1819597,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J804181+1819597.jpg,golden/stamps/J804181+1819597/J804181+1819597_v1.jpg,True,0.0,0.0,125102,125102,
+J15026528+186865,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15026528+186865.jpg,golden/stamps/J15026528+186865/J15026528+186865_v1.jpg,False,,,0,0,no reference
+J30791374-4058431,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J30791374-4058431.jpg,golden/stamps/J30791374-4058431/J30791374-4058431_v1.jpg,True,0.0,0.0,101109,101109,
+J17710747+5286937,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J17710747+5286937.jpg,golden/stamps/J17710747+5286937/J17710747+5286937_v1.jpg,False,,,0,0,no reference
+J20945435-1082161,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J20945435-1082161.jpg,golden/stamps/J20945435-1082161/J20945435-1082161_v1.jpg,True,0.0,0.0,110509,110509,
+J803366+1819844,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J803366+1819844.jpg,golden/stamps/J803366+1819844/J803366+1819844_v1.jpg,False,,,0,0,no reference
+J9006236-2015944,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J9006236-2015944.jpg,golden/stamps/J9006236-2015944/J9006236-2015944_v1.jpg,True,0.0,0.0,126183,126183,
+J928927+915106,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J928927+915106.jpg,golden/stamps/J928927+915106/J928927+915106_v1.jpg,False,,,0,0,no reference
+J32235757-764217,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J32235757-764217.jpg,golden/stamps/J32235757-764217/J32235757-764217_v1.jpg,False,,,0,0,no reference
+J21000126+1448989,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J21000126+1448989.jpg,golden/stamps/J21000126+1448989/J21000126+1448989_v1.jpg,False,,,0,0,no reference
+J14973771+199708,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J14973771+199708.jpg,golden/stamps/J14973771+199708/J14973771+199708_v1.jpg,False,,,0,0,no reference
+J2295773-1360329,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J2295773-1360329.jpg,golden/stamps/J2295773-1360329/J2295773-1360329_v1.jpg,False,,,0,0,no reference
+J15009505+230050,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15009505+230050.jpg,golden/stamps/J15009505+230050/J15009505+230050_v1.jpg,False,,,0,0,no reference
+J34218891-4454040,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J34218891-4454040.jpg,golden/stamps/J34218891-4454040/J34218891-4454040_v1.jpg,False,,,0,0,no reference
+J18918368+6235757,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J18918368+6235757.jpg,golden/stamps/J18918368+6235757/J18918368+6235757_v1.jpg,False,,,0,0,no reference
+J21026355+287185,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J21026355+287185.jpg,golden/stamps/J21026355+287185/J21026355+287185_v1.jpg,False,,,0,0,no reference
+J2104758+067717,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J2104758+067717.jpg,golden/stamps/J2104758+067717/J2104758+067717_v1.jpg,True,0.0,0.0,116646,116646,
+J9192602-4479623,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J9192602-4479623.jpg,golden/stamps/J9192602-4479623/J9192602-4479623_v1.jpg,True,0.0,0.0,109900,109900,
+J20960149-304690,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J20960149-304690.jpg,golden/stamps/J20960149-304690/J20960149-304690_v1.jpg,True,0.0,0.0,87859,87859,
+J14977486+224978,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J14977486+224978.jpg,golden/stamps/J14977486+224978/J14977486+224978_v1.jpg,True,0.0,0.0,141307,141307,
+J20865088+7724666,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J20865088+7724666.jpg,golden/stamps/J20865088+7724666/J20865088+7724666_v1.jpg,True,0.0,0.0,94561,94561,
+J18908112+6221462,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J18908112+6221462.jpg,golden/stamps/J18908112+6221462/J18908112+6221462_v1.jpg,False,,,0,0,no reference
+J6403185-2403539,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J6403185-2403539.jpg,golden/stamps/J6403185-2403539/J6403185-2403539_v1.jpg,False,,,0,0,no reference
+J15032484+248405,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15032484+248405.jpg,golden/stamps/J15032484+248405/J15032484+248405_v1.jpg,True,0.0,0.0,97768,97768,
+J6439169-1191885,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J6439169-1191885.jpg,golden/stamps/J6439169-1191885/J6439169-1191885_v1.jpg,True,0.0,0.0,119600,119600,
+J16440195+5798696,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J16440195+5798696.jpg,golden/stamps/J16440195+5798696/J16440195+5798696_v1.jpg,False,,,0,0,no reference
+J8570140-2144889,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J8570140-2144889.jpg,golden/stamps/J8570140-2144889/J8570140-2144889_v1.jpg,True,0.0,0.0,136768,136768,
+J21483295+5282544,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J21483295+5282544.jpg,golden/stamps/J21483295+5282544/J21483295+5282544_v1.jpg,True,0.0,0.0,126486,126486,
+J15424410+3903685,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15424410+3903685.jpg,golden/stamps/J15424410+3903685/J15424410+3903685_v1.jpg,True,0.0,0.0,104917,104917,
+J34710108-218831,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J34710108-218831.jpg,golden/stamps/J34710108-218831/J34710108-218831_v1.jpg,False,,,0,0,no reference
+J21513251+5297278,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J21513251+5297278.jpg,golden/stamps/J21513251+5297278/J21513251+5297278_v1.jpg,False,,,0,0,no reference
+J35128930-4120369,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J35128930-4120369.jpg,golden/stamps/J35128930-4120369/J35128930-4120369_v1.jpg,False,,,0,0,no reference
+J14997467+255549,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J14997467+255549.jpg,golden/stamps/J14997467+255549/J14997467+255549_v1.jpg,False,,,0,0,no reference
+J1637643+1340558,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J1637643+1340558.jpg,golden/stamps/J1637643+1340558/J1637643+1340558_v1.jpg,True,0.0,0.0,101012,101012,
+J12411163+1923209,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J12411163+1923209.jpg,golden/stamps/J12411163+1923209/J12411163+1923209_v1.jpg,True,0.0,0.0,80285,80285,
+J26831233+6515810,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J26831233+6515810.jpg,golden/stamps/J26831233+6515810/J26831233+6515810_v1.jpg,True,0.0,0.0,122592,122592,
+J17772978-2808033,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J17772978-2808033.jpg,golden/stamps/J17772978-2808033/J17772978-2808033_v1.jpg,True,0.0,0.0,93652,93652,
+J16305610+3001292,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J16305610+3001292.jpg,golden/stamps/J16305610+3001292/J16305610+3001292_v1.jpg,True,0.0,0.0,152099,152099,
+J16897851+148442,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J16897851+148442.jpg,golden/stamps/J16897851+148442/J16897851+148442_v1.jpg,False,,,0,0,no reference
+J18030075+2309921,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J18030075+2309921.jpg,golden/stamps/J18030075+2309921/J18030075+2309921_v1.jpg,True,0.0,0.0,80465,80465,
+J19047436+1159098,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J19047436+1159098.jpg,golden/stamps/J19047436+1159098/J19047436+1159098_v1.jpg,False,,,0,0,no reference
+J15033701+227952,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15033701+227952.jpg,golden/stamps/J15033701+227952/J15033701+227952_v1.jpg,False,,,0,0,no reference
+J26876212+6510625,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J26876212+6510625.jpg,golden/stamps/J26876212+6510625/J26876212+6510625_v1.jpg,True,0.0,0.0,142135,142135,
+J18931633+6219972,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J18931633+6219972.jpg,golden/stamps/J18931633+6219972/J18931633+6219972_v1.jpg,True,0.0,0.0,82000,82000,
+J15039056+235982,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15039056+235982.jpg,golden/stamps/J15039056+235982/J15039056+235982_v1.jpg,False,,,0,0,no reference
+J15071855+269043,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15071855+269043.jpg,golden/stamps/J15071855+269043/J15071855+269043_v1.jpg,False,,,0,0,no reference
+J3996375-158105,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J3996375-158105.jpg,golden/stamps/J3996375-158105/J3996375-158105_v1.jpg,False,,,0,0,no reference
+J34708269-218827,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J34708269-218827.jpg,golden/stamps/J34708269-218827/J34708269-218827_v1.jpg,False,,,0,0,no reference
+J15069997+222588,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15069997+222588.jpg,golden/stamps/J15069997+222588/J15069997+222588_v1.jpg,True,0.0,0.0,171006,171006,
+J2238085-7354339,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J2238085-7354339.jpg,golden/stamps/J2238085-7354339/J2238085-7354339_v1.jpg,False,,,0,0,no reference
+J15194704+2123478,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15194704+2123478.jpg,golden/stamps/J15194704+2123478/J15194704+2123478_v1.jpg,False,,,0,0,no reference
+J33389992-3276033,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J33389992-3276033.jpg,golden/stamps/J33389992-3276033/J33389992-3276033_v1.jpg,True,0.0,0.0,101405,101405,
+J3807110-4434755,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J3807110-4434755.jpg,golden/stamps/J3807110-4434755/J3807110-4434755_v1.jpg,True,0.0,0.0,89162,89162,
+J30795372-4063256,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J30795372-4063256.jpg,golden/stamps/J30795372-4063256/J30795372-4063256_v1.jpg,False,,,0,0,no reference
+J11068178-7349847,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J11068178-7349847.jpg,golden/stamps/J11068178-7349847/J11068178-7349847_v1.jpg,False,,,0,0,no reference
+J2994382-883235,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J2994382-883235.jpg,golden/stamps/J2994382-883235/J2994382-883235_v1.jpg,False,,,0,0,no reference
+J803198+1811354,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J803198+1811354.jpg,golden/stamps/J803198+1811354/J803198+1811354_v1.jpg,False,,,0,0,no reference
+J4205283+264369,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J4205283+264369.jpg,golden/stamps/J4205283+264369/J4205283+264369_v1.jpg,True,0.0,0.0,78221,78221,
+J15010748+230270,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15010748+230270.jpg,golden/stamps/J15010748+230270/J15010748+230270_v1.jpg,True,0.0,0.0,89611,89611,
+J15067092+210603,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15067092+210603.jpg,golden/stamps/J15067092+210603/J15067092+210603_v1.jpg,True,0.0,0.0,108184,108184,
+J15055009+250185,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15055009+250185.jpg,golden/stamps/J15055009+250185/J15055009+250185_v1.jpg,True,0.0,0.0,149868,149868,
+J20948181-1096952,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J20948181-1096952.jpg,golden/stamps/J20948181-1096952/J20948181-1096952_v1.jpg,True,0.0,0.0,113497,113497,
+J8730424-6207661,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J8730424-6207661.jpg,golden/stamps/J8730424-6207661/J8730424-6207661_v1.jpg,False,,,0,0,no reference
+J15263251-1268419,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15263251-1268419.jpg,golden/stamps/J15263251-1268419/J15263251-1268419_v1.jpg,False,,,0,0,no reference
+J15049363+206401,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15049363+206401.jpg,golden/stamps/J15049363+206401/J15049363+206401_v1.jpg,True,0.0,0.0,91890,91890,
+J15261689-1266966,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15261689-1266966.jpg,golden/stamps/J15261689-1266966/J15261689-1266966_v1.jpg,True,0.0,0.0,115103,115103,
+J6403415-2406677,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J6403415-2406677.jpg,golden/stamps/J6403415-2406677/J6403415-2406677_v1.jpg,True,0.0,0.0,91037,91037,
+J5282421-774282,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J5282421-774282.jpg,golden/stamps/J5282421-774282/J5282421-774282_v1.jpg,True,0.0,0.0,116882,116882,
+J8732838-6207334,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J8732838-6207334.jpg,golden/stamps/J8732838-6207334/J8732838-6207334_v1.jpg,True,0.0,0.0,97776,97776,
+J15018209+211340,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15018209+211340.jpg,golden/stamps/J15018209+211340/J15018209+211340_v1.jpg,False,,,0,0,no reference
+J14995729+243834,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J14995729+243834.jpg,golden/stamps/J14995729+243834/J14995729+243834_v1.jpg,True,0.0,0.0,141643,141643,
+J3996679-159719,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J3996679-159719.jpg,golden/stamps/J3996679-159719/J3996679-159719_v1.jpg,True,0.0,0.0,122705,122705,
+J18031302+2310412,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J18031302+2310412.jpg,golden/stamps/J18031302+2310412/J18031302+2310412_v1.jpg,False,,,0,0,no reference
+J21518078+5278672,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J21518078+5278672.jpg,golden/stamps/J21518078+5278672/J21518078+5278672_v1.jpg,True,0.0,0.0,123160,123160,
+J9002960-2014057,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J9002960-2014057.jpg,golden/stamps/J9002960-2014057/J9002960-2014057_v1.jpg,True,0.0,0.0,122517,122517,
+J32840780+1769774,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J32840780+1769774.jpg,golden/stamps/J32840780+1769774/J32840780+1769774_v1.jpg,True,0.0,0.0,98400,98400,
+J16644236-1024898,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J16644236-1024898.jpg,golden/stamps/J16644236-1024898/J16644236-1024898_v1.jpg,True,0.0,0.0,89136,89136,
+J15048493+226744,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15048493+226744.jpg,golden/stamps/J15048493+226744/J15048493+226744_v1.jpg,False,,,0,0,no reference
+J5186322-1343964,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J5186322-1343964.jpg,golden/stamps/J5186322-1343964/J5186322-1343964_v1.jpg,False,,,0,0,no reference
+J34084513-960342,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J34084513-960342.jpg,golden/stamps/J34084513-960342/J34084513-960342_v1.jpg,True,0.0,0.0,106592,106592,
+J11084396-7342226,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J11084396-7342226.jpg,golden/stamps/J11084396-7342226/J11084396-7342226_v1.jpg,True,0.0,0.0,99652,99652,
+J17769198-2805240,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J17769198-2805240.jpg,golden/stamps/J17769198-2805240/J17769198-2805240_v1.jpg,False,,,0,0,no reference
+J14991871+254823,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J14991871+254823.jpg,golden/stamps/J14991871+254823/J14991871+254823_v1.jpg,False,,,0,0,no reference
+J14980160+213082,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J14980160+213082.jpg,golden/stamps/J14980160+213082/J14980160+213082_v1.jpg,False,,,0,0,no reference
+J14991319+251221,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J14991319+251221.jpg,golden/stamps/J14991319+251221/J14991319+251221_v1.jpg,False,,,0,0,no reference
+J14987954+204155,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J14987954+204155.jpg,golden/stamps/J14987954+204155/J14987954+204155_v1.jpg,False,,,0,0,no reference
+J18534294+1156810,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J18534294+1156810.jpg,golden/stamps/J18534294+1156810/J18534294+1156810_v1.jpg,False,,,0,0,no reference
+J9003772-2015513,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J9003772-2015513.jpg,golden/stamps/J9003772-2015513/J9003772-2015513_v1.jpg,True,0.0,0.0,118217,118217,
+J14993798+260626,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J14993798+260626.jpg,golden/stamps/J14993798+260626/J14993798+260626_v1.jpg,False,,,0,0,no reference
+J20148881+4807960,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J20148881+4807960.jpg,golden/stamps/J20148881+4807960/J20148881+4807960_v1.jpg,False,,,0,0,no reference
+J6928514+070232,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J6928514+070232.jpg,golden/stamps/J6928514+070232/J6928514+070232_v1.jpg,True,0.0,0.0,78435,78435,
+J3807769-4433463,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J3807769-4433463.jpg,golden/stamps/J3807769-4433463/J3807769-4433463_v1.jpg,False,,,0,0,no reference
+J35128272-4120137,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J35128272-4120137.jpg,golden/stamps/J35128272-4120137/J35128272-4120137_v1.jpg,True,0.0,0.0,145423,145423,
+J18939200+6216064,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J18939200+6216064.jpg,golden/stamps/J18939200+6216064/J18939200+6216064_v1.jpg,True,0.0,0.0,110095,110095,
+J2995977-883239,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J2995977-883239.jpg,golden/stamps/J2995977-883239/J2995977-883239_v1.jpg,False,,,0,0,no reference
+J8999381-2012203,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J8999381-2012203.jpg,golden/stamps/J8999381-2012203/J8999381-2012203_v1.jpg,True,0.0,0.0,122028,122028,
+J32232919-763201,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J32232919-763201.jpg,golden/stamps/J32232919-763201/J32232919-763201_v1.jpg,True,0.0,0.0,118935,118935,
+J15067319+221999,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15067319+221999.jpg,golden/stamps/J15067319+221999/J15067319+221999_v1.jpg,True,0.0,0.0,121058,121058,
+J10939809+3775146,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J10939809+3775146.jpg,golden/stamps/J10939809+3775146/J10939809+3775146_v1.jpg,False,,,0,0,no reference
+J33372744-1401097,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J33372744-1401097.jpg,golden/stamps/J33372744-1401097/J33372744-1401097_v1.jpg,True,0.0,0.0,111733,111733,
+J30798663-4063616,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J30798663-4063616.jpg,golden/stamps/J30798663-4063616/J30798663-4063616_v1.jpg,False,,,0,0,no reference
+J17740281+2243662,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J17740281+2243662.jpg,golden/stamps/J17740281+2243662/J17740281+2243662_v1.jpg,False,,,0,0,no reference
+J1747804-3079539,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J1747804-3079539.jpg,golden/stamps/J1747804-3079539/J1747804-3079539_v1.jpg,True,0.0,0.0,120229,120229,
+J15004059+241551,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15004059+241551.jpg,golden/stamps/J15004059+241551/J15004059+241551_v1.jpg,False,,,0,0,no reference
+J34707505-219476,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J34707505-219476.jpg,golden/stamps/J34707505-219476/J34707505-219476_v1.jpg,True,0.0,0.0,102160,102160,
+J14920654+6969086,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J14920654+6969086.jpg,golden/stamps/J14920654+6969086/J14920654+6969086_v1.jpg,True,0.0,0.0,143718,143718,
+J15199556+2122210,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15199556+2122210.jpg,golden/stamps/J15199556+2122210/J15199556+2122210_v1.jpg,True,0.0,0.0,92861,92861,
+J357894-3039410,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J357894-3039410.jpg,golden/stamps/J357894-3039410/J357894-3039410_v1.jpg,False,,,0,0,no reference
+J4429240-2347200,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J4429240-2347200.jpg,golden/stamps/J4429240-2347200/J4429240-2347200_v1.jpg,True,0.0,0.0,113951,113951,
+J4312165-2100739,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J4312165-2100739.jpg,golden/stamps/J4312165-2100739/J4312165-2100739_v1.jpg,True,0.0,0.0,104747,104747,
+J15037549+237083,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15037549+237083.jpg,golden/stamps/J15037549+237083/J15037549+237083_v1.jpg,False,,,0,0,no reference
+J21007480+1455269,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J21007480+1455269.jpg,golden/stamps/J21007480+1455269/J21007480+1455269_v1.jpg,True,0.0,0.0,93766,93766,
+J22963308-8151071,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J22963308-8151071.jpg,golden/stamps/J22963308-8151071/J22963308-8151071_v1.jpg,False,,,0,0,no reference
+J15009907+202286,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15009907+202286.jpg,golden/stamps/J15009907+202286/J15009907+202286_v1.jpg,True,0.0,0.0,120433,120433,
+J15263530-1266462,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15263530-1266462.jpg,golden/stamps/J15263530-1266462/J15263530-1266462_v1.jpg,False,,,0,0,no reference
+J4202043-352281,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J4202043-352281.jpg,golden/stamps/J4202043-352281/J4202043-352281_v1.jpg,False,,,0,0,no reference
+J3419795-502846,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J3419795-502846.jpg,golden/stamps/J3419795-502846/J3419795-502846_v1.jpg,True,0.0,0.0,138511,138511,
+J5186803-1343778,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J5186803-1343778.jpg,golden/stamps/J5186803-1343778/J5186803-1343778_v1.jpg,True,0.0,0.0,101804,101804,
+J12391133+1822895,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J12391133+1822895.jpg,golden/stamps/J12391133+1822895/J12391133+1822895_v1.jpg,True,0.0,0.0,103473,103473,
+J15037005+241731,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15037005+241731.jpg,golden/stamps/J15037005+241731/J15037005+241731_v1.jpg,False,,,0,0,no reference
+J15021825+181565,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15021825+181565.jpg,golden/stamps/J15021825+181565/J15021825+181565_v1.jpg,False,,,0,0,no reference
+J357850-3044809,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J357850-3044809.jpg,golden/stamps/J357850-3044809/J357850-3044809_v1.jpg,True,0.0,0.0,99624,99624,
+J19449788+4704593,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J19449788+4704593.jpg,golden/stamps/J19449788+4704593/J19449788+4704593_v1.jpg,False,,,0,0,no reference
+J26842354+6529667,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J26842354+6529667.jpg,golden/stamps/J26842354+6529667/J26842354+6529667_v1.jpg,False,,,0,0,no reference
+J15114238+4121210,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15114238+4121210.jpg,golden/stamps/J15114238+4121210/J15114238+4121210_v1.jpg,False,,,0,0,no reference
+J8575205-2143155,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J8575205-2143155.jpg,golden/stamps/J8575205-2143155/J8575205-2143155_v1.jpg,True,0.0,0.0,149713,149713,
+J4006002-161474,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J4006002-161474.jpg,golden/stamps/J4006002-161474/J4006002-161474_v1.jpg,True,0.0,0.0,93732,93732,
+J2434723-845791,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J2434723-845791.jpg,golden/stamps/J2434723-845791/J2434723-845791_v1.jpg,False,,,0,0,no reference
+J35084320-3043955,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J35084320-3043955.jpg,golden/stamps/J35084320-3043955/J35084320-3043955_v1.jpg,True,0.0,0.0,78404,78404,
+J15428066+3906060,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15428066+3906060.jpg,golden/stamps/J15428066+3906060/J15428066+3906060_v1.jpg,False,,,0,0,no reference
+J14997313+250891,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J14997313+250891.jpg,golden/stamps/J14997313+250891/J14997313+250891_v1.jpg,False,,,0,0,no reference
+J15004969+221715,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15004969+221715.jpg,golden/stamps/J15004969+221715/J15004969+221715_v1.jpg,False,,,0,0,no reference
+J15032014+201142,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15032014+201142.jpg,golden/stamps/J15032014+201142/J15032014+201142_v1.jpg,False,,,0,0,no reference
+J20861957+7726170,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J20861957+7726170.jpg,golden/stamps/J20861957+7726170/J20861957+7726170_v1.jpg,True,0.0,0.0,116460,116460,
+J16456132+2953030,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J16456132+2953030.jpg,golden/stamps/J16456132+2953030/J16456132+2953030_v1.jpg,True,0.0,0.0,115860,115860,
+J3440482-522486,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J3440482-522486.jpg,golden/stamps/J3440482-522486/J3440482-522486_v1.jpg,True,0.0,0.0,117160,117160,
+J18850875+1133833,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J18850875+1133833.jpg,golden/stamps/J18850875+1133833/J18850875+1133833_v1.jpg,True,0.0,0.0,118214,118214,
+J15005258+233772,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15005258+233772.jpg,golden/stamps/J15005258+233772/J15005258+233772_v1.jpg,False,,,0,0,no reference
+J15017971+211039,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15017971+211039.jpg,golden/stamps/J15017971+211039/J15017971+211039_v1.jpg,False,,,0,0,no reference
+J26828794+6516364,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J26828794+6516364.jpg,golden/stamps/J26828794+6516364/J26828794+6516364_v1.jpg,False,,,0,0,no reference
+J3996588-153959,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J3996588-153959.jpg,golden/stamps/J3996588-153959/J3996588-153959_v1.jpg,False,,,0,0,no reference
+J15013022+255026,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15013022+255026.jpg,golden/stamps/J15013022+255026/J15013022+255026_v1.jpg,False,,,0,0,no reference
+J358439-3035450,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J358439-3035450.jpg,golden/stamps/J358439-3035450/J358439-3035450_v1.jpg,False,,,0,0,no reference
+J34135498+2813722,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J34135498+2813722.jpg,golden/stamps/J34135498+2813722/J34135498+2813722_v1.jpg,True,0.0,0.0,99955,99955,
+J8834469-3370264,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J8834469-3370264.jpg,golden/stamps/J8834469-3370264/J8834469-3370264_v1.jpg,False,,,0,0,no reference
+J21493235+5299840,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J21493235+5299840.jpg,golden/stamps/J21493235+5299840/J21493235+5299840_v1.jpg,False,,,0,0,no reference
+J15027845+184036,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15027845+184036.jpg,golden/stamps/J15027845+184036/J15027845+184036_v1.jpg,False,,,0,0,no reference
+J927569+915263,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J927569+915263.jpg,golden/stamps/J927569+915263/J927569+915263_v1.jpg,False,,,0,0,no reference
+J23069956+2559453,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J23069956+2559453.jpg,golden/stamps/J23069956+2559453/J23069956+2559453_v1.jpg,True,0.0,0.0,134238,134238,
+J15029814+254087,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15029814+254087.jpg,golden/stamps/J15029814+254087/J15029814+254087_v1.jpg,True,0.0,0.0,146466,146466,
+J5186648-1343587,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J5186648-1343587.jpg,golden/stamps/J5186648-1343587/J5186648-1343587_v1.jpg,True,0.0,0.0,113136,113136,
+J14996187+200380,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J14996187+200380.jpg,golden/stamps/J14996187+200380/J14996187+200380_v1.jpg,False,,,0,0,no reference
+J15027379+184082,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15027379+184082.jpg,golden/stamps/J15027379+184082/J15027379+184082_v1.jpg,False,,,0,0,no reference
+J20940271-1094685,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J20940271-1094685.jpg,golden/stamps/J20940271-1094685/J20940271-1094685_v1.jpg,False,,,0,0,no reference
+J21369661+5478431,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J21369661+5478431.jpg,golden/stamps/J21369661+5478431/J21369661+5478431_v1.jpg,False,,,0,0,no reference
+J32839345+1770589,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J32839345+1770589.jpg,golden/stamps/J32839345+1770589/J32839345+1770589_v1.jpg,False,,,0,0,no reference
+J5414235-4704895,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J5414235-4704895.jpg,golden/stamps/J5414235-4704895/J5414235-4704895_v1.jpg,True,0.0,0.0,105563,105563,
+J24396184-613690,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J24396184-613690.jpg,golden/stamps/J24396184-613690/J24396184-613690_v1.jpg,False,,,0,0,no reference
+J8831663-3370788,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J8831663-3370788.jpg,golden/stamps/J8831663-3370788/J8831663-3370788_v1.jpg,False,,,0,0,no reference
+J20150004+4811209,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J20150004+4811209.jpg,golden/stamps/J20150004+4811209/J20150004+4811209_v1.jpg,False,,,0,0,no reference
+J21060768-456160,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J21060768-456160.jpg,golden/stamps/J21060768-456160/J21060768-456160_v1.jpg,False,,,0,0,no reference
+J17771210-2809562,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J17771210-2809562.jpg,golden/stamps/J17771210-2809562/J17771210-2809562_v1.jpg,True,0.0,0.0,112246,112246,
+J15005804+238042,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15005804+238042.jpg,golden/stamps/J15005804+238042/J15005804+238042_v1.jpg,False,,,0,0,no reference
+J805311+1812371,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J805311+1812371.jpg,golden/stamps/J805311+1812371/J805311+1812371_v1.jpg,False,,,0,0,no reference
+J26292001+2286748,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J26292001+2286748.jpg,golden/stamps/J26292001+2286748/J26292001+2286748_v1.jpg,False,,,0,0,no reference
+J9940487-4849482,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J9940487-4849482.jpg,golden/stamps/J9940487-4849482/J9940487-4849482_v1.jpg,False,,,0,0,no reference
+J21006317+1456150,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J21006317+1456150.jpg,golden/stamps/J21006317+1456150/J21006317+1456150_v1.jpg,True,0.0,0.0,80931,80931,
+J18675054+1172962,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J18675054+1172962.jpg,golden/stamps/J18675054+1172962/J18675054+1172962_v1.jpg,False,,,0,0,no reference
+J2451719-2192351,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J2451719-2192351.jpg,golden/stamps/J2451719-2192351/J2451719-2192351_v1.jpg,False,,,0,0,no reference
+J10194892+7024985,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J10194892+7024985.jpg,golden/stamps/J10194892+7024985/J10194892+7024985_v1.jpg,False,,,0,0,no reference
+J6402662-2407015,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J6402662-2407015.jpg,golden/stamps/J6402662-2407015/J6402662-2407015_v1.jpg,False,,,0,0,no reference
+J1655664+080458,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J1655664+080458.jpg,golden/stamps/J1655664+080458/J1655664+080458_v1.jpg,False,,,0,0,no reference
+J14996269+221023,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J14996269+221023.jpg,golden/stamps/J14996269+221023/J14996269+221023_v1.jpg,False,,,0,0,no reference
+J4637336-3182658,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J4637336-3182658.jpg,golden/stamps/J4637336-3182658/J4637336-3182658_v1.jpg,True,0.0,0.0,107234,107234,
+J4139573-5304843,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J4139573-5304843.jpg,golden/stamps/J4139573-5304843/J4139573-5304843_v1.jpg,False,,,0,0,no reference
+J15019832+198630,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15019832+198630.jpg,golden/stamps/J15019832+198630/J15019832+198630_v1.jpg,False,,,0,0,no reference
+J15013008+243766,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15013008+243766.jpg,golden/stamps/J15013008+243766/J15013008+243766_v1.jpg,False,,,0,0,no reference
+J14981996+233941,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J14981996+233941.jpg,golden/stamps/J14981996+233941/J14981996+233941_v1.jpg,False,,,0,0,no reference
+J15001911+259543,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15001911+259543.jpg,golden/stamps/J15001911+259543/J15001911+259543_v1.jpg,False,,,0,0,no reference
+J31173025-1285736,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J31173025-1285736.jpg,golden/stamps/J31173025-1285736/J31173025-1285736_v1.jpg,False,,,0,0,no reference
+J710586-7562357,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J710586-7562357.jpg,golden/stamps/J710586-7562357/J710586-7562357_v1.jpg,True,0.0,0.0,90517,90517,
+J18716454+1177116,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J18716454+1177116.jpg,golden/stamps/J18716454+1177116/J18716454+1177116_v1.jpg,False,,,0,0,no reference
+J2235243-7358297,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J2235243-7358297.jpg,golden/stamps/J2235243-7358297/J2235243-7358297_v1.jpg,True,0.0,0.0,131528,131528,
+J8731758-6207720,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J8731758-6207720.jpg,golden/stamps/J8731758-6207720/J8731758-6207720_v1.jpg,False,,,0,0,no reference
+J3470183+013617,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J3470183+013617.jpg,golden/stamps/J3470183+013617/J3470183+013617_v1.jpg,True,0.0,0.0,88917,88917,
+J14987471+223116,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J14987471+223116.jpg,golden/stamps/J14987471+223116/J14987471+223116_v1.jpg,False,,,0,0,no reference
+J18937456+6221686,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J18937456+6221686.jpg,golden/stamps/J18937456+6221686/J18937456+6221686_v1.jpg,True,0.0,0.0,94712,94712,
+J15021038+179129,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15021038+179129.jpg,golden/stamps/J15021038+179129/J15021038+179129_v1.jpg,False,,,0,0,no reference
+J8831331-3369558,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J8831331-3369558.jpg,golden/stamps/J8831331-3369558/J8831331-3369558_v1.jpg,False,,,0,0,no reference
+J20954380-1094330,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J20954380-1094330.jpg,golden/stamps/J20954380-1094330/J20954380-1094330_v1.jpg,True,0.0,0.0,85819,85819,
+J24497103+5551791,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J24497103+5551791.jpg,golden/stamps/J24497103+5551791/J24497103+5551791_v1.jpg,False,,,0,0,no reference
+J17833025+793252,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J17833025+793252.jpg,golden/stamps/J17833025+793252/J17833025+793252_v1.jpg,False,,,0,0,no reference
+J15031125+251191,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15031125+251191.jpg,golden/stamps/J15031125+251191/J15031125+251191_v1.jpg,False,,,0,0,no reference
+J4784995-5841089,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J4784995-5841089.jpg,golden/stamps/J4784995-5841089/J4784995-5841089_v1.jpg,True,0.0,0.0,86900,86900,
+J18928393+6223963,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J18928393+6223963.jpg,golden/stamps/J18928393+6223963/J18928393+6223963_v1.jpg,False,,,0,0,no reference
+J2225968-7355728,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J2225968-7355728.jpg,golden/stamps/J2225968-7355728/J2225968-7355728_v1.jpg,False,,,0,0,no reference
+J34161184-5841254,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J34161184-5841254.jpg,golden/stamps/J34161184-5841254/J34161184-5841254_v1.jpg,False,,,0,0,no reference
+J26816024+6505016,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J26816024+6505016.jpg,golden/stamps/J26816024+6505016/J26816024+6505016_v1.jpg,True,0.0,0.0,128441,128441,
+J6507435-5508786,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J6507435-5508786.jpg,golden/stamps/J6507435-5508786/J6507435-5508786_v1.jpg,False,,,0,0,no reference
+J18309657+2753443,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J18309657+2753443.jpg,golden/stamps/J18309657+2753443/J18309657+2753443_v1.jpg,False,,,0,0,no reference
+J24394722-614504,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J24394722-614504.jpg,golden/stamps/J24394722-614504/J24394722-614504_v1.jpg,False,,,0,0,no reference
+J2451534-2191925,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J2451534-2191925.jpg,golden/stamps/J2451534-2191925/J2451534-2191925_v1.jpg,True,0.0,0.0,135739,135739,
+J34708849-217825,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J34708849-217825.jpg,golden/stamps/J34708849-217825/J34708849-217825_v1.jpg,True,0.0,0.0,108260,108260,
+J20148636+4809579,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J20148636+4809579.jpg,golden/stamps/J20148636+4809579/J20148636+4809579_v1.jpg,True,0.0,0.0,136980,136980,
+J11072970-7345689,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J11072970-7345689.jpg,golden/stamps/J11072970-7345689/J11072970-7345689_v1.jpg,False,,,0,0,no reference
+J6149425-4926794,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J6149425-4926794.jpg,golden/stamps/J6149425-4926794/J6149425-4926794_v1.jpg,False,,,0,0,no reference
+J23749412-7819092,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J23749412-7819092.jpg,golden/stamps/J23749412-7819092/J23749412-7819092_v1.jpg,False,,,0,0,no reference
+J18895415+499333,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J18895415+499333.jpg,golden/stamps/J18895415+499333/J18895415+499333_v1.jpg,True,0.0,0.0,125007,125007,
+J18942061+6225477,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J18942061+6225477.jpg,golden/stamps/J18942061+6225477/J18942061+6225477_v1.jpg,False,,,0,0,no reference
+J18929636+6214276,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J18929636+6214276.jpg,golden/stamps/J18929636+6214276/J18929636+6214276_v1.jpg,False,,,0,0,no reference
+J15005718+220591,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15005718+220591.jpg,golden/stamps/J15005718+220591/J15005718+220591_v1.jpg,False,,,0,0,no reference
+J14984222+230342,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J14984222+230342.jpg,golden/stamps/J14984222+230342/J14984222+230342_v1.jpg,False,,,0,0,no reference
+J076153-3300005,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J076153-3300005.jpg,golden/stamps/J076153-3300005/J076153-3300005_v1.jpg,False,,,0,0,no reference
+J18805344+1121596,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J18805344+1121596.jpg,golden/stamps/J18805344+1121596/J18805344+1121596_v1.jpg,True,0.0,0.0,118495,118495,
+J16193787+1252943,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J16193787+1252943.jpg,golden/stamps/J16193787+1252943/J16193787+1252943_v1.jpg,True,0.0,0.0,128540,128540,
+J2501506-591919,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J2501506-591919.jpg,golden/stamps/J2501506-591919/J2501506-591919_v1.jpg,False,,,0,0,no reference
+J18818168+1282960,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J18818168+1282960.jpg,golden/stamps/J18818168+1282960/J18818168+1282960_v1.jpg,True,0.0,0.0,96072,96072,
+J15017908+203681,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15017908+203681.jpg,golden/stamps/J15017908+203681/J15017908+203681_v1.jpg,False,,,0,0,no reference
+J3996317-156579,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J3996317-156579.jpg,golden/stamps/J3996317-156579/J3996317-156579_v1.jpg,False,,,0,0,no reference
+J20381042+4099544,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J20381042+4099544.jpg,golden/stamps/J20381042+4099544/J20381042+4099544_v1.jpg,False,,,0,0,no reference
+J1086629-2060614,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J1086629-2060614.jpg,golden/stamps/J1086629-2060614/J1086629-2060614_v1.jpg,False,,,0,0,no reference
+J31352710-005281,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J31352710-005281.jpg,golden/stamps/J31352710-005281/J31352710-005281_v1.jpg,True,0.0,0.0,115756,115756,
+J462970+1644463,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J462970+1644463.jpg,golden/stamps/J462970+1644463/J462970+1644463_v1.jpg,False,,,0,0,no reference
+J15057245+223798,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15057245+223798.jpg,golden/stamps/J15057245+223798/J15057245+223798_v1.jpg,True,0.0,0.0,111129,111129,
+J15019655+249201,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15019655+249201.jpg,golden/stamps/J15019655+249201/J15019655+249201_v1.jpg,False,,,0,0,no reference
+J21500508+5297323,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J21500508+5297323.jpg,golden/stamps/J21500508+5297323/J21500508+5297323_v1.jpg,False,,,0,0,no reference
+J26807645+6520932,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J26807645+6520932.jpg,golden/stamps/J26807645+6520932/J26807645+6520932_v1.jpg,True,0.0,0.0,119932,119932,
+J20853843+7726394,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J20853843+7726394.jpg,golden/stamps/J20853843+7726394/J20853843+7726394_v1.jpg,False,,,0,0,no reference
+J8149689-2410706,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J8149689-2410706.jpg,golden/stamps/J8149689-2410706/J8149689-2410706_v1.jpg,True,0.0,0.0,86610,86610,
+J4138784-5303843,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J4138784-5303843.jpg,golden/stamps/J4138784-5303843/J4138784-5303843_v1.jpg,False,,,0,0,no reference
+J17174762+4246955,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J17174762+4246955.jpg,golden/stamps/J17174762+4246955/J17174762+4246955_v1.jpg,True,0.0,0.0,92417,92417,
+J26885147+6527676,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J26885147+6527676.jpg,golden/stamps/J26885147+6527676/J26885147+6527676_v1.jpg,False,,,0,0,no reference
+J15028871+191005,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15028871+191005.jpg,golden/stamps/J15028871+191005/J15028871+191005_v1.jpg,False,,,0,0,no reference
+J805529+1810939,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J805529+1810939.jpg,golden/stamps/J805529+1810939/J805529+1810939_v1.jpg,False,,,0,0,no reference
+J12404503+1918861,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J12404503+1918861.jpg,golden/stamps/J12404503+1918861/J12404503+1918861_v1.jpg,False,,,0,0,no reference
+J7298151+010446,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J7298151+010446.jpg,golden/stamps/J7298151+010446/J7298151+010446_v1.jpg,False,,,0,0,no reference
+J3996912-158493,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J3996912-158493.jpg,golden/stamps/J3996912-158493/J3996912-158493_v1.jpg,False,,,0,0,no reference
+J4310830-518328,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J4310830-518328.jpg,golden/stamps/J4310830-518328/J4310830-518328_v1.jpg,True,0.0,0.0,118866,118866,
+J3806901-4434926,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J3806901-4434926.jpg,golden/stamps/J3806901-4434926/J3806901-4434926_v1.jpg,False,,,0,0,no reference
+J15041998+210898,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15041998+210898.jpg,golden/stamps/J15041998+210898/J15041998+210898_v1.jpg,False,,,0,0,no reference
+J34709033-218772,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J34709033-218772.jpg,golden/stamps/J34709033-218772/J34709033-218772_v1.jpg,False,,,0,0,no reference
+J15002207+263143,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15002207+263143.jpg,golden/stamps/J15002207+263143/J15002207+263143_v1.jpg,False,,,0,0,no reference
+J14989229+226437,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J14989229+226437.jpg,golden/stamps/J14989229+226437/J14989229+226437_v1.jpg,False,,,0,0,no reference
+J26006978+3560730,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J26006978+3560730.jpg,golden/stamps/J26006978+3560730/J26006978+3560730_v1.jpg,False,,,0,0,no reference
+J15021106+190577,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J15021106+190577.jpg,golden/stamps/J15021106+190577/J15021106+190577_v1.jpg,False,,,0,0,no reference
+J5376680-1946429,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J5376680-1946429.jpg,golden/stamps/J5376680-1946429/J5376680-1946429_v1.jpg,False,,,0,0,no reference
+J18095026+476116,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J18095026+476116.jpg,golden/stamps/J18095026+476116/J18095026+476116_v1.jpg,False,,,0,0,no reference
+J24396818-613860,/Users/benson/sync/research/jwst-strong-lens-search/top100_clean/J24396818-613860.jpg,golden/stamps/J24396818-613860/J24396818-613860_v1.jpg,False,,,0,0,no reference

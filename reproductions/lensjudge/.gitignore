@@ -4,3 +4,15 @@ cache/
 __pycache__/
 *.pyc
 finetune/corpus_desi/
+# golden single-grader campaign: bulk/derived artifacts stay untracked (keys, records,
+# labels, registry and every .sha ARE tracked — they are the provenance).
+golden/kits/
+golden/stamps/
+# Part-2 truth-eval JPEGs (footer-cropped v1 / v2r renders of truth_manifest rows): regenerable
+golden/kits_truth/
+golden/kits_truth_v2r/
+finetune/corpus_golden/
+# model-facing embargo lexicon (validate-half ids, PI comment strings): never committed
+golden/banned_lexicon.txt
+# the PI's verbatim document comments (embargo rule 1): read only by audit_traces --build-lexicon
+golden/pi_comments.txt

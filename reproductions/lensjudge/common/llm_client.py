@@ -180,6 +180,39 @@ def logprob_p_lens(grade_probs: Optional[dict]) -> Optional[float]:
     return round(min(1.0, grade_probs.get("A", 0.0) + grade_probs.get("B", 0.0)), 4)
 
 
+# golden E5: the ordinal expectation over the grade-token distribution. Letters are
+# placed on the Huang 1-4 scale rescaled to [0,1] (A=1, B=2/3, C=1/3, D=0), so s_exp
+# is a continuous version of the letter that a threshold map (at the grader's own
+# marginals) can turn back into A/B/C/D without collapsing B/C into a binary p_lens.
+ORDINAL_W = {"A": 1.0, "B": 2.0 / 3.0, "C": 1.0 / 3.0, "D": 0.0}
+
+
+def logprob_ordinal(grade_probs: Optional[dict], w: Optional[dict] = None) -> Optional[float]:
+    """Expected ordinal score  sum(w[L] * P(L)) / sum(P(L))  over the letters PRESENT in
+    ``grade_probs`` (the top-k logprob list is truncated, so missing letters renormalise
+    rather than count as zero). None when no letter mass was captured."""
+    if not grade_probs:
+        return None
+    w = ORDINAL_W if w is None else w
+    num = den = 0.0
+    for letter, p in grade_probs.items():
+        if letter in w and p is not None:
+            num += w[letter] * float(p)
+            den += float(p)
+    if den <= 0:
+        return None
+    return round(num / den, 4)
+
+
+def gp_coverage(grade_probs: Optional[dict]) -> Optional[float]:
+    """Total letter mass captured at the grade token (capped at 1.0) — how much of the
+    distribution the top-k logprobs actually saw; a low value means s_exp / p_lens_logprob
+    were renormalised from a truncated list and deserve less trust."""
+    if not grade_probs:
+        return None
+    return round(min(1.0, sum(float(p) for p in grade_probs.values() if p is not None)), 4)
+
+
 # --- open-weight price table (local inference is free; record tokens regardless) ---
 # $/Mtok (input, output). Add hosted-endpoint prices here if a paid OpenAI-compatible
 # provider is ever used; default 0.0 for self-hosted vLLM/SGLang/MLX.

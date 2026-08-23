@@ -41,6 +41,10 @@ def _grader(mode):
     if mode == "matched":
         from lensjudge.imaging import grader_matched
         return grader_matched
+    if mode == "jwst":
+        # golden single-grader set: one inline JWST composite per candidate (golden/grader_jwst.py)
+        from lensjudge.golden import grader_jwst
+        return grader_jwst
     return grader_lean
 
 
@@ -60,6 +64,8 @@ def _row_dict(g, cand):
     # v5 logprob scoring (open backend; None elsewhere): flattened grade-token distribution
     gp = g.meta.get("grade_probs") or {}
     base.update({"p_lens_logprob": g.meta.get("p_lens_logprob"),
+                 # golden E5: expected ordinal over the same distribution (None off the open backend)
+                 "s_exp": g.meta.get("s_exp"),
                  **{f"gp_{k}": gp.get(k) for k in ("A", "B", "C", "D")}})
     if g.grade is not None:
         c = g.grade.criteria.model_dump()
@@ -102,6 +108,15 @@ async def run(df: pd.DataFrame, out: Path, concurrency: int, model: str | None, 
               modelability: bool = False, representations: bool = False,
               trace_tag: str | None = None, rubric: str | None = None):
     grader = _grader(mode)
+    # golden JWST rows carry the candidate id (which encodes the coordinates) and a proposal
+    # id; every mode except `jwst` would put them in the prompt and fetch an ls-dr10 DESI cube
+    # for them (common/fetch maps survey "jwst" -> ls-dr10). Refuse rather than leak.
+    for col in ("survey_key", "catalog"):
+        if col in df.columns and mode != "jwst" and (df[col].astype(str) == "jwst").any():
+            raise SystemExit(f"[batch] {int((df[col].astype(str) == 'jwst').sum())} rows have {col}=jwst "
+                             f"but --mode is {mode!r}: golden JWST rows may only be graded with "
+                             f"--mode jwst (the other modes send the candidate id / coordinates and "
+                             f"a DESI cutout to the model)")
     done = set()
     if out.exists():
         done = set(pd.read_parquet(out)["name"].tolist())
@@ -125,8 +140,8 @@ async def run(df: pd.DataFrame, out: Path, concurrency: int, model: str | None, 
         if len(tools) > 2:
             extra["tools"] = tuple(tools)
     if rubric:
-        if mode not in ("lean", "escalate", "direct", "matched"):
-            raise SystemExit("--rubric is only supported with --mode lean, escalate, direct, or matched")
+        if mode not in ("lean", "escalate", "direct", "matched", "jwst"):
+            raise SystemExit("--rubric is only supported with --mode lean, escalate, direct, matched, or jwst")
         extra["system_prompt"] = Path(rubric).read_text()
 
     async def one(cand):
@@ -175,7 +190,7 @@ def summarize(out: Path):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode", choices=("lean", "panel", "multiagent", "escalate", "direct",
-                                       "matched"),
+                                       "matched", "jwst"),
                     default="lean")
     ap.add_argument("--modelability", action="store_true",
                     help="give the lean/panel grader the Foundry-I quick_lensmodel tool")

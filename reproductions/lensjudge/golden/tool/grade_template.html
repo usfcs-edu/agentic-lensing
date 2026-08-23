@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Golden kit — blind grading</title>
+<!--
+  golden/tool/grade_template.html — the single-file blind grading tool.
+
+  build_kit.py substitutes the kit manifest into the <script id="kit"> block below and
+  ships the result as kits/<kit_id>/grade.html next to items/NNN.jpg. Everything is inline
+  (no external assets) so the page works from file:// in Safari/Chrome/Firefox, and from
+  serve.py over http (which additionally receives every commit at POST /api/event).
+
+  What it records, and only that: score 1-4 + confidence L/M/H (+ a boolean flag) per item,
+  with the time from image onload to commit. There is deliberately NO text field anywhere —
+  the record is grade + confidence, nothing else. Keys: 1-4 score, L/M/H confidence,
+  Enter/Space commit, Backspace revise the previous item, F flag, E export, Z zoom, ? help.
+  Events accumulate in localStorage["golden:<kit>:<grader>"], are auto-downloaded every 20
+  commits and at the end, and can be re-imported to resume on another machine/browser.
+  The tool shows only "k / N" progress — never item ids — so nothing on screen can mark
+  an image that is shown again later in the queue.
+-->
+<style>
+  :root {
+    --bg: #0b0d10; --panel: #161a20; --edge: #2a313b; --fg: #e6e9ee; --dim: #9aa4b2;
+    --acc: #ffcc4d; --ok: #5ad37a; --warn: #ff7a59; --sel: #2f6fed;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--fg);
+    font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; }
+  header { display: flex; align-items: center; gap: 18px; padding: 8px 16px;
+    border-bottom: 1px solid var(--edge); background: var(--panel); flex-wrap: wrap; }
+  header .big { font-size: 20px; font-weight: 600; }
+  header .dim { color: var(--dim); font-size: 13px; }
+  header .spacer { flex: 1; }
+  button { background: #222935; color: var(--fg); border: 1px solid var(--edge);
+    border-radius: 6px; padding: 6px 12px; font: inherit; cursor: pointer; }
+  button:hover { border-color: var(--dim); }
+  button:disabled { opacity: .4; cursor: default; }
+  main { display: flex; gap: 20px; padding: 14px 16px; align-items: flex-start; }
+  #stage { flex: 0 0 auto; background: #000; border: 1px solid var(--edge); }
+  #stage img { display: block; width: 752px; height: 540px; }
+  #stage.zoom img { width: 1504px; height: 1080px; }
+  #panel { flex: 1 1 340px; min-width: 320px; max-width: 560px; display: flex;
+    flex-direction: column; gap: 14px; }
+  .card { background: var(--panel); border: 1px solid var(--edge); border-radius: 8px;
+    padding: 12px 14px; }
+  .card h3 { margin: 0 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--dim); font-weight: 600; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .choice { flex: 1 1 0; min-width: 60px; padding: 12px 6px; text-align: center;
+    border: 2px solid var(--edge); border-radius: 8px; background: #1b212b; cursor: pointer;
+    user-select: none; }
+  .choice b { display: block; font-size: 24px; line-height: 1.1; }
+  .choice small { color: var(--dim); font-size: 12px; }
+  .choice.on { border-color: var(--sel); background: #1d2f55; }
+  .choice.need { border-color: var(--warn); }
+  #flag.on { border-color: var(--acc); background: #3a3110; }
+  #commit { width: 100%; padding: 12px; font-size: 17px; font-weight: 600;
+    background: #22442c; border-color: #2f6b3f; }
+  #commit:disabled { background: #1b212b; border-color: var(--edge); }
+  #prev { color: var(--acc); font-size: 14px; min-height: 1.4em; }
+  #note { color: var(--dim); font-size: 13px; }
+  details { background: var(--panel); border: 1px solid var(--edge); border-radius: 8px;
+    margin: 0 16px 16px; padding: 8px 14px; max-width: 1320px; }
+  summary { cursor: pointer; font-weight: 600; }
+  .banner { margin: 8px 0; padding: 8px 10px; border-left: 4px solid var(--acc);
+    background: #262112; color: #ffe7a3; font-weight: 600; }
+  .scale { display: grid; grid-template-columns: 84px 1fr; gap: 6px 14px; margin: 8px 0; }
+  .scale .k { font-weight: 700; font-size: 17px; white-space: nowrap; }
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.78); display: flex;
+    align-items: center; justify-content: center; z-index: 10; }
+  .overlay .box { background: var(--panel); border: 1px solid var(--edge); border-radius: 10px;
+    padding: 20px 26px; max-width: 640px; }
+  .overlay h2 { margin-top: 0; }
+  kbd { background: #2a313b; border: 1px solid #3b4552; border-bottom-width: 2px;
+    border-radius: 4px; padding: 1px 6px; font: 13px ui-monospace, Menlo, monospace; }
+  table.keys td { padding: 3px 10px 3px 0; vertical-align: top; }
+  [hidden] { display: none !important; }
+  #toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
+    background: #1d2f55; border: 1px solid var(--sel); padding: 8px 16px; border-radius: 8px;
+    opacity: 0; transition: opacity .25s; pointer-events: none; }
+  #toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<script type="application/json" id="kit">__KIT_MANIFEST_JSON__</script>
+
+<header>
+  <span class="big" id="progress">— / —</span>
+  <span class="dim" id="graded"></span>
+  <span class="dim" id="kitinfo"></span>
+  <span class="spacer"></span>
+  <button id="btn-import" title="Resume from a downloaded events file">Import events…</button>
+  <button id="btn-export" title="Download all events (E)">Export events (E)</button>
+  <button id="btn-csv" title="Download a grades CSV (last revision per item)">Export grades CSV</button>
+  <button id="btn-help" title="Keyboard help (?)">? Help</button>
+</header>
+
+<main>
+  <div id="stage"><img id="img" alt=""></div>
+  <div id="panel">
+    <div class="card">
+      <h3>Score <span class="dim">(keys 1–4)</span></h3>
+      <div class="row" id="scores">
+        <div class="choice" data-score="4"><b>4</b><small>= A</small></div>
+        <div class="choice" data-score="3"><b>3</b><small>= B</small></div>
+        <div class="choice" data-score="2"><b>2</b><small>= C</small></div>
+        <div class="choice" data-score="1"><b>1</b><small>= D</small></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3 id="conf-q">Confidence <span class="dim">(keys L / M / H)</span></h3>
+      <div class="row" id="confs">
+        <div class="choice" data-conf="L"><b>L</b><small id="lab-L">low</small></div>
+        <div class="choice" data-conf="M"><b>M</b><small id="lab-M">medium</small></div>
+        <div class="choice" data-conf="H"><b>H</b><small id="lab-H">high</small></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="row">
+        <div class="choice" id="flag" style="flex:0 0 120px"><b>⚑</b><small>flag (F)</small></div>
+        <div style="flex:1 1 auto; display:flex; flex-direction:column; gap:8px">
+          <button id="commit" disabled>Commit &amp; next (Enter)</button>
+          <button id="back">← Revise previous (Backspace)</button>
+        </div>
+      </div>
+      <div id="prev"></div>
+      <div id="note">Z = 2× zoom · ? = help. Nothing else is recorded.</div>
+    </div>
+  </div>
+</main>
+
+<details id="legend">
+  <summary id="legend-title">Legend</summary>
+  <div class="banner" id="banner"></div>
+  <div class="scale" id="scale"></div>
+  <div id="legend-conf"></div>
+</details>
+
+<div class="overlay" id="help" hidden>
+  <div class="box">
+    <h2>Keys</h2>
+    <table class="keys">
+      <tr><td><kbd>1</kbd>–<kbd>4</kbd></td><td>score (4 = A … 1 = D)</td></tr>
+      <tr><td><kbd>L</kbd> <kbd>M</kbd> <kbd>H</kbd></td><td>confidence — how sure are you of this score?</td></tr>
+      <tr><td><kbd>Enter</kbd> / <kbd>Space</kbd></td><td>commit and advance (needs both score and confidence)</td></tr>
+      <tr><td><kbd>Backspace</kbd></td><td>go back one item and re-grade it (a new revision is recorded)</td></tr>
+      <tr><td><kbd>F</kbd></td><td>flag this item (e.g. a rendering problem) — no comment is taken</td></tr>
+      <tr><td><kbd>Z</kbd></td><td>toggle 2× zoom</td></tr>
+      <tr><td><kbd>E</kbd></td><td>export events file (also happens automatically every 20 items)</td></tr>
+      <tr><td><kbd>?</kbd> / <kbd>Esc</kbd></td><td>this help / close</td></tr>
+    </table>
+    <p class="dim">Progress is saved in this browser after every commit. To continue on
+      another machine, open grade.html there and use <b>Import events…</b> with the last
+      downloaded <code>events_*.jsonl</code>.</p>
+    <button id="btn-help-close">Close</button>
+  </div>
+</div>
+
+<div class="overlay" id="done" hidden>
+  <div class="box">
+    <h2>All items graded — thank you.</h2>
+    <p id="done-text"></p>
+    <p>Please send the downloaded <code>events_*.jsonl</code> file(s). Press <kbd>E</kbd> to
+      download again, or <kbd>Backspace</kbd> to revise the last item.</p>
+    <div class="row">
+      <button id="btn-done-export">Export events</button>
+      <button id="btn-done-csv">Export grades CSV</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<input type="file" id="importfile" accept=".jsonl,.json,.txt" multiple hidden>
+
+<script>
+(function () {
+  'use strict';
+  var TOOL_VERSION = 'golden_tool_1.0';
+  var AUTO_EVERY = 20;                       // auto-download cadence (commits)
+  var KIT = JSON.parse(document.getElementById('kit').textContent);
+  var ITEMS = KIT.items;                     // [{item_id, image}] in presentation order
+  var N = ITEMS.length;
+  var LS_KEY = 'golden:' + KIT.kit_id + ':' + KIT.grader_id;
+  var HTTP = /^https?:$/.test(location.protocol);
+  var $ = function (id) { return document.getElementById(id); };
+
+  // ------------------------------------------------------------------ state
+  var events = loadEvents();                 // every event this browser knows (all sessions)
+  var sessionId = makeSessionId();           // new per page load
+  var cursor = 0;                            // index into ITEMS of the item on screen
+  var sel = { score: null, conf: null, flag: false };
+  var loadedAt = null;                       // performance.now() at <img>.onload
+  var commits = 0;                           // commits this page load (auto-download cadence)
+  var LEGEND_KEY = LS_KEY + ':legend';
+
+  function makeSessionId() {
+    var iso = new Date().toISOString().replace(/[:.]/g, '');
+    var hex = '';
+    try {
+      var a = new Uint8Array(2); crypto.getRandomValues(a);
+      hex = Array.prototype.map.call(a, function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
+    } catch (e) { hex = ('000' + Math.floor(Math.random() * 65536).toString(16)).slice(-4); }
+    return iso + '-' + hex;
+  }
+  function loadEvents() {
+    try {
+      var raw = localStorage.getItem(LS_KEY);
+      var arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr.filter(function (e) { return e && e.kit_id === KIT.kit_id; }) : [];
+    } catch (e) { return []; }
+  }
+  function saveEvents() {
+    try { localStorage.setItem(LS_KEY, JSON.stringify(events)); }
+    catch (e) { toast('WARNING: could not save to browser storage — export often (E)'); }
+  }
+  function eventKey(e) { return e.session_id + '|' + e.item_id + '|' + e.revision; }
+  function mergeEvents(list) {
+    // union by (session, item, revision); returns how many were new
+    var have = {}; events.forEach(function (e) { have[eventKey(e)] = true; });
+    var added = 0;
+    list.forEach(function (e) {
+      if (!e || e.kit_id !== KIT.kit_id || have[eventKey(e)]) return;
+      have[eventKey(e)] = true; events.push(e); added++;
+    });
+    if (added) saveEvents();
+    return added;
+  }
+  function latestFor(itemId) {
+    // highest revision; ties (should not happen) broken by timestamp
+    var best = null;
+    events.forEach(function (e) {
+      if (e.item_id !== itemId) return;
+      if (!best || e.revision > best.revision ||
+          (e.revision === best.revision && e.timestamp > best.timestamp)) best = e;
+    });
+    return best;
+  }
+  function gradedSet() {
+    var s = {}; events.forEach(function (e) { s[e.item_id] = true; }); return s;
+  }
+  function firstUngraded() {
+    var g = gradedSet();
+    for (var i = 0; i < N; i++) if (!g[ITEMS[i].item_id]) return i;
+    return N;
+  }
+  function nGraded() {
+    var g = gradedSet(), n = 0;
+    ITEMS.forEach(function (it) { if (g[it.item_id]) n++; });
+    return n;
+  }
+
+  // -------------------------------------------------------------- rendering
+  function renderLegend() {
+    var lg = KIT.legend || {};
+    $('legend-title').textContent = lg.title || 'Legend';
+    $('banner').textContent = lg.banner || '';
+    var sc = $('scale'); sc.innerHTML = '';
+    (lg.scale || []).forEach(function (row) {
+      var k = document.createElement('div'); k.className = 'k';
+      k.textContent = row.score + ' = ' + row.letter;
+      var t = document.createElement('div'); t.textContent = row.text;
+      sc.appendChild(k); sc.appendChild(t);
+    });
+    var cq = lg.confidence_question || 'How sure are you of this score?';
+    $('conf-q').innerHTML = '';
+    $('conf-q').appendChild(document.createTextNode(cq + ' '));
+    var d = document.createElement('span'); d.className = 'dim'; d.textContent = '(keys L / M / H)';
+    $('conf-q').appendChild(d);
+    var conf = KIT.confidence || { keys: ['L', 'M', 'H'], labels: ['low', 'medium', 'high'] };
+    conf.keys.forEach(function (k, i) { var el = $('lab-' + k); if (el) el.textContent = conf.labels[i] || k; });
+    var lc = $('legend-conf'); lc.innerHTML = '';
+    var p = document.createElement('div'); p.innerHTML = '<b>Confidence</b> — ' + escapeHtml(cq);
+    lc.appendChild(p);
+    var ul = document.createElement('ul');
+    conf.keys.forEach(function (k, i) {
+      var li = document.createElement('li'); li.textContent = k + ' — ' + (conf.labels[i] || k); ul.appendChild(li);
+    });
+    lc.appendChild(ul);
+    try { $('legend').open = localStorage.getItem(LEGEND_KEY) !== 'closed'; } catch (e) { $('legend').open = true; }
+    $('legend').addEventListener('toggle', function () {
+      try { localStorage.setItem(LEGEND_KEY, $('legend').open ? 'open' : 'closed'); } catch (e) {}
+    });
+  }
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function paintChoices() {
+    var nodes = document.querySelectorAll('#scores .choice');
+    Array.prototype.forEach.call(nodes, function (n) {
+      n.classList.toggle('on', String(sel.score) === n.getAttribute('data-score'));
+      n.classList.remove('need');
+    });
+    nodes = document.querySelectorAll('#confs .choice');
+    Array.prototype.forEach.call(nodes, function (n) {
+      n.classList.toggle('on', sel.conf === n.getAttribute('data-conf'));
+      n.classList.remove('need');
+    });
+    $('flag').classList.toggle('on', !!sel.flag);
+    $('commit').disabled = !(sel.score && sel.conf && loadedAt !== null);
+  }
+  function paintHeader() {
+    $('progress').textContent = (cursor < N ? (cursor + 1) : N) + ' / ' + N;
+    $('graded').textContent = 'graded ' + nGraded() + ' of ' + N;
+    $('kitinfo').textContent = 'kit ' + KIT.kit_id + ' · grader ' + KIT.grader_id +
+      ' · session ' + sessionId;
+  }
+  function show(i) {
+    cursor = i;
+    $('done').hidden = true;
+    if (i >= N) { finish(); return; }
+    var it = ITEMS[i];
+    var prev = latestFor(it.item_id);
+    sel = { score: null, conf: null, flag: prev ? !!prev.flag : false };
+    loadedAt = null;
+    // a fresh <img> every time so onload fires even when the file is cached
+    var old = $('img');
+    var img = document.createElement('img'); img.id = 'img'; img.alt = '';
+    img.onload = function () { loadedAt = performance.now(); paintChoices(); };
+    img.onerror = function () { toast('Image failed to load: ' + it.image); };
+    old.parentNode.replaceChild(img, old);
+    img.src = it.image;
+    $('prev').textContent = prev
+      ? ('Re-grading. Previously: ' + prev.score_1_4 + ' = ' + letter(prev.score_1_4) + ', ' +
+         prev.confidence_lmh + (prev.flag ? ', flagged' : '') + ' (revision ' + prev.revision + ')')
+      : '';
+    $('back').disabled = !(i > 0 && latestFor(ITEMS[i - 1].item_id));
+    paintHeader(); paintChoices();
+  }
+  function letter(s) { return { 4: 'A', 3: 'B', 2: 'C', 1: 'D' }[s] || '?'; }
+
+  // ---------------------------------------------------------------- actions
+  function commit() {
+    if (cursor >= N) return;
+    if (!(sel.score && sel.conf)) {
+      if (!sel.score) Array.prototype.forEach.call(document.querySelectorAll('#scores .choice'), function (n) { n.classList.add('need'); });
+      if (!sel.conf) Array.prototype.forEach.call(document.querySelectorAll('#confs .choice'), function (n) { n.classList.add('need'); });
+      return;
+    }
+    if (loadedAt === null) { toast('Image not loaded yet'); return; }
+    var it = ITEMS[cursor];
+    var prev = latestFor(it.item_id);
+    var ev = {
+      kit_id: KIT.kit_id,
+      manifest_sha: KIT.manifest_sha,
+      item_id: it.item_id,
+      presentation_index: cursor + 1,
+      session_id: sessionId,
+      grader_id: KIT.grader_id,
+      score_1_4: sel.score,
+      confidence_lmh: sel.conf,
+      seconds: Math.round((performance.now() - loadedAt)) / 1000,
+      revision: prev ? prev.revision + 1 : 1,
+      flag: !!sel.flag,
+      timestamp: new Date().toISOString(),
+      ua: navigator.userAgent,
+      tool_version: TOOL_VERSION
+    };
+    events.push(ev); saveEvents();
+    if (HTTP) post(ev);
+    commits++;
+    if (commits % AUTO_EVERY === 0) exportEvents(true);
+    show(firstUngraded());
+  }
+  function back() {
+    var i = cursor - 1;
+    if (i >= 0 && latestFor(ITEMS[i].item_id)) show(i);
+  }
+  function finish() {
+    paintHeader();
+    $('done-text').textContent = nGraded() + ' of ' + N + ' items graded in this kit.';
+    $('done').hidden = false;
+    exportEvents(true);
+  }
+  function post(ev) {
+    try {
+      fetch('/api/event', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(ev) })
+        .then(function (r) { if (!r.ok) toast('server did not accept the event (saved locally)'); })
+        .catch(function () { toast('server unreachable (saved locally)'); });
+    } catch (e) { /* saved locally anyway */ }
+  }
+  function pullServer() {
+    // over http, also pick up events the server already holds for this grader
+    if (!HTTP) return;
+    try {
+      fetch('/api/events?grader=' + encodeURIComponent(KIT.grader_id))
+        .then(function (r) { return r.ok ? r.json() : []; })
+        .then(function (list) { var n = mergeEvents(list); if (n) { toast('merged ' + n + ' event(s) from server'); show(firstUngraded()); } })
+        .catch(function () {});
+    } catch (e) {}
+  }
+
+  // ----------------------------------------------------------------- export
+  function download(name, text, mime) {
+    var blob = new Blob([text], { type: mime || 'application/octet-stream' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+  }
+  function exportEvents(auto) {
+    if (!events.length) { toast('no events yet'); return; }
+    var lines = events.map(function (e) { return JSON.stringify(e); }).join('\n') + '\n';
+    download('events_' + KIT.kit_id + '_' + sessionId + '.jsonl', lines, 'application/x-ndjson');
+    toast((auto ? 'auto-saved ' : 'exported ') + events.length + ' events');
+  }
+  function exportCsv() {
+    var rows = ['item_id,score_1_4,confidence_lmh,seconds,timestamp,revision'];
+    var seen = {};
+    ITEMS.slice().sort(function (a, b) { return a.item_id < b.item_id ? -1 : 1; }).forEach(function (it) {
+      var e = latestFor(it.item_id);
+      if (!e || seen[it.item_id]) return;
+      seen[it.item_id] = true;
+      rows.push([e.item_id, e.score_1_4, e.confidence_lmh, e.seconds, e.timestamp, e.revision].join(','));
+    });
+    download('grades_' + KIT.kit_id + '_' + KIT.grader_id + '.csv', rows.join('\n') + '\n', 'text/csv');
+  }
+  function importFiles(files) {
+    var pending = files.length, added = 0, bad = 0;
+    if (!pending) return;
+    Array.prototype.forEach.call(files, function (f) {
+      var rd = new FileReader();
+      rd.onload = function () {
+        var list = [];
+        String(rd.result).split(/\r?\n/).forEach(function (line) {
+          line = line.trim(); if (!line) return;
+          try {
+            var o = JSON.parse(line);
+            if (o && typeof o === 'object' && o.item_id && o.session_id && o.revision) list.push(o); else bad++;
+          } catch (e) { bad++; }
+        });
+        added += mergeEvents(list);
+        if (--pending === 0) {
+          toast('imported ' + added + ' new event(s)' + (bad ? ', ' + bad + ' bad line(s) skipped' : ''));
+          show(firstUngraded());
+        }
+      };
+      rd.readAsText(f);
+    });
+  }
+  var toastTimer = null;
+  function toast(msg) {
+    var t = $('toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.classList.remove('show'); }, 2600);
+  }
+
+  // ------------------------------------------------------------------ input
+  function setScore(s) { sel.score = s; paintChoices(); }
+  function setConf(c) { sel.conf = c; paintChoices(); }
+  function toggleFlag() { sel.flag = !sel.flag; paintChoices(); }
+  function toggleZoom() { $('stage').classList.toggle('zoom'); }
+  function toggleHelp(force) {
+    var h = $('help'); h.hidden = (force === undefined) ? !h.hidden : !force;
+  }
+  document.addEventListener('keydown', function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var k = e.key;
+    if (k === 'Escape') { toggleHelp(false); e.preventDefault(); return; }
+    if (k === '?') { toggleHelp(); e.preventDefault(); return; }
+    if (!$('help').hidden) return;
+    if (k >= '1' && k <= '4') { setScore(parseInt(k, 10)); e.preventDefault(); return; }
+    var u = k.toUpperCase();
+    if (u === 'L' || u === 'M' || u === 'H') { setConf(u); e.preventDefault(); return; }
+    if (k === 'Enter' || k === ' ') { e.preventDefault(); commit(); return; }
+    if (k === 'Backspace') { e.preventDefault(); back(); return; }
+    if (u === 'F') { toggleFlag(); e.preventDefault(); return; }
+    if (u === 'Z') { toggleZoom(); e.preventDefault(); return; }
+    if (u === 'E') { exportEvents(false); e.preventDefault(); return; }
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('#scores .choice'), function (n) {
+    n.addEventListener('click', function () { setScore(parseInt(n.getAttribute('data-score'), 10)); });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('#confs .choice'), function (n) {
+    n.addEventListener('click', function () { setConf(n.getAttribute('data-conf')); });
+  });
+  $('flag').addEventListener('click', toggleFlag);
+  $('commit').addEventListener('click', commit);
+  $('back').addEventListener('click', back);
+  $('btn-export').addEventListener('click', function () { exportEvents(false); });
+  $('btn-done-export').addEventListener('click', function () { exportEvents(false); });
+  $('btn-csv').addEventListener('click', exportCsv);
+  $('btn-done-csv').addEventListener('click', exportCsv);
+  $('btn-help').addEventListener('click', function () { toggleHelp(); });
+  $('btn-help-close').addEventListener('click', function () { toggleHelp(false); });
+  $('btn-import').addEventListener('click', function () { $('importfile').value = ''; $('importfile').click(); });
+  $('importfile').addEventListener('change', function () { importFiles($('importfile').files); });
+  // keep keyboard focus off buttons so Enter/Space mean "commit", not "press button"
+  document.addEventListener('click', function () { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); });
+
+  // ------------------------------------------------------------------ start
+  renderLegend();
+  show(firstUngraded());
+  pullServer();
+})();
+</script>
+</body>
+</html>
