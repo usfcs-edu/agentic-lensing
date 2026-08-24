@@ -64,10 +64,29 @@ Parse failure (any role) ⇒ S = NaN, row kept with `parse_fail_roles`. A per-it
 `--cost-cap` (default $0.17: the smoke measured $0.163 for a full stack) is warned about and
 counted in the meta. Anthropic path: API default temperature, `thinking` recorded.
 
+Top-up (`--only-nan`, REGISTRY.md › "Deployment rule v2-deploy" item 9): a COMPLETE replicate
+whose parquet holds rows with `p_lens` NaN (advocate transport failures, artifact parse
+failures) is re-scored on THOSE rows only. `check_resume(only_nan=True)` treats a NaN row as
+not done; the re-scored rows REPLACE their NaN predecessors (`_flush_replace`: concat +
+drop_duplicates on name keeping last, prev column order / dtypes / row order restored, so
+no scored row changes by a byte; the votes parquet drops the failed attempt's rows for
+those names and dedupes on name+role keeping last); the parquet, votes parquet and meta are
+copied to `<name>.pre_topup_<UTC>` before the first write; the meta is re-written on
+completion with a `topup` block (n_topup, topup_names_count, pre_topup paths, NaN count
+after); the new rows carry `rescored=False` and `rescore_reason="top-up(only-nan): …"`. It
+is allowed on the holdout because it is not a subset peek — the target set is fixed by the
+stored record, not chosen by the operator, and no scored row is touched — but the tuple
+must be registered exactly as before, `--rescore-reason` is required, and on the holdout a
+`top-up(only-nan): …` row is appended to "Truth-eval rescores" once the run completes. It
+never archives / renames the parquet (that is `--force-rescore`, with which it is refused,
+as it is with `--ids-file` / `--limit`); with zero NaN rows it exits 0 and writes nothing.
+
   python lensjudge/golden/run_truth_eval.py --arm a2 --split design --model sonnet --limit 20
   python lensjudge/golden/run_truth_eval.py --arm a1 --split holdout --model sonnet --k 1
   python lensjudge/golden/run_truth_eval.py --arm a0 --split holdout --claim-mode inspector
   python lensjudge/golden/run_truth_eval.py --arm a1 --split holdout --print-tuple
+  python lensjudge/golden/run_truth_eval.py --arm a1 --split holdout --model opus5 --thinking adaptive \\
+      --effort xhigh --only-nan --rescore-reason "49 advocate transport + 2 artifact parse failures"
 
 golden/panel.py (WP-3) is resolved through `_panel()` at call time so tests can swap a stub
 in (the run_golden_eval._REGISTRY pattern); everything else is imported directly.
@@ -80,6 +99,7 @@ import datetime as _dt
 import importlib
 import json
 import os
+import shutil
 import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -491,12 +511,64 @@ def seed_registry(frame_csv: Path) -> None:
 
 
 # ------------------------------------------------------------------ scoring loop
-def _flush_votes(rows: list, out: Path) -> None:
+def _flush_votes(rows: list, out: Path, replace: bool = False) -> None:
+    """Append this run's vote rows, deduped on name+role keeping last. `replace` (the
+    --only-nan flush) first drops EVERY stored row of the names being flushed, so a
+    re-scored item carries only its new attempt's roles (the failed attempt's rows — an
+    advocate that never parsed, critics of a stale advocate — survive in the pre_topup copy,
+    not beside the new record)."""
     new = pd.DataFrame(rows)
     if out.exists():
         prev = pd.read_parquet(out)
+        if replace and len(new):
+            prev = prev[~prev["name"].astype(str).isin(set(new["name"].astype(str)))]
         new = pd.concat([prev, new], ignore_index=True)
-    new.drop_duplicates(["name", "role"], keep="last").to_parquet(out, index=False)
+    _write_parquet_atomic(new.drop_duplicates(["name", "role"], keep="last"), out)
+
+
+def _write_parquet_atomic(df: pd.DataFrame, out: Path) -> None:
+    """to_parquet via a sibling temp file + os.replace, so a flush interrupted mid-write (or a
+    concurrent reader) never meets a half-written parquet: `out` is either the previous
+    complete file or the new complete file."""
+    out = Path(out)
+    tmp = out.with_name(f".{out.name}.tmp{os.getpid()}")
+    try:
+        df.to_parquet(tmp, index=False)
+        os.replace(tmp, out)
+    finally:
+        if tmp.exists():
+            tmp.unlink()
+
+
+def _flush_replace(rows: list, out: Path) -> None:
+    """The --only-nan flush: `pd.concat([prev, new]).drop_duplicates("name", keep="last")`, so
+    a re-scored row REPLACES its NaN predecessor and a row that is not being re-scored is
+    carried over as stored. run_batch._flush (the plain resume) would DROP a new row whose
+    name is already in the parquet. Previous column order, dtypes (where the merged column
+    can still hold them without inventing values) and row order are restored so the untouched
+    rows round-trip byte-equal; a name absent from the previous file (never the case under
+    --only-nan) lands at the end."""
+    new = pd.DataFrame(rows)
+    if not out.exists():
+        _write_parquet_atomic(new, out)
+        return
+    prev = pd.read_parquet(out)
+    merged = pd.concat([prev, new], ignore_index=True).drop_duplicates("name", keep="last")
+    merged = merged[list(prev.columns) + [c for c in merged.columns if c not in prev.columns]]
+    for c in prev.columns:
+        want = prev[c].dtype
+        if merged[c].dtype == want:
+            continue
+        if want.kind in "bi" and merged[c].isna().any():     # astype would coin False / raise on the nulls
+            continue
+        try:
+            merged[c] = merged[c].astype(want)
+        except (TypeError, ValueError):
+            pass
+    order = {n: i for i, n in enumerate(prev["name"].astype(str))}
+    merged = merged.assign(_pos=merged["name"].astype(str).map(order).fillna(len(order)))
+    merged = merged.sort_values("_pos", kind="stable").drop(columns="_pos").reset_index(drop=True)
+    _write_parquet_atomic(merged, out)
 
 
 def vote_rows(res, cand: dict, k: int) -> list[dict]:
@@ -516,10 +588,12 @@ def vote_rows(res, cand: dict, k: int) -> list[dict]:
 RESUME_COLS = tuple(c for c in TRUTH_COLS if c != "k") + ("run_tag",)   # k in a row = replicate index
 
 
-def check_resume(out: Path, extra_cols: dict) -> set:
+def check_resume(out: Path, extra_cols: dict, only_nan: bool = False) -> set:
     """Names already in an existing parquet — after asserting that EVERY stored row carries
     this run's tuple columns (`RESUME_COLS`). An interrupted replicate scored under another
-    prompt / render / threshold set must never be completed as this tuple's record."""
+    prompt / render / threshold set must never be completed as this tuple's record. With
+    `only_nan` (the top-up) a stored row whose `p_lens` is NaN counts as NOT done: only the
+    names with a finite S are returned, so exactly the failed rows are re-scored."""
     if not out.exists():
         return set()
     prev = pd.read_parquet(out)
@@ -536,22 +610,54 @@ def check_resume(out: Path, extra_cols: dict) -> set:
     if bad:
         raise SystemExit(f"[truth] REFUSED: {out} holds rows of a DIFFERENT tuple and cannot be resumed as "
                          f"this one ({bad}); move it aside (or --force-rescore on the holdout)")
+    if only_nan:
+        if "p_lens" not in prev.columns:
+            raise SystemExit(f"[truth] REFUSED: {out} has no p_lens column; --only-nan cannot tell a failed row")
+        prev = prev[prev["p_lens"].notna()]
     return set(prev["name"].astype(str).tolist())
+
+
+def todo_rows(df: pd.DataFrame, done: set, only_names: Optional[set] = None) -> list[dict]:
+    """The manifest rows still to score: those not in `done` and — when `only_names` is
+    given (the top-up's stored NaN names) — ONLY those in `only_names`. Under --only-nan a
+    manifest name that is absent from the parquet (a design replicate scored with --limit /
+    --ids-file) is therefore never scored and appended: item 9 says NaN rows only."""
+    return [r.to_dict() for _, r in df.iterrows()
+            if str(r["name"]) not in done and (only_names is None or str(r["name"]) in only_names)]
 
 
 async def score(df: pd.DataFrame, out: Path, votes_out: Path, trace_dir: Path, *, arm: str,
                 model: str, persona_set: dict, note: str, render: str, claim_mode: str,
                 thresholds: dict, concurrency: int, extra_cols: dict, expected_shas: dict,
                 stamps_dir: Optional[Path] = None, cost_cap: float = COST_CAP_DEFAULT,
-                persona_set_noclaim: Optional[dict] = None) -> dict:
+                persona_set_noclaim: Optional[dict] = None, only_nan: bool = False,
+                only_names: Optional[set] = None) -> dict:
     """run_golden_eval.score's loop with panel.grade_panel per item: resumable by name
     (rows already in `out` are skipped once their tuple columns match, `check_resume`),
     incremental parquet writes every 5 items (run_batch._flush), a bounded semaphore, the
     first-item sha assertion (`expected_shas`: role -> the set of allowed sha16s) and the
-    cost cap."""
-    done = check_resume(out, extra_cols)
-    todo = [r.to_dict() for _, r in df.iterrows() if str(r["name"]) not in done]
-    print(f"[truth] {arm}/{model}: {len(todo)} to grade ({len(done)} already done) -> {out}")
+    cost cap. `only_nan` (the top-up): the NaN rows are the to-do list — restricted to
+    `only_names` (the stored NaN names read before any write; required under only_nan) so a
+    manifest name the parquet never held is not scored — and the flushes are replace-merges
+    (`_flush_replace`, `_flush_votes(replace=True)`)."""
+    if only_nan and only_names is None:
+        raise ValueError("only_nan requires only_names (the stored NaN names): the to-do list is the target set")
+    done = check_resume(out, extra_cols, only_nan=only_nan)
+    todo = todo_rows(df, done, set(only_names) if only_names is not None else None)
+    if only_names is not None:
+        off = sorted(set(str(n) for n in df["name"]) - done - set(only_names))
+        if off:
+            print(f"[truth] {len(off)} manifest name(s) neither scored nor a NaN target: NOT scored (only-nan)")
+    print(f"[truth] {arm}/{model}: {len(todo)} to grade ({len(done)} already done"
+          f"{', NaN rows re-scored' if only_nan else ''}) -> {out}")
+
+    def flush():
+        if only_nan:
+            _flush_replace(rows, out)
+        else:
+            run_batch._flush(rows, out, done)
+        if vrows:
+            _flush_votes(vrows, votes_out, replace=only_nan)
     trace_dir.mkdir(parents=True, exist_ok=True)
     sem = asyncio.Semaphore(concurrency)
     rows, vrows, lock = [], [], asyncio.Lock()
@@ -589,16 +695,78 @@ async def score(df: pd.DataFrame, out: Path, votes_out: Path, trace_dir: Path, *
             rows.append(row)
             vrows.extend(vote_rows(res, cand, k))
             if len(rows) % 5 == 0 or len(rows) == len(todo):
-                run_batch._flush(rows, out, done)
-                if vrows:
-                    _flush_votes(vrows, votes_out)
+                flush()
 
     await asyncio.gather(*(one(c) for c in todo))
     if rows:
-        run_batch._flush(rows, out, done)
-    if vrows:
-        _flush_votes(vrows, votes_out)
+        flush()
     return stats
+
+
+# ------------------------------------------------------------------ the top-up (--only-nan)
+TOPUP_PREFIX = "top-up(only-nan): "
+
+
+def topup_reason(reason: str) -> str:
+    """The Truth-eval rescores reason of a top-up (and the new rows' `rescore_reason`)."""
+    return TOPUP_PREFIX + " ".join(reason.split())
+
+
+def nan_names(out: Path) -> list[str]:
+    """The top-up's target set: the names whose stored p_lens is NaN, sorted."""
+    df = pd.read_parquet(out, columns=["name", "p_lens"])
+    return sorted(df.loc[df["p_lens"].isna(), "name"].astype(str))
+
+
+def topup_problem(out: Path, t) -> Optional[str]:
+    """Why `out` cannot be topped up (None when it can): the replicate must be COMPLETE
+    (parquet + .meta.json) and the meta must record this tuple — an interrupted replicate is
+    resumed by the plain command (missing names, not NaN rows, are its gap), and another
+    tuple's file is never merged into."""
+    mp = rge.meta_path(out)
+    if not out.exists():
+        return f"{out} does not exist: nothing to top up (score the tuple first)"
+    if not mp.exists():
+        return f"{out} has no {mp.name}: an interrupted replicate — resume it with the plain command first"
+    if rge._meta_tuple_matches(mp, t, TRUTH_COLS) is not True:
+        return f"{mp} records a DIFFERENT tuple (or is unreadable); --only-nan never merges into another tuple's record"
+    return None
+
+
+def check_topup_gate(registry_md: Path, t, paths: list[Path], split: str) -> None:
+    """The top-up's gate: on the gated split the tuple must be registered exactly as for the
+    original run (the same row; nothing new is registered); on every split each target
+    replicate must be a complete record of this tuple (`topup_problem`). No rescore row is
+    logged here — it is appended after the run completes (main), so an aborted top-up leaves
+    the ledger untouched."""
+    if split == GATED_SPLIT and not rge.is_registered(registry_md, t, SECTION, TRUTH_COLS):
+        raise SystemExit(
+            "[gate] REFUSED: tuple not registered in {md}:\n  {row}\n"
+            "  --only-nan tops up a registered, already-scored tuple; it registers nothing."
+            .format(md=registry_md, row=t.row()))
+    for out in paths:
+        why = topup_problem(out, t)
+        if why:
+            raise SystemExit(f"[truth] REFUSED: --only-nan: {why}")
+    print(f"[gate] top-up: tuple {'registered, ' if split == GATED_SPLIT else ''}"
+          f"{len(paths)} complete replicate(s) found")
+
+
+def copy_pre_topup(out: Path, votes_out: Path, stamp: Optional[str] = None) -> dict[str, str]:
+    """Copy (never move) the parquet, votes parquet and meta json to `<name>.pre_topup_<UTC>`
+    before the first write of a top-up. Returns {kind: copy path} for the meta."""
+    stamp = stamp or _dt.datetime.now(_dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    copies: dict[str, str] = {}
+    for kind, p in (("parquet", out), ("votes", votes_out), ("meta", rge.meta_path(out))):
+        if not p.exists():
+            continue
+        dst = p.with_name(f"{p.name}.pre_topup_{stamp}")
+        if dst.exists():
+            raise SystemExit(f"[truth] REFUSED: {dst} already exists; nothing written")
+        shutil.copy2(p, dst)
+        copies[kind] = str(dst)
+        print(f"[truth] top-up: {p.name} copied to {dst.name}")
+    return copies
 
 
 def archive_replicate(out: Path, votes_out: Path, trace_dir: Path) -> None:
@@ -659,6 +827,18 @@ def main(argv=None):
     ap.add_argument("--cost-cap", type=float, default=COST_CAP_DEFAULT)
     ap.add_argument("--force-rescore", action="store_true")
     ap.add_argument("--rescore-reason", default=None)
+    ap.add_argument("--only-nan", action="store_true",
+                    help="top-up (REGISTRY.md › Deployment rule v2-deploy, item 9): re-score ONLY the rows of "
+                         "the existing, COMPLETE replicate whose stored p_lens is NaN (transport / parse "
+                         "failures) and merge them into the SAME parquet; every scored row is carried over "
+                         "unchanged. Allowed on the holdout because it is not a subset peek: the target set is "
+                         "fixed by the stored record (rows the registered run already tried and failed to "
+                         "score), not chosen by the operator, no scored row is re-scored, the tuple must be "
+                         "registered exactly as before, the parquet / votes / meta are copied to "
+                         "*.pre_topup_<UTC> before the first write, and a 'top-up(only-nan): ...' row is "
+                         "appended to 'Truth-eval rescores' on completion. Requires --rescore-reason; refused "
+                         "with --force-rescore (which archives the whole replicate), --ids-file or --limit; "
+                         "with zero NaN rows it exits 0 and writes nothing")
     ap.add_argument("--allow-provisional-thresholds", action="store_true",
                     help="holdout: run although thresholds_v2.json has no frozen t_A/t_B for this model "
                          "(P2 then tests the provisional letters; say so in the registry note)")
@@ -685,6 +865,20 @@ def main(argv=None):
     if args.ctx20 and args.arm != "a1":
         ap.error("--ctx20 only changes what the geometry critic sees (a1); the attribution arm shows every "
                  "role the same composite and attaches nothing, so it must not be labelled +ctx20")
+    if args.only_nan:                   # the top-up's own hygiene, any split (SystemExit, like the gate)
+        for flag, val in (("--force-rescore", args.force_rescore), ("--ids-file", args.ids_file),
+                          ("--limit", args.limit)):
+            if val:
+                raise SystemExit(f"[truth] REFUSED: --only-nan cannot be combined with {flag}: the top-up's "
+                                 f"target set is the stored NaN rows and nothing else (no subset, no archive)")
+        if not (args.rescore_reason and args.rescore_reason.strip()):
+            raise SystemExit("[truth] REFUSED: --only-nan requires --rescore-reason '...' (logged as "
+                             f"'{TOPUP_PREFIX}...' in {RESCORE_SECTION} and stamped on the re-scored rows)")
+    elif (args.rescore_reason or "").lstrip().startswith(TOPUP_PREFIX.rstrip()):
+        # the ledger tells a top-up (no scored row changed) from a genuine rescore by this prefix
+        # alone (tests/test_golden_truth_runner.py reads it): a --force-rescore may not borrow it
+        raise SystemExit(f"[truth] REFUSED: --rescore-reason may not start with {TOPUP_PREFIX!r} outside "
+                         f"--only-nan (that prefix marks a top-up in {RESCORE_SECTION}; a rescore states its own reason)")
     if args.split == GATED_SPLIT:       # the holdout hygiene rules (SystemExit, like the gate)
         if args.tau0 is not None:
             raise SystemExit("[truth] REFUSED: --tau0 is a design knob; the holdout runs the thresholds file as frozen")
@@ -734,7 +928,10 @@ def main(argv=None):
 
     paths = rge.out_paths(args.out, args.arm, args.split, args.k, args.model)
     rescored = False
-    if args.split == GATED_SPLIT:
+    reason = topup_reason(args.rescore_reason) if args.only_nan else None
+    if args.only_nan:
+        check_topup_gate(Path(args.registry_md), t, paths, args.split)
+    elif args.split == GATED_SPLIT:
         rescored = rge.check_validate_gate(Path(args.registry_md), t, paths, args.force_rescore,
                                            args.rescore_reason, section=SECTION, cols=TRUTH_COLS,
                                            split=GATED_SPLIT, prefix=PREFIX, rescore_section=RESCORE_SECTION)
@@ -745,9 +942,24 @@ def main(argv=None):
     if args.claim_mode == "inspector":
         df = attach_claims(df, Path(args.inspections), lexicon=lexicon)
     units = frame_units(df)
-    est = len(df) * MAX_CALLS[args.arm] * COST_PER_CALL.get(args.model, 0.019)
-    print(f"[truth] {len(df)} items on {args.split} ({len(units)} frame units) × k={args.k}; "
-          f"worst-case ≈ ${est * args.k:.2f} at {MAX_CALLS[args.arm]} calls/item; "
+    targets: dict[Path, list[str]] = {}
+    if args.only_nan:                   # the target sets, read BEFORE any write (zero targets ⇒ no write at all)
+        targets = {out: nan_names(out) for out in paths}
+        on_half = set(df["name"].astype(str))
+        for out, names in targets.items():
+            off = [n for n in names if n not in on_half]
+            print(f"[truth] top-up: {out.name}: {len(names)} NaN row(s) to re-score"
+                  + (f" ({len(off)} of them not on this half of the manifest: left NaN)" if off else ""))
+        if not any(targets.values()):
+            print(f"[truth] --only-nan: no NaN rows in {len(paths)} replicate(s); nothing to do, nothing written")
+            return
+        n_items = sum(len(v) for v in targets.values())
+    else:
+        n_items = len(df) * args.k
+    est = n_items * MAX_CALLS[args.arm] * COST_PER_CALL.get(args.model, 0.019)
+    print(f"[truth] {len(df)} items on {args.split} ({len(units)} frame units) × k={args.k}"
+          f"{f' ({n_items} NaN rows to top up)' if args.only_nan else ''}; "
+          f"worst-case ≈ ${est:.2f} at {MAX_CALLS[args.arm]} calls/item; "
           f"thresholds {thresholds['letter_source']} tau0={thresholds['tau0']}; render {t.render_version}")
     from lensjudge.common import llm_client
     backend = llm_client.get_backend()
@@ -756,24 +968,48 @@ def main(argv=None):
     if units:
         seed_registry(Path(args.frame))
 
+    topped: list[Path] = []
     for k, out in enumerate(paths, start=1):
         tag = t.run_tag(args.split, k)
         trace_dir = out.parent / f"traces_{tag}"
         votes_out = out.with_name(out.stem + "_votes.parquet")
         if rescored:
             archive_replicate(out, votes_out, trace_dir)
+        topup = None
+        if args.only_nan:
+            if not targets.get(out):
+                print(f"[truth] top-up: {out.name} has no NaN rows; skipped (nothing written)")
+                continue
+            prev_meta = json.loads(rge.meta_path(out).read_text())
+            topup = {"names": targets[out], "copies": copy_pre_topup(out, votes_out), "prev_meta": prev_meta}
         extra = {**asdict(t), "k": k, "run_tag": tag, "rescored": rescored,
-                 "rescore_reason": (args.rescore_reason if rescored else None),
+                 "rescore_reason": (args.rescore_reason if rescored else reason),
                  "tau0": thresholds["tau0"], "t_A": thresholds.get("t_A"), "t_B": thresholds.get("t_B")}
         stats = asyncio.run(score(df, out, votes_out, trace_dir, arm=args.arm, model=args.model,
                                   persona_set=persona_set, note=note, render=render, claim_mode=args.claim_mode,
                                   thresholds=thresholds, concurrency=args.concurrency, extra_cols=extra,
                                   expected_shas=allowed_shas(shas),
                                   stamps_dir=(Path(args.stamps_dir) if args.ctx20 else None),
-                                  cost_cap=args.cost_cap, persona_set_noclaim=persona_set_noclaim))
+                                  cost_cap=args.cost_cap, persona_set_noclaim=persona_set_noclaim,
+                                  only_nan=args.only_nan,
+                                  only_names=(set(targets[out]) if args.only_nan else None)))
+        meta_topup, history = None, None
+        if topup:
+            pm = topup["prev_meta"]
+            still = nan_names(out)
+            meta_topup = {"reason": reason, "n_topup": stats["n_scored"], "topup_names_count": len(topup["names"]),
+                          "topup_names": topup["names"], "n_nan_before": len(topup["names"]),
+                          "n_nan_after": len(still), "still_nan_names": still,
+                          "pre_topup": topup["copies"], "topped_up_at": _dt.datetime.now(_dt.timezone.utc).isoformat(),
+                          "previous": {c: pm.get(c) for c in ("scored_at", "n_scored_this_run", "n_parse_fail_this_run",
+                                                             "n_over_cost_cap_this_run", "cost_usd_this_run")}}
+            # earlier top-ups of this replicate (a row that failed twice) stay on the record
+            history = list(pm.get("topup_history") or []) + ([pm["topup"]] if pm.get("topup") else [])
+            topped.append(out)
         rge.write_meta(out, {
             "tuple": asdict(t), "split": args.split, "k": k, "run_tag": tag, "out": str(out),
-            "rescored": rescored, "rescore_reason": extra["rescore_reason"],
+            "rescored": rescored, "rescore_reason": (args.rescore_reason if rescored else None),
+            "topup": meta_topup, "topup_history": history,
             "manifest": str(args.manifest), "manifest_sha16": _util.sha_text(Path(args.manifest).read_text()),
             "splits": str(args.splits), "ids_file": args.ids_file, "limit": args.limit,
             "persona_set": str(persona_dir),
@@ -797,6 +1033,14 @@ def main(argv=None):
         if units:
             rge.mark_exposed(units, tag, "eval", required=(args.split == GATED_SPLIT))
         summarize(out)
+
+    if args.only_nan and topped and args.split == GATED_SPLIT:
+        # logged AFTER completion (an aborted top-up leaves the ledger untouched); one row per
+        # tuple, the same 15 columns as a rescore row, the reason prefixed so the ledger tells
+        # a top-up (no scored row changed) from a genuine rescore
+        rge.append_rescore(Path(args.registry_md), t, reason, TRUTH_COLS, RESCORE_SECTION)
+        print(f"[gate] TOP-UP logged in {args.registry_md} › {RESCORE_SECTION}: {reason!r} "
+              f"({len(topped)} replicate(s))")
 
 
 if __name__ == "__main__":

@@ -201,3 +201,50 @@ consistency bound, not equality.
 | 7 | J18030075+2309921 | u0042 | gray_sw_only (F150W2) | B | 4.00 | ‖Δletter(7, 14)‖ ≤ 1 on the same SW-only field, re-centred 1.17″ apart |
 | 14 | J18030108+2309932 | u0042 (alias of rank 7) | gray_sw_only (F150W2) | C | 4.60 | ‖Δletter(7, 14)‖ ≤ 1 on the same SW-only field, re-centred 1.17″ apart |
 | 16 | J5186648-1343587 | u0153 | color (F150W2/F322W2) | C | 17.60 | `scale_class = cluster`, `deflector_is_centre = false`, letter not D |
+
+## Deployment rule v2-deploy (pre-registered 2026-08-24, before any calibrated letter was read)
+
+Holdout verdict (2026-08-23): the opus5-xhigh ADVOCATE is the ranker (a2 tuple: recall@5%FPR
+0.333, AUC 0.764, gate met); the full critic stack on opus5 collapses ranking (a1: AUC 0.468) but
+is the only layer that removes stress_D inflation at A/B. Deployment therefore separates the two
+jobs — **advocate ranks, critic stack certifies** — and every letter below is a deterministic
+function of the stored records plus one thresholds file.
+
+1. **Calibration (design half, $0 holdout cost).** `opus5_api` thresholds are fit by
+   `golden/calibrate_thresholds.py` on the a2/opus5/adaptive/xhigh DESIGN run
+   (`outputs/preds_truth_a2_opus5_design_k1_r1.parquet`) using ONLY the 200 `truth_class ==
+   negative` non-anchor rows: t_A = smallest S with design FPR ≤ 1%, t_B = smallest S with FPR ≤ 5%,
+   tau0 unchanged (0.15). Design-positive recall at t_A/t_B is reported, never used to fit. The
+   fitted key is written to `golden/thresholds_v2.json` before any holdout or top-100 letter is
+   computed; the previous file is archived under `outputs/thresholds_v2.pre_opus5.json`.
+2. **Rank score** R = `p_evidence` from the advocate call (byte-identical prompt in the a1 and a2
+   modes, `panel.py`). Ranking within and across letters is by R; U (unexamined) strictly below.
+3. **letter_rank** = `aggregate_v2.assign_letter(p_evidence, advocate, critics=[], thresholds)` —
+   the advocate-only letter (A additionally needs ≥2 of {curvature, counter_image, arc_morphology}
+   ≥ 6). This is the letter whose FPR the calibration controls.
+4. **letter_final, rule R1 (primary)** = `assign_letter(S_arb, advocate, critics, thresholds,
+   arbitrator)` — the evidence that survives arbitration (upheld/partial refutations applied,
+   overruled ones ignored) must clear the same bars. Because S_arb ≤ p_evidence, the stack can only
+   demote; a demotion is always accompanied by the upheld critic's located alternative and the
+   arbitrator's rationale. When no critic engaged (p_evidence < tau0) letter_final = letter_rank.
+5. **Rule R2 (secondary, pre-stated fallback)** = letter_rank demoted to D only by the D-rule (an
+   upheld critic with a_geom = 1 and r ≥ 0.8), otherwise letter_rank.
+6. **Selection rule, stated before the transfer check runs:** R1 is deployed unless, on the
+   already-scored holdout a1-opus5-xhigh parquet, R1's recall at A∪B on holdout positives is below
+   one half of letter_rank's recall at A∪B; then R2. No new holdout scoring is involved — these are
+   derived statistics on registered, already-scored parquets (`golden/transfer_check.py`).
+7. **Transfer endpoints (holdout, derived, reported with 95% Clopper–Pearson CIs):** FPR at A and
+   at A∪B on holdout N1 (P2 holds if the t_A upper CI ≤ 2.5% and the t_B upper CI ≤ 7.5%); recall
+   at A∪B on holdout positives; stress_D count at A∪B — each for letter_rank (a2 holdout parquet),
+   R1 and R2 (a1 holdout parquet, 231 scored rows; the 51 NaN rows are excluded until the
+   registered top-up below lands).
+8. **Top-100 run:** `golden/regrade_scrambled.py --model opus5` (arm a1 full stack, adaptive/xhigh,
+   blind kit, no metadata, layout from filters only, worst-case budget ≤ $60). Letters at run time
+   are provisional; once (1) is written they are re-assigned from the stored per-role records
+   (zero-API `--reletter`), never re-scored. The comparison CSV gains `our_letter_rank`,
+   `our_letter_final`, `our_veto` (role:alternative of the demoting critic) and `our_rationale`.
+9. **Top-up of the 51 empty holdout rows (a1-opus5-xhigh):** `run_truth_eval.py --only-nan` scores
+   ONLY rows whose S is NaN (49 advocate transport failures + 2 artifact parse failures), merges
+   them into the same parquet without touching any scored row, keeps a `*.pre_topup_<UTC>` copy,
+   and appends a row to "Truth-eval rescores" with reason `top-up(only-nan): …`. Endpoints are then
+   recomputed once on 282/282 and reported next to the 231-row values.

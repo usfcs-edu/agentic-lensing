@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import os
 import sys
 from pathlib import Path
 
@@ -164,7 +165,14 @@ def _flush(rows, out, done):
     if out.exists():
         prev = pd.read_parquet(out)
         new = pd.concat([prev, new[~new["name"].isin(prev["name"])]], ignore_index=True)
-    new.drop_duplicates("name", keep="last").to_parquet(out, index=False)
+    # tmp file + os.replace: an interrupted flush leaves the previous complete parquet in place
+    tmp = out.with_name(f".{out.name}.tmp{os.getpid()}")
+    try:
+        new.drop_duplicates("name", keep="last").to_parquet(tmp, index=False)
+        os.replace(tmp, out)
+    finally:
+        if tmp.exists():
+            tmp.unlink()
 
 
 def summarize(out: Path):

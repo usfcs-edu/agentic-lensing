@@ -33,6 +33,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
+import pytest  # noqa: E402
 
 from lensjudge.golden import _util, aggregate_v2  # noqa: E402
 from lensjudge.golden import make_verifier_patch as mvp  # noqa: E402
@@ -214,7 +215,10 @@ def test_registry_md_truth_sections_and_anchors():
     arms = t["Truth-eval registered arms"]
     assert len(arms) >= 6, "registered-arms table lost rows"
     assert all(r.get("arm") and r.get("model") for r in arms)
-    assert t["Truth-eval rescores"] == []            # score-once: no rescore was ever needed
+    # score-once: no GENUINE rescore was ever needed. The only rows this table may hold are the
+    # registered top-ups (REGISTRY › Deployment rule v2-deploy item 9: NaN rows re-scored, no
+    # scored row touched); a real rescore row must fail here loudly
+    assert all(r["reason"].startswith(rte.TOPUP_PREFIX) for r in t["Truth-eval rescores"]), t["Truth-eval rescores"]
     # the golden separator is still unique (test_golden_model counts it once); ours appears twice
     assert txt.count(rge.TABLE_SEP + "\n") == 1
     assert txt.count(rte.TRUTH_TABLE_SEP + "\n") == 2
@@ -559,6 +563,259 @@ def test_truth_runner_gate_outputs_registry():
             except SystemExit as e:
                 assert "REFUSED" in str(e) and "geometry" in str(e)
             assert not (d / "out" / "preds_truth_attr_sonnet_design_k1_r1.parquet").exists()
+        finally:
+            shutil.rmtree(d)
+
+
+def _with_failures(stub, fail: set) -> None:
+    """Wrap the stub's grade_panel: an item whose name is in `fail` (checked at call time)
+    comes back as an advocate parse failure — S NaN, no letter, one call, parse_ok False —
+    the shape of the 49 transport failures in the real a1-opus5 holdout parquet."""
+    inner = stub.grade_panel
+
+    async def grade_panel(cand, **kw):
+        res = await inner(cand, **kw)
+        if cand["name"] in fail:
+            res.S, res.p_evidence, res.letter, res.parse_ok = float("nan"), float("nan"), None, False
+            res.parse_failures, res.calls = ["advocate"], 1
+            res.system_sha16s = {"advocate": res.system_sha16s["advocate"]}
+            res.raw, res.meta = {"advocate": "garbled"}, {"cost_by_role": {"advocate": 0.01}}
+        return res
+
+    stub.grade_panel = grade_panel
+
+
+def test_flush_replace_and_votes_replace():
+    """The --only-nan merges on a synthetic parquet: a re-scored row replaces its NaN
+    predecessor in place (row order, column order, dtypes kept; untouched rows byte-equal),
+    run_batch._flush would have dropped it; the votes replace drops the failed attempt's
+    roles for the re-scored names only."""
+    d = Path(tempfile.mkdtemp(prefix="flush_replace_"))
+    try:
+        out = d / "p.parquet"
+        prev = pd.DataFrame({"name": ["a", "b", "c"], "p_lens": [0.3, np.nan, 0.7], "grade_pred": ["C", None, "A"],
+                             "parse_ok": [True, False, True], "calls": [4, 1, 5], "rescored": [False] * 3,
+                             "rescore_reason": [None] * 3, "k": [1, 1, 1]})
+        prev.to_parquet(out, index=False)
+        prev = pd.read_parquet(out)
+        new = [{"name": "b", "p_lens": 0.9, "grade_pred": "A", "parse_ok": True, "calls": 5, "rescored": False,
+                "rescore_reason": "top-up(only-nan): x", "k": 1}]
+        prev.to_parquet(d / "plain.parquet", index=False)
+        rte.run_batch._flush(list(new), d / "plain.parquet", set())
+        assert pd.read_parquet(d / "plain.parquet")["p_lens"].isna().sum() == 1     # the plain flush drops the new row
+        rte._flush_replace(list(new), out)
+        after = pd.read_parquet(out)
+        assert after["name"].tolist() == ["a", "b", "c"] and list(after.columns) == list(prev.columns)
+        # every column that held a value keeps its dtype and its untouched rows byte-equal; a
+        # column that was ALL null (rescore_reason) necessarily takes the string type once the
+        # top-up rows carry a reason — its untouched rows stay null
+        cols = [c for c in prev.columns if prev[c].notna().any()]
+        assert "rescore_reason" not in cols and all(after[c].dtype == prev[c].dtype for c in cols), after.dtypes
+        keep = prev["name"] != "b"
+        pd.testing.assert_frame_equal(prev.loc[keep, cols].reset_index(drop=True), after.loc[keep, cols].reset_index(drop=True))
+        assert prev.loc[keep, cols].to_parquet(index=False) == after.loc[keep, cols].to_parquet(index=False)
+        b = after[after["name"] == "b"].iloc[0]
+        assert b["p_lens"] == 0.9 and b["grade_pred"] == "A" and bool(b["parse_ok"]) and b["calls"] == 5
+        assert b["rescore_reason"] == "top-up(only-nan): x" and after["rescore_reason"][keep].isna().all()
+        # a second flush of the same accumulated rows is idempotent
+        rte._flush_replace(list(new), out)
+        pd.testing.assert_frame_equal(after, pd.read_parquet(out))
+        # votes: replace drops every stored role of the flushed names, then dedupes on name+role
+        vout = d / "v.parquet"
+        pd.DataFrame({"name": ["a", "b", "b", "c"], "role": ["advocate", "advocate", "artifact", "advocate"],
+                      "parse_ok": [True, False, True, True]}).to_parquet(vout, index=False)
+        rte._flush_votes([{"name": "b", "role": "advocate", "parse_ok": True}], vout, replace=True)
+        v = pd.read_parquet(vout)
+        assert v[["name", "role"]].values.tolist() == [["a", "advocate"], ["c", "advocate"], ["b", "advocate"]]
+        assert v.loc[v["name"] == "b", "parse_ok"].all()
+        rte._flush_votes([{"name": "b", "role": "geometry", "parse_ok": True}], vout)      # plain: append + dedupe
+        assert len(pd.read_parquet(vout)) == 4
+    finally:
+        shutil.rmtree(d)
+
+
+def test_todo_rows_restricts_the_topup_to_the_stored_nan_names():
+    """Item 9: --only-nan scores ONLY rows whose stored S is NaN. check_resume(only_nan=True)
+    returns the finite-S names as done, so a manifest name ABSENT from the parquet (a design
+    replicate scored with --limit / --ids-file) would otherwise be scored and appended; the
+    to-do list is restricted to the NaN target names read before any write."""
+    df = pd.DataFrame({"name": ["a", "b", "c"], "x": [1, 2, 3]})
+    done = {"a"}                                           # a finite, b NaN, c never in the parquet
+    assert [r["name"] for r in rte.todo_rows(df, done)] == ["b", "c"]            # the plain resume
+    assert [r["name"] for r in rte.todo_rows(df, done, {"b"})] == ["b"]          # the top-up
+    assert rte.todo_rows(df, done, set()) == []
+    assert rte.todo_rows(df, {"a", "b", "c"}, {"b"}) == []
+    # score() itself refuses only_nan without the target set (never a silent superset)
+    import asyncio
+    with pytest.raises(ValueError, match="only_names"):
+        asyncio.run(rte.score(df, Path("/nonexistent/p.parquet"), Path("/nonexistent/v.parquet"),
+                              Path("/nonexistent/t"), arm="a1", model="sonnet", persona_set={}, note="",
+                              render="v1", claim_mode="none", thresholds={}, concurrency=1, extra_cols={},
+                              expected_shas={}, only_nan=True))
+
+
+def test_topup_prefix_is_refused_outside_only_nan():
+    """A --force-rescore may not borrow the 'top-up(only-nan): ' prefix: the ledger (and
+    test_registry_md_truth_sections_and_anchors) tell a top-up from a genuine rescore by it."""
+    for args in (["--arm", "a1", "--split", "holdout", "--force-rescore", "--rescore-reason", "top-up(only-nan): x"],
+                 ["--arm", "a2", "--split", "design", "--rescore-reason", "  top-up(only-nan):y"]):
+        with pytest.raises(SystemExit, match="may not start with"):
+            rte.main(args)
+
+
+def test_truth_runner_only_nan_topup():
+    """REGISTRY › Deployment rule v2-deploy item 9: --only-nan re-scores ONLY the NaN rows of a
+    complete replicate, merges them in place (scored rows byte-equal), copies parquet / votes /
+    meta to *.pre_topup_<UTC> before the first write, re-writes the meta with a topup block,
+    logs ONE 'top-up(only-nan): …' row in Truth-eval rescores (holdout; 15 cells; separators
+    intact), needs --rescore-reason, refuses --force-rescore / --ids-file / --limit and an
+    unregistered or incomplete target, and with zero NaN rows exits 0 writing nothing."""
+    d, man = make_world(n_design=3, n_holdout=4)
+    stub, fake = make_stub_panel(p_evidence=0.6, letter="B"), _FakeRegistry()
+    fail: set = set()
+    _with_failures(stub, fail)
+    OUT_T = str(d / "out" / "preds_truth_{arm}_{model}_{split}_k{K}_r{k}.parquet")
+    common = ["--manifest", str(d / "truth_manifest.csv"), "--splits", str(d / "truth_splits.csv"),
+              "--frame", str(d / "frame.csv"), "--registry-md", str(d / "REGISTRY.md"), "--out", OUT_T,
+              "--banned", str(d / "banned.txt"), "--model", "sonnet", "--concurrency", "2",
+              "--thresholds", str(d / "nothing.json"), "--persona-set", str(d)]
+    hold = ["--allow-provisional-thresholds"]
+    H = ["--arm", "a1", "--split", "holdout"]
+    TOP = ["--only-nan", "--rescore-reason", " transport  failures "]
+    out = d / "out" / "preds_truth_a1_sonnet_holdout_k1_r1.parquet"
+    votes_out = out.with_name(out.stem + "_votes.parquet")
+    hnames = man.loc[man["half"] == "holdout", "name"].tolist()
+    with _stubbed(stub, fake, out_dir=d / "out"):
+        try:
+            _register(d / "REGISTRY.md", _capture(rte.main, H + ["--print-tuple"] + common).strip())
+            # nothing to top up yet: refused before any call
+            try:
+                rte.main(H + TOP + common + hold); raise AssertionError("no raise")
+            except SystemExit as e:
+                assert "does not exist" in str(e) and stub.calls == []
+            # ---- the registered run, two of four items fail (S NaN)
+            fail.update(hnames[1:3])
+            rte.main(H + common + hold)
+            prev, prev_bytes, prev_votes = pd.read_parquet(out), out.read_bytes(), pd.read_parquet(votes_out)
+            assert len(prev) == 4 and sorted(prev.loc[prev["p_lens"].isna(), "name"]) == sorted(hnames[1:3])
+            assert rge.meta_path(out).exists() and json.loads(rge.meta_path(out).read_text())["n_parse_fail_this_run"] == 2
+            # the resume sets: plain = every stored name; only_nan = the finite-S names
+            extra = {c: prev[c].iloc[0] for c in rte.RESUME_COLS}
+            assert rte.check_resume(out, extra) == set(hnames)
+            assert rte.check_resume(out, extra, only_nan=True) == set(hnames) - set(hnames[1:3])
+            assert rte.nan_names(out) == sorted(hnames[1:3])
+            assert rte.topup_reason(" transport  failures ") == "top-up(only-nan): transport failures"
+            # ---- refusals, nothing written, no call: no reason; + --force-rescore / --ids-file / --limit;
+            # an unregistered tuple (k=3); the plain command (complete record) is still refused
+            n = len(stub.calls)
+            (d / "ids.txt").write_text(hnames[1] + "\n")
+            for extra_args, why in ((["--only-nan"], "rescore-reason"),
+                                    (TOP + ["--force-rescore"], "--force-rescore"),
+                                    (TOP + ["--ids-file", str(d / "ids.txt")], "--ids-file"),
+                                    (TOP + ["--limit", "1"], "--limit")):
+                try:
+                    rte.main(H + extra_args + common + hold); raise AssertionError("no raise " + why)
+                except SystemExit as e:
+                    assert "--only-nan" in str(e) and why in str(e), (why, str(e))
+            try:
+                rte.main(H + ["--k", "3"] + TOP + common + hold); raise AssertionError("no raise")
+            except SystemExit as e:
+                assert "not registered" in str(e)
+            try:
+                rte.main(H + common + hold); raise AssertionError("no raise")
+            except SystemExit as e:
+                assert "already scored on holdout" in str(e)
+            assert len(stub.calls) == n and out.read_bytes() == prev_bytes
+            assert not list((d / "out").glob("*.pre_topup_*"))
+            assert rge._tables((d / "REGISTRY.md").read_text())["Truth-eval rescores"] == []
+            # ---- the top-up: exactly the two NaN rows are re-scored and merged in place
+            fail.clear()
+            rte.main(H + TOP + common + hold)
+            assert len(stub.calls) == n + 2 and {c["name"] for c in stub.calls[n:]} == set(hnames[1:3])
+            after = pd.read_parquet(out)
+            assert after["name"].tolist() == prev["name"].tolist() and after["p_lens"].notna().all()
+            assert list(after.columns) == list(prev.columns)
+            # scored rows byte-equal on every column that held a value (rescore_reason was all-null
+            # and takes the string type once the top-up rows carry a reason; its scored rows stay null)
+            cols = [c for c in prev.columns if prev[c].notna().any()]
+            assert "rescore_reason" not in cols and all(after[c].dtype == prev[c].dtype for c in cols), after.dtypes
+            ok = (prev["p_lens"].notna()).values
+            pd.testing.assert_frame_equal(prev.loc[ok, cols].reset_index(drop=True), after.loc[ok, cols].reset_index(drop=True))
+            assert prev.loc[ok, cols].to_parquet(index=False) == after.loc[ok, cols].to_parquet(index=False)
+            new = after[~ok]
+            assert (new["p_lens"] == 0.6).all() and (new["grade_pred"] == "B").all() and new["parse_ok"].all()
+            assert (new["rescore_reason"] == "top-up(only-nan): transport failures").all() and not after["rescored"].any()
+            assert after.loc[ok, "rescore_reason"].isna().all()
+            assert (after["run_tag"] == "truth_a1_sonnet_holdout_k1_r1").all()
+            # the pre_topup copies: one each, the parquet byte-equal to the pre-run file
+            cps = {p.name.split(".pre_topup_")[0]: p for p in (d / "out").glob("*.pre_topup_*")}
+            assert set(cps) == {out.name, votes_out.name, rge.meta_path(out).name}, cps
+            assert cps[out.name].read_bytes() == prev_bytes
+            assert re.fullmatch(r"\d{8}T\d{6}Z", cps[out.name].name.split(".pre_topup_")[1])
+            assert not list((d / "out").glob("*.pre_rescore_*"))                            # never archived
+            # votes: the failed attempt's rows of the two names are replaced, the others untouched
+            va = pd.read_parquet(votes_out)
+            for nme in hnames[1:3]:
+                assert set(va.loc[va["name"] == nme, "role"]) == {"advocate", "artifact", "geometry", "morphology"}
+                assert va.loc[va["name"] == nme, "parse_ok"].all() and (va.loc[va["name"] == nme, "raw"] != "garbled").all()
+            keep = ~prev_votes["name"].isin(hnames[1:3])
+            pd.testing.assert_frame_equal(prev_votes[keep].reset_index(drop=True),
+                                          va[~va["name"].isin(hnames[1:3])].reset_index(drop=True))
+            assert not va.duplicated(["name", "role"]).any()
+            # meta re-written on completion with the topup block
+            m = json.loads(rge.meta_path(out).read_text())
+            tp = m["topup"]
+            assert tp["n_topup"] == 2 and tp["topup_names_count"] == 2 and tp["n_nan_before"] == 2 and tp["n_nan_after"] == 0
+            assert tp["topup_names"] == sorted(hnames[1:3]) and tp["still_nan_names"] == []
+            assert tp["reason"] == "top-up(only-nan): transport failures"
+            assert set(tp["pre_topup"]) == {"parquet", "votes", "meta"}
+            assert {Path(p) for p in tp["pre_topup"].values()} == set(cps.values())
+            assert tp["previous"]["n_scored_this_run"] == 4 and tp["previous"]["n_parse_fail_this_run"] == 2
+            assert m["topup_history"] == [] and m["rescored"] is False and m["rescore_reason"] is None
+            assert m["n_scored_this_run"] == 2 and m["n_parse_fail_this_run"] == 0 and m["n"] == 4
+            assert m["tuple"] == json.loads(cps[rge.meta_path(out).name].read_text())["tuple"]
+            # the ledger: ONE row, 15 cells, the prefix; both table separators intact; anchors untouched
+            txt = (d / "REGISTRY.md").read_text()
+            tabs = rge._tables(txt)
+            rows = tabs["Truth-eval rescores"]
+            assert len(rows) == 1 and rows[0]["reason"] == "top-up(only-nan): transport failures"
+            assert len(rows[0]) == 15 and rows[0]["arm"] == "a1" and rows[0]["model"] == "sonnet" and rows[0]["k"] == "1"
+            line = next(l for l in txt.splitlines() if "top-up(only-nan): transport failures" in l)
+            assert line.count("|") == 16                                                   # 15 cells
+            assert txt.count(rte.TRUTH_TABLE_SEP + "\n") == 2 and txt.count(rge.TABLE_SEP + "\n") == 1
+            assert tabs["Rescores"] == [] and len(tabs["Design anchors (PI-derived, design-only, never truth)"]) == 5
+            assert fake.exposed[-1] == (("u0005", "u0007"), "truth_a1_sonnet_holdout_k1_r1", "eval")
+            # ---- zero NaN rows: exit 0, a message, nothing written, no call, no ledger row
+            n, snap = len(stub.calls), out.read_bytes()
+            msg = _capture(rte.main, H + ["--only-nan", "--rescore-reason", "again"] + common + hold)
+            assert "nothing to do" in msg and len(stub.calls) == n and out.read_bytes() == snap
+            assert len(list((d / "out").glob("*.pre_topup_*"))) == 3
+            assert len(rge._tables((d / "REGISTRY.md").read_text())["Truth-eval rescores"]) == 1
+            assert json.loads(rge.meta_path(out).read_text()) == m
+            # the score-once rule still holds after the top-up
+            try:
+                rte.main(H + common + hold); raise AssertionError("no raise")
+            except SystemExit as e:
+                assert "already scored on holdout" in str(e)
+            # ---- design: ungated (no registry row), no ledger row; an interrupted replicate is refused
+            D = ["--arm", "a2", "--split", "design"]
+            dnames = man.loc[man["half"] == "design", "name"].tolist()
+            fail.add(dnames[0])
+            rte.main(D + common)
+            fail.clear()
+            outd = d / "out" / "preds_truth_a2_sonnet_design_k1_r1.parquet"
+            assert rte.nan_names(outd) == [dnames[0]]
+            rte.main(D + ["--only-nan", "--rescore-reason", "design top-up"] + common)
+            assert pd.read_parquet(outd)["p_lens"].notna().all()
+            assert len(rge._tables((d / "REGISTRY.md").read_text())["Truth-eval rescores"]) == 1
+            assert len(list((d / "out").glob("preds_truth_a2_sonnet_design_k1_r1*.pre_topup_*"))) == 3
+            assert json.loads(rge.meta_path(outd).read_text())["topup"]["n_topup"] == 1
+            fail.add(dnames[1])
+            rge.meta_path(outd).unlink()
+            try:
+                rte.main(D + ["--only-nan", "--rescore-reason", "x"] + common); raise AssertionError("no raise")
+            except SystemExit as e:
+                assert "interrupted" in str(e)
         finally:
             shutil.rmtree(d)
 

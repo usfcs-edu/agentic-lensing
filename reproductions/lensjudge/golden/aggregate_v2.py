@@ -28,6 +28,13 @@ r ≥ 0.8 (in the arbitrated arm that critic must be upheld). Everything else is
 U (never examined) ranks STRICTLY below every examined item (`rank_key`), so the top-N is an
 examined list and the U tail is the next verification queue — the incumbent put U above D.
 
+Deployment (REGISTRY.md "Deployment rule v2-deploy", `deploy_letters`): the ADVOCATE RANKS and
+the critic stack CERTIFIES. R = p_evidence orders the table; `letter_rank` is the advocate-only
+letter (critics=[]) whose FPR the calibration controls; `letter_final` is that letter after the
+stack — rule R1 (primary) re-assigns it on S_arb with the arbitrated critics, rule R2 (pre-stated
+fallback) demotes to D only by the D rule (`d_rule_roles`). A demotion always carries a `veto`
+("role:alternative" of the responsible critic(s)). Letters certify, they do not order.
+
 Pure python, stdlib + math ONLY, and records are read through `_get` so the same code
 accepts pydantic records (lensjudge, `golden/schemas_panel.py`) and plain dicts (Nate's
 `scripts/09_rank_report_v2.py` reads jsonl). A byte-identical copy of this file is shipped in
@@ -43,7 +50,7 @@ import json
 import math
 from typing import Any, Iterable, Optional
 
-__version__ = "2.1.0"
+__version__ = "2.2.0"
 
 CRITIC_ROLES = ("artifact", "geometry", "morphology")
 ROLES = ("advocate",) + CRITIC_ROLES + ("arbitrator",)
@@ -66,6 +73,8 @@ MODEL_KEYS = {"sonnet": "sonnet_api", "opus": "opus_api",
               "opus5": "opus5_api", "sonnet5": "sonnet5_api"}
 VERDICTS = ("pass", "fail", "uncertain")
 RULINGS = ("upheld", "partial", "overruled")
+LETTERS = ("A", "B", "C", "D")                 # best first; letter_order(None) sorts after D
+DEPLOY_RULES = ("R1", "R2")                    # REGISTRY.md v2-deploy items 4 (primary) and 5
 _EPS = 1e-9
 
 
@@ -311,6 +320,24 @@ def resolve_thresholds(table: dict, model_key: str, fallback_keys: tuple = ("pro
     return {**PROVISIONAL, "letter_source": "provisional", "thresholds_key": "provisional"}
 
 
+def d_rule_roles(terms: dict, arbitrator: Any = None) -> list:
+    """The critic roles that satisfy the D rule: entering the product, covering EVERY item
+    geometrically (a_geom == 1) at r ≥ STRONG_R and — when an arbitrator ruled — UPHELD (a
+    partial, overruled or missing ruling does not qualify; without an arbitrator the critic's
+    own report stands). `terms` is a `critic_terms` dict computed WITH the same arbitrator.
+    Roles come back in artifact, geometry, morphology order."""
+    return [role for role in _ordered_roles(terms)
+            if terms[role]["included"] and terms[role]["a_geom"] >= 1.0 - _EPS
+            and terms[role]["r"] >= STRONG_R - _EPS
+            and (arbitrator is None or terms[role]["ruling"] == "upheld")]
+
+
+def _ordered_roles(roles: Iterable[str]) -> list:
+    """artifact, geometry, morphology first (in that order), anything else after, sorted."""
+    roles = list(roles)
+    return sorted(roles, key=lambda r: (CRITIC_ROLES.index(r) if r in CRITIC_ROLES else len(CRITIC_ROLES), r))
+
+
 def assign_letter(S: Any, advocate: Any, critics: Any, thresholds: dict,
                   arbitrator: Any = None, dr: float = DR_ARCSEC, dpa: float = DPA_DEG) -> tuple:
     """(letter, letter_source) for a score S (pass S for the primary letter, S_arb plus the
@@ -338,13 +365,86 @@ def assign_letter(S: Any, advocate: Any, critics: Any, thresholds: dict,
         return "B", source
     items = list(_get(advocate, "items") or [])
     nothing_located = not items and str(_get(advocate, "nothing_because", "") or "").strip() != ""
-    fully_refuted = any(
-        t["included"] and t["a_geom"] >= 1.0 - _EPS and t["r"] >= STRONG_R - _EPS
-        and (arbitrator is None or t["ruling"] == "upheld")
-        for t in terms.values())
+    fully_refuted = bool(d_rule_roles(terms, arbitrator))
     if nothing_located or fully_refuted:
         return "D", source
     return "C", source
+
+
+# ------------------------------------------------------------------ deployment (v2-deploy)
+def letter_order(letter: Any) -> int:
+    """Best-first position of a letter: A 0 < B 1 < C 2 < D 3 < None / anything else 4 —
+    ascending like `rank_key`, so `letter_order(x) > letter_order(y)` reads "x is worse"."""
+    return LETTERS.index(letter) if letter in LETTERS else len(LETTERS)
+
+
+def deploy_letters(advocate: Any, critics: Any, arbitrator: Any, thresholds: dict,
+                   rule: str = "R1", dr: float = DR_ARCSEC, dpa: float = DPA_DEG) -> dict:
+    """REGISTRY.md "Deployment rule v2-deploy", items 3–5 — the advocate ranks, the critic stack
+    certifies. Returns {letter_rank, letter_final, veto, S, S_arb, p_evidence, rule}:
+
+      letter_rank  = assign_letter(p_evidence, advocate, critics=[], thresholds): the advocate-
+                     only letter (item 3; A still needs ≥ 2 configuration criteria ≥ 6). Its
+                     FPR is what the calibration controls.
+      letter_final, R1 (primary, item 4) = assign_letter(S_arb, advocate, critics, thresholds,
+                     arbitrator): the evidence that survives arbitration (upheld / partial
+                     refutations applied, overruled ones ignored) must clear the same bars.
+                     S_arb ≤ p_evidence, so the stack can only demote.
+      letter_final, R2 (secondary, item 5) = "D" when the D rule fires — an UPHELD critic with
+                     a_geom == 1 and r ≥ 0.8 (`d_rule_roles`, the same predicate assign_letter
+                     uses) — otherwise letter_rank, whatever S_arb is.
+      veto         = "role:alternative" of the critic(s) responsible for a demotion, several
+                     joined by ";" in artifact, geometry, morphology order; "" when letter_final
+                     == letter_rank (or either letter is None). R1 names every critic whose term
+                     entered S_arb with r·a > 0 (upheld, partial, or — with no ruling for it —
+                     standing): they lowered the score jointly, and any A-blocker (r·a ≥ 0.8) or
+                     D-rule critic is among them. R2 names the D-rule critic(s).
+
+    `thresholds` is a `resolve_thresholds` dict (t_A, t_B, tau0, letter_source — provisional or
+    calibrated alike); `critics` is {role: record | None} or a list of records. Edge cases:
+      * advocate None ⇒ p_evidence None, S / S_arb NaN, both letters None, veto "".
+      * no critics ({} / None — p_evidence < tau0, none called), all abstaining / unnamed, or
+        every critic overruled ⇒ S_arb == p_evidence and letter_final == letter_rank.
+      * named critics but NO arbitrator record: `score_S_arb` treats every named critic as
+        standing (S_arb == S) and the D rule needs no ruling, so under R1 letter_final is the
+        PRIMARY letter assign_letter(S, advocate, critics) and under R2 a full-coverage strong
+        critic makes a D on its own report. That is the "none was needed" reading; if the
+        arbitrator was CALLED and failed to parse, the caller must void the row first
+        (`schemas_panel.assemble`'s policy) — this function cannot tell the two apart.
+      * S_arb NaN (no usable p_evidence, or a called critic is None): letter_final None under
+        both rules (a parse-failure row), letter_rank still the advocate's letter when
+        p_evidence is usable, veto "".
+    Ranking note: letters certify, they do not order (item 2). Order a deployment table with
+    `rank_key` on rows whose `S` is R = p_evidence, e.g. sorted(rows, key=lambda r:
+    rank_key({**r, "S": r["p_evidence"]})): examined rows by R desc, U rows strictly below.
+    """
+    if rule not in DEPLOY_RULES:
+        raise ValueError(f"rule must be one of {DEPLOY_RULES}, got {rule!r}")
+    nan = float("nan")
+    p_ev = _num(_get(advocate, "p_evidence")) if advocate is not None else None
+    out = {"letter_rank": None, "letter_final": None, "veto": "", "S": nan, "S_arb": nan,
+           "p_evidence": p_ev, "rule": rule}
+    if advocate is None:
+        return out
+    crit_map = _critic_map(critics)
+    out["S"] = score_S(advocate, crit_map, dr, dpa)
+    out["S_arb"] = score_S_arb(advocate, crit_map, arbitrator, dr, dpa)
+    out["letter_rank"], _ = assign_letter(p_ev, advocate, [], thresholds, None, dr, dpa)
+    if _num(out["S_arb"]) is None:
+        return out                                   # parse failure: nothing is certified
+    terms = critic_terms(advocate, crit_map, arbitrator, dr, dpa)
+    if rule == "R1":
+        out["letter_final"], _ = assign_letter(out["S_arb"], advocate, crit_map, thresholds,
+                                               arbitrator, dr, dpa)
+        blame = [role for role in _ordered_roles(terms)
+                 if terms[role]["included"] and terms[role]["r"] * terms[role]["a"] > _EPS]
+    else:
+        blame = d_rule_roles(terms, arbitrator)
+        out["letter_final"] = "D" if blame else out["letter_rank"]
+    if out["letter_final"] is not None and out["letter_rank"] is not None \
+            and letter_order(out["letter_final"]) > letter_order(out["letter_rank"]):
+        out["veto"] = ";".join(f"{role}:{terms[role]['alternative']}" for role in blame)
+    return out
 
 
 # ------------------------------------------------------------------ ranking
@@ -512,6 +612,19 @@ def self_test(verbose: bool = False) -> dict:
                       {"r_arcsec_from": 0.5, "r_arcsec_to": 2.0, "pa_deg_from": 180, "pa_deg_to": 220})
     # U rows carry the run's 0–100 inspector confidence under any of its column names
     assert rank_score({"id": "u", "S": None, "pipe_inspector_conf": 95.0}) < 0 < rank_score({"S": 0.01})
+    # v2-deploy: the advocate ranks (letter_rank), the stack certifies (letter_final + veto).
+    # rank 15: p_ev 0.8 ⇒ A; R1 on S_arb 0.64 ⇒ B, the partial spiral_arm is the veto; R2 keeps A
+    d15 = {r: deploy_letters(sc["rank15"]["advocate"], sc["rank15"]["critics"], sc["rank15"]["arbitrator"], thr, r)
+           for r in DEPLOY_RULES}
+    assert (d15["R1"]["letter_rank"], d15["R1"]["letter_final"], d15["R1"]["veto"]) == ("A", "B", "morphology:spiral_arm"), d15
+    assert (d15["R2"]["letter_rank"], d15["R2"]["letter_final"], d15["R2"]["veto"]) == ("A", "A", ""), d15
+    assert abs(d15["R1"]["S_arb"] - out["rank15"]["S_arb"]) < 1e-12 and d15["R1"]["p_evidence"] == 0.8
+    # rank 13: p_ev 0.7 with weak criteria ⇒ B; the upheld full-coverage spiral_arm makes a D under both rules
+    d13 = {r: deploy_letters(sc["rank13"]["advocate"], sc["rank13"]["critics"], sc["rank13"]["arbitrator"], thr, r)
+           for r in DEPLOY_RULES}
+    for r in DEPLOY_RULES:
+        assert (d13[r]["letter_rank"], d13[r]["letter_final"], d13[r]["veto"]) == ("B", "D", "morphology:spiral_arm"), d13
+    assert [letter_order(x) for x in ("A", "B", "C", "D", None)] == [0, 1, 2, 3, 4]
     if verbose:
         for k, v in out.items():
             print(k, {kk: (round(vv, 4) if isinstance(vv, float) else vv) for kk, vv in v.items()})

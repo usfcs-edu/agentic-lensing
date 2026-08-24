@@ -586,6 +586,251 @@ def test_self_test_and_stdlib_only():
         assert abs(ag.score_S_arb(a, c, b) - ag.score_S_arb(case["advocate"], case["critics"], case["arbitrator"])) < 1e-12
 
 
+# ------------------------------------------------------------------ deployment (v2-deploy)
+DEPLOY_KEYS = ("letter_rank", "letter_final", "veto", "S", "S_arb", "p_evidence", "rule")
+
+
+def _nanish(x):
+    return isinstance(x, float) and math.isnan(x)
+
+
+def _deploy_both(adv, crits, arb, thr):
+    """deploy_letters under R1 and R2 on the dicts AND on the pydantic records (must agree)."""
+    out = {}
+    a, c, b = models(adv, crits, arb)
+    for rule in ag.DEPLOY_RULES:
+        d = ag.deploy_letters(adv, crits, arb, thr, rule)
+        assert tuple(d) == DEPLOY_KEYS and d["rule"] == rule
+        m = ag.deploy_letters(a, c, b, thr, rule)
+        for k in DEPLOY_KEYS:
+            assert (_nanish(d[k]) and _nanish(m[k])) or m[k] == d[k], (rule, k, d[k], m[k])
+        out[rule] = d
+    return out
+
+
+def test_deploy_letters_rank15_like_overruled_keeps_letter_rank():
+    """Strong located evidence, every named critic overruled: the stack certifies what the
+    advocate ranked (letter_final == letter_rank, no veto) under both rules."""
+    adv = advocate(0.85)                       # curvature 8 / counter_image 6 / arc_morphology 7, 3 items
+    crits = {"artifact": critic("artifact", no_opinion=True),
+             "geometry": critic("geometry", "scale_tension", 0.4, loc=ALL, accounts_for=[1, 2, 3]),
+             "morphology": critic("morphology", "spiral_arm", 0.6, loc=box(0.7, 1.3, 30, 100), accounts_for=[1, 2, 3])}
+    arb = arbitrator([("geometry", "overruled", []), ("morphology", "overruled", [])], letter="A")
+    d = _deploy_both(adv, crits, arb, PROV)
+    for rule in ag.DEPLOY_RULES:
+        assert (d[rule]["letter_rank"], d[rule]["letter_final"], d[rule]["veto"]) == ("A", "A", ""), d
+        assert d[rule]["p_evidence"] == 0.85 and d[rule]["S_arb"] == 0.85
+        assert abs(d[rule]["S"] - 0.85 * 0.6 * 0.8) < 1e-12        # the PRIMARY S still carries the named terms
+    # letter_rank is exactly the advocate-only letter (item 3), whatever the critics say
+    assert d["R1"]["letter_rank"] == ag.assign_letter(0.85, adv, [], PROV)[0]
+    # the module's own rank-15 scenario (morphology PARTIAL on item 1, S_arb 0.64) is the R1
+    # demotion A -> B with the veto naming that critic; R2 keeps A
+    sc = ag._scenarios()["rank15"]
+    r1 = ag.deploy_letters(sc["advocate"], sc["critics"], sc["arbitrator"], PROV)
+    assert (r1["letter_rank"], r1["letter_final"], r1["veto"]) == ("A", "B", "morphology:spiral_arm"), r1
+    r2 = ag.deploy_letters(sc["advocate"], sc["critics"], sc["arbitrator"], PROV, "R2")
+    assert (r2["letter_rank"], r2["letter_final"], r2["veto"]) == ("A", "A", ""), r2
+
+
+def test_deploy_letters_rank13_like_spiral_upheld_is_D_under_both_rules():
+    """The PI-confirmed spiral FP: an upheld spiral_arm covering every item at r 0.9 (a = 1)
+    demotes to D under R1 (S_arb 0.07, full-coverage rule) and under R2 (the D rule)."""
+    weak = {"source_contrast": 3, "low_surface_brightness": 5, "curvature": 5, "counter_image": 2, "arc_morphology": 4}
+    adv = advocate(0.7, items=[item(1, 1.2, 300, 30), item(2, 1.4, 120, 200)], criteria=weak)
+    crits = {"artifact": critic("artifact"),                                           # "nothing fits"
+             "geometry": critic("geometry", no_opinion=True),
+             "morphology": critic("morphology", "spiral_arm", 0.9, loc=box(0.8, 1.8, 0, 360), accounts_for=[1, 2])}
+    arb = arbitrator([("morphology", "upheld", [1, 2])], letter="D")
+    d = _deploy_both(adv, crits, arb, PROV)
+    for rule in ag.DEPLOY_RULES:
+        assert (d[rule]["letter_rank"], d[rule]["letter_final"], d[rule]["veto"]) == ("B", "D", "morphology:spiral_arm"), d
+        assert abs(d[rule]["S_arb"] - 0.07) < 1e-12 and abs(d[rule]["S"] - 0.07) < 1e-12
+    # R2's D rule does not care where letter_rank sits: a strong-criteria A is demoted to D too
+    strong = advocate(0.95, items=adv["items"])
+    d = _deploy_both(strong, crits, arb, PROV)
+    for rule in ag.DEPLOY_RULES:
+        assert (d[rule]["letter_rank"], d[rule]["letter_final"], d[rule]["veto"]) == ("A", "D", "morphology:spiral_arm"), d
+    # ... but a PARTIAL ruling on the same critic is not the D rule: R2 keeps A, R1 re-scores
+    # (0.95 * (1 - 0.9/2) = 0.5225 >= t_B, r*a 0.45 < 0.8 so no A blocker) to B with the veto
+    part = arbitrator([("morphology", "partial", [1])])
+    d = _deploy_both(strong, crits, part, PROV)
+    assert (d["R2"]["letter_final"], d["R2"]["veto"]) == ("A", "")
+    assert (d["R1"]["letter_final"], d["R1"]["veto"]) == ("B", "morphology:spiral_arm")
+    assert abs(d["R1"]["S_arb"] - 0.95 * (1 - 0.45)) < 1e-12
+
+
+def test_deploy_letters_partial_ruling_R1_demotes_R2_keeps():
+    """A partial ruling that halves S_arb across t_B: R1 demotes (A -> C, veto), R2 keeps
+    letter_rank (no upheld full-coverage critic)."""
+    adv = advocate(0.8, items=[item(1, 1.0, 40, 120), item(2, 1.1, 230, 250)])    # p_ev == t_A: letter_rank A
+    crits = {"geometry": critic("geometry", "companion_projection", 1.0, loc=ALL, accounts_for=[1, 2])}
+    arb = arbitrator([("geometry", "partial", [1])])                               # a' = 1/2 -> S_arb 0.40 < t_B
+    d = _deploy_both(adv, crits, arb, PROV)
+    assert (d["R1"]["letter_rank"], d["R1"]["letter_final"], d["R1"]["veto"]) == ("A", "C", "geometry:companion_projection"), d
+    assert abs(d["R1"]["S_arb"] - 0.4) < 1e-12 and d["R1"]["S"] == 0.0
+    assert (d["R2"]["letter_rank"], d["R2"]["letter_final"], d["R2"]["veto"]) == ("A", "A", ""), d
+    # item 4 verbatim: letter_final == assign_letter(S_arb, advocate, critics, thresholds, arbitrator)
+    assert d["R1"]["letter_final"] == ag.assign_letter(d["R1"]["S_arb"], adv, crits, PROV, arbitrator=arb)[0]
+    # with bars the halved score still clears (t_A 0.35 / t_B 0.20) nothing is demoted and no veto is written
+    low = ag.resolve_thresholds({"opus5_api": {"tau0": 0.15, "t_A": 0.35, "t_B": 0.2}}, "opus5_api")
+    assert low["letter_source"] == "opus5_api_calibrated"
+    d = _deploy_both(adv, crits, arb, low)
+    for rule in ag.DEPLOY_RULES:
+        assert (d[rule]["letter_rank"], d[rule]["letter_final"], d[rule]["veto"]) == ("A", "A", ""), d
+
+
+def test_deploy_letters_no_critics_equal():
+    """No critics ({}, None, []), all abstaining / unnamed, or every named critic overruled:
+    S_arb == p_evidence and letter_final == letter_rank, no veto, under both rules."""
+    seen = []
+    for adv in (advocate(0.9), advocate(0.6), advocate(0.3),
+                advocate(0.1, items=[], nothing_because="isolated elliptical"),
+                advocate(0.1, items=[], nothing_because="")):
+        want = ag.assign_letter(adv["p_evidence"], adv, [], PROV)[0]
+        seen.append(want)
+        for crits in ({}, None, []):
+            for rule in ag.DEPLOY_RULES:
+                d = ag.deploy_letters(adv, crits, None, PROV, rule)
+                assert tuple(d) == DEPLOY_KEYS
+                assert d["letter_rank"] == d["letter_final"] == want and d["veto"] == "", (adv["p_evidence"], crits, rule, d)
+                assert d["S"] == d["S_arb"] == d["p_evidence"] == adv["p_evidence"]
+    assert seen == ["A", "B", "C", "D", "C"]                        # every letter reachable from the advocate alone
+    adv = advocate(0.9)
+    quiet = {"artifact": critic("artifact", no_opinion=True), "geometry": critic("geometry"),
+             "morphology": critic("morphology", "", 0.9, loc=ALL, accounts_for=[1, 2, 3])}
+    d = _deploy_both(adv, quiet, None, PROV)
+    for rule in ag.DEPLOY_RULES:
+        assert (d[rule]["letter_rank"], d[rule]["letter_final"], d[rule]["veto"]) == ("A", "A", "")
+        assert d[rule]["S"] == d[rule]["S_arb"] == 0.9
+    loud = {"geometry": critic("geometry", "companion_projection", 0.9, loc=ALL, accounts_for=[1, 2, 3])}
+    d = _deploy_both(adv, loud, arbitrator([("geometry", "overruled", [])]), PROV)
+    for rule in ag.DEPLOY_RULES:
+        assert (d[rule]["letter_rank"], d[rule]["letter_final"], d[rule]["veto"]) == ("A", "A", "")
+        assert d[rule]["S_arb"] == 0.9 and abs(d[rule]["S"] - 0.09) < 1e-12
+
+
+def test_deploy_letters_provisional_and_calibrated_thresholds():
+    """The same records under the provisional numbers and under a calibrated opus5_api entry:
+    both resolve_thresholds dicts are accepted, and the veto follows the bars."""
+    adv = advocate(0.7)
+    crits = {"morphology": critic("morphology", "spiral_arm", 0.5, loc=box(0.7, 1.3, 30, 100), accounts_for=[1, 2, 3])}
+    arb = arbitrator([("morphology", "upheld", [1])])                # a_geom 1/3 -> S_arb = 0.7 * (1 - 0.5/3)
+    table = {"opus5_api": {"tau0": 0.15, "t_A": 0.6, "t_B": 0.3}, "provisional": dict(ag.PROVISIONAL)}
+    prov, cal = ag.resolve_thresholds(table, "sonnet5_api"), ag.resolve_thresholds(table, "opus5_api")
+    assert prov["letter_source"] == "provisional" and cal["letter_source"] == "opus5_api_calibrated"
+    s_arb = 0.7 * (1 - 0.5 / 3)
+    # provisional (t_A .80 / t_B .50): B stays B — the stack lowered S_arb without crossing a bar, so no veto
+    d = _deploy_both(adv, crits, arb, prov)
+    for rule in ag.DEPLOY_RULES:
+        assert (d[rule]["letter_rank"], d[rule]["letter_final"], d[rule]["veto"]) == ("B", "B", ""), d
+        assert abs(d[rule]["S_arb"] - s_arb) < 1e-12
+    # calibrated (t_A .60 / t_B .30): A by R, B after the stack under R1 (veto = the upheld critic); R2 keeps A
+    d = _deploy_both(adv, crits, arb, cal)
+    assert (d["R1"]["letter_rank"], d["R1"]["letter_final"], d["R1"]["veto"]) == ("A", "B", "morphology:spiral_arm"), d
+    assert (d["R2"]["letter_rank"], d["R2"]["letter_final"], d["R2"]["veto"]) == ("A", "A", ""), d
+    # the shipped thresholds file resolves and is accepted too; the stack never promotes
+    real = ag.resolve_thresholds(ag.load_thresholds(str(THR_JSON)), "sonnet_api")
+    for rule in ag.DEPLOY_RULES:
+        d = ag.deploy_letters(adv, crits, arb, real, rule)
+        assert d["letter_rank"] in ag.LETTERS and d["letter_final"] in ag.LETTERS
+        assert ag.letter_order(d["letter_final"]) >= ag.letter_order(d["letter_rank"])
+    # a bare {t_A, t_B} dict (no letter_source) works as well
+    assert ag.deploy_letters(adv, crits, arb, {"t_A": 0.6, "t_B": 0.3})["letter_final"] == "B"
+
+
+def test_deploy_letters_edge_cases_and_veto_composition():
+    # advocate None: everything None / NaN under both rules, the key set fixed
+    for rule in ag.DEPLOY_RULES:
+        d = ag.deploy_letters(None, {"geometry": critic("geometry", "merger", 0.9, loc=ALL, accounts_for=[1])}, None, PROV, rule)
+        assert tuple(d) == DEPLOY_KEYS and d["rule"] == rule
+        assert d["letter_rank"] is None and d["letter_final"] is None and d["veto"] == "" and d["p_evidence"] is None
+        assert _nanish(d["S"]) and _nanish(d["S_arb"])
+    # a called critic that failed to parse (None): S / S_arb NaN, letter_final None (parse-failure
+    # row), letter_rank still the advocate's letter, no veto
+    adv = advocate(0.9)
+    broken = {"artifact": None, "geometry": critic("geometry", "companion_projection", 0.9, loc=ALL, accounts_for=[1, 2, 3])}
+    for rule in ag.DEPLOY_RULES:
+        d = ag.deploy_letters(adv, broken, arbitrator([("geometry", "upheld", [1, 2, 3])]), PROV, rule)
+        assert d["letter_rank"] == "A" and d["letter_final"] is None and d["veto"] == ""
+        assert _nanish(d["S"]) and _nanish(d["S_arb"]) and d["p_evidence"] == 0.9
+    # an advocate without a usable p_evidence: no letters at all
+    d = ag.deploy_letters({**adv, "p_evidence": float("nan")}, {}, None, PROV)
+    assert d["letter_rank"] is None and d["letter_final"] is None and d["p_evidence"] is None and d["veto"] == ""
+    # named critics but NO arbitrator record (none was needed): S_arb == S, R1 is the PRIMARY
+    # letter (assign_letter on S with the critics), R2's D rule fires on the critic's own report
+    loud = {"geometry": critic("geometry", "companion_projection", 0.9, loc=ALL, accounts_for=[1, 2, 3])}
+    d = ag.deploy_letters(adv, loud, None, PROV)
+    assert d["S_arb"] == d["S"] and abs(d["S"] - 0.09) < 1e-12
+    assert d["letter_final"] == ag.assign_letter(d["S"], adv, loud, PROV)[0] == "D"
+    assert (d["letter_rank"], d["veto"]) == ("A", "geometry:companion_projection")
+    d2 = ag.deploy_letters(adv, loud, None, PROV, "R2")
+    assert (d2["letter_final"], d2["veto"]) == ("D", "geometry:companion_projection")
+    # list-form critics (Nate's rows) == dict form
+    assert ag.deploy_letters(adv, list(loud.values()), None, PROV) == d
+    # several responsible critics: joined with ";" in artifact, geometry, morphology order
+    # (S_arb = 0.9 * 0.1 * 0.2 = 0.018; both upheld at a_geom 1, r >= 0.8 -> both are D-rule critics)
+    many = {"morphology": critic("morphology", "spiral_arm", 0.8, loc=ALL, accounts_for=[1, 2, 3]),
+            "geometry": critic("geometry", no_opinion=True),
+            "artifact": critic("artifact", "detector_artifact", 0.9, loc=ALL, accounts_for=[1, 2, 3])}
+    arb = arbitrator([("artifact", "upheld", [1, 2, 3]), ("morphology", "upheld", [1, 2, 3])])
+    d = _deploy_both(adv, many, arb, PROV)
+    for rule in ag.DEPLOY_RULES:
+        assert (d[rule]["letter_final"], d[rule]["veto"]) == ("D", "artifact:detector_artifact;morphology:spiral_arm"), d
+    # R1 blames every standing term with r*a > 0 (the partial one too); R2 only the D-rule critic
+    arb2 = arbitrator([("artifact", "upheld", [1, 2, 3]), ("morphology", "partial", [1])])
+    d = _deploy_both(adv, many, arb2, PROV)
+    assert (d["R1"]["letter_final"], d["R1"]["veto"]) == ("D", "artifact:detector_artifact;morphology:spiral_arm")
+    assert (d["R2"]["letter_final"], d["R2"]["veto"]) == ("D", "artifact:detector_artifact")
+    # a critic the arbitrator did not rule on keeps its term (score_S_arb) and is blamed by R1
+    arb3 = arbitrator([("artifact", "overruled", [])])
+    d = _deploy_both(adv, many, arb3, PROV)
+    assert (d["R1"]["letter_final"], d["R1"]["veto"]) == ("C", "morphology:spiral_arm")      # 0.9*0.2 = 0.18, no ruling -> no D
+    assert (d["R2"]["letter_final"], d["R2"]["veto"]) == ("A", "")
+    # the R1 veto is empty whenever no bar is crossed, even with a standing r*a > 0 term
+    soft = {"geometry": critic("geometry", "companion_projection", 0.2, loc=ALL, accounts_for=[1, 2, 3])}
+    d = ag.deploy_letters(advocate(0.95), soft, arbitrator([("geometry", "upheld", [1, 2, 3])]), PROV)
+    assert (d["letter_rank"], d["letter_final"], d["veto"]) == ("A", "B", "geometry:companion_projection")   # 0.76 < t_A
+    d = ag.deploy_letters(advocate(0.95), soft, arbitrator([("geometry", "upheld", [1, 2, 3])]), {"t_A": 0.7, "t_B": 0.3})
+    assert (d["letter_rank"], d["letter_final"], d["veto"]) == ("A", "A", "")
+    # rule validation and letter_order
+    try:
+        ag.deploy_letters(adv, {}, None, PROV, "R3")
+        raise SystemExit("rule R3 accepted")
+    except ValueError:
+        pass
+    assert [ag.letter_order(x) for x in ("A", "B", "C", "D", None, "U", "")] == [0, 1, 2, 3, 4, 4, 4]
+    assert ag.LETTERS == ("A", "B", "C", "D") and ag.DEPLOY_RULES == ("R1", "R2")
+    # the ranking note: letters certify, R orders — rank_key on rows whose S is p_evidence puts a
+    # D with the higher R above a C with a lower one, and U strictly below both
+    rows = [{"id": "c", "p_evidence": 0.3, "letter_final": "C"}, {"id": "d", "p_evidence": 0.6, "letter_final": "D"},
+            {"id": "u", "p_evidence": None, "confidence": 95}]
+    order = [r["id"] for r in sorted(rows, key=lambda r: ag.rank_key({**r, "S": r["p_evidence"]}))]
+    assert order == ["d", "c", "u"]
+
+
+def test_d_rule_roles_is_assign_letters_predicate():
+    adv = advocate(0.9)
+    full = {"geometry": critic("geometry", "companion_projection", 0.9, loc=ALL, accounts_for=[1, 2, 3])}
+    assert ag.d_rule_roles(ag.critic_terms(adv, full)) == ["geometry"]              # no arbitrator: the report stands
+    for arb, want in ((arbitrator([("geometry", "upheld", [1, 2, 3])]), ["geometry"]),
+                      (arbitrator([("geometry", "partial", [1, 2, 3])]), []),
+                      (arbitrator([("geometry", "overruled", [])]), []),
+                      (arbitrator([]), [])):
+        terms = ag.critic_terms(adv, full, arb)
+        assert ag.d_rule_roles(terms, arb) == want, (arb["rulings"], want)
+        # the same predicate decides assign_letter's D below t_B
+        assert (ag.assign_letter(0.09, adv, full, PROV, arbitrator=arb)[0] == "D") is bool(want)
+    # r 0.79, or geometric coverage < 1 (claims all, box over item 1 only), never qualifies
+    r79 = {"geometry": critic("geometry", "companion_projection", 0.79, loc=ALL, accounts_for=[1, 2, 3])}
+    assert ag.d_rule_roles(ag.critic_terms(adv, r79)) == []
+    part = {"geometry": critic("geometry", "companion_projection", 0.9, loc=box(0.7, 1.3, 30, 100), accounts_for=[1, 2, 3])}
+    assert ag.d_rule_roles(ag.critic_terms(adv, part)) == []
+    # order is artifact, geometry, morphology whatever the input order
+    two = {"morphology": critic("morphology", "spiral_arm", 0.8, loc=ALL, accounts_for=[1, 2, 3]),
+           "artifact": critic("artifact", "psf_wing", 0.9, loc=ALL, accounts_for=[1, 2, 3])}
+    assert ag.d_rule_roles(ag.critic_terms(adv, two)) == ["artifact", "morphology"]
+
+
 def main() -> None:
     tests = [(k, v) for k, v in sorted(globals().items()) if k.startswith("test_") and callable(v)]
     for name, fn in tests:
