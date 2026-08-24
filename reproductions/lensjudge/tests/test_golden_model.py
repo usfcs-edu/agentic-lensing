@@ -149,6 +149,25 @@ def test_grader_direct_constants_and_header():
         fetch.get_cube, render.render_views, render.png_b64 = orig
 
 
+def test_grader_direct_claude5_wiring():
+    """Claude 5 advocate arms: alias map, list-price cost accounting, larger thinking cap."""
+    assert grader_direct._MODEL_IDS["opus5"] == "claude-opus-5"
+    assert grader_direct._MODEL_IDS["sonnet5"] == "claude-sonnet-5"
+    # cost accounting at LIST price (Sonnet 5's $2/$10 intro through 2026-08-31 is not assumed)
+    assert grader_direct._PRICE["claude-opus-5"] == (5.0, 25.0, 0.50, 6.25)
+    assert grader_direct._PRICE["claude-sonnet-5"] == (3.0, 15.0, 0.30, 3.75)
+    # both ids are in the set the thinking branch reads for the 16384 max_tokens cap
+    assert grader_direct._CLAUDE5_IDS == {"claude-opus-5", "claude-sonnet-5"}
+    # every alias is priced: a Claude 5 run can never fall back to the Sonnet 4.6 default
+    assert {grader_direct._MODEL_IDS[a] for a in ("opus5", "sonnet5")} <= set(grader_direct._PRICE)
+
+    class _U:
+        input_tokens, output_tokens = 1_000_000, 100_000
+        cache_read_input_tokens = cache_creation_input_tokens = 0
+    assert abs(grader_direct._cost("claude-opus-5", _U()) - 7.5) < 1e-9      # 5.0 + 2.5
+    assert abs(grader_direct._cost("claude-sonnet-5", _U()) - 4.5) < 1e-9    # 3.0 + 1.5
+
+
 def test_run_batch_seams():
     assert run_batch._grader("jwst") is grader_jwst
     g = GradeResult(None, "", meta={"s_exp": 0.61, "grade_probs": {"A": .5, "B": .4}, "p_lens_logprob": 0.9})

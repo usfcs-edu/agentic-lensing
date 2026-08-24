@@ -356,6 +356,23 @@ def test_runner_helpers():
         shutil.rmtree(d)
 
 
+def test_truth_runner_claude5_models():
+    """The two Claude-5 advocate-only holdout arms are runnable: --model choices carry the
+    aliases, model_key routes them to their own (null-calibrated) thresholds keys so the
+    holdout gate demands --allow-provisional-thresholds, every alias has a budget estimate,
+    and the tuple records thinking/effort (adaptive/xhigh for these runs)."""
+    assert rte.MODELS == ("sonnet", "opus", "opus5", "sonnet5")
+    assert rte.model_key("opus5") == "opus5_api" and rte.model_key("sonnet5") == "sonnet5_api"
+    assert set(rte.MODELS) <= set(rte.COST_PER_CALL)
+    thr = rte.load_thresholds(rte.THRESHOLDS, rte.model_key("opus5"))
+    assert thr["letter_source"] == "provisional" and thr["model_key"] == "opus5_api"
+    assert (thr["t_A"], thr["t_B"], thr["tau0"]) == (0.80, 0.50, 0.15)
+    t = rte.TruthTuple("a2", "opus5", "p" * 16, "n" * 16, "advocate:" + "a" * 16, "jwst_v1",
+                       "d" * 16, "s" * 16, "none", "adaptive", "xhigh", 1, "t" * 16)
+    assert t.run_tag("holdout", 1) == "truth_a2_opus5_holdout_k1_r1"
+    assert "| adaptive | xhigh |" in t.row()
+
+
 # ------------------------------------------------------------------ the runner with a stub panel
 def test_truth_runner_gate_outputs_registry():
     d, man = make_world()

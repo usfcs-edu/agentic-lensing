@@ -97,7 +97,7 @@ from lensjudge.imaging import run_batch  # noqa: E402
 ARMS = ("a0", "a1", "a2", "a3", "attr")
 SPLITS = ("design", "holdout")
 GATED_SPLIT = "holdout"
-MODELS = ("sonnet", "opus")
+MODELS = ("sonnet", "opus", "opus5", "sonnet5")   # opus5/sonnet5 = Claude 5 advocate-only holdout arms
 RENDERS = ("v1", "v2r")
 CLAIM_MODES = ("none", "inspector")
 MODE = {"a0": "incumbent", "a1": "full", "a2": "advocate_only", "a3": "advocate_only", "attr": "attr"}
@@ -107,7 +107,10 @@ ROLES = {"a0": ("artifact", "morphology", "geometry"),          # verify_workflo
          "a2": ("advocate",), "a3": ("advocate",)}
 # worst-case calls per item (for the budget line; critics/arbitrator are conditional)
 MAX_CALLS = {"a0": 3, "a1": 5, "attr": 5, "a2": 1, "a3": 1}
-COST_PER_CALL = {"sonnet": 0.019, "opus": 0.032}
+COST_PER_CALL = {"sonnet": 0.019, "opus": 0.032,
+                 # Claude 5 estimates include xhigh adaptive-thinking output (list price;
+                 # Sonnet 5 intro $2/$10 through 2026-08-31 is NOT assumed)
+                 "opus5": 0.10, "sonnet5": 0.06}
 PROMPTS = _util.LENSJUDGE / "prompts"
 PERSONA_SET_DEFAULT = PROMPTS / "personas" / "jwst_v1"
 PERSONA_SET_INCUMBENT = PROMPTS / "personas" / "incumbent"

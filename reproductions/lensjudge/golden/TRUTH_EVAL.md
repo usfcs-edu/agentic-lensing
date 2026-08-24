@@ -239,6 +239,86 @@ via the template). Known open item: the stale
 fails now that the six arms are registered (211/212 suite) — re-pin post-phase with PI
 approval.
 
+## Status addendum (2026-08-23, later): Claude-5 advocate arms — opus5 gate MET, sonnet5 control interrupted
+
+Two Claude-5 advocate-only tuples were registered (`opus5 = claude-opus-5`, `sonnet5 =
+claude-sonnet-5`; adaptive thinking, xhigh effort, provisional letters, gate + confound
+caution pre-registered in `REGISTRY.md`). **a2/opus5 scored once on the whole holdout**
+(282/282, 0 parse failures, 0 audit violations, $33.49 = $0.119/item list): recall@5 %FPR
+**0.333** [0.196, 0.495] vs the a2 sonnet(4.6) baseline 0.167 — **the pre-registered
+full-stack gate (Δ ≥ +0.10) is MET at +0.167** (McNemar 10/3, p(1s) 0.046; dAUC vs
+a2-sonnet46 +0.039, null — an operating-point gain, not a global-AUC gain; AUC 0.764, the
+best single-draw ranker measured). θ_E ≤ 1″ COWLS 3/7 (was 1/7); lit_cluster still 1/13;
+stress_D remains the advocate blind spot (mean S 0.312, highest class; 3 of its 5
+provisional-A/B letters are PI-refuted panels). **a2/sonnet5 was stopped by the
+pre-registered spend rule** (projection ~$30 > the $20 trigger; the smaller model thinks
+longer at xhigh) at 20/282, $2.14 — interrupted, resumable under its registered tuple
+(≈ $28 list to complete), so the tier-vs-thinking decomposition is open. Full tables:
+`outputs/truth_results_claude5.csv` + `outputs/truth_summary_claude5.md`;
+`GOLDEN_FINDINGS.md` 2026-08-23 Claude-5 entry. Whether to fund a1 opus5-xhigh (est.
+$54–65, engaged items ≈ $0.39–0.57 ⇒ `--cost-cap ≈ 0.60`), resume sonnet5, or stop is a PI
+decision, recorded there, not made here. Phase spend $35.63 of the $70 cap.
+
+## Status addendum (2026-08-24): completion phase — sonnet5 control COMPLETE, a1-opus5 paused mid-run (resumable)
+
+The PI funded the a1 opus5-xhigh arm (gate met; registered with its funding note,
+`REGISTRY.md` lines 136 + 168–178) and the sonnet5 completion. **a2/sonnet5 is complete**
+(282/282 by resuming the interrupted registered replicate; meta tuple verified,
+`rescored=False`, 0 parse failures, 0 audit violations, $33.63 = $0.119/item list):
+recall@5 %FPR **21.4 %** [10.3, 36.8], AUC 0.676. The decomposition the control was funded
+for: the generation+thinking bundle (sonnet46 → sonnet5) is +0.048 recall / dAUC −0.049
+(both null) while the **Opus tier (sonnet5 → opus5) carries +0.119 recall / dAUC +0.088**
+(DeLong 0.064) of the +0.167 joint gate delta — directional (neither leg significant
+alone), tier-dominant. sonnet5 is also the first arm to move the dead cluster stratum
+(lit_cluster 4/13, 3 unseen by opus5) while collapsing on COWLS (1/16); its stress_D
+D-rate is 0/20 with 3 of its 5 provisional-B letters PI-refuted panels — the advocate
+blind spot is generation- and tier-independent. **a1/opus5-xhigh launched and was paused
+by the pre-registered $80 projection rule at 55/282** ($15.52; no `.meta.json`; an
+interrupted registered replicate, resumable with the identical command). The crossing was
+a composition artifact (manifest orders positives first: all 42 positives in the first 55
+rows, early τ0 engagement 34.5 % vs 17.2 % expected on the remainder); the informed
+projection is ≈ $61 total — inside the funded $54–65 — with ≈ $45 remaining. The 42-positive
+partial (descriptive, no endpoint) shows the critic product under-ranking the advocate
+again (13 of a2-opus5's 14 detections fall below the same 0.16 level through the stack;
+arbitrator repair not recovering parity so far; stress_D not yet reached). Analysis:
+`outputs/truth_results_claude5.csv` (865 rows, v2 driver, deterministic) +
+`truth_summary_claude5.md` (rewritten); `GOLDEN_FINDINGS.md` 2026-08-24 entry. Sonnet-frozen
+t_A/t_B run hot on Claude-5 advocate scores (t_B 8 % FPR on opus5, 15/51 % on sonnet5) —
+the design-half opus5 calibration (~$34 advocate-only) is required before deployment
+letters on Nate's opus5 backend. Completion-phase spend $47.01 of the $110 cap; open PI
+decisions: resume a1-opus5 (~$45), fund the calibration run, stratify the projection rule.
+
+## Status addendum (2026-08-24, later): a1-opus5-xhigh COMPLETE — the Claude-5 full stack is a veto, not a ranker; 51-row API-incident parse-fail cluster reported
+
+The interrupted a1/opus5-xhigh replicate was resumed to completion under its registered
+tuple (identical command; scored names skipped; meta tuple == registered row on all 13
+fields, `rescored=False`, audit_traces 520 events 0 violations, 65 frame units kind=eval;
+$53.51 total = $0.190/item, inside the funded $54-65 envelope; the resumed tail engaged
+17.6% vs the 17.2% informed projection). **One 8.5-minute API window left 51/282 rows
+(18.1%) as empty-response $0 parse failures — 49 advocate + 2 critic calls, all negatives,
+recorded per the registered policy (S = NaN, rate reported); endpoints use 149/200 N1**
+(a registered rescore could top them up, ~= $6 — PI decision). Results
+(`outputs/truth_results_claude5.csv` 1116 rows, byte-reproducible;
+`truth_summary_claude5.md` rewritten; `GOLDEN_FINDINGS.md` 2026-08-24 (later) entry):
+**recall@5%FPR 9.5% (4/42) S and S_arb, AUC 0.468 / 0.484 — the critic product collapses
+the a2-opus5 advocate's ranking (paired dAUC −0.301 [−0.424, −0.184], DeLong < 1e−5,
+McNemar 1/11 p 0.0063), the first SIGNIFICANT under-ranking**, unrepaired by the
+arbitrator, and indistinguishable from a0 as a ranker (dAUC −0.070, p 0.24). 3 of the 4
+"detections" are un-engaged advocate 0.14s (one hundredth below tau0 — the tau0 cliff).
+What the stack buys: **stress_D D-rate 6/20 = 0.30, mean S 0.312 → 0.085, 0 stress_D at
+A/B** (a2-opus5 had 3 in its top 5 letters) — the advocate's stress_D letter inflation is
+fixed by the full stack at this tier; needs_human 4/282 = the surviving COSMOS-Web arc
+(S 0.40 / S_arb 0.60, letter_arb B) + the 3 highest-S stress panels. Monitors pass
+(forbidden_only 0/128; no_opinion ≤ 0.017; Spearman −0.006). Verdict: **ranker =
+a2-opus5-xhigh advocate-only; the a1 stack is a demotion/veto + escalation layer; no
+deployable Claude-5 letters** — sonnet-frozen thresholds transfer in neither
+representation (hot on p_ev, cold on S), so the design-half opus5 calibration (~$34
+advocate-only) is the prerequisite for letters on Nate's opus5+adaptive backend, with the
+`opus5_api: null` patch regeneration + README caution recommended pending PI approval.
+lit_cluster 0/13 (still moved only by sonnet5-xhigh, 4/13). Finishing phase $37.98 of its
+$60 cap; funded completion phase $84.99 of $110; Part 2 cumulative $234.36 (all-in
+$244.20 with the scrambled-100 one-off). Suite 216 passed.
+
 ## Budget and cut order (re-derived 2026-08-23 from the built halves and the smoke's per-role costs)
 
 The plan priced 244 holdout / 265 design items at $0.057–0.084 per item. The built halves are

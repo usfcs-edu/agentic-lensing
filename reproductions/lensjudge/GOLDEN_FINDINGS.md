@@ -1129,3 +1129,396 @@ No golden kit/keys/labels touched; no embargoed source read; no git commit.
 **Spend: holdout phase $75.26** (a0 5.27 + a2 6.80 + a3 7.69 + a1 17.76 + R2 20.47 + opus
 17.28) of the $110 phase cap; analysis zero-API. **Part 2 program total $113.74** (design
 $38.48 + holdout $75.26; ≈ $114.0 actual with the iter2 kill overhead).
+
+## 2026-08-23 — Scrambled top-100 blind regrade: the frozen a1 letters on the run's own product (one-off, $9.84 of the $10 cap)
+
+`golden/regrade_scrambled.py` (new, with `tests/test_golden_scrambled.py`; suite 213) replayed the
+REGISTERED a1/sonnet tuple — persona set `a26d972ecc0b4ee7`, note `754655a400f360e6`, all five
+per-role system shas verified against the ledger row before any call, thresholds `94d31c7b6979e0ca`
+(`sonnet_api_calibrated`: tau0 0.15, t_A 0.192, t_B 0.1318), k=1, thinking off — over the run's own
+scrambled, footer-stripped top-100 images (`top100_clean_scrambled/`, read-only, 752x540 verified).
+Blind by construction: the model saw pixels + the frozen item-agnostic prompts and nothing else; the
+ONLY answer-key field read before scoring was the layout (blank sw/lw filter -> color vs the gray
+composite, 87/13), and the de-scramble join ran strictly after scoring. 92/100 items scored, 92/92
+parsed; first-item sha assertion passed; `audit_traces` over the full trace dir: 396 events,
+0 violations; every letter carries letter_source `sonnet_api_calibrated`.
+
+Results (n = 92; the 8 unscored are all incumbent-U — see the cap note):
+
+| incumbent \ ours | A | B | C | D |
+|---|---|---|---|---|
+| A (5) | 4 | 0 | 1 | 0 |
+| B (5) | 2 | 1 | 2 | 0 |
+| C (12) | 5 | 1 | 5 | 1 |
+| U (70 of 78) | 4 | 13 | 38 | 15 |
+
+- **17/70 incumbent-U items reach our A/B** (4 A + 13 B): the letters that held FPR(A) 2.0 % /
+  FPR(A/B) 2.5 % on the truth holdout put a quarter of the run's never-verified flags at
+  examination grade (identities in `outputs/scrambled100/scrambled100_comparison.csv`, by rank:
+  A at ranks 93, 38, 58, 44; B at ranks 29, 30, 32, 41, 46, 47, 52, 55, 75, 77, 86, 95, 99).
+- The incumbent's top of the ranking mostly survives blind: 4/5 A stay A (rank 10 falls to C on a
+  companion_projection reading); the 5 B split 2 A / 1 B / 2 C; the 12 C spread 5 A / 1 B / 5 C / 1 D
+  — the C tier is where the two instruments disagree hardest, in both directions.
+- **Anchors** (predictions in `REGISTRY.md › Design anchors`): rank 15 -> **A** (S 0.920; predicted
+  A/B — hit). Rank 13 -> A (S 0.246) with `spiral_arm` NAMED by a critic but not upheld (predicted D
+  — miss). Ranks 7/14, the same object served twice, -> **C/C with |dS| = 0.009** (predicted
+  |dletter| <= 1 — hit; a free test-retest at n=1). Rank 16 -> B with scale_class group and S_arb
+  0.980 (predicted cluster-scale-not-D — not D, scale read group rather than cluster).
+- Spearman(our S, incumbent inspector confidence) = **0.405** (n 92); letters overall
+  A 15 / B 15 / C 46 / D 16; needs_human 27/92; letter agreement with the incumbent 10/92
+  (dominated by the 78 U rows the pass-count scheme never graded).
+
+Spend + cap protocol: this all-flagged set engages the critics 77 % of the time (vs 45 % on the
+truth mix), so the item cost ran $0.104 mean and the projection ($11+) exceeded the $10 cap. The
+run was therefore killed at $9.30 of trace-metered spend, topped up item-by-item inside the
+remainder (the rank-16 anchor and the missing incumbent A/B/C rows, chosen before de-scrambling by
+grade only), and two paid-but-unflushed rows were reconstructed ZERO-API from their traces
+(re-parsed with the production parser; S / letter verified equal to the killed process's own
+`golden_panel` events). Final exact spend **$9.84** (384 metered calls; an unmetered in-flight kill
+tail of ≲ $0.05 sits outside the meter). Unscored: 8 incumbent-U items; two of them were killed
+mid-advocate and are exposure-marked though unscored. Completing them costs ≈ $0.9 by rerunning the
+script (scored names are skipped) — a PI budget decision, recorded here, not made here.
+
+Ledger + hygiene: 93 frame units marked `kind="eval"`, `run_tag=scrambled100_blind` (the rank-14
+top-100 alias is not a frame unit and was skipped; the 6 never-touched items were not marked).
+Outputs under `outputs/scrambled100/` (preds + votes parquet, `.meta.json` carrying the tuple shas
++ the answer-key file sha, per-role traces, audit json, `scrambled100_comparison.csv`): outputs/ is
+GITIGNORED, and the comparison CSV carries the de-scrambled key columns, so it must never reach
+anything Xiaosheng-visible. No git commit; nothing written into the JWST repo.
+
+## 2026-08-23 — Claude-5 advocate holdout arms: opus5-xhigh scored once (gate MET, +0.167); sonnet5 control stopped by the spend rule at 20/282
+
+**Registration first (zero-API).** Two tuples appended to `REGISTRY.md › Truth-eval registered
+arms` before any call — `a2 / opus5 / adaptive / xhigh / k=1` and `a2 / sonnet5 / adaptive /
+xhigh / k=1`, both on the frozen advocate (`advocate:c41d7f5787bdb472`), v1 render, pinned
+splits, provisional thresholds (`a40ae6e201a03e65`, `--allow-provisional-thresholds` stated in
+each note) — plus a dated pre-registration note fixing THE GATE ("a1 opus5-xhigh is funded
+only if the a2-opus5-xhigh holdout Delta recall@5%FPR is >= +0.10 vs the a2 sonnet(4.6)
+holdout arm, 0.167") and the confound caution (model + thinking + effort move together; the
+sonnet5 arm is the generation control). Registry, note and this entry lexicon-checked (298
+entries, 0 hits). Wiring from the STEP-1 report: `opus5 -> claude-opus-5`, `sonnet5 ->
+claude-sonnet-5`, list-price accounting, adaptive+xhigh through the config seam,
+`max_tokens 16384` on the Claude-5 thinking branch only; suite 216 passed before any spend.
+
+**Runs.** opus5: 282/282 in one invocation, meta tuple == registered row, `rescored=False`,
+0 parse failures (the thinking model emitted clean JSON; 0 repair retries visible at the
+parquet level), 0 items over the $0.30 cap (max $0.24), `audit_traces` 282 events **0
+violations**, 65 frame units marked kind=eval. **$33.49 = $0.119/item** (list; mean in 6,889
+tok, mean out 3,373 tok — adaptive thinking is billed inside output tokens; summarized blocks
+are not surfaced as type "thinking" by the SDK, so thinking_chars is unrecorded). sonnet5:
+**STOPPED by the pre-registered rule** — projection stable at ~$30 vs the $20 trigger (the
+smaller model thinks LONGER at xhigh: $0.107/item, implied ~5.7k out tok/item) — killed at
+20/282, $2.14 metered (+ an unmetered in-flight tail ≲ $0.4); no `.meta.json`, every flushed
+row carries the registered tuple, so the replicate is RESUMABLE, not burned; ≈ $28 list
+(≈ $19 at intro pricing through 2026-08-31) to complete. The stop was taken early (n=20)
+rather than at the half-way mark because the projection could no longer fall below the
+trigger and stopping earlier preserves more of the budget the rule protects.
+
+**Analysis** (zero-API; `outputs/truth_results_claude5.csv` 432 rows +
+`outputs/truth_summary_claude5.md`; statistics are the analyze_truth helpers — CP CIs, exact
+McNemar, paired_boot reseeded 2026 + DeLong, spearman_perm — driven cross-model from a
+scratch script; sonnet5's 20 rows are excluded from every endpoint, a subset is not a
+score-once record):
+
+| arm | recall@5%FPR [CI] | recall@10%FPR | AUC | $/item |
+|:--|:--|:--|--:|--:|
+| a0 | 9.5% (4/42) [2.7, 22.6] | 9.5% | 0.535 | 0.019 |
+| a1 S / S_arb | 19.0% / 21.4% | same | 0.641 | 0.063 |
+| a2 sonnet46 (gate baseline) | 16.7% (7/42) [7.0, 31.4] | 33.3% | 0.725 | 0.024 |
+| **a2 opus5 xhigh** | **33.3% (14/42) [19.6, 49.5]** | **45.2%** | **0.764** | 0.119 |
+
+Paired: opus5-vs-a2sonnet46 McNemar **10 promotions / 3 demotions, p(1s) 0.046**; dAUC
++0.039 [−0.058, +0.136], DeLong 0.417 — an operating-point gain at low FPR, not a global-AUC
+gain. opus5-vs-a0 dAUC +0.229 [+0.131, +0.324], DeLong 5e−06, McNemar 13/3 p 0.011;
+opus5-vs-a1 dAUC +0.123 [+0.021, +0.233] p 0.019. The single opus5 draw also beats the R2
+3-replicate sonnet46 mean (AUC 0.738, recall@5% 23.8%).
+
+**THE GATE: MET.** Delta recall@5%FPR = 0.333 − 0.167 = **+0.167 ≥ +0.10** (14/42 vs 7/42).
+Stated plainly: the registered evidence bar for funding an a1 opus5-xhigh arm is met. The
+funding decision is the PI's. The registered caution stands: without the sonnet5 control the
++0.167 is the JOINT effect of backbone tier + adaptive thinking + xhigh effort.
+
+**Strata (opus5 | sonnet46, each at its own 5%FPR threshold):** cowls 6/16 | 2/16 (strong
+0/2 both — the two strong theta<=1" holdout lenses are still missed by everything; marginal
+2/4 | 1/4; weak 2/7 | 1/7; provenance 2/3 | 0/3); **theta_E<=1" 3/7 | 1/7**; 1–2" 1/3 | 0/3;
+lit_galaxy 7/13 | 4/13 (COSMOS-Web 1727 again the top stratum); **lit_cluster 1/13 | 1/13 —
+the dead stratum at every generation**; centre 14/35 | 6/35, off-centre 0/7 | 1/7.
+
+**Letters (provisional 0.80/0.50) and stress.** opus5 letters A 2 / B 3 / C 191 / D 86 —
+**Opus 5 does assign A**, but 1 of its 5 A/B is a positive (a lit_galaxy at exactly 0.80)
+while **3 are stress_D** (0.82/0.72/0.62) and 1 anomalymatch; FPR at t_A and t_B 0/200; P3
+2.4%. stress_D mean S 0.312 is opus5's HIGHEST truth class and D-rate on stress_D is 0/20 —
+the advocate-alone-cannot-demote-refuted-panels mode is generation-independent and now
+surfaces PI-refuted panels at examination grade. stress_U at A/B 0% and anomalymatch 20%
+(vs sonnet46's 80% / 60%) — the provisional 0.80 bar sits far above opus5's range, an
+artifact, not better judgement. needs_human 0 (no channel in a2).
+
+**The items:[] floor moved but did not break.** items==0: **86/282 vs 122/282**; exactly-0.04
+records 78 vs 101; median p_ev 0.10 vs 0.08; the coupling persists (max p_ev with items:[]
+is 0.05 in both). Spearman(S, theta_E) on COWLS n=10: **−0.353** (perm p 0.32; passes the
+not-significantly-negative monitor but the sign flipped vs sonnet46's +0.111 — watch it).
+
+**Did xhigh thinking LOCATE evidence Sonnet 4.6 missed? Yes — and then sometimes discounted
+it.** Holdout COWLS theta<=1" (quotes abridged; both arms saw identical images/prompts):
+
+- strong theta 0.90": Sonnet 4.6 wrote `items: []`, 0.04 — "edge-on spiral disc …
+  inconsistent with a massive early-type". Opus 5 LOCATED the geometry — "compact blue knot
+  ~0.7\" west of the nucleus … with at best a marginal blue counterpart ~0.8\" east" — and
+  still scored 0.15, one hundredth below its 0.16 detection threshold.
+- weak theta 0.40" (detected, 0.27 vs sonnet46's 0.10): "the only located feature is the
+  compact knot at r~0.65\", PA~253 deg, clear as an offset one-sided blob in (d) and (f) …
+  the putative counter-image position falls on the saturated core".
+- marginal theta 0.67" (detected, 0.20 vs 0.18-miss): the sonnet46 read was "face-on spiral
+  or ring galaxy"; Opus 5 located three items including an inner knot at 1.1" and weighed
+  the envelope continuity against them.
+- strong theta 0.49" (missed by both, 0.12 vs 0.04): "panel (f) shows exactly the vertical
+  bowtie the circular model predicts for this elongated galaxy" — the subtraction-echo
+  close-out survives the generation change.
+
+**Ledger, spend, decisions.** No prompt/threshold/aggregator edits; no a1 run; no git
+commit; `thresholds_v2.json` untouched; the sonnet5 stop is an interruption, not a rescore
+(score-once intact; resume = re-run the same command, scored names are skipped). **This
+phase $35.63 metered of the $70 cap** (opus5 33.49 + sonnet5 partial 2.14; + ≲$0.4 unmetered
+kill tail). Part 2 cumulative $113.74 + 35.63 = **$149.37** (+ the $9.84 scrambled-100
+one-off = $159.21 all-in). PI options, with evidence-based costs: (1) fund a1 opus5-xhigh —
+gate met; tau0-0.15 engagement measured at 19.9%, advocate $0.119/item, critic est
+$0.075–0.125, arbitrator $0.057–0.095 ⇒ ≈ **$49–59 (+10% ⇒ $54–65)**, engaged items
+≈ $0.39–0.57 so it needs `--cost-cap ≈ 0.60` and its own registered tuple; (2) resume the
+sonnet5 control (≈ $28 list / ≈ $19 intro) to decompose tier vs thinking bundle; (3) stop —
+the verdicts above are recorded either way.
+
+## 2026-08-24 — Claude-5 completion phase: sonnet5 control COMPLETE (decomposition read), a1-opus5 launched then paused by the projection rule at 55/282 (resumable); analysis of everything on disk
+
+**Step 1 — registration (idempotent).** The a1/opus5 tuple was already a registered row
+(REGISTRY.md line 136) with the PI funding note (lines 168–178); verified field-for-field
+against `--print-tuple` — MATCH, no second append. Dry gate check: ACCEPTED (row matched, no
+completed parquet holds the tuple, all 5 system prompts 0 lexicon hits, lexicon covers all
+282 holdout ids + 16 PI comments).
+
+**Step 2 — a2/sonnet5 resumed to completion** under its registered tuple (the exact
+registered command; the gate printed "interrupted replicate — resuming"; 67 items this
+session from 215/282). Verified: 282/282 unique names, 0 parse failures, `.meta.json`
+written, meta tuple == registered row on all 13 fields, `rescored=False`, audit_traces 294
+events **0 violations**, 65 frame units kind=eval. **$33.63 total = $0.119/item list** (the
+completion from the original 20/282 interruption cost $31.49 vs the ~$28 estimate; the
+smaller model thinks longer at xhigh — implied ~5.7k out tok/item held).
+
+**Step 3 — a1/opus5-xhigh launched, then PAUSED by the pre-registered $80 projection rule.**
+Gate accepted live; 0 parse failures throughout; SIGTERM at the second consecutive crossing
+($87.98 at 30/282, $87.92 at 45/282). On disk: 55/282 rows flushed ($15.52 metered, + an
+unmetered in-flight tail ≲ $2), NO `.meta.json` -> interrupted REGISTERED replicate,
+resumable (identical command, scored names skip); every row carries the registered tuple +
+tau0 0.15 / t_A 0.80 / t_B 0.50; audit_traces on the 135 partial events 0 violations.
+**Diagnosis: the crossing was a composition artifact** — the manifest orders positives
+first, so ALL 42 holdout positives sit in the first 55 rows; early tau0 engagement 34.5%
+(19/55) vs 17.2% expected on the remaining 227 names (from the a2-opus5 arm's own
+p_evidence). Engaged items run $0.596 mean (6 over the $0.60 warn-and-count cap, max
+$0.983); non-engaged $0.117. Informed projection = 15.52 + 227x(0.117 + 0.172x0.479)
+~= **$61 — inside the PI-funded $54–65 envelope**; ~= $45 remains.
+
+**Step 4 — analysis (zero-API).** `outputs/truth_results_claude5.csv` regenerated by the v2
+scratch driver: 865 rows, every complete holdout arm on disk (a0, a1-sonnet46 S/S_arb,
+a2-sonnet46, R2 = a2 k=3 pooled, a3, a1-opus48 S/S_arb, a2-opus5, a2-sonnet5); the original
+432 rows reproduce value-identically and the file is byte-identical on rerun; the a1-opus5
+partial is EXCLUDED from every endpoint row (a subset is not a score-once record), as the
+20-row sonnet5 partial was. Full tables: `outputs/truth_summary_claude5.md` (rewritten).
+
+Headline additions (42 pos / 200 N1; CP CIs): **a2-sonnet5-xhigh recall@5%FPR 21.4% (9/42)
+[10.3, 36.8], recall@10% 23.8%, AUC 0.676, $0.119/item**; a1-opus48 S 21.4% / S_arb 19.0%,
+AUC 0.696/0.694, $0.061; (references: a2-opus5 33.3%/45.2%/0.764; a2-sonnet46
+16.7%/33.3%/0.725; R2 23.8%/47.6%/0.738).
+
+**The confound decomposition (the reason sonnet5 was funded): the Opus TIER carries ~70% of
+the gate delta.** Paired legs on the same positives — generation+thinking bundle (sonnet46
+thinking-off -> sonnet5 xhigh): Delta recall@5%FPR **+0.048** (McNemar 6/4, p 0.377), dAUC
+**−0.049** [−0.153, +0.044] DeLong 0.330 — the bundle alone adds little at 5%FPR and LOWERS
+global AUC at Sonnet tier. Opus tier (sonnet5 -> opus5, thinking/effort held): Delta
+**+0.119** (McNemar 10/5, p 0.151), dAUC **+0.088** [−0.005, +0.176] DeLong 0.064. Joint
+(the registered gate): +0.167 (10/3, p 0.046). Neither leg is individually significant —
+directional, not certified. sonnet5-vs-a0 remains real (dAUC +0.142, DeLong 0.007); one
+sonnet5-xhigh draw ~= the sonnet46 3-replicate mean (vs R2 4/5, dAUC −0.062 null) at ~5x
+the cost per draw.
+
+**sonnet5 findings.** (i) Letters (provisional 0.80/0.50): A 0 / B 5 / C 191 / D 86 — **3
+of the 5 B letters are PI-refuted stress_D panels** (0.72/0.65/0.55), the same failure
+surface as opus5 (3 of 5 A/B); P3 2/42; FPR at t_A/t_B 0/200 (trivially safe). (ii)
+stress_D mean S 0.296 = the arm's highest truth class; **D-rate 0/20 — the third
+generation/tier in a row**: advocate-alone-cannot-demote-refuted-panels is fully
+generation- and tier-independent. (iii) Spearman(S, theta_E) on COWLS −0.337 (perm p
+0.397): both Claude-5 advocates now lean negative (monitor passes, watched). (iv) The
+p_evidence floor moved its VALUE, not its behaviour: items==0 86/282 (same count as opus5)
+but the floor sits at 0.05 (median=max among items:[]; only 2 records at 0.04). (v)
+**Complementarity (descriptive): sonnet5 is the first arm to move the dead cluster stratum
+— lit_cluster 4/13** (opus5 1/13, sonnet46 1/13), 3 of the 4 missed by opus5; detected
+positives intersect in only 4 (union 19/42); but it collapses on COWLS (1/16, theta<=1"
+0/7). A scale-routed ensemble is a hypothesis for a later registered arm, not a result.
+
+**a1-opus5 partial (42 positives + 13 negatives; DESCRIPTIVE, no endpoint).** The critic
+product under-ranks the advocate again, harder than on Sonnet 4.6: **of a2-opus5's 14
+detected positives, 13 fall below the same 0.16 score level through the stack; 0 are
+promoted; only one positive keeps S >= 0.16.** Mean critic effect on engaged ΔS −0.18. The
+advocate draw itself is stable (Spearman a1-p_ev vs a2-p_ev 0.80) — the product does the
+re-ranking (S vs a2-p_ev 0.20). Arbitrator rulings 41 upheld / 4 partial / 3 overruled;
+S_arb differs from S on only 4/55 — the design-phase arbitrator repair is NOT recovering
+parity so far. The two faces of the mechanism, from the traces: the one surviving positive
+(a COSMOS-Web galaxy-scale arc, advocate 0.75) had its shell_tidal critic OVERRULED on
+pixel measurements ("the claimed ~30% monotonic radius growth ... the pixels do not show"),
+letter_llm B, needs_human — the stack working as designed; and the 0.40" weak-band COWLS
+lens a2-opus5 newly found (0.27) was argued into the D band (S 0.009) by geometry+morphology
+both naming companion_projection ("round, unelongated ... no counter-image") and being
+upheld — at theta_E ~0.4" a single unresolved knot IS what both hypotheses look like, and
+the burden rule sides with the critic. theta<=1" COWLS in the partial: 0/7 at S >= 0.16
+(a2-opus5: 3/7). Forbidden-ground 0/46; no_opinion 0.00/0.05/0.00; needs_human 1/55;
+negatives (n=13) max S 0.14. **stress_D: 0 scored yet** — whether the stack demotes the
+refuted panels (opus48 stack: D-rate 0.35) is exactly what the remaining 227 rows answer.
+
+**Thresholds and the drop-in — the calibration-ids run is now MORE important.** The
+sonnet46-frozen t_A 0.192 / t_B 0.1318 on raw Claude-5 advocate scores (holdout N1): opus5
+FPR 0.5% / **8.0%** (t_B hot vs its 5% design target), sonnet5 **15.0% / 51.5%** (unusable).
+The provisional 0.80/0.50 are trivially safe and uninformative. No opus5-calibrated
+threshold exists (no design-half opus5 run); post-hoc holdout quantiles are triage aids,
+not deployment letters. Nate's backend is opus5 + adaptive and his drop-in embeds the
+Sonnet thresholds: **a design-half opus5 calibration run (~$34 advocate-only, ~$61
+full-stack) is required before deployment letters on that backend.**
+
+**Verdicts as they stand (a1-opus5 pending resume).** Ranker: a2-opus5-xhigh (complete,
+registered, AUC 0.764 / recall@5 33.3%); the a2-ranker + a1-letters split PERSISTS — the
+partial points the same way the sonnet46 holdout did. Letters: no deployable Claude-5
+letters yet. Unfixed: strong-COWLS theta<=1" subtraction close-out (strong band 0/2 in
+every arm), stress_D advocate inflation (0/20 D in all three advocate-only generations),
+lit_cluster dead for opus arms (moved only under sonnet5-xhigh).
+
+**Ledger, spend, compliance.** No second registry append; no prompt/aggregator/threshold
+edits; no --force-rescore; no --limit/--ids-file; default --out; no embargoed source; no
+git commit; the a1 pause is an interruption (same class as the sonnet5 one), score-once
+intact. Suite: 216 passed. This session metered **$25.09** ($9.57 sonnet5 tail + $15.52 a1
+partial; + kill tail ≲ $2 unmetered); analysis zero-API. **Funded completion phase $47.01
+of the $110 cap** (sonnet5 completion 31.49 + a1 partial 15.52); a1 completion (~$45) fits
+with ~$18 headroom. Part 2 cumulative $149.37 + 47.01 = **$196.38**; all-in with the
+scrambled-100 one-off **$206.22**. Open PI decisions: (1) resume a1-opus5 (~$45, funded
+envelope confirmed by the informed projection); (2) fund the ~$34 opus5 design calibration
+for Nate's letters; (3) record the stratified projection beside the naive one so a
+positives-first composition cannot fire the pause rule again.
+
+## 2026-08-24 (later) — a1-opus5-xhigh holdout COMPLETE via registered resume: the critic product collapses the Claude-5 advocate's ranking (dAUC −0.301, the first significant under-ranking) while fixing the stress_D letter inflation (D-rate 0.30, 0 A/B); one 8.5-minute API incident left 51 empty-response parse failures, reported
+
+**Step 1 — resume (the identical registered command).** The interrupted registered
+replicate (55/282, no `.meta.json`, all 42 positives + 13 negatives already scored, every
+row carrying the registered tuple) was resumed with the exact registered invocation
+(`--arm a1 --split holdout --model opus5 --thinking adaptive --effort xhigh
+--allow-provisional-thresholds --cost-cap 0.60 --concurrency 4`). The gate printed
+"interrupted replicate — resuming"; 5 system prompts 0 lexicon hits against 298 entries;
+lexicon covers all 282 holdout ids + 16 PI comments; 227 to grade, scored names skipped.
+The $80 naive-projection brake was NOT re-applied per the PI instruction (the crossing had
+been diagnosed as a positives-first composition artifact); the phase guard was the actual
+cumulative against the $60 phase cap, never crossed (final session spend $37.98).
+
+**Step 2 — verification.** 282/282 unique names; `.meta.json` written; meta tuple ==
+registered REGISTRY.md row on all 13 fields AND == every row's stored tuple;
+`rescored=False`; `allow_provisional=True`; thresholds resolved provisional tau0 0.15 /
+t_A 0.80 / t_B 0.50 (model_key opus5_api is null); 65 frame units marked kind=eval in the
+exposure ledger under run_tag truth_a1_opus5_holdout_k1_r1; `audit_traces` 520 events **0
+violations**. Cost $53.51 total = $0.190/item (engaged $0.576 mean, $0.983 max, n=59;
+non-engaged ≈ $0.117; 21 items over the $0.60 warn-and-count cap, warned + counted, none
+aborted). **The resumed tail engaged 17.6% vs the 17.2% informed projection** — the
+composition diagnosis was right, and the arm closed inside the funded $54–65 envelope.
+
+**The incident, before the results: 51/282 rows (18.1% [13.8, 23.1]) are parse failures —
+49 advocate + 2 critic calls returned EMPTY responses at $0.00 in one 8.5-minute window
+(09:04:02–09:12:37) of the ~100-minute resume.** Transport-level API failures, not model
+refusals or malformed JSON (raw text length 0, zero tokens billed; 0 failures outside the
+window). All 51 are negatives — the manifest's positives-first order put only negatives in
+the window — and each was recorded under the registered one-retry policy (S = NaN, row
+kept with `parse_fail_roles`; the rate is a registered reported monitor). Consequence: all
+42 positives, all 20 stress_D and 149/200 N1 negatives carry scores; every endpoint below
+uses the 149 and says so. The missingness is time-clustered and order-driven, never
+score-informed. The resume-by-name design skips any present row and the meta now closes
+the tuple, so topping up the 51 would require `--force-rescore` + a Rescores row — a PI
+decision, explicitly not taken here.
+
+**Step 3 — endpoints (zero-API; `truth_results_claude5.csv` extended 865 → 1116 rows by
+the v3 driver; prior 865 rows byte-identical, file byte-identical on rerun).**
+
+| arm (holdout) | recall@5%FPR [CI] | @10% | @1% | AUC | N1 |
+|:--|:--|:--|:--|--:|--:|
+| a2 opus5 xhigh (reference) | 33.3% (14/42) [19.6, 49.5] | 45.2% | 26.2% (thr 0.20) | 0.764 | 200 |
+| **a1 opus5 xhigh (S)** | **9.5% (4/42) [2.7, 22.6]** | 9.5% | 2.4% (thr 0.40) | **0.468** | 149 |
+| a1arb opus5 xhigh (S_arb) | 9.5% (4/42) | 9.5% | 2.4% (thr 0.60) | 0.484 | 149 |
+
+Paired: **a1-vs-a2 (opus5): McNemar 1 promotion / 11 demotions, p(2s) 0.0063; dAUC −0.301
+[−0.424, −0.184], DeLong < 1e−5** — on Sonnet 4.6 the under-ranking was −0.084 and null;
+at the Claude-5 tier it is large, significant, and the arbitrator does not repair it
+(S_arb: −0.284, same McNemar). a1-opus5 vs a1-sonnet46 dAUC −0.167 (p 0.018), vs a1-opus48
+−0.238 (p 0.0004), vs a0 −0.070 (p 0.240; McNemar 4/4) — the Claude-5 full stack ranks no
+better than the incumbent pass-count. The a1-opus5 composite read in the pre-registered
+frame: P1 NOT met (recall 9.5%, equal to A0's point estimate); P2 holds trivially (FPR 0/149
+at both provisional letters); forbidden-ground PASSES (forbidden_only 0/128 [0, 2.8]).
+
+**Why: the stack compresses everything, and the tau0 cliff sets the operating point.**
+Scored negatives max S = 0.14 (advocate-only price, never engaged); cowls mean S 0.068 ≈
+negatives 0.076. Only 5 items in the whole arm keep S ≥ 0.15: the one surviving positive
+(the COSMOS-Web galaxy-scale arc: advocate 0.75, morphology shell_tidal overruled on pixel
+measurements, S 0.40 / S_arb 0.60, letter_arb B, needs_human), 3 stress_D panels and 1
+anomalymatch — zero negatives. 3 of the 4 positives at/above the 5%-FPR threshold (0.13)
+are advocate scores of exactly 0.14, one hundredth BELOW tau0, that never met a critic.
+Strata: cowls 2/16 (a2: 6/16), theta_E ≤ 1″ 2/7 (both un-engaged 0.14s), **lit_cluster
+0/13 — dead in every opus arm**, lit_galaxy 2/13, off-centre 0/7.
+
+**What the stack buys: the stress_D fix, now demonstrated at the Claude-5 tier.** stress_D
+mean S 0.085 (a2-opus5: 0.312, its highest class); **D-rate 6/20 = 0.30** [0.119, 0.543]
+(opus48 stack 0.35; every advocate-only generation 0/20); **0 stress_D at A/B** (a2-opus5
+had put 3 PI-refuted panels in its 5 provisional-A/B). Letters overall: A 0 / B 0 / C 151 /
+D 80 on S; letter_arb adds one B (the arc). P3 0/42 on S. needs_human 4/282: the arc + the
+3 highest-S stress_D panels — exactly the right escalation set. Monitors: no_opinion
+0.000/0.017/0.000; arbitrator rulings 110 upheld / 10 partial / 8 overruled of 128 (86%
+upheld — the burden rule sides with a competent-sounding critic); Spearman(S, theta_E)
+n=10 −0.006 (p 0.994); advocate floor unchanged (items==0 66/233, all at exactly 0.04).
+
+**Decisive traces (ids withheld; model text quoted).** (i) The 0.40″ weak-band COWLS lens
+a2-opus5 newly found is killed end-to-end: advocate located the knot at 0.16, geometry "a
+single round blob ~0.17\" across … no arc-like stretching perpendicular to the radius and
+nothing comparable appears at the mirror position" (companion_projection r 0.78, upheld),
+morphology concurred (0.75, upheld) → S 0.0088, letter C. (ii) A PI-refuted stress_D panel
+the advocate priced at 0.86 — provisional-A territory under a2 — demoted to D: artifact
+critic "the top of the same continuous white residual column … exactly the signature of a
+circular 1D model subtracted from an inclined barred disc" (subtraction_residual, upheld;
+the spiral_arm critic was overruled) → S 0.064, needs_human. (iii) A second stress_D
+demotion on morphology alone: "the 'arc' … is the inner east spiral arm: … its radius
+increasing with angle" (r 0.85, upheld) → S 0.050, letter D. (iv) The one stress_D that
+survives (top S 0.408): the geometry critic's companion_projection was OVERRULED on
+measured curvature ("a curvature radius of ~8\" centred ~3\" east of the yellow ticks") —
+letter C, needs_human; the stack disagrees with the PI on this panel and says so.
+
+**Thresholds / the Nate drop-in.** Sonnet-frozen t_A/t_B transfer to opus5 in NEITHER
+representation: hot on advocate p_ev (t_B 8.0% FPR), cold on full-stack S (t_B 1.3% FPR at
+recall 9.5%; t_A 0% at 2.4%). Provisional 0.80/0.50 sit above the entire scored S range.
+**The design-half opus5 calibration run (~$34 advocate-only) is the prerequisite for any
+deployment letters on Nate's opus5+adaptive backend**, and the evidence says calibrate the
+ADVOCATE (the a2-opus5 ranker), not the stack; recommended interim, pending PI approval
+because it touches `thresholds_v2.json`: regenerate the verifier patch with an explicit
+`opus5_api: null` key + a README caution that opus5 letters are uncalibrated and sonnet
+thresholds must not be applied to opus5 scores.
+
+**Verdicts, stated plainly.** (1) Best deployable configuration: **ranker = a2-opus5-xhigh
+advocate-only** (AUC 0.764, recall@5%FPR 33.3%, complete + registered); the a2-ranker +
+a1-letters split does not unify at the Claude-5 tier — it sharpens into **a2-ranker +
+a1-as-veto** (the stack demotes refuted panels and flags the contested items, but ranks at
+incumbent level and certifies nothing). (2) Letters: no deployable Claude-5 letters until
+the opus5 calibration exists; the P2-tested sonnet46 a1 letters remain the only calibrated
+letters in the program. (3) Unfixed: the strong-COWLS theta<=1" subtraction close-out (the
+0.49" strong lens still 0.10; the 0.90" one survives only as an un-engaged 0.14); the
+cluster stratum (0/13 again; sonnet5-xhigh remains the only arm to move it, 4/13); and the
+newly named **tau0 cliff** — the a1 operating point rests on which side of a hundredth the
+advocate lands, a structural fragility for any future stack arm.
+
+**Ledger, spend, compliance.** Score-once intact: one resume of the registered tuple with
+the identical command, no `--force-rescore`, no `--limit`/`--ids-file`, default `--out`, no
+prompt/aggregator/threshold edits, no embargoed source, no git commit; the registry needed
+no new row (the tuple was registered 2026-08-23 with the funding note). Suite: 216 passed.
+This session metered **$37.98** (the a1 completion; analysis zero-API). **Finishing phase
+$37.98 of its $60 cap. Funded completion phase $84.99 of the $110 cap** (47.01 + 37.98).
+Part 2 cumulative $196.38 + 37.98 = **$234.36**; all-in with the scrambled-100 one-off
+**$244.20**. Open PI decisions: (1) the 51 empty-response rows — accept vs registered
+rescore top-up (≈ $6); (2) fund the ~$34 opus5 advocate calibration (and decide against or
+for a ~$61 full-stack one); (3) approve the `opus5_api: null` patch regeneration; (4) the
+scale-routed ensemble hypothesis for the cluster stratum stays unregistered until funded.

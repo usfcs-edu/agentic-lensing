@@ -131,6 +131,9 @@ refused unless `--allow-provisional-thresholds` is stated — say so in the note
 | 2026-08-23 | a3 | sonnet | a26d972ecc0b4ee7 | 754655a400f360e6 | advocate:c41d7f5787bdb472 | jwst_v2r | 25dd6cc680579747 | 032a302c84f3cbe7 | none | off | default | 1 | 94d31c7b6979e0ca | v2r render arm; A3 minus A2 = render effect |
 | 2026-08-23 | a2 | sonnet | a26d972ecc0b4ee7 | 754655a400f360e6 | advocate:c41d7f5787bdb472 | jwst_v1 | 28737c6083dc1978 | 032a302c84f3cbe7 | none | off | default | 3 | 94d31c7b6979e0ca | R2 replicate study (k=3, whole holdout; flip rate and ICC) |
 | 2026-08-23 | a1 | opus | a26d972ecc0b4ee7 | 754655a400f360e6 | advocate:c41d7f5787bdb472+artifact:f5ed259652e65ee2+geometry:a293ddddce11ee4a+morphology:26bde57ad0478237+arbitrator:44542114399ab277 | jwst_v1 | 28737c6083dc1978 | 032a302c84f3cbe7 | none | off | default | 1 | a40ae6e201a03e65 | holdout secondary; opus_api thresholds are null so the run is registered WITH --allow-provisional-thresholds (letters provisional tau0 0.15 / t_A 0.80 / t_B 0.50, letter_source provisional; P2 is registered for the Sonnet letters) |
+| 2026-08-23 | a2 | opus5 | a26d972ecc0b4ee7 | 754655a400f360e6 | advocate:c41d7f5787bdb472 | jwst_v1 | 28737c6083dc1978 | 032a302c84f3cbe7 | none | adaptive | xhigh | 1 | a40ae6e201a03e65 | Claude-5 advocate arm; opus5_api thresholds are null so the run is registered WITH --allow-provisional-thresholds (letters provisional tau0 0.15 / t_A 0.80 / t_B 0.50); score endpoints primary; deployment-fidelity test - Nate runs claude-opus-5 in Claude Code |
+| 2026-08-23 | a2 | sonnet5 | a26d972ecc0b4ee7 | 754655a400f360e6 | advocate:c41d7f5787bdb472 | jwst_v1 | 28737c6083dc1978 | 032a302c84f3cbe7 | none | adaptive | xhigh | 1 | a40ae6e201a03e65 | Claude-5 generation control; sonnet5_api thresholds are null so the run is registered WITH --allow-provisional-thresholds (letters provisional); intro pricing not assumed - accounting at list price |
+| 2026-08-23 | a1 | opus5 | a26d972ecc0b4ee7 | 754655a400f360e6 | advocate:c41d7f5787bdb472+artifact:f5ed259652e65ee2+geometry:a293ddddce11ee4a+morphology:26bde57ad0478237+arbitrator:44542114399ab277 | jwst_v1 | 28737c6083dc1978 | 032a302c84f3cbe7 | none | adaptive | xhigh | 1 | a40ae6e201a03e65 | full stack on the gate-met Claude-5 advocate; funded by the PI 2026-08-23; letters provisional (--allow-provisional-thresholds); cost-cap 0.60 |
 
 **Registration note (2026-08-23, before any holdout call).** (i) P1 is scored on BOTH the
 primary S and the secondary S_arb, co-registered here before any holdout call; reason,
@@ -145,6 +148,34 @@ study. (iv) Known limitation, carried into the holdout read-out: the rank-13 des
 anchor's written prediction (letter D with a spiral_arm critic upheld) already MISSED on
 the design half - the advocate scored it high and critic coverage of its items was
 partial, so S stayed above the D band; the anchors table reports hit or miss either way.
+
+**Pre-registration note (2026-08-23, Claude-5 advocate arms, before any holdout call).**
+(i) The full-stack gate: **an a1 opus5-xhigh arm is funded only if the a2-opus5-xhigh holdout
+Delta recall@5%FPR is >= +0.10 vs the a2 sonnet(4.6) holdout arm (0.167, 7/42)** — i.e.
+opus5 a2 recall@5%FPR >= 0.267 (>= 12/42 promotions net of the CP grid). The a1 decision
+itself is the PI's; this gate is the evidence bar, registered before either Claude-5 call.
+(ii) Caution, stated before the runs: in these two tuples model, thinking and effort move
+TOGETHER (Claude-5 backbone + adaptive thinking + xhigh effort, vs the registered a2
+sonnet(4.6) arm at thinking off / default effort), so any delta is the JOINT effect of
+generation and reasoning settings, not attributable to the backbone alone; the sonnet5 arm
+is the generation control (same thinking/effort as opus5, Sonnet-tier backbone), which
+separates tier from the thinking+generation bundle but nothing separates thinking from
+generation here. (iii) Letters in both Claude-5 arms are provisional (t_A 0.80 / t_B 0.50,
+letter_source provisional; --allow-provisional-thresholds stated in each note); score
+endpoints (AUC, recall@FPR) are primary; P2 remains registered for the Sonnet-4.6 a1
+letters only and is NOT re-tested by these arms.
+
+**Funding note (2026-08-23, a1 opus5-xhigh, before its holdout call).** The pre-registered
+gate — a2-opus5-xhigh holdout Delta recall@5%FPR >= +0.10 vs the a2 sonnet(4.6) holdout arm —
+was MET at +0.167 (14/42 vs 7/42), and the PI has explicitly funded (i) the a1 opus5-xhigh
+full-stack arm (est. $54-65 at measured per-role costs; engaged items ~= $0.39-0.57 so it runs
+with cost-cap 0.60) and (ii) the completion of the interrupted a2-sonnet5 replicate (resume
+of the SAME registered tuple and command; scored names skip; not a rescore). P1-style
+endpoints for a1 opus5-xhigh are scored on BOTH the primary S and the secondary S_arb, as
+co-registered for a1 in the 2026-08-23 registration note above. Letters remain provisional
+(t_A 0.80 / t_B 0.50, letter_source provisional; --allow-provisional-thresholds stated in the
+row's note); the joint model+thinking+effort confound caution of the Claude-5 pre-registration
+note carries over unchanged.
 
 ## Truth-eval rescores
 

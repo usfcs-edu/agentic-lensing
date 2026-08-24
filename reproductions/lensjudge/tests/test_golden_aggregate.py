@@ -295,6 +295,18 @@ def test_thresholds_file_and_resolution():
 
 
 # ------------------------------------------------------------------ ranking
+def test_model_keys_claude5_resolution():
+    """opus5/sonnet5 route to their own thresholds keys; the pinned file holds no frozen
+    t_A/t_B for them, so they resolve provisional (a holdout run therefore needs
+    --allow-provisional-thresholds, like the registered opus arm did)."""
+    assert ag.MODEL_KEYS["opus5"] == "opus5_api" and ag.MODEL_KEYS["sonnet5"] == "sonnet5_api"
+    table = ag.load_thresholds(str(THR_JSON))
+    for key in ("opus5_api", "sonnet5_api"):
+        t = ag.resolve_thresholds(table, key)
+        assert (t["t_A"], t["t_B"], t["tau0"]) == (0.80, 0.50, 0.15), (key, t)
+        assert t["letter_source"] == "provisional" and t["thresholds_key"] == "provisional"
+
+
 def test_rank_key_u_below_examined():
     rows = [{"id": "u_hi", "S": None, "confidence": 95},             # never examined, loud inspector
             {"id": "u_nan", "S": float("nan"), "confidence": 40},

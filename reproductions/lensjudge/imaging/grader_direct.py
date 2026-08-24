@@ -38,12 +38,22 @@ _MODEL_IDS = {
     "sonnet": "claude-sonnet-4-6",
     "opus": "claude-opus-4-8",
     "haiku": "claude-haiku-4-5",
+    "opus5": "claude-opus-5",
+    "sonnet5": "claude-sonnet-5",
 }
+# Claude 5 models: adaptive thinking is the on-mode (budget_tokens is REMOVED — 400 if
+# sent; temperature/top_p must not ride alongside thinking; Opus 5 runs adaptive even
+# when `thinking` is omitted). The thinking branch below gives them a larger max_tokens.
+_CLAUDE5_IDS = {"claude-opus-5", "claude-sonnet-5"}
 # $/token (input, output, cache-read, cache-write) — Sonnet 4.6 $3/$15 per Mtok.
 _PRICE = {
     "claude-sonnet-4-6": (3.0, 15.0, 0.30, 3.75),
     "claude-opus-4-8": (5.0, 25.0, 0.50, 6.25),
     "claude-haiku-4-5": (1.0, 5.0, 0.10, 1.25),
+    "claude-opus-5": (5.0, 25.0, 0.50, 6.25),
+    # Sonnet 5 runs at $2/$10 intro pricing through 2026-08-31; cost accounting uses the
+    # $3/$15 list price (conservative — the meter can only over-state actual spend).
+    "claude-sonnet-5": (3.0, 15.0, 0.30, 3.75),
 }
 # the deterministic evidence set: the lean tool's DEFAULT views, so the only difference
 # vs lean is the loop, not the pixels the model sees. Photometry is ALWAYS included
@@ -288,7 +298,10 @@ async def grade_candidate(cand: dict, *, model: Optional[str] = None,
     topt = config.thinking_options()
     kw: dict = {"max_tokens": 2048}
     if topt.get("thinking"):
-        kw["max_tokens"] = 8192
+        # Claude 5 gets 16384: xhigh adaptive thinking + the JSON record can exceed the
+        # 8192 the existing thinking branch uses. 4.x thinking paths keep 8192 (and the
+        # non-thinking default keeps 2048) so every prior tuple reproduces byte-for-byte.
+        kw["max_tokens"] = 16384 if model_id in _CLAUDE5_IDS else 8192
         kw["thinking"] = {"type": "adaptive", "display": "summarized"}
         if topt.get("effort"):
             kw["output_config"] = {"effort": topt["effort"]}

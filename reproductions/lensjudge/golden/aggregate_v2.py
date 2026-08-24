@@ -62,7 +62,8 @@ PROVISIONAL = {"tau0": 0.15, "t_A": 0.80, "t_B": 0.50}
 # analysis and the meta all go through it; Nate's Claude-Code run is keyed "opus_claude_code"
 # by 09_rank_report_v2.py --model-key). An Opus run through the API is a different backbone
 # setting from Opus inside Claude Code, hence its own key.
-MODEL_KEYS = {"sonnet": "sonnet_api", "opus": "opus_api"}
+MODEL_KEYS = {"sonnet": "sonnet_api", "opus": "opus_api",
+              "opus5": "opus5_api", "sonnet5": "sonnet5_api"}
 VERDICTS = ("pass", "fail", "uncertain")
 RULINGS = ("upheld", "partial", "overruled")
 _EPS = 1e-9
