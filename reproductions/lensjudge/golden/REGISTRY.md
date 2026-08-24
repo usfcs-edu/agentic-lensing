@@ -181,6 +181,7 @@ note carries over unchanged.
 
 | date | arm | model | persona_set_sha16 | note_sha16 | system_sha16s | render_version | render_desc_sha16 | splits_sha16 | claim_mode | thinking | effort | k | thresholds_sha16 | reason |
 |:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|
+| 2026-08-24 | a1 | opus5 | a26d972ecc0b4ee7 | 754655a400f360e6 | advocate:c41d7f5787bdb472+artifact:f5ed259652e65ee2+geometry:a293ddddce11ee4a+morphology:26bde57ad0478237+arbitrator:44542114399ab277 | jwst_v1 | 28737c6083dc1978 | 032a302c84f3cbe7 | none | adaptive | xhigh | 1 | a40ae6e201a03e65 | top-up(only-nan): 49 advocate transport failures + 2 artifact parse failures of the 2026-08-23 run |
 
 ## Design anchors (PI-derived, design-only, never truth)
 
@@ -248,3 +249,29 @@ function of the stored records plus one thresholds file.
    them into the same parquet without touching any scored row, keeps a `*.pre_topup_<UTC>` copy,
    and appends a row to "Truth-eval rescores" with reason `top-up(only-nan): …`. Endpoints are then
    recomputed once on 282/282 and reported next to the 231-row values.
+
+**Outcomes (recorded 2026-08-24 after the runs; the numbered items above are unchanged).**
+
+- Item 1 — DONE 2026-08-24T20:40:25Z: `opus5_api` = tau0 0.15 / t_A 0.20 (design FPR 1.0 %, 2/200) /
+  t_B 0.17 (4.0 %, 8/200), fit on the 200 non-anchor design negatives of
+  `preds_truth_a2_opus5_design_k1_r1.parquet` (288/288 scored, $34.79); design-positive recall
+  0.318 / 0.341 reported only. `thresholds_v2.json` sha16 `2446548c6eabbcf1` → `f59540c41b302966`;
+  archive `outputs/thresholds_v2.pre_opus5.json`; resolved tuple `a40ae6e201a03e65` (provisional) →
+  `424a8aa9875bacd2` (`opus5_api_calibrated`); record `outputs/opus5_api_calibration.json`. The
+  registered opus5 holdout rows keep `a40ae6e201a03e65` (scored under it); their calibrated letters
+  are derived (items 6–7), never re-scored.
+- Item 9 — DONE 2026-08-24T20:39:45Z (the rescores row above): 51/51 NaN rows re-scored, 0 NaN
+  remain, 282/282; $7.72 metered; `*.pre_topup_20260824T201714Z` copies kept. Endpoints on 282/282
+  (`outputs/truth_results.csv`): a1 P1 recall@5 %FPR 0.095 [0.027, 0.226] (was 0.095 on 149 N1),
+  AUC 0.469 (was 0.468), P2 0/200 at the stored provisional letters, P3 0/42, stress_D D-rate 0.30 —
+  unmoved. Item 7's "231 scored rows / 51 NaN excluded" clause is therefore moot: every transfer
+  endpoint is on 282.
+- Items 6–7 — DONE (`outputs/transfer_opus5/`, zero API, rebuild parity 0 mismatches on both
+  parquets): letter_rank (a2) FPR@A 0.0 % [0.0, 1.8], FPR@A∪B 3.0 % [1.1, 6.4], P2 PASS, recall@A∪B
+  28.6 % [15.7, 44.6], stress_D@A∪B 16/20; R1 (a1) FPR 0/200 at both, recall@A∪B 2.4 % [0.1, 12.6],
+  stress_D 4/20; R2 (a1) FPR@A∪B 2.0 % [0.5, 5.0], recall@A∪B 23.8 % [12.1, 39.5], stress_D 10/20.
+  **Selected: R2** — recall_AB(R1) 0.0238 < 0.5 × 0.1429 (`selected_rule.json`). Deployed
+  certification = the D-rule only. Confound as pre-stated: letter_rank on the a2 parquet, R1/R2 on
+  the a1 parquet (independent advocate draws).
+- Item 8 — IN PROGRESS at the time of this note (`outputs/scrambled100_opus5/`, no `.meta.json`);
+  outcome to be appended here; `--reletter` will use `opus5_api` + rule R2.

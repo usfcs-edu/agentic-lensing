@@ -174,6 +174,17 @@ def _register(md: Path, row: str, section: str = rte.SECTION) -> None:
     md.write_text("\n".join(lines) + "\n")
 
 
+def _live_topup_row(md: Path) -> dict:
+    """A world's REGISTRY.md is a copy of the live file, whose "Truth-eval rescores" holds
+    exactly ONE row: the registered 2026-08-24 top-up of the 51 empty a1-opus5 holdout rows
+    (v2-deploy item 9). Every ledger count in the tests below sits on top of it; a second row,
+    or one without the top-up prefix (a genuine rescore), fails here."""
+    rows = rge._tables(md.read_text())[rte.RESCORE_SECTION]
+    assert len(rows) == 1 and rows[0]["reason"].startswith(rte.TOPUP_PREFIX), rows
+    assert len(rows[0]) == 15
+    return rows[0]
+
+
 def _capture(fn, *a, **kw) -> str:
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf):
@@ -251,6 +262,7 @@ def test_run_golden_eval_seams_default_and_section():
     try:
         md = d / "REGISTRY.md"
         shutil.copy(GOLDEN / "REGISTRY.md", md)
+        pre = _live_topup_row(md)
         t = rte.TruthTuple("a1", "sonnet", "p" * 16, "n" * 16, "advocate:" + "a" * 16, "jwst_v1", "d" * 16,
                            "s" * 16, "none", "off", "default", 1)
         assert not rge.is_registered(md, t, rte.SECTION, rte.TRUTH_COLS)
@@ -301,7 +313,8 @@ def test_run_golden_eval_seams_default_and_section():
                                        cols=rte.TRUTH_COLS, split="holdout", prefix=rte.PREFIX,
                                        rescore_section=rte.RESCORE_SECTION) is True
         tabs = rge._tables(md.read_text())
-        assert len(tabs["Truth-eval rescores"]) == 1 and tabs["Truth-eval rescores"][0]["reason"] == "trace dir lost"
+        rows = tabs["Truth-eval rescores"]                       # the live top-up row, then ours
+        assert len(rows) == 2 and rows[0] == pre and rows[1]["reason"] == "trace dir lost"
         assert tabs["Rescores"] == [] and len(tabs["Design anchors (PI-derived, design-only, never truth)"]) == 5
         # the golden default still appends to the golden Rescores table, not to EOF
         g = rge.RunTuple("e1", "sonnet", "r" * 16, 0, "s" * 16, "y" * 16, "off", "default")
@@ -362,15 +375,25 @@ def test_runner_helpers():
 
 def test_truth_runner_claude5_models():
     """The two Claude-5 advocate-only holdout arms are runnable: --model choices carry the
-    aliases, model_key routes them to their own (null-calibrated) thresholds keys so the
-    holdout gate demands --allow-provisional-thresholds, every alias has a budget estimate,
-    and the tuple records thinking/effort (adaptive/xhigh for these runs)."""
+    aliases, model_key routes them to their own thresholds keys, every alias has a budget
+    estimate, and the tuple records thinking/effort (adaptive/xhigh for these runs).
+    Thresholds: opus5_api is calibrated (2026-08-24, v2-deploy item 1), so a fresh opus5
+    holdout run no longer needs --allow-provisional-thresholds -- but its tuple sha is then
+    424a8aa9875bacd2, not the a40ae6e201a03e65 the registered opus5 rows carry (they were
+    scored under the provisional numbers); sonnet5_api is still null and resolves provisional."""
     assert rte.MODELS == ("sonnet", "opus", "opus5", "sonnet5")
     assert rte.model_key("opus5") == "opus5_api" and rte.model_key("sonnet5") == "sonnet5_api"
     assert set(rte.MODELS) <= set(rte.COST_PER_CALL)
     thr = rte.load_thresholds(rte.THRESHOLDS, rte.model_key("opus5"))
-    assert thr["letter_source"] == "provisional" and thr["model_key"] == "opus5_api"
-    assert (thr["t_A"], thr["t_B"], thr["tau0"]) == (0.80, 0.50, 0.15)
+    assert thr["letter_source"] == "opus5_api_calibrated" and thr["model_key"] == "opus5_api"
+    assert (thr["t_A"], thr["t_B"], thr["tau0"]) == (0.2, 0.17, 0.15)
+    assert rte.thresholds_sha(thr) == "424a8aa9875bacd2"
+    thr5 = rte.load_thresholds(rte.THRESHOLDS, rte.model_key("sonnet5"))
+    assert thr5["letter_source"] == "provisional" and thr5["model_key"] == "sonnet5_api"
+    assert (thr5["t_A"], thr5["t_B"], thr5["tau0"]) == (0.80, 0.50, 0.15)
+    assert rte.thresholds_sha(thr5) == "a40ae6e201a03e65"
+    reg = rge._tables((GOLDEN / "REGISTRY.md").read_text())["Truth-eval registered arms"]
+    assert {r["thresholds_sha16"] for r in reg if r["model"] == "opus5"} == {"a40ae6e201a03e65"}
     t = rte.TruthTuple("a2", "opus5", "p" * 16, "n" * 16, "advocate:" + "a" * 16, "jwst_v1",
                        "d" * 16, "s" * 16, "none", "adaptive", "xhigh", 1, "t" * 16)
     assert t.run_tag("holdout", 1) == "truth_a2_opus5_holdout_k1_r1"
@@ -380,6 +403,7 @@ def test_truth_runner_claude5_models():
 # ------------------------------------------------------------------ the runner with a stub panel
 def test_truth_runner_gate_outputs_registry():
     d, man = make_world()
+    pre = _live_topup_row(d / "REGISTRY.md")
     stub, fake = make_stub_panel(p_evidence=0.6, letter="B"), _FakeRegistry()
     OUT_T = str(d / "out" / "preds_truth_{arm}_{model}_{split}_k{K}_r{k}.parquet")
     common = ["--manifest", str(d / "truth_manifest.csv"), "--splits", str(d / "truth_splits.csv"),
@@ -510,7 +534,8 @@ def test_truth_runner_gate_outputs_registry():
             n = len(stub.calls)
             rte.main(["--arm", "a1", "--split", "holdout", "--force-rescore", "--rescore-reason", "trace dir lost"] + common + hold)
             tabs = rge._tables((d / "REGISTRY.md").read_text())
-            assert len(tabs["Truth-eval rescores"]) == 1 and tabs["Truth-eval rescores"][0]["reason"] == "trace dir lost"
+            rows = tabs["Truth-eval rescores"]                   # the live top-up row, then ours
+            assert len(rows) == 2 and rows[0] == pre and rows[1]["reason"] == "trace dir lost"
             assert len(tabs["Design anchors (PI-derived, design-only, never truth)"]) == 5
             assert pd.read_parquet(d / "out" / "preds_truth_a1_sonnet_holdout_k1_r1.parquet")["rescored"].all()
             assert len(stub.calls) == n + 3
@@ -667,10 +692,11 @@ def test_truth_runner_only_nan_topup():
     """REGISTRY › Deployment rule v2-deploy item 9: --only-nan re-scores ONLY the NaN rows of a
     complete replicate, merges them in place (scored rows byte-equal), copies parquet / votes /
     meta to *.pre_topup_<UTC> before the first write, re-writes the meta with a topup block,
-    logs ONE 'top-up(only-nan): …' row in Truth-eval rescores (holdout; 15 cells; separators
-    intact), needs --rescore-reason, refuses --force-rescore / --ids-file / --limit and an
+    logs ONE 'top-up(only-nan): …' row in Truth-eval rescores after the live file's registered
+    top-up row (holdout; 15 cells; separators intact), needs --rescore-reason, refuses --force-rescore / --ids-file / --limit and an
     unregistered or incomplete target, and with zero NaN rows exits 0 writing nothing."""
     d, man = make_world(n_design=3, n_holdout=4)
+    pre = _live_topup_row(d / "REGISTRY.md")
     stub, fake = make_stub_panel(p_evidence=0.6, letter="B"), _FakeRegistry()
     fail: set = set()
     _with_failures(stub, fail)
@@ -727,7 +753,7 @@ def test_truth_runner_only_nan_topup():
                 assert "already scored on holdout" in str(e)
             assert len(stub.calls) == n and out.read_bytes() == prev_bytes
             assert not list((d / "out").glob("*.pre_topup_*"))
-            assert rge._tables((d / "REGISTRY.md").read_text())["Truth-eval rescores"] == []
+            assert rge._tables((d / "REGISTRY.md").read_text())["Truth-eval rescores"] == [pre]
             # ---- the top-up: exactly the two NaN rows are re-scored and merged in place
             fail.clear()
             rte.main(H + TOP + common + hold)
@@ -774,12 +800,13 @@ def test_truth_runner_only_nan_topup():
             assert m["topup_history"] == [] and m["rescored"] is False and m["rescore_reason"] is None
             assert m["n_scored_this_run"] == 2 and m["n_parse_fail_this_run"] == 0 and m["n"] == 4
             assert m["tuple"] == json.loads(cps[rge.meta_path(out).name].read_text())["tuple"]
-            # the ledger: ONE row, 15 cells, the prefix; both table separators intact; anchors untouched
+            # the ledger: ONE new row after the live top-up row, 15 cells, the prefix; both table
+            # separators intact; anchors untouched
             txt = (d / "REGISTRY.md").read_text()
             tabs = rge._tables(txt)
             rows = tabs["Truth-eval rescores"]
-            assert len(rows) == 1 and rows[0]["reason"] == "top-up(only-nan): transport failures"
-            assert len(rows[0]) == 15 and rows[0]["arm"] == "a1" and rows[0]["model"] == "sonnet" and rows[0]["k"] == "1"
+            assert len(rows) == 2 and rows[0] == pre and rows[1]["reason"] == "top-up(only-nan): transport failures"
+            assert len(rows[1]) == 15 and rows[1]["arm"] == "a1" and rows[1]["model"] == "sonnet" and rows[1]["k"] == "1"
             line = next(l for l in txt.splitlines() if "top-up(only-nan): transport failures" in l)
             assert line.count("|") == 16                                                   # 15 cells
             assert txt.count(rte.TRUTH_TABLE_SEP + "\n") == 2 and txt.count(rge.TABLE_SEP + "\n") == 1
@@ -790,7 +817,7 @@ def test_truth_runner_only_nan_topup():
             msg = _capture(rte.main, H + ["--only-nan", "--rescore-reason", "again"] + common + hold)
             assert "nothing to do" in msg and len(stub.calls) == n and out.read_bytes() == snap
             assert len(list((d / "out").glob("*.pre_topup_*"))) == 3
-            assert len(rge._tables((d / "REGISTRY.md").read_text())["Truth-eval rescores"]) == 1
+            assert rge._tables((d / "REGISTRY.md").read_text())["Truth-eval rescores"] == rows
             assert json.loads(rge.meta_path(out).read_text()) == m
             # the score-once rule still holds after the top-up
             try:
@@ -807,7 +834,7 @@ def test_truth_runner_only_nan_topup():
             assert rte.nan_names(outd) == [dnames[0]]
             rte.main(D + ["--only-nan", "--rescore-reason", "design top-up"] + common)
             assert pd.read_parquet(outd)["p_lens"].notna().all()
-            assert len(rge._tables((d / "REGISTRY.md").read_text())["Truth-eval rescores"]) == 1
+            assert rge._tables((d / "REGISTRY.md").read_text())["Truth-eval rescores"] == rows
             assert len(list((d / "out").glob("preds_truth_a2_sonnet_design_k1_r1*.pre_topup_*"))) == 3
             assert json.loads(rge.meta_path(outd).read_text())["topup"]["n_topup"] == 1
             fail.add(dnames[1])

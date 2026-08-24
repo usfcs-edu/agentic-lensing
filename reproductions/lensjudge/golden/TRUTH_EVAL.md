@@ -319,6 +319,51 @@ lit_cluster 0/13 (still moved only by sonnet5-xhigh, 4/13). Finishing phase $37.
 $60 cap; funded completion phase $84.99 of $110; Part 2 cumulative $234.36 (all-in
 $244.20 with the scrambled-100 one-off). Suite 216 passed.
 
+## Status addendum (2026-08-24, later still): v2-deploy executed — `opus5_api` letters calibrated on design, the 51-row top-up landed (endpoints unmoved), the transfer check selects R2 (D-rule certification only); blind opus5 top-100 in progress
+
+The deployment rule pre-registered in `REGISTRY.md › Deployment rule v2-deploy` was executed
+in order. **Item 1:** a2/opus5/adaptive/xhigh on the DESIGN half (288/288 scored and parsed,
+$34.79 = $0.121/item; ungated, provisional tuple) → `golden/calibrate_thresholds.py` on the 200
+non-anchor design negatives only: **tau0 0.15 / t_A 0.20 (design FPR 1.0 %) / t_B 0.17 (4.0 %)**,
+design-positive recall 0.318 / 0.341 reported not fitted; `thresholds_v2.json` sha16
+`2446548c6eabbcf1 → f59540c41b302966` (previous file at `outputs/thresholds_v2.pre_opus5.json`),
+resolved tuple `a40ae6e201a03e65` (provisional) → `424a8aa9875bacd2` (`opus5_api_calibrated`).
+The registered opus5 holdout parquets keep the provisional sha they were scored under; their
+calibrated letters are derived, never re-scored. **Item 9:** `run_truth_eval.py --only-nan`
+re-scored the 51 NaN rows of the a1/opus5-xhigh holdout parquet (49 advocate transport + 2
+artifact parse failures, all negatives) and nothing else — 282/282, 0 NaN, $7.72 metered,
+`*.pre_topup_20260824T201714Z` copies kept, the `top-up(only-nan): …` row appended to
+"Truth-eval rescores"; parquet total $60.48 ($0.2145/item). Endpoints recomputed on 282/282
+(`outputs/truth_results.csv`, 246 rows) against the 231-row values above: **a1 P1 recall@5 %FPR
+0.095 (4/42) [0.027, 0.226] → 0.095 (identical), AUC 0.468 → 0.469 (S_arb 0.484 → 0.486), P2
+0/149 → 0/200 at the stored provisional letters, P3 0/42 → 0/42, stress_D D-rate 0.30
+unchanged, forbidden-only 0/136, parse-failure rate 18.1 % → 0.0 % [0.0, 1.3]**; a2 unchanged
+(0.333 [0.196, 0.495], AUC 0.764, P3 1/42). The 51 new negatives land where the 149 were (max
+S 0.14); the previous verdict stands verbatim. **Items 6–7** (`golden/transfer_check.py`, zero
+API, rebuild parity 0 mismatches on both parquets): letter_rank (a2 parquet) FPR@A 0.0 %
+[0.0, 1.8], FPR@A∪B 3.0 % [1.1, 6.4], **P2 PASS**, recall@A∪B **28.6 %** [15.7, 44.6], stress_D
+at A∪B 16/20; R1 (a1 parquet) FPR 0/200 at both, recall@A∪B **2.4 %** [0.1, 12.6], stress_D
+4/20; R2 (a1 parquet) FPR@A∪B 2.0 % [0.5, 5.0], recall@A∪B 23.8 % [12.1, 39.5], stress_D
+10/20. **Selected rule: R2** (0.0238 < 0.5 × 0.1429, the pre-stated fallback). Read honestly:
+the calibrated advocate letters transfer (t_B 4.0 % design → 3.0 % holdout) and the A tier is
+limited by the A criteria guard, not the threshold (11/42 positives clear t_A, 1 is lettered
+A); the arbitrated stack (R1) is still far too aggressive on true lenses — it removes ten of
+the a1 parquet's own eleven advocate A/B positives, mostly on `companion_projection` — so the
+deployed certification is the D-rule only, which buys about one point of FPR and removes 6 of
+the 16 stress_D inflations for about five points of recall (cross-parquet; same-parquet the
+D-rule itself costs one positive and removes three stress_D). Confound, stated: letter_rank is
+measured on the a2 parquet and R1/R2 on the a1 parquet — independent draws of the same advocate
+prompt, agreeing to within one positive at threshold level; the selection rule named this
+pairing before the check ran. R2 still leaves 10/20 PI-refuted panels at A∪B; `needs_human`
+and the located veto stay on every deployed row. **Item 8:** the blind opus5-xhigh top-100
+(`regrade_scrambled.py --model opus5`, `outputs/scrambled100_opus5/`) is IN PROGRESS at the
+time of writing — no `.meta.json`, nothing read, results to be appended (then `--reletter`
+under `opus5_api`, rule R2). Tooling: `golden/records.py`, `calibrate_thresholds.py`,
+`transfer_check.py`, `explain.py`, `annotate.py`, `run_truth_eval --only-nan`,
+`regrade_scrambled --model opus5 / --reletter`. Spend this phase $42.51 metered (34.79 +
+7.72); Part 2 cumulative $276.87; all-in $286.71 (the running top-100 excluded). Full
+tables: `GOLDEN_FINDINGS.md` 2026-08-24 (later still) entry; `outputs/transfer_opus5/`.
+
 ## Budget and cut order (re-derived 2026-08-23 from the built halves and the smoke's per-role costs)
 
 The plan priced 244 holdout / 265 design items at $0.057–0.084 per item. The built halves are

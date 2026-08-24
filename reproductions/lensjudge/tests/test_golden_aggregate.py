@@ -264,8 +264,11 @@ def test_letter_rules_arbitrated():
 def test_thresholds_file_and_resolution():
     table = ag.load_thresholds(str(THR_JSON))
     # design freeze 2026-08-23: sonnet_api carries the t_A/t_B fit on the design negatives'
-    # S (a1 full-stack pass, FPR <= 1% / <= 5%); tau0 and the provisional block unchanged
+    # S (a1 full-stack pass, FPR <= 1% / <= 5%); calibration 2026-08-24 (v2-deploy item 1):
+    # opus5_api fit on the a2-opus5 design negatives, inserted right after sonnet_api;
+    # tau0 and the provisional block unchanged
     assert table == {"sonnet_api": {"tau0": 0.15, "t_A": 0.192, "t_B": 0.1318},
+                     "opus5_api": {"tau0": 0.15, "t_A": 0.2, "t_B": 0.17},
                      "opus_claude_code": None,
                      "provisional": {"tau0": 0.15, "t_A": 0.80, "t_B": 0.50}}
     # the frozen entry resolves calibrated; null / unknown entries fall back to provisional
@@ -296,15 +299,18 @@ def test_thresholds_file_and_resolution():
 
 # ------------------------------------------------------------------ ranking
 def test_model_keys_claude5_resolution():
-    """opus5/sonnet5 route to their own thresholds keys; the pinned file holds no frozen
-    t_A/t_B for them, so they resolve provisional (a holdout run therefore needs
-    --allow-provisional-thresholds, like the registered opus arm did)."""
+    """opus5/sonnet5 route to their own thresholds keys. opus5_api was calibrated 2026-08-24
+    (v2-deploy item 1: t_A 0.2 / t_B 0.17 on the a2-opus5 design negatives) and resolves
+    calibrated; sonnet5_api still holds no frozen t_A/t_B and resolves provisional (its
+    holdout run therefore still needs --allow-provisional-thresholds)."""
     assert ag.MODEL_KEYS["opus5"] == "opus5_api" and ag.MODEL_KEYS["sonnet5"] == "sonnet5_api"
     table = ag.load_thresholds(str(THR_JSON))
-    for key in ("opus5_api", "sonnet5_api"):
-        t = ag.resolve_thresholds(table, key)
-        assert (t["t_A"], t["t_B"], t["tau0"]) == (0.80, 0.50, 0.15), (key, t)
-        assert t["letter_source"] == "provisional" and t["thresholds_key"] == "provisional"
+    t = ag.resolve_thresholds(table, "opus5_api")
+    assert (t["t_A"], t["t_B"], t["tau0"]) == (0.2, 0.17, 0.15), t
+    assert t["letter_source"] == "opus5_api_calibrated" and t["thresholds_key"] == "opus5_api"
+    t = ag.resolve_thresholds(table, "sonnet5_api")
+    assert (t["t_A"], t["t_B"], t["tau0"]) == (0.80, 0.50, 0.15), t
+    assert t["letter_source"] == "provisional" and t["thresholds_key"] == "provisional"
 
 
 def test_rank_key_u_below_examined():

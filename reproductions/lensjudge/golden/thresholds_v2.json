@@ -4,6 +4,11 @@
     "t_A": 0.192,
     "t_B": 0.1318
   },
+  "opus5_api": {
+    "tau0": 0.15,
+    "t_A": 0.2,
+    "t_B": 0.17
+  },
   "opus_claude_code": null,
   "provisional": {
     "tau0": 0.15,

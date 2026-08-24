@@ -1522,3 +1522,162 @@ Part 2 cumulative $196.38 + 37.98 = **$234.36**; all-in with the scrambled-100 o
 rescore top-up (≈ $6); (2) fund the ~$34 opus5 advocate calibration (and decide against or
 for a ~$61 full-stack one); (3) approve the `opus5_api: null` patch regeneration; (4) the
 scale-routed ensemble hypothesis for the cluster stratum stays unregistered until funded.
+
+## 2026-08-24 (later still) — v2-deploy executed: opus5_api letters calibrated on the design half ($34.79), the 51 empty holdout rows topped up under the registered item-9 rescore ($7.72; every endpoint unmoved), and the pre-registered transfer check selects R2 — the deployed certification is the D-rule only; blind opus5-xhigh top-100 IN PROGRESS
+
+**Step 1 — calibration (v2-deploy item 1; design half, $0 holdout cost).** a2/opus5/adaptive/xhigh
+on the DESIGN half (`outputs/preds_truth_a2_opus5_design_k1_r1.parquet`; design is ungated; run
+under the provisional tuple `a40ae6e201a03e65`, `rescored=False`, scored 2026-08-24T19:45Z):
+**288/288 scored, 288/288 parsed** (0 parse failures), 24 items over the $0.17 warn-and-count cap,
+**$34.79 = $0.121/item** list. `golden/calibrate_thresholds.py --model-key opus5_api` fit on ONLY
+the 200 `truth_class == negative` non-anchor design rows (5 anchors excluded, 0 NaN negatives),
+44 design positives reported and never fitted: **tau0 0.15 (unchanged), t_A 0.20 (2/200 design
+negatives ≥ t_A → FPR 1.0 %), t_B 0.17 (8/200 → 4.0 %)**; design-positive recall at S ≥ t_A
+14/44 = 0.318, at S ≥ t_B 15/44 = 0.341 (reported only). Written 2026-08-24T20:40:25Z with 0
+write blockers: `golden/thresholds_v2.json` sha16 `2446548c6eabbcf1 → f59540c41b302966`, the
+previous file archived at `outputs/thresholds_v2.pre_opus5.json`; the opus5 resolved-threshold
+tuple sha `a40ae6e201a03e65` (provisional) → `424a8aa9875bacd2` (`opus5_api_calibrated`). Fit
+record: `outputs/opus5_api_calibration.json`. Two things to keep straight: (i) the registered
+opus5 holdout rows (a2 and a1) KEEP the provisional sha they were scored under — their stored
+letters are the 0.80/0.50 ones, and the `truth_results.csv` P2 rows in Step 3 test those; (ii)
+every calibrated letter on those parquets is DERIVED (Step 4), never re-scored. For scale: t_B
+0.17 sits one hundredth above the a2 holdout's own 5 %-FPR threshold (0.16) and t_A 0.20 equals
+its 1 %-FPR threshold — the design fit lands where the holdout quantiles already were.
+
+**Step 2 — top-up (item 9; `run_truth_eval.py --only-nan`).** The 51 NaN rows of the a1/opus5/
+xhigh holdout parquet (49 advocate transport failures + 2 artifact parse failures, all negatives,
+from the 8.5-minute API window of the resume) were re-scored on THOSE rows only, under the
+registered tuple and the same settings; the runner appended the `top-up(only-nan): …` row to
+REGISTRY "Truth-eval rescores" and the meta carries the `topup` block. Result: **282/282 scored,
+0 NaN** (`n_nan_before 51 → n_nan_after 0`, `still_nan_names` empty), 51 scored this pass, 0
+parse failures, 5 over the cap, **$7.72 metered**, topped up 2026-08-24T20:39:45Z; pre-top-up
+copies kept as `*.pre_topup_20260824T201714Z` (parquet, votes, meta). The 51 new rows behave
+like the 149 they join: max S 0.14, one at or above the 0.13 P1 threshold, 5 engaged a critic.
+Cost accounting, exactly: the parquet's per-row sum is now **$60.48** (`cost_usd_per_item`
+0.2145 × 282) = $52.76 on the 231 untouched rows + $7.72 on the 51 new ones; the metered arm
+total is $53.51 + $7.72 = $61.23 — the $0.74 that sat on the 51 failed rows (paid calls of the
+two artifact-failure items) left the parquet with them under the `--only-nan` flush. The ledger
+below uses the metered figures.
+
+**Step 3 — endpoints recomputed on 282/282** (`analyze_truth`; `outputs/truth_results.csv`,
+246 rows: a1 on S, a1arb on S_arb, a2, and the a1arb-vs-a1 pair; letters = the rows' STORED
+provisional thresholds):
+
+| arm (holdout, opus5 xhigh) | P1 recall@5 %FPR [CI] (n=42) | thr / achieved FPR | @10 % | AUC | P2 FPR at A / A∪B (stored 0.80/0.50; n=200) | P3 pos at A/B | $/item |
+|:--|:--|:--|:--|--:|:--|:--|--:|
+| a2 (advocate, reference) | 0.333 (14/42) [0.196, 0.495] | 0.16 / 0.03 | 0.452 | 0.764 | 0.0 % / 0.0 % [0.0, 1.8] | 0.024 (1/42) [0.001, 0.126] | 0.119 |
+| **a1 (S)** | **0.095 (4/42) [0.027, 0.226]** | 0.13 / 0.02 | 0.095 | **0.469** | 0.0 % / 0.0 % [0.0, 1.8] | **0.0 (0/42) [0.0, 0.084]** | 0.214 |
+| a1arb (S_arb) | 0.095 (4/42) [0.027, 0.226] | 0.13 / 0.02 | 0.095 | 0.486 | 0.0 % / 0.0 % [0.0, 1.8] | 0.024 (1/42) [0.001, 0.126] | 0.214 |
+
+Against the 231-row (149 N1) values of the previous entry, same arm: P1 **0.095 → 0.095**
+(identical — every detection is a positive and all 42 positives were already scored), AUC 0.468
+→ 0.469 (S) and 0.484 → 0.486 (S_arb), P2 0/149 → 0/200 at both stored letters (`P2_holds` and
+`P2_upper_ci_ok` both 1.0), P3 0/42 unchanged, stress_D D-rate **6/20 = 0.30 [0.119, 0.543]
+unchanged** (a1arb 0.25 [0.087, 0.491]), forbidden-only 0/128 → **0/136** refutations [0, 2.7 %],
+no_opinion 0.000 / 0.016 / 0.000, escalation 4/282 = 0.014, Spearman(S, θ_E) n=10 −0.006 (perm
+p 0.994), parse-failure rate 18.1 % → **0.0 % [0.0, 1.3]** (n=282), $/item 0.190 → 0.214.
+**Nothing moved**: the 51 negatives land where the 149 were (max negative S 0.14; 4/200 at or
+above the 0.13 threshold, hence the achieved 2.0 %). The pair this file carries: a1arb-vs-a1 dAUC
++0.017 [−0.001, +0.045], DeLong 0.163, McNemar 0/0. The a1-vs-a2 pairing was not re-run by this
+recompute; the two AUC point estimates now differ by −0.295 (0.469 vs 0.764) against the −0.301
+[−0.424, −0.184] measured on 149 N1, so the previous entry's verdict (the Claude-5 stack collapses
+the advocate's ranking; the first significant under-ranking) stands verbatim. The P2 rows here
+are the PROVISIONAL letters and are trivially 0/200; the calibrated-letter FPR is Step 4.
+
+**Step 4 — transfer check (items 6–7; derived, zero API; `golden/transfer_check.py` →
+`outputs/transfer_opus5/transfer_check.{md,csv}` + `selected_rule.json`).** Thresholds
+`opus5_api` (`opus5_api_calibrated`: t_A 0.20 / t_B 0.17 / tau0 0.15; tuple `424a8aa9875bacd2`,
+table `f59540c41b302966`, `provisional: false`). Inputs: the a2 and a1 opus5 holdout parquets
+with their votes parquets (282 rows each after the top-up; 0 excluded for NaN, 0 unlettered, 0
+anchors; 200 negatives / 42 positives / 20 stress_D). letter_rank's AdvocateRecords are rebuilt
+from the a2 votes parquet through the run-time parse path (`golden/records.py`); **rebuild parity
+0 mismatches** on S, S_arb, grade_pred, letter_arb and p_evidence for both parquets (282 compared
+each, under each parquet's own stored thresholds).
+
+| rule (parquet) | FPR@A (n=200) | FPR@A∪B | P2 (upper CI: A ≤ 2.5 %, A∪B ≤ 7.5 %) | recall@A (n=42) | recall@A∪B | stress_D @A∪B (n=20) |
+|:--|:--|:--|:--|:--|:--|:--|
+| letter_rank (a2) | 0.0 % [0.0, 1.8] | 3.0 % [1.1, 6.4] | PASS | 2.4 % [0.1, 12.6] | **28.6 % [15.7, 44.6]** | 16 (80.0 % [56.3, 94.3]) |
+| R1 (a1) | 0.0 % [0.0, 1.8] | 0.0 % [0.0, 1.8] | PASS | 2.4 % [0.1, 12.6] | 2.4 % [0.1, 12.6] | 4 (20.0 % [5.7, 43.7]) |
+| **R2 (a1) — SELECTED** | 0.0 % [0.0, 1.8] | 2.0 % [0.5, 5.0] | PASS | 2.4 % [0.1, 12.6] | 23.8 % [12.1, 39.5] | 10 (50.0 % [27.2, 72.8]) |
+
+Letters per class (A/B/C/D): letter_rank negatives 0/6/118/76, positives 1/11/22/8, stress_D
+3/13/4/0, stress_U 0/5/10/0; R1 negatives 0/0/121/79, positives 1/0/33/8, stress_D 3/1/11/5;
+R2 negatives 0/4/117/79, positives 1/9/24/8, stress_D 4/6/5/5.
+
+**Selection (item 6): R2** — recall_AB(R1) = 0.0238 < 0.5 × recall_AB(letter_rank) = 0.1429, the
+pre-stated fallback. Stated plainly: the deployed certification is the D-rule only (letter_rank
+demoted to D by one upheld critic with a_geom = 1 and r ≥ 0.8), because the arbitrated critic
+stack is still far too aggressive on true lenses. The honest read:
+
+- **The calibrated advocate letters transfer.** t_B fitted at 4.0 % design FPR gives 3.0 %
+  [1.1, 6.4] on holdout; t_A at 1.0 % gives 0.0 % [0.0, 1.8]; both P2 wordings pass (the item-7
+  upper-CI test and the registered lower-bound test). 12/42 holdout positives sit at A∪B
+  (design: 15/44 at S ≥ t_B) — the first opus5 letters that carry any recall (the provisional
+  0.80/0.50 letters held 1/42).
+- **The A tier is guard-limited, not threshold-limited.** 11/42 holdout positives have S ≥ t_A
+  (and 1/200 negatives), yet letter A is 1/42 and 0/200: 10 of the 11 fail the A criteria guard
+  (≥ 2 of curvature / counter_image / arc_morphology ≥ 6) and land in B, as does that one
+  negative. Every A/B negative under letter_rank is a B (6/200).
+- **R1 removes the recall.** On the a1 parquet's OWN advocate letters 11/42 positives are at A∪B
+  (p_evidence ≥ 0.17, counted here); R1 leaves 1 — a lit_galaxy A (the COSMOS-Web galaxy-scale
+  arc of the previous entry, whose critic the arbitrator overruled; S_arb 0.60). R1's 37 vetoes
+  (10 positives, 9 negatives, 11 stress_D, 6 stress_U, 1 anomalymatch) are dominated by
+  `companion_projection` from geometry and/or morphology (all four lit_galaxy vetoes name it),
+  with `spiral_arm`, `merger`, `edge_on_disk`, `scale_tension` and `subtraction_residual`
+  behind; its stress_D cleanup (4/20) is real and is bought with ten of eleven true-lens A/B
+  letters.
+- **What R2 buys and costs.** Cross-parquet (the registered comparison): FPR@A∪B 3.0 % → 2.0 %,
+  stress_D at A∪B 16 → 10 of 20, recall@A∪B 28.6 % → 23.8 % (−4.8 points). The D-rule fires 13
+  times on the a1 parquet: 5 stress_D (4 on a `spiral_arm` veto, 1 `merger`), 5 negatives, 1
+  lit_cluster (`spiral_arm`), 1 anomalymatch (`edge_on_disk`), 1 stress_U (`geometry:other`).
+  Same-parquet (counted here from the a1 rows): advocate-only A∪B is 11/42 positives and 13/20
+  stress_D, R2 is 10/42 and 10/20 — the D-rule itself costs one positive and removes three
+  stress_D from A∪B; the remainder of the headline gaps (12 → 10 positives, 16 → 10 stress_D) is
+  the advocate draw.
+- **The confound, stated:** letter_rank is measured on the a2 parquet and R1/R2 on the a1
+  parquet — two independent samples of the byte-identical advocate prompt. At threshold level
+  the draws agree to within one positive (12 vs 11 at S ≥ 0.17; 11 vs 10 at ≥ 0.20) and three
+  stress_D (16 vs 13). The selection rule named exactly this pairing before the check ran, so
+  the selection stands; the same-parquet counts above are a derived cross-check, not a
+  re-selection.
+- **R2 still inflates stress_D**: 10/20 PI-refuted panels at examination grade (advocate-only
+  16/20, R1 4/20). That is the price of R2, and it is why `needs_human` plus the located veto
+  (`our_veto` / `our_rationale` on every deployed row) stay on the output rather than being an
+  optional extra.
+
+**Step 5 — tooling now on disk (zero-API unless stated).** `golden/records.py` — the per-role
+pydantic records of a finished run rebuilt from its votes parquet through the run-time parse path
+(`parse_role_raw` is `common.parse.parse_model`, imported not re-implemented), with `rebuild_rows`
+/ `compare_rebuild` parity; `golden/calibrate_thresholds.py` (item 1); `golden/transfer_check.py`
+(items 6–7); `golden/explain.py` — stored records → a traceable Markdown block + one-paragraph
+rationale per item (every sentence a stored field or an `aggregate_v2` predicate; model prose
+quoted, never paraphrased; S / S_arb decomposed term by term beside the stored values);
+`golden/annotate.py` — paints the advocate's located items and each critic's alternative box onto
+the composite JPEG, coloured by the arbitrator's ruling; `run_truth_eval.py --only-nan` (item 9);
+`regrade_scrambled.py --model opus5` (item 8; API) and `--reletter RUN_DIR [--rule R1|R2]`
+(zero-API re-lettering from the stored records behind a `*.pre_reletter_<UTC>` backup and a
+rebuild-parity stop). Tests present: `test_golden_records.py`, `test_golden_calibrate.py`,
+`test_golden_transfer.py`, `test_golden_explain.py`, `test_golden_annotate.py` beside the earlier
+`test_golden_scrambled.py`; the suite was not re-run for this entry.
+
+**Step 6 — the blind opus5-xhigh top-100 (item 8) is IN PROGRESS.** `regrade_scrambled.py
+--model opus5 --out lensjudge/outputs/scrambled100_opus5` (a1 full stack, adaptive/xhigh, blind
+kit, no metadata, layout from filters only, item-8 budget) was launched 2026-08-24 13:17 local
+and is running as this is written: preds + votes parquets are being flushed, no `.meta.json`
+exists, and NOTHING from it has been read or is reported here. When it completes the entry to
+append is: `--reletter` under `opus5_api` with rule R2 (the selected rule), the comparison CSV
+(`our_letter_rank` / `our_letter_final` / `our_veto` / `our_rationale`), the anchors table
+against `REGISTRY.md › Design anchors`, and the cross-tab against the Sonnet blind run above.
+
+**Ledger, spend, compliance.** Score-once intact: the calibration run is design-half (ungated);
+the top-up is the registered item-9 rescore with its "Truth-eval rescores" row; no
+`--force-rescore` beyond it, no `--limit` / `--ids-file`, no prompt or aggregator edit;
+`golden/thresholds_v2.json` changed ONLY by `calibrate_thresholds.py` per item 1 (archive kept);
+no git commit; nothing written into the JWST repo; no id appears in this entry. Metered this
+phase: **$34.79 (calibration) + $7.72 (top-up) = $42.51**; the in-progress top-100 run is in no
+total yet. Part 2 cumulative $234.36 + 42.51 = **$276.87**; all-in with the $9.84 Sonnet
+scrambled-100 one-off **$286.71**. Open PI items: (1) regenerate the verifier patch with the
+`opus5_api` key and rule R2 (README caution: stress_D at A∪B 10/20 under the deployed letters);
+(2) whether R2's stress_D inflation is acceptable for deployment or the escalation channel must
+be surfaced in Nate's output; (3) a registered follow-up on the critic burden rule (110/128
+refutations upheld in the previous entry) — the reason R1 is not deployable at this tier.

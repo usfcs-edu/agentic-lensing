@@ -163,13 +163,23 @@ def test_calibrate_no_positives_and_missing_columns():
 def test_updated_table_order_and_render():
     table = json.loads(REAL_THRESHOLDS.read_text())
     assert ct.render_table(table) == REAL_THRESHOLDS.read_text()     # the real file is canonical
+    # the real file after the 2026-08-24 calibration: opus5_api sits right after sonnet_api
+    assert list(table) == ["sonnet_api", "opus5_api", "opus_claude_code", "provisional"]
+    assert table["opus5_api"] == {"tau0": 0.15, "t_A": 0.2, "t_B": 0.17}
     entry = {"tau0": 0.15, "t_A": 0.2, "t_B": 0.1}
-    new = ct.updated_table(table, "opus5_api", entry)
+    # a fresh key on the pre-calibration table (the shape outputs/thresholds_v2.pre_opus5.json
+    # holds) is inserted right after sonnet_api
+    base = {k: v for k, v in table.items() if k != "opus5_api"}
+    new = ct.updated_table(base, "opus5_api", entry)
     keys = list(new)
     assert keys.index("opus5_api") == keys.index("sonnet_api") + 1
-    assert [k for k in keys if k != "opus5_api"] == list(table)
-    assert all(new[k] == table[k] for k in table) and new["opus5_api"] == entry
-    assert table.get("opus5_api", "absent") == "absent"               # input untouched
+    assert [k for k in keys if k != "opus5_api"] == list(base)
+    assert all(new[k] == base[k] for k in base) and new["opus5_api"] == entry
+    assert base.get("opus5_api", "absent") == "absent"                # input untouched
+    # on the real table the present key is replaced in place: order kept, input untouched
+    new = ct.updated_table(table, "opus5_api", entry)
+    assert list(new) == list(table) and new["opus5_api"] == entry
+    assert table["opus5_api"] == {"tau0": 0.15, "t_A": 0.2, "t_B": 0.17}
     # present key (null or dict) is replaced in place
     t2 = {"a": 1, "opus5_api": None, "sonnet_api": {"t_A": 1}, "z": 2}
     assert list(ct.updated_table(t2, "opus5_api", entry)) == ["a", "opus5_api", "sonnet_api", "z"]
@@ -199,10 +209,11 @@ def test_run_report_only_writes_nothing(tmp_path):
     assert res.meta_present and res.n_neg_expected == 200 and not res.allow_nan_neg
     assert thr.read_text() == before and not (tmp_path / "arch").exists()
     assert (res.t_A, res.t_B, res.n_neg, res.n_pos) == (0.199, 0.191, 200, 2)
-    assert res.key_present is False and res.existing_entry is None
-    assert res.letter_source_before == "provisional" and res.letter_source_after == "opus5_api_calibrated"
-    assert res.file_sha16_before == _util.sha_text(before)
-    assert res.tuple_sha16_before == rte.thresholds_sha(rte.load_thresholds(thr, "opus5_api"))
+    # the real file already carries the 2026-08-24 opus5_api entry: a re-fit reports it
+    assert res.key_present is True and res.existing_entry == {"tau0": 0.15, "t_A": 0.2, "t_B": 0.17}
+    assert res.letter_source_before == "opus5_api_calibrated" and res.letter_source_after == "opus5_api_calibrated"
+    assert res.file_sha16_before == _util.sha_text(before) == "f59540c41b302966"
+    assert res.tuple_sha16_before == rte.thresholds_sha(rte.load_thresholds(thr, "opus5_api")) == "424a8aa9875bacd2"
     assert res.tuple_sha16_after == _util.sha_json({"tau0": 0.15, "t_A": 0.199, "t_B": 0.191,
                                                     "letter_source": "opus5_api_calibrated",
                                                     "thresholds_key": "opus5_api"})
@@ -227,12 +238,14 @@ def test_run_write_preserves_other_keys_and_archives(tmp_path):
     old = json.loads(original)
     assert text == ct.render_table(new) and text.endswith("}\n")
     assert list(new) == ["sonnet_api", "opus5_api", "opus_claude_code", "provisional"]
-    assert {k: v for k, v in new.items() if k != "opus5_api"} == old
+    others = {k: v for k, v in old.items() if k != "opus5_api"}
+    assert old["opus5_api"] == {"tau0": 0.15, "t_A": 0.2, "t_B": 0.17}     # the 2026-08-24 entry, replaced in place
+    assert {k: v for k, v in new.items() if k != "opus5_api"} == others
     assert new["opus5_api"] == {"tau0": 0.15, "t_A": 0.199, "t_B": 0.191}
-    # untouched parts byte-for-byte: the original text minus its first line is a suffix of the
-    # new text, and the prefix up to (and including) the sonnet_api block is identical
-    cut = original.index('  "opus_claude_code"')
-    assert text.endswith(original[cut:]) and text.startswith(original[:cut])
+    # untouched parts byte-for-byte: the prefix up to (and including) the sonnet_api block and
+    # the suffix from opus_claude_code on are identical; only the opus5_api block between changed
+    cut0, cut = original.index('  "opus5_api"'), original.index('  "opus_claude_code"')
+    assert text.startswith(original[:cut0]) and text.endswith(original[cut:])
     assert res.file_sha16_after == _util.sha_text(text) == _util.sha_file(thr)
     # the tuple sha later runs will carry, via the runner's own resolution
     resolved = rte.load_thresholds(thr, "opus5_api")
@@ -257,7 +270,7 @@ def test_run_write_preserves_other_keys_and_archives(tmp_path):
     assert res2.key_present and res2.existing_entry == {"tau0": 0.15, "t_A": 0.199, "t_B": 0.191}
     new2 = json.loads(thr.read_text())
     assert list(new2) == list(new) and new2["opus5_api"]["t_A"] == 0.3        # 0.31, 0.3 are the top two of 202
-    assert {k: v for k, v in new2.items() if k != "opus5_api"} == old
+    assert {k: v for k, v in new2.items() if k != "opus5_api"} == others
 
 
 def test_run_refuses_below_min_neg(tmp_path):
