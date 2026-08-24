@@ -363,6 +363,15 @@ under `opus5_api`, rule R2). Tooling: `golden/records.py`, `calibrate_thresholds
 `regrade_scrambled --model opus5 / --reletter`. Spend this phase $42.51 metered (34.79 +
 7.72); Part 2 cumulative $276.87; all-in $286.71 (the running top-100 excluded). Full
 tables: `GOLDEN_FINDINGS.md` 2026-08-24 (later still) entry; `outputs/transfer_opus5/`.
+**Item 8 — COMPLETE** (2026-08-24T21:34Z, $46.25, 100/100 parsed, re-lettered zero-API under
+`opus5_api` rule R2 with 0 deploy mismatches): against the original pass-count grades the deployed
+letter keeps 7, raises 90 and lowers 3 of the 100 (original A/B 10 → final A/B 45, rank A/B 52;
+26 of the 78 never-verified U reach A/B, all at B; 14 D-rule vetoes; needs_human 17; Spearman(S,
+inspector confidence) 0.338), the anchors give 2 hits (rank 15; ranks 7/14 consistency, |ΔS|
+0.040) and 2 misses (rank 13 A, its `spiral_arm` critic only partial; rank 16 D via `edge_on_disk`),
+the Sonnet blind run of the same kit agrees on 34/100 final letters — Part 2 cumulative is now
+$323.12 and all-in $332.96, and the built `site/docs/jwst-top100/` pages are NOT pushed (embargo
+until the blind human kit is done).
 
 ## Budget and cut order (re-derived 2026-08-23 from the built halves and the smoke's per-role costs)
 

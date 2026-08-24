@@ -273,5 +273,26 @@ function of the stored records plus one thresholds file.
   **Selected: R2** — recall_AB(R1) 0.0238 < 0.5 × 0.1429 (`selected_rule.json`). Deployed
   certification = the D-rule only. Confound as pre-stated: letter_rank on the a2 parquet, R1/R2 on
   the a1 parquet (independent advocate draws).
-- Item 8 — IN PROGRESS at the time of this note (`outputs/scrambled100_opus5/`, no `.meta.json`);
-  outcome to be appended here; `--reletter` will use `opus5_api` + rule R2.
+- Item 8 — DONE 2026-08-24T21:34:28Z (scored) / 21:35:01Z (re-lettered): `regrade_scrambled.py
+  --model opus5` (a1 full stack, adaptive/xhigh, k 1, blind kit, key sha `d08d263131069ed7`, layout
+  the only key field read before scoring) — `n` 100, `n_parse_ok` 100, `n_nan` 0, `cost_usd_total`
+  $46.25 (≤ $60; $0.46/item); `--reletter` from the stored records under `opus5_api`
+  (`opus5_api_calibrated`, tuple `424a8aa9875bacd2`, tau0 0.15 / t_A 0.20 / t_B 0.17), rule R2,
+  `n_deploy_mismatch` 0, `pre_deploy_20260824T213427Z` and `pre_reletter_20260824T213501Z` copies
+  kept. Letters: letter_rank A 13 / B 39 / C 46 / D 2; letter_final A 13 / B 32 / C 39 / D 16;
+  D-rule vetoes 14 (`merger` 6, `spiral_arm` 4, `edge_on_disk` 3, `companion_projection` 1; 7 from
+  rank-B, 7 from rank-C). Against the original pass-count grade (A 5 / B 5 / C 12 / U 78, U below
+  D): letter_final same 7 / up 90 / down 3; original A/B 10 → 45 final (52 rank), all 10 originals
+  kept; 26/78 U reach A/B (all B); critics called 70, arbitrator ruled 69, needs_human 17;
+  Spearman(S, inspector confidence) 0.338. Sonnet-4.6 blind run of the same kit agrees on 34/100
+  final letters. Tables: `GOLDEN_FINDINGS.md` 2026-08-24 (later still) Step 6; CSV
+  `outputs/scrambled100_opus5/scrambled100_comparison.csv`; `explain/` and `annot/` beside it.
+- Anchors outcome under the deployed R2 letters (rank / final; predictions in the anchors table
+  above; design-only, never truth): rank 15 **A / A** — "A or B" HIT; rank 13 **A / A** — "D with
+  `spiral_arm` upheld" MISS (morphology's `spiral_arm` ruled partial, r 0.75 a′ 0.50; geometry's
+  `companion_projection` upheld at a 0.25; no critic meets a_geom = 1 ∧ r ≥ 0.8, so the D-rule does
+  not fire; the arbitrator's own letter is C, needs_human); ranks 7 / 14 **A / A and A / A**,
+  |ΔS| 0.040 — ‖Δletter‖ ≤ 1 HIT; rank 16 **B / D** — "cluster, not D" MISS (geometry and
+  morphology both upheld `edge_on_disk` at a 1.00, r 0.88 / 0.90 → D-rule; scale_class_final `none`,
+  though the advocate read cluster / deflector-is-centre false). Two of four hit, as in the Sonnet
+  run, where rank 16 was B with scale group.

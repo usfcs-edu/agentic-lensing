@@ -1523,7 +1523,7 @@ rescore top-up (≈ $6); (2) fund the ~$34 opus5 advocate calibration (and decid
 for a ~$61 full-stack one); (3) approve the `opus5_api: null` patch regeneration; (4) the
 scale-routed ensemble hypothesis for the cluster stratum stays unregistered until funded.
 
-## 2026-08-24 (later still) — v2-deploy executed: opus5_api letters calibrated on the design half ($34.79), the 51 empty holdout rows topped up under the registered item-9 rescore ($7.72; every endpoint unmoved), and the pre-registered transfer check selects R2 — the deployed certification is the D-rule only; blind opus5-xhigh top-100 IN PROGRESS
+## 2026-08-24 (later still) — v2-deploy executed: opus5_api letters calibrated on the design half ($34.79), the 51 empty holdout rows topped up under the registered item-9 rescore ($7.72; every endpoint unmoved), and the pre-registered transfer check selects R2 — the deployed certification is the D-rule only; blind opus5-xhigh top-100 COMPLETE ($46.25; Step 6)
 
 **Step 1 — calibration (v2-deploy item 1; design half, $0 holdout cost).** a2/opus5/adaptive/xhigh
 on the DESIGN half (`outputs/preds_truth_a2_opus5_design_k1_r1.parquet`; design is ungated; run
@@ -1660,23 +1660,135 @@ rebuild-parity stop). Tests present: `test_golden_records.py`, `test_golden_cali
 `test_golden_transfer.py`, `test_golden_explain.py`, `test_golden_annotate.py` beside the earlier
 `test_golden_scrambled.py`; the suite was not re-run for this entry.
 
-**Step 6 — the blind opus5-xhigh top-100 (item 8) is IN PROGRESS.** `regrade_scrambled.py
---model opus5 --out lensjudge/outputs/scrambled100_opus5` (a1 full stack, adaptive/xhigh, blind
-kit, no metadata, layout from filters only, item-8 budget) was launched 2026-08-24 13:17 local
-and is running as this is written: preds + votes parquets are being flushed, no `.meta.json`
-exists, and NOTHING from it has been read or is reported here. When it completes the entry to
-append is: `--reletter` under `opus5_api` with rule R2 (the selected rule), the comparison CSV
-(`our_letter_rank` / `our_letter_final` / `our_veto` / `our_rationale`), the anchors table
-against `REGISTRY.md › Design anchors`, and the cross-tab against the Sonnet blind run above.
+**Step 6 — the blind opus5-xhigh top-100 (item 8) COMPLETE, re-lettered under the deployed
+rule.** `regrade_scrambled.py --model opus5 --out lensjudge/outputs/scrambled100_opus5` (arm a1
+full stack; `"thinking": "adaptive"`, `"effort": "xhigh"`, k 1, `claim_mode none`; persona set
+`a26d972ecc0b4ee7`, note `754655a400f360e6`, the five per-role system shas of the registered
+a1/opus5 tuple; blind kit `top100_clean_scrambled/`, key sha `d08d263131069ed7`, layout the only
+key field read before scoring, 87 colour / 13 gray; per-item cap $0.50) scored
+2026-08-24T21:34:28Z: **`n` 100, `n_parse_ok` 100, `n_nan` 0, `n_items_with_records` 100**,
+**`cost_usd_total` 46.2547** (= $0.463/item, inside the item-8 ≤ $60 budget); 99 frame units
+exposure-marked `run_tag scrambled100_blind` (the rank-14 alias is not a frame unit). Letters:
+`"letter_source": "opus5_api_calibrated"`, `"thresholds_sha16": "424a8aa9875bacd2"`,
+`thresholds_resolved` tau0 0.15 / t_A 0.20 / t_B 0.17, `"thresholds_gated": false`; `--reletter`
+under **`"rule": "R2"`** at 2026-08-24T21:35:01Z from the stored per-role records (zero API;
+`n_deploy_mismatch 0`; 9 `grade_pred` changed by the re-letter; `pre_deploy_20260824T213427Z`
+and `pre_reletter_20260824T213501Z` copies of parquet and CSV kept; `deploy_cols` letter_rank /
+letter_final / veto / rule). Comparison: `outputs/scrambled100_opus5/scrambled100_comparison.csv`
+(`nate_grade` = the original pass-count grade; `our_letter` = the stack's own letter on S;
+`our_letter_rank` / `our_letter_final` / `our_veto` / `our_rule` / `our_rationale` per item 8).
+No candidate id or non-anchor rank appears below.
+
+Cross-tabs, original pass-count grade in rows (A 5 / B 5 / C 12 / U 78; U = never verified,
+counted below D) against the deployed **final** letter (R2) and the advocate-only **rank** letter:
+
+| original \ ours | final A | final B | final C | final D | · | rank A | rank B | rank C | rank D |
+|:--|--:|--:|--:|--:|:--|--:|--:|--:|--:|
+| A (5) | 4 | 1 | 0 | 0 | | 4 | 1 | 0 | 0 |
+| B (5) | 3 | 2 | 0 | 0 | | 3 | 2 | 0 | 0 |
+| C (12) | 6 | 3 | 1 | 2 | | 6 | 5 | 1 | 0 |
+| U (78) | 0 | 26 | 38 | 14 | | 0 | 31 | 45 | 2 |
+| **total** | **13** | **32** | **39** | **16** | | **13** | **39** | **46** | **2** |
+
+- **Movement.** Final letter: same **7** / up **90** / down **3** (`agree_final` 7/100; the three
+  down-moves are one original A to B and two original C to D by the D-rule). Rank letter: same 7
+  / up 92 / down 1. The stack's own letter on S (`our_letter`, the R1-like letter): A 8 / B 2 /
+  C 73 / D 17, `agree_letter` 12/100.
+- **A/B.** Original A/B **10** (5 A + 5 B) — all 10 stay A/B under both deployed letters. Final
+  A/B **45** (13 A + 32 B); rank A/B **52** (13 A + 39 B). U → A/B: **26/78** under the final
+  letter (all B — no U item reaches A), 31/78 under the rank letter, **0/78** under the stack's
+  own S-letter (A/B 10 in total): the holdout's "R1 removes the recall" reproduced on the run's
+  own product, and the reason the deployed letter is the advocate's.
+- **D-rule vetoes** (`our_veto` non-empty): **14/100** — 7 from rank-letter B and 7 from
+  rank-letter C, all to D; every one sits at p_evidence 0.15–0.28 (the bottom of the examined
+  range); original grades 12 U / 2 C; `needs_human` false on all 14 (the arbitrator agreed with
+  the veto each time). Alternative vocabulary: `merger` 6 (5 morphology-only, 1 named by both
+  geometry and morphology), `spiral_arm` 4 (morphology), `edge_on_disk` 3 (2 named by both roles,
+  1 morphology), `companion_projection` 1 (geometry) — 10 morphology-only, 1 geometry-only, 3
+  both roles.
+- **Critic engagement.** 70/100 called the critics (p_evidence ≥ tau0 0.15); 69 carry an
+  arbitrator letter (`our_letter_llm` D 48 / C 15 / B 6); the one examined item without an
+  arbitrator record is the item with the highest p_evidence (0.95), where no critic named an
+  alternative. `our_alternative_final` where present: `companion_projection` 26, `merger` 15,
+  `spiral_arm` 12, `other` 5, `edge_on_disk` 5, `subtraction_residual` 2, `star_forming_clump`
+  2, `ring_galaxy` 1 (32 blank). **`needs_human` 17/100** — 11 of the 13 final-A and 6 of the 32
+  final-B, none at C/D: the A tier is mostly flagged for a human. Scale class (final): galaxy 61
+  / none 27 / group 12; `cluster` never returned.
+- **Spearman(our S, inspector confidence) = 0.338** (n 100, p 6e-4; meta `spearman_S_conf
+  0.3383661161871717`); the Sonnet run gave 0.405.
+
+**Anchors** (predictions in `REGISTRY.md › Design anchors`, written before the first call; letters
+rank / final under the deployed R2 letters; design-only, never truth):
+
+- **Rank 15 → A / A** (p_evidence 0.45, S 0.127, S_arb 0.315, scale group, needs_human yes; the
+  arbitrator's own letter is C on a `companion_projection` reading). Predicted "A or B": **HIT**
+  under the deployed letters — note the stack's S-letter is C, so R1 would have missed it.
+- **Rank 13 → A / A** (p_evidence 0.58, S 0.206, S_arb 0.295, scale galaxy, needs_human yes).
+  Predicted "D, with a `spiral_arm` critic upheld": **MISS**. The `spiral_arm` critic was named
+  by morphology (r 0.75, a 0.75) and ruled **partial** by the arbitrator — it covers only the
+  southern clump chain and the SSE flare (a′ 0.50): "the critic's own numbers for the inner band
+  (1.2" at PA 35, 0.95" at PA 90, 1.2" at PA 150) are non-monotonic, i.e. roughly fixed
+  radius, so they do not dispose of item 1"; geometry's `companion_projection` (r 0.75, a 0.25)
+  was **upheld** on the putative counter-image. The D-rule needs an upheld critic with a_geom = 1
+  and r ≥ 0.80; neither critic qualifies, so letter_rank A stands. The arbitrator itself wrote C
+  ("with the counter-image removed nothing breaks the tie") and set needs_human — the deployed
+  letter and the arbitrator disagree by two tiers on this anchor, which is exactly the R2 price
+  named in Step 4.
+- **Ranks 7 and 14 (one field, two catalogue positions 1.17″ apart) → A / A and A / A**,
+  p_evidence 0.45 both, S 0.150 vs 0.110 (**|ΔS| 0.040**; meta `alias_abs_dS 0.040359375`),
+  S_arb identical (0.197), same scale (group) and same alternative (`companion_projection`).
+  Predicted ‖Δletter‖ ≤ 1: **HIT** (Δletter 0). The Sonnet run gave C / C with |ΔS| 0.009.
+- **Rank 16 → B / D** by the D-rule: geometry `edge_on_disk` r 0.88 a 1.00 and morphology
+  `edge_on_disk` r 0.90 a 1.00, both **upheld**, 0 of 4 items survive, S = S_arb 0.002,
+  `our_veto` `geometry:edge_on_disk;morphology:edge_on_disk`, needs_human no. Predicted
+  "`scale_class = cluster`, `deflector_is_centre = false`, letter not D": **MISS** —
+  `our_scale_class` (the arbitrator's final) is **`none`** and the letter is D. The mechanism
+  the anchor was written to test did fire one layer down: the advocate read scale cluster,
+  deflector-is-centre no, centre-of-curvature offset 37″ (p_evidence 0.20 → rank letter B);
+  both critics then re-read the whole structure as one inclined disc with a dust lane and the
+  arbitrator's scale_class_final is `none`.
+
+Two of four written predictions hit (rank 15; the 7/14 consistency bound), two miss (rank 13,
+rank 16) — the same pattern as the Sonnet run on ranks 15, 13 and 7/14, with rank 16 moving from
+"B, scale group" (Sonnet) to D here.
+
+**Against the Sonnet-4.6 blind run of the same kit** (`outputs/scrambled100/scrambled100_comparison.csv`,
+2026-08-23 entry above: a1/sonnet, thinking off, rule-less letters on S under
+`sonnet_api_calibrated` t_A 0.192 / t_B 0.1318; its meta now reads 100/100 scored,
+`cost_usd_total` 10.5014 — the 8 items left unscored at the $9.84 kill were completed afterwards
+and that +$0.66 was never entered in this ledger; letters A 16 / B 15 / C 52 / D 17;
+`spearman_S_conf` 0.4046 on 100). Item by item on all 100: the Sonnet letter equals the opus5
+**final** letter on **34/100** (66 changed letter; **42 crossed the A∪B / C∪D tier line**, 58 did
+not; 17 items are A∪B in both — Sonnet 31 vs opus5 45); equals the opus5 rank letter on 39/100
+(55 same tier); equals the opus5 stack letter on S (`our_letter`, the like-for-like letter) on
+**48/100** (75 same tier; opus5 A∪B 10 there). Spearman(S_sonnet, S_opus5) = 0.161 (p 0.11) —
+the two stacks barely co-rank the 100. Sonnet's U → A/B was 18 (5 A + 13 B); opus5's is 26
+(all B) on the final letter and 0 on the stack letter. Read plainly: the two runs agree on the
+original A/B tier (all 10 stay A/B in both) and disagree on the never-verified bulk, and most of
+the opus5 lift at A/B is the advocate's letter, not the stack's.
+
+**Deployment artefacts (zero-API, from the stored records).** `outputs/scrambled100_opus5/explain/`
+— 100 per-item Markdown rationales (`golden/explain.py`: the advocate's items, each critic's
+alternative + location + strength/coverage + ruling, the arbitrator's rationale quoted, S and
+S_arb decomposed term by term beside the stored values, the R2 letter derivation and the veto),
+plus `index.md`, `explain.csv` (name, letter, paragraph) and `facts.json`, each with a `.sha`
+sidecar. `outputs/scrambled100_opus5/annot/` — 100 annotated composites beside the 100 originals
+(`golden/annotate.py`; `annot_index.csv`: 257 located items, **579 arcs / 284 sectors drawn**,
+coloured by the arbitrator's ruling). Site: `site/docs/jwst-top100/` (`index.md`, four rank
+pages, `img/` 200 JPEGs, `data/comparison.csv`; builder `site/build_top100.py`; +6 nav lines in
+`site/mkdocs.yml`) is **built and NOT pushed** — everything is untracked/unstaged; the site
+auto-deploys on push to `main` (`.github/workflows/deploy.yml`) and the pages carry the
+de-scrambled ids and grades, so they stay under embargo until the blind human kit is done.
 
 **Ledger, spend, compliance.** Score-once intact: the calibration run is design-half (ungated);
 the top-up is the registered item-9 rescore with its "Truth-eval rescores" row; no
 `--force-rescore` beyond it, no `--limit` / `--ids-file`, no prompt or aggregator edit;
 `golden/thresholds_v2.json` changed ONLY by `calibrate_thresholds.py` per item 1 (archive kept);
-no git commit; nothing written into the JWST repo; no id appears in this entry. Metered this
-phase: **$34.79 (calibration) + $7.72 (top-up) = $42.51**; the in-progress top-100 run is in no
-total yet. Part 2 cumulative $234.36 + 42.51 = **$276.87**; all-in with the $9.84 Sonnet
-scrambled-100 one-off **$286.71**. Open PI items: (1) regenerate the verifier patch with the
+no git commit; nothing written into the JWST repo; no id appears in this entry (Step 6 names only the five anchor ranks). Metered this
+phase: **$34.79 (calibration) + $7.72 (top-up) + $46.25 (blind top-100, Step 6) = $88.76**.
+Part 2 cumulative $234.36 + 88.76 = **$323.12**; all-in with the $9.84 Sonnet scrambled-100
+one-off **$332.96** (flag, not folded in: the Sonnet run's meta now reads $10.50 on 100/100, so
+its +$0.66 completion is missing from the $9.84 line). Open PI items: (1) regenerate the verifier patch with the
 `opus5_api` key and rule R2 (README caution: stress_D at A∪B 10/20 under the deployed letters);
 (2) whether R2's stress_D inflation is acceptable for deployment or the escalation channel must
 be surfaced in Nate's output; (3) a registered follow-up on the critic burden rule (110/128
