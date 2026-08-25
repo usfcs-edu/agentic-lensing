@@ -8,11 +8,11 @@ Reads one run directory produced by reproductions/lensjudge/golden/regrade_scram
     <out>/ranks-001-025.md ...       one H2 per candidate: grade strip, original + annotated
                                      composite, the explain markdown in a details block
     <out>/img/rank-NNN-{orig,annot}.jpg   JPEGs copied as-is
-    <out>/data/comparison.csv        the comparison CSV without the blind kit ids (scrambled_item dropped, nate_* -> original_*)
+    <out>/files/comparison.csv        the comparison CSV without the blind kit ids (scrambled_item dropped, nate_* -> original_*)
     <out>/.build_top100              sentinel: this directory is owned by the builder
 
 and adds a "JWST Top-100 Regrade" entry under the "Current" nav section of site/mkdocs.yml.
-Deterministic and idempotent: the files it owns (index.md, ranks-*.md, img/, data/, the
+Deterministic and idempotent: the files it owns (index.md, ranks-*.md, img/, files/, the
 sentinel) are deleted and recreated on every run; nothing else under site/ is touched, and
 the builder refuses an --out directory it does not recognise as its own (non-empty, no
 sentinel, index.md not starting with its H1).
@@ -614,7 +614,7 @@ def index_page(rows, meta, rule, transfer, pages, top_n, csv_name) -> str:
     L.append("beside the grades the original campaign assigned. Every candidate's original and annotated cutout")
     L.append("and its full advocate → critics → arbitrator record is on the per-rank pages.")
     L.append("")
-    L.append(f"[:material-download: Download the comparison table (CSV)](data/{csv_name}){{ .md-button .md-button--primary }}")
+    L.append(f"[:material-download: Download the comparison table (CSV)](files/{csv_name}){{ .md-button .md-button--primary }}")
     L.append(f"[:material-image-multiple: Browse the cutouts, ranks {pages[0][1]}–{pages[0][2]}]({first_page}){{ .md-button }}")
     L.append("")
     L.append('!!! abstract "The result in one line"')
@@ -1067,7 +1067,7 @@ def main(argv=None) -> int:
     # recreate owned outputs only, and only in a directory the builder owns
     check_out_dir(out)
     out.mkdir(parents=True, exist_ok=True)
-    for sub in ("img", "data"):
+    for sub in ("img", "files"):
         shutil.rmtree(out / sub, ignore_errors=True)
         (out / sub).mkdir()
     for old in list(out.glob("ranks-*.md")) + [out / "index.md"]:
@@ -1076,7 +1076,7 @@ def main(argv=None) -> int:
     (out / SENTINEL).write_text(SENTINEL_TEXT, encoding="utf-8")
 
     csv_name = "comparison.csv"
-    write_public_csv(comparison, out / "data" / csv_name)
+    write_public_csv(comparison, out / "files" / csv_name)
 
     warnings: list[str] = []
     written = []

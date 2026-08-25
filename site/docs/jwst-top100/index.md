@@ -11,7 +11,7 @@ no candidate id, coordinates, filters, rank or original grade in front of the mo
 beside the grades the original campaign assigned. Every candidate's original and annotated cutout
 and its full advocate → critics → arbitrator record is on the per-rank pages.
 
-[:material-download: Download the comparison table (CSV)](data/comparison.csv){ .md-button .md-button--primary }
+[:material-download: Download the comparison table (CSV)](files/comparison.csv){ .md-button .md-button--primary }
 [:material-image-multiple: Browse the cutouts, ranks 1–25](ranks-001-025.md){ .md-button }
 
 !!! abstract "The result in one line"
