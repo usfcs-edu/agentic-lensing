@@ -167,6 +167,12 @@ nav:
       - Claude-GIGA-Lens: current/claude-giga-lens/index.md
       - CGL2-Linus: current/claude-giga-lens-linus/index.md
       - Redshifty: current/redshifty/index.md
+      - JWST Top-100 Regrade:
+          - Overview: jwst-top100/index.md
+          - "Ranks 1–25": jwst-top100/ranks-001-025.md
+          - "Ranks 26–50": jwst-top100/ranks-026-050.md
+          - "Ranks 51–75": jwst-top100/ranks-051-075.md
+          - "Ranks 76–100": jwst-top100/ranks-076-100.md
   - ClaudeNet v4 Work: claudenet-v4/index.md
   - Reproductions:
       - AION-1: reproductions/aion-1/index.md
