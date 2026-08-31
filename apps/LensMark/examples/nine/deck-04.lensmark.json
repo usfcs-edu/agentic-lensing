@@ -1,0 +1,526 @@
+{
+  "schema_version": "lensmark/1.0",
+  "id": "deck-04",
+  "created": "2026-08-30T12:00:00Z",
+  "modified": "2026-08-30T12:00:00Z",
+  "image": {
+    "file": "deck-04.png",
+    "sha256": "0c7c28a8cdef4efb341ad3405719c5cde9a31e0c01d77b49187d9ad019bf3bfc",
+    "width": 403,
+    "height": 403,
+    "cutout_arcsec": 16.0,
+    "pixel_scale_arcsec": 0.03970223325062035,
+    "array_origin": "upper",
+    "north_up": true,
+    "east_left": true,
+    "scale_source": "assumed"
+  },
+  "coordinates": {
+    "geometry_units": "normalized",
+    "origin": "top_left",
+    "x_axis": "right",
+    "y_axis": "down",
+    "size_units": "arcsec",
+    "note": "px=(u*W, v*H); pixel_scale=cutout_arcsec/W; dE=(0.5-u)*W*ps if east_left; dN=(0.5-v)*H*ps; PA from N through E; x_fits=u*W+0.5, y_fits=(1-v)*H+0.5 (array_origin=upper)"
+  },
+  "system": {
+    "rank": 74,
+    "theta_e": {
+      "value_arcsec": 2.92,
+      "method": "arc_radius",
+      "alt_arcsec": 2.09
+    },
+    "verdict": "likely_lens",
+    "description": "Giant blue arc on the west side (magenta arrow) with a bright knot at its northern end (yellow arrow) around an elliptical deflector (green arrow); a blue counter-image candidate sits just east of the nucleus (white arrow). θ_E ≈ 2.92″ from the arc; 2.09″ if the counter-image is the inner image.",
+    "description_refs": [],
+    "tags": []
+  },
+  "palette": "lensmark/v1",
+  "style_defaults": {
+    "unit": "fraction_of_min_dim",
+    "arrow": {
+      "line_w": 0.006,
+      "head_len": 0.045,
+      "head_w": 0.03,
+      "tip_gap": 0.012,
+      "default_len": 0.14
+    },
+    "mask_galaxy": {
+      "line_w": 0.0055,
+      "stroke": "dash",
+      "dash_len": 0.03,
+      "gap_len": 0.02
+    },
+    "mask_star": {
+      "line_w": 0.0055,
+      "stroke": "dot",
+      "dot_r": 0.003,
+      "gap_mult": 3.0
+    },
+    "einstein_ring": {
+      "stroke": "dot",
+      "dot_r": 0.0022,
+      "gap_mult": 3.0
+    },
+    "text": {
+      "size": 0.034,
+      "halo_px": 2
+    },
+    "label": {
+      "size": 0.038,
+      "font": "DejaVuSans-Bold.ttf",
+      "halo_px": 2,
+      "halo": "#000000CC",
+      "offset": 0.02
+    },
+    "theta_label": {
+      "size": 0.04,
+      "offset": 0.03
+    },
+    "legend": {
+      "size": 0.03,
+      "pad": 0.012,
+      "bg": "#000000B0",
+      "fg": "#FFFFFF",
+      "glyph": "→",
+      "line_h": 1.3
+    }
+  },
+  "legend": {
+    "show": true,
+    "position": "auto"
+  },
+  "items": [
+    {
+      "id": "ann-arrow-001",
+      "label": "giant arc",
+      "color": "magenta",
+      "show_in_legend": true,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "arrow",
+      "tail": [
+        0.2705,
+        0.4758
+      ],
+      "head": [
+        0.3548,
+        0.4758
+      ],
+      "label_anchor": "auto"
+    },
+    {
+      "id": "ann-arrow-002",
+      "label": "arc knot",
+      "color": "yellow",
+      "show_in_legend": true,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "arrow",
+      "tail": [
+        0.4882,
+        0.2159
+      ],
+      "head": [
+        0.4882,
+        0.3077
+      ],
+      "label_anchor": "auto"
+    },
+    {
+      "id": "ann-arrow-003",
+      "label": "counter-image cand.",
+      "color": "white",
+      "show_in_legend": true,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "arrow",
+      "tail": [
+        0.67,
+        0.593
+      ],
+      "head": [
+        0.591,
+        0.523
+      ],
+      "label_anchor": "auto",
+      "label_offset": [
+        0.0,
+        -0.085
+      ]
+    },
+    {
+      "id": "ann-arrow-004",
+      "label": "deflector",
+      "color": "green",
+      "show_in_legend": true,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "arrow",
+      "tail": [
+        0.6215,
+        0.4402
+      ],
+      "head": [
+        0.5143,
+        0.5021
+      ],
+      "label_anchor": "auto"
+    },
+    {
+      "id": "ann-mask-001",
+      "color": "mask_red",
+      "show_in_legend": false,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "mask_circle",
+      "center": [
+        0.615,
+        0.0898
+      ],
+      "radius_arcsec": 0.32,
+      "kind": "star"
+    },
+    {
+      "id": "ann-mask-002",
+      "color": "mask_red",
+      "show_in_legend": false,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "mask_circle",
+      "center": [
+        0.1145,
+        0.1438
+      ],
+      "radius_arcsec": 0.48,
+      "kind": "star"
+    },
+    {
+      "id": "ann-mask-003",
+      "color": "mask_red",
+      "show_in_legend": false,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "mask_circle",
+      "center": [
+        0.0926,
+        0.5268
+      ],
+      "radius_arcsec": 0.67,
+      "kind": "star"
+    },
+    {
+      "id": "ann-mask-004",
+      "color": "mask_red",
+      "show_in_legend": false,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "mask_circle",
+      "center": [
+        0.3692,
+        0.5576
+      ],
+      "radius_arcsec": 0.24,
+      "kind": "star"
+    },
+    {
+      "id": "ann-mask-005",
+      "color": "mask_red",
+      "show_in_legend": false,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "mask_circle",
+      "center": [
+        0.2763,
+        0.67
+      ],
+      "radius_arcsec": 0.37,
+      "kind": "galaxy"
+    },
+    {
+      "id": "ann-mask-006",
+      "color": "mask_red",
+      "show_in_legend": false,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "mask_circle",
+      "center": [
+        0.8675,
+        0.681
+      ],
+      "radius_arcsec": 0.48,
+      "kind": "galaxy"
+    },
+    {
+      "id": "ann-mask-007",
+      "color": "mask_red",
+      "show_in_legend": false,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "mask_circle",
+      "center": [
+        0.3205,
+        0.6893
+      ],
+      "radius_arcsec": 0.4,
+      "kind": "star"
+    },
+    {
+      "id": "ann-mask-008",
+      "color": "mask_red",
+      "show_in_legend": false,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "mask_circle",
+      "center": [
+        0.949,
+        0.7065
+      ],
+      "radius_arcsec": 0.44,
+      "kind": "galaxy"
+    },
+    {
+      "id": "ann-mask-009",
+      "color": "mask_red",
+      "show_in_legend": false,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "mask_circle",
+      "center": [
+        0.5701,
+        0.7117
+      ],
+      "radius_arcsec": 0.64,
+      "kind": "galaxy"
+    },
+    {
+      "id": "ann-mask-010",
+      "color": "mask_red",
+      "show_in_legend": false,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "mask_circle",
+      "center": [
+        0.973,
+        0.7511
+      ],
+      "radius_arcsec": 0.55,
+      "kind": "galaxy"
+    },
+    {
+      "id": "ann-mask-011",
+      "color": "mask_red",
+      "show_in_legend": false,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "mask_circle",
+      "center": [
+        0.3728,
+        0.8133
+      ],
+      "radius_arcsec": 0.32,
+      "kind": "star"
+    },
+    {
+      "id": "ann-mask-012",
+      "color": "mask_red",
+      "show_in_legend": false,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "mask_circle",
+      "center": [
+        0.897,
+        0.8654
+      ],
+      "radius_arcsec": 0.32,
+      "kind": "star"
+    },
+    {
+      "id": "ann-mask-013",
+      "color": "mask_red",
+      "show_in_legend": false,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "mask_circle",
+      "center": [
+        0.4187,
+        0.9024
+      ],
+      "radius_arcsec": 1.43,
+      "kind": "galaxy"
+    },
+    {
+      "id": "ann-mask-014",
+      "color": "mask_red",
+      "show_in_legend": false,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "mask_circle",
+      "center": [
+        0.2432,
+        0.9423
+      ],
+      "radius_arcsec": 0.36,
+      "kind": "star"
+    },
+    {
+      "id": "ann-mask-015",
+      "color": "mask_red",
+      "show_in_legend": false,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "mask_circle",
+      "center": [
+        0.9808,
+        0.9823
+      ],
+      "radius_arcsec": 0.31,
+      "kind": "star"
+    },
+    {
+      "id": "ann-mask-016",
+      "color": "mask_red",
+      "show_in_legend": false,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "mask_circle",
+      "center": [
+        0.2628,
+        0.9932
+      ],
+      "radius_arcsec": 0.31,
+      "kind": "star"
+    },
+    {
+      "id": "ann-ring-001",
+      "label": "θ_E ≈ 2.92″",
+      "color": "ring_white",
+      "show_in_legend": false,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "einstein_ring",
+      "center": [
+        0.5143,
+        0.5021
+      ],
+      "theta_e_arcsec": 2.92,
+      "center_ref": "ann-arrow-004",
+      "label_pos": [
+        0.477,
+        0.717
+      ]
+    },
+    {
+      "id": "ann-ring-002",
+      "label": "2.09″ (alt)",
+      "color": "ring_white",
+      "show_in_legend": false,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "einstein_ring",
+      "center": [
+        0.5143,
+        0.5021
+      ],
+      "theta_e_arcsec": 2.09,
+      "center_ref": "ann-arrow-004",
+      "label_pos": [
+        0.7525,
+        0.7053
+      ]
+    }
+  ],
+  "provenance": {
+    "proposal_runs": [],
+    "critiques": [],
+    "log": "deck-04.lensmark.log.jsonl"
+  }
+}

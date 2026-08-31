@@ -1,0 +1,24 @@
+# playwright-cli session artefacts (snapshots, screenshots, console logs)
+.playwright-cli/
+# node
+frontend/node_modules/
+frontend/dist/
+# python
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.hypothesis/
+# derived campaign files inside the tracked example directory (rebuilt by the app / QA scripts)
+examples/nine/*.annot.png
+examples/nine/*.log.jsonl
+examples/nine/lensmark.manifest.json
+examples/nine/proposals/
+examples/nine/critiques/
+examples/nine/exports/
+# golden-test diff images
+tests/golden/*.diff.png
+# browser-QA working area (throw-away campaign copies + logs)
+.qa/
+# the film campaign is rebuilt by films/prep-campaign.sh (real proposals cost ~$0.21)
+films/campaign-film/

@@ -1,0 +1,33 @@
+{
+  "system": {
+    "grade": "B",
+    "p_lens": 0.7,
+    "confidence": 0.6,
+    "verdict": "possible",
+    "theta_e": {
+      "value_arcsec": 1.8,
+      "method": "arc radius from the deflector centre",
+      "alt_arcsec": null,
+      "uncertainty_arcsec": 0.3
+    },
+    "description": "The green arrow marks the deflector at the centre of the cutout. The cyan arrow points to a faint blue arc segment on its eastern side, curving around the deflector at about 1.8\"; the magenta arrow marks a diffuse candidate counter-image to the west that needs deeper data. Dashed circles mark field galaxies and dotted circles stars to mask.",
+    "tags": ["fixture"]
+  },
+  "items": [
+    {"type": "arrow", "label": "deflector", "color": "green", "tail": [0.64, 0.5], "head": [0.53, 0.5],
+     "label_anchor": "auto", "confidence": 0.9, "rationale": "central galaxy"},
+    {"type": "arrow", "label": "arc segment (E)", "color": "cyan", "tail": [0.3, 0.62], "head": [0.4, 0.53],
+     "label_anchor": "auto", "confidence": 0.7, "rationale": "blue arc east of the deflector"},
+    {"type": "arrow", "label": "diffuse cand.", "color": "magenta", "tail": [0.7, 0.34], "head": [0.61, 0.43],
+     "label_anchor": "auto", "confidence": 0.4, "rationale": "faint diffuse source opposite the arc"},
+    {"type": "mask_circle", "center": [0.15, 0.2], "radius_arcsec": 0.9, "kind": "galaxy", "color": "mask_red",
+     "confidence": 0.8, "rationale": "field galaxy upper-left"},
+    {"type": "mask_circle", "center": [0.82, 0.78], "radius_arcsec": 0.7, "kind": "galaxy", "color": "mask_red",
+     "confidence": 0.8, "rationale": "field galaxy lower-right"},
+    {"type": "mask_circle", "center": [0.75, 0.15], "radius_arcsec": 0.3, "kind": "star", "color": "mask_red",
+     "confidence": 0.8, "rationale": "star upper-right"},
+    {"type": "einstein_ring", "center": [0.5, 0.5], "theta_e_arcsec": 1.8, "color": "ring_white",
+     "confidence": 0.6, "rationale": "circle through the arc"}
+  ],
+  "notes": "fixture: generic proposal used for any image without a dedicated fixture"
+}

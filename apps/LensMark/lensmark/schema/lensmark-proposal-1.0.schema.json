@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LensMarkProposal",
+  "description": "What Claude emits for one cutout. Flat on purpose (no $ref) so it can be passed as a structured-output schema. Positions are normalized [u, v] fractions of the image (u right, v down, origin top-left); sizes are arcsec.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["system", "items"],
+  "properties": {
+    "system": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["verdict", "description"],
+      "properties": {
+        "grade": { "type": ["string", "null"], "enum": ["A", "B", "C", "D", null] },
+        "p_lens": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "confidence": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "verdict": { "type": "string", "enum": ["likely_lens", "possible", "not_lens", "unclear"] },
+        "theta_e": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "properties": {
+            "value_arcsec": { "type": ["number", "null"] },
+            "method": { "type": ["string", "null"] },
+            "alt_arcsec": { "type": ["number", "null"] },
+            "uncertainty_arcsec": { "type": ["number", "null"] }
+          }
+        },
+        "description": { "type": "string", "description": "Free text for the expert. Refer to arrows BY COLOUR (e.g. 'the magenta arrow marks ...')." },
+        "tags": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type"],
+        "properties": {
+          "type": { "type": "string", "enum": ["arrow", "mask_circle", "einstein_ring", "text"] },
+          "label": { "type": ["string", "null"], "maxLength": 40 },
+          "color": { "type": ["string", "null"], "enum": ["magenta", "cyan", "green", "yellow", "white", "orange", "gray", "mask_red", "ring_white", null] },
+          "tail": { "type": ["array", "null"], "items": { "type": "number" }, "minItems": 2, "maxItems": 2, "description": "arrow only; where the arrow starts (away from the feature)" },
+          "head": { "type": ["array", "null"], "items": { "type": "number" }, "minItems": 2, "maxItems": 2, "description": "arrow only; the feature being pointed at" },
+          "center": { "type": ["array", "null"], "items": { "type": "number" }, "minItems": 2, "maxItems": 2, "description": "mask_circle / einstein_ring centre" },
+          "radius_arcsec": { "type": ["number", "null"], "description": "mask_circle: the mask radius to apply during lens modelling" },
+          "kind": { "type": ["string", "null"], "enum": ["galaxy", "star", "artifact", null], "description": "mask_circle: galaxy (dashed) or star (dotted)" },
+          "theta_e_arcsec": { "type": ["number", "null"], "description": "einstein_ring only" },
+          "text": { "type": ["string", "null"], "description": "text only" },
+          "pos": { "type": ["array", "null"], "items": { "type": "number" }, "minItems": 2, "maxItems": 2, "description": "text only" },
+          "label_anchor": { "type": ["string", "null"], "enum": ["tail", "head", "auto", null] },
+          "confidence": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+          "rationale": { "type": ["string", "null"], "maxLength": 300 }
+        }
+      }
+    },
+    "notes": { "type": "string" }
+  }
+}

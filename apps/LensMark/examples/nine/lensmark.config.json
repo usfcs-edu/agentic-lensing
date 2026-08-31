@@ -1,0 +1,71 @@
+{
+  "schema_version": "lensmark-config/1.0",
+  "cutout_arcsec": 16.0,
+  "cutout_arcsec_source": "assumed",
+  "native_pixel_scale_arcsec": null,
+  "survey": null,
+  "north_up": true,
+  "east_left": true,
+  "array_origin": "upper",
+  "default_model": "opus",
+  "default_effort": "xhigh",
+  "reviewer": "xhuang",
+  "overrides": {
+    "deck-01": {
+      "rank": 91,
+      "theta_e_ref_arcsec": 1.5,
+      "theta_e_ref_note": "geometric",
+      "deck_slide": 10
+    },
+    "deck-02": {
+      "rank": 89,
+      "theta_e_ref_arcsec": 2.0,
+      "theta_e_ref_note": "geometric",
+      "deck_slide": 11
+    },
+    "deck-03": {
+      "rank": 68,
+      "theta_e_ref_arcsec": 2.13,
+      "theta_e_ref_note": null,
+      "deck_slide": 12
+    },
+    "deck-04": {
+      "rank": 74,
+      "theta_e_ref_arcsec": 2.92,
+      "theta_e_ref_note": "alt 2.09",
+      "deck_slide": 13
+    },
+    "deck-05": {
+      "rank": 60,
+      "theta_e_ref_arcsec": 2.21,
+      "theta_e_ref_note": null,
+      "deck_slide": 14
+    },
+    "deck-06": {
+      "rank": 41,
+      "theta_e_ref_arcsec": 2.4,
+      "theta_e_ref_note": "geometric",
+      "deck_slide": 15
+    },
+    "deck-07": {
+      "rank": 30,
+      "theta_e_ref_arcsec": 2.77,
+      "theta_e_ref_note": "alt 2.04",
+      "deck_slide": 16
+    },
+    "deck-08": {
+      "rank": 24,
+      "theta_e_ref_arcsec": 1.51,
+      "theta_e_ref_note": null,
+      "deck_slide": 17
+    },
+    "deck-09": {
+      "rank": 40,
+      "theta_e_ref_arcsec": 2.47,
+      "theta_e_ref_note": null,
+      "deck_slide": 18
+    }
+  },
+  "campaign": "deck-nine",
+  "note": "Nine strong-lens candidates from Xiaosheng's deck (slide 1 grid). Survey/pixel scale not recorded in the deck; 16 arcsec per PROMPT 3 is ASSUMED."
+}

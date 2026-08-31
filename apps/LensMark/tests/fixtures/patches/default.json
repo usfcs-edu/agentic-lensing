@@ -1,0 +1,13 @@
+{
+  "schema_version": "lensmark-patch/1.0",
+  "transcript": "put a dashed circle around the galaxy at upper left",
+  "ops": [
+    {
+      "op": "add",
+      "item": {"type": "mask_circle", "center": [0.12, 0.15], "radius_arcsec": 0.9, "kind": "galaxy", "color": "mask_red"},
+      "confidence": 0.88,
+      "rationale": "'dashed circle' = galaxy mask; 'upper left' = the extended source in the top-left quadrant (u<0.5, v<0.5); radius encloses its light"
+    }
+  ],
+  "clarification": null
+}

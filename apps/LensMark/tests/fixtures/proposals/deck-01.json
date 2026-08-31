@@ -1,0 +1,39 @@
+{
+  "system": {
+    "grade": "A",
+    "p_lens": 0.92,
+    "confidence": 0.85,
+    "verdict": "likely_lens",
+    "theta_e": {
+      "value_arcsec": 1.5,
+      "method": "arc radius from the deflector centre",
+      "alt_arcsec": null,
+      "uncertainty_arcsec": 0.2
+    },
+    "description": "The green arrow marks the deflector, a compact yellow early-type galaxy at the centre. The cyan arrow points to a tight blue arc curving around its southern side at about 1.5\" radius; the magenta arrow marks a brighter knot on the north-western side of the same ring, most likely a merging-pair image. The curvature is centred on the deflector and the arc is bluer than the lens. Dashed circles mark field galaxies and dotted circles stars to mask in the fit.",
+    "tags": ["ring-like", "blue-arc"]
+  },
+  "items": [
+    {"type": "arrow", "label": "deflector", "color": "green", "tail": [0.625, 0.495], "head": [0.532, 0.49],
+     "label_anchor": "auto", "confidence": 0.95, "rationale": "brightest compact yellow source at the centre"},
+    {"type": "arrow", "label": "tight arc", "color": "cyan", "tail": [0.454, 0.664], "head": [0.454, 0.586],
+     "label_anchor": "auto", "confidence": 0.9, "rationale": "blue tangential arc south of the deflector, ~1.5\" from its centre"},
+    {"type": "arrow", "label": "merging-pair knot", "color": "magenta", "tail": [0.462, 0.357], "head": [0.459, 0.444],
+     "label_anchor": "auto", "confidence": 0.7, "rationale": "bright knot on the NW side of the ring"},
+    {"type": "mask_circle", "center": [0.05, 0.36], "radius_arcsec": 1.1, "kind": "galaxy", "color": "mask_red",
+     "confidence": 0.9, "rationale": "extended galaxy at the left edge"},
+    {"type": "mask_circle", "center": [0.258, 0.378], "radius_arcsec": 0.6, "kind": "galaxy", "color": "mask_red",
+     "confidence": 0.8, "rationale": "faint galaxy west of the lens"},
+    {"type": "mask_circle", "center": [0.536, 0.775], "radius_arcsec": 0.45, "kind": "galaxy", "color": "mask_red",
+     "confidence": 0.7, "rationale": "compact galaxy south of the lens"},
+    {"type": "mask_circle", "center": [0.613, 0.027], "radius_arcsec": 0.3, "kind": "star", "color": "mask_red",
+     "confidence": 0.8, "rationale": "point source at the top edge"},
+    {"type": "mask_circle", "center": [0.756, 0.127], "radius_arcsec": 0.3, "kind": "star", "color": "mask_red",
+     "confidence": 0.8, "rationale": "blue point source NE"},
+    {"type": "mask_circle", "center": [0.861, 0.732], "radius_arcsec": 0.3, "kind": "star", "color": "mask_red",
+     "confidence": 0.8, "rationale": "point source SE"},
+    {"type": "einstein_ring", "center": [0.511, 0.496], "theta_e_arcsec": 1.5, "color": "ring_white",
+     "confidence": 0.8, "rationale": "ring radius through the arc and the knot"}
+  ],
+  "notes": "fixture: hand-transcribed from the deck's annotated panel for rank 91 (slide 10); theta_E 1.5\" reference"
+}

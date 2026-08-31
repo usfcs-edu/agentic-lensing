@@ -1,0 +1,17 @@
+{
+  "version": "lensmark/v1",
+  "colors": {
+    "magenta": "#FF00FF",
+    "cyan": "#00E5FF",
+    "green": "#00E000",
+    "yellow": "#E8E000",
+    "white": "#FFFFFF",
+    "orange": "#FF9500",
+    "gray": "#BFBFBF",
+    "mask_red": "#FF6B6B",
+    "ring_white": "#F2F2F2"
+  },
+  "arrow_order": ["green", "magenta", "cyan", "yellow", "white", "orange", "gray"],
+  "deflector": "green",
+  "reserved": { "mask_red": "mask_circle", "ring_white": "einstein_ring" }
+}

@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LensMarkPatch",
+  "description": "What Claude emits for one voice / natural-language instruction: id-addressed ops against the current LensMark file. Flat (no $ref) and every object closed (additionalProperties:false) so it can be passed as a structured-output schema. Positions are normalized [u, v] (u right, v down, origin top-left); sizes are arcsec.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "transcript", "ops", "clarification"],
+  "properties": {
+    "schema_version": { "type": "string", "const": "lensmark-patch/1.0" },
+    "transcript": { "type": "string", "description": "the instruction as understood (echo the transcript)" },
+    "ops": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["op", "id", "confidence", "rationale"],
+        "properties": {
+          "op": { "type": "string", "enum": ["add", "update", "delete"] },
+          "id": { "type": ["string", "null"], "description": "update/delete: the target item id; \"$system\" = the system block; add: null" },
+          "item": {
+            "type": ["object", "null"],
+            "description": "add only: the new item (same flat shape as a proposal item)",
+            "additionalProperties": false,
+            "required": ["type"],
+            "properties": {
+              "type": { "type": "string", "enum": ["arrow", "mask_circle", "einstein_ring", "text"] },
+              "label": { "type": ["string", "null"] },
+              "color": { "type": ["string", "null"], "enum": ["magenta", "cyan", "green", "yellow", "white", "orange", "gray", "mask_red", "ring_white", null] },
+              "tail": { "type": ["array", "null"], "items": { "type": "number" }, "description": "arrow only; where the arrow starts (away from the feature)" },
+              "head": { "type": ["array", "null"], "items": { "type": "number" }, "description": "arrow only; the feature being pointed at" },
+              "center": { "type": ["array", "null"], "items": { "type": "number" }, "description": "mask_circle / einstein_ring centre" },
+              "radius_arcsec": { "type": ["number", "null"], "description": "mask_circle: the mask radius (arcsec)" },
+              "kind": { "type": ["string", "null"], "enum": ["galaxy", "star", "artifact", null], "description": "mask_circle: galaxy (dashed) / star (dotted) / artifact" },
+              "theta_e_arcsec": { "type": ["number", "null"], "description": "einstein_ring only" },
+              "text": { "type": ["string", "null"], "description": "text only" },
+              "pos": { "type": ["array", "null"], "items": { "type": "number" }, "description": "text only" },
+              "label_anchor": { "type": ["string", "null"], "enum": ["tail", "head", "auto", null] },
+              "confidence": { "type": ["number", "null"] },
+              "rationale": { "type": ["string", "null"] }
+            }
+          },
+          "set": {
+            "type": ["object", "null"],
+            "description": "update: only the fields that change (absolute values; geometry replaced whole). delete: an optional review to keep as critique signal. For id \"$system\": description / verdict / grade / tags / theta_e.",
+            "additionalProperties": false,
+            "properties": {
+              "tail": { "type": ["array", "null"], "items": { "type": "number" } },
+              "head": { "type": ["array", "null"], "items": { "type": "number" } },
+              "center": { "type": ["array", "null"], "items": { "type": "number" } },
+              "pos": { "type": ["array", "null"], "items": { "type": "number" } },
+              "radius_arcsec": { "type": ["number", "null"] },
+              "theta_e_arcsec": { "type": ["number", "null"] },
+              "kind": { "type": ["string", "null"], "enum": ["galaxy", "star", "artifact", null] },
+              "label": { "type": ["string", "null"] },
+              "color": { "type": ["string", "null"], "enum": ["magenta", "cyan", "green", "yellow", "white", "orange", "gray", "mask_red", "ring_white", null] },
+              "text": { "type": ["string", "null"] },
+              "label_anchor": { "type": ["string", "null"], "enum": ["tail", "head", "auto", null] },
+              "show_in_legend": { "type": ["boolean", "null"] },
+              "status": { "type": ["string", "null"], "enum": ["proposed", "accepted", "edited", "rejected", null] },
+              "notes": { "type": ["string", "null"] },
+              "review": {
+                "type": ["object", "null"],
+                "additionalProperties": false,
+                "required": ["verdict"],
+                "properties": {
+                  "verdict": { "type": "string", "enum": ["correct", "wrong_position", "wrong_label", "wrong_type", "wrong_size", "spurious", "redundant", "missed_by_model"] },
+                  "severity": { "type": ["string", "null"], "enum": ["minor", "major", null] },
+                  "comment": { "type": ["string", "null"] }
+                }
+              },
+              "description": { "type": ["string", "null"], "description": "$system only" },
+              "verdict": { "type": ["string", "null"], "enum": ["likely_lens", "possible", "not_lens", "unclear", null], "description": "$system only" },
+              "grade": { "type": ["string", "null"], "enum": ["A", "B", "C", "D", null], "description": "$system only" },
+              "tags": { "type": ["array", "null"], "items": { "type": "string" }, "description": "$system only" },
+              "theta_e": {
+                "type": ["object", "null"],
+                "description": "$system only; merged into system.theta_e",
+                "additionalProperties": false,
+                "properties": {
+                  "value_arcsec": { "type": ["number", "null"] },
+                  "method": { "type": ["string", "null"] },
+                  "alt_arcsec": { "type": ["number", "null"] },
+                  "uncertainty_arcsec": { "type": ["number", "null"] }
+                }
+              }
+            }
+          },
+          "confidence": { "type": ["number", "null"] },
+          "rationale": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "clarification": { "type": ["string", "null"], "description": "when the instruction is ambiguous: ops is [] and this is the question to ask" }
+  }
+}

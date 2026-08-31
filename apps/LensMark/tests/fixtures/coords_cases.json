@@ -1,0 +1,27 @@
+{
+  "note": "Shared by pytest (tests/test_coords.py) and vitest (frontend/src/coords.test.ts). Tolerance 1e-9.",
+  "cases": [
+    {"name": "centre", "W": 400, "H": 400, "cutout": 16.0, "u": 0.5, "v": 0.5, "north_up": true, "east_left": true, "array_origin": "upper",
+     "px": [200, 200], "dEdN": [0.0, 0.0], "fits": [200.5, 200.5]},
+    {"name": "north", "W": 400, "H": 400, "cutout": 16.0, "u": 0.5, "v": 0.25, "north_up": true, "east_left": true, "array_origin": "upper",
+     "px": [200, 100], "dEdN": [0.0, 4.0], "rpa": [4.0, 0.0], "fits": [200.5, 300.5]},
+    {"name": "east-is-left", "W": 400, "H": 400, "cutout": 16.0, "u": 0.25, "v": 0.5, "north_up": true, "east_left": true, "array_origin": "upper",
+     "px": [100, 200], "dEdN": [4.0, 0.0], "rpa": [4.0, 90.0], "fits": [100.5, 200.5]},
+    {"name": "south", "W": 400, "H": 400, "cutout": 16.0, "u": 0.5, "v": 0.75, "north_up": true, "east_left": true, "array_origin": "upper",
+     "px": [200, 300], "dEdN": [0.0, -4.0], "rpa": [4.0, 180.0], "fits": [200.5, 100.5]},
+    {"name": "west-is-right", "W": 400, "H": 400, "cutout": 16.0, "u": 0.75, "v": 0.5, "north_up": true, "east_left": true, "array_origin": "upper",
+     "px": [300, 200], "dEdN": [-4.0, 0.0], "rpa": [4.0, 270.0], "fits": [300.5, 200.5]},
+    {"name": "east-right-flag", "W": 400, "H": 400, "cutout": 16.0, "u": 0.25, "v": 0.5, "north_up": true, "east_left": false, "array_origin": "upper",
+     "px": [100, 200], "dEdN": [-4.0, 0.0], "rpa": [4.0, 270.0], "fits": [100.5, 200.5]},
+    {"name": "non-square", "W": 400, "H": 300, "cutout": 16.0, "u": 0.5, "v": 0.25, "north_up": true, "east_left": true, "array_origin": "upper",
+     "px": [200, 75], "dEdN": [0.0, 3.0], "rpa": [3.0, 0.0], "fits": [200.5, 225.5]},
+    {"name": "array-origin-lower", "W": 400, "H": 400, "cutout": 16.0, "u": 0.5, "v": 0.25, "north_up": true, "east_left": true, "array_origin": "lower",
+     "px": [200, 100], "dEdN": [0.0, 4.0], "fits": [200.5, 100.5]},
+    {"name": "deck-tile", "W": 410, "H": 410, "cutout": 16.0, "u": 0.043, "v": 0.352, "north_up": true, "east_left": true, "array_origin": "upper",
+     "px": [17.63, 144.32], "dEdN": [7.312, 2.368]}
+  ],
+  "arcsec_to_px": [
+    {"a": 1.5, "W": 400, "cutout": 16.0, "px": 37.5},
+    {"a": 1.28, "W": 410, "cutout": 16.0, "px": 32.8}
+  ]
+}

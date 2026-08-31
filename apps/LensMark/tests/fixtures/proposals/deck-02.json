@@ -1,0 +1,37 @@
+{
+  "system": {
+    "grade": "A",
+    "p_lens": 0.88,
+    "confidence": 0.8,
+    "verdict": "likely_lens",
+    "theta_e": {
+      "value_arcsec": 2.0,
+      "method": "half the separation of the arc and the counter-image candidate",
+      "alt_arcsec": 1.8,
+      "uncertainty_arcsec": 0.3
+    },
+    "description": "The green arrow marks the deflector nucleus of an inclined early-type galaxy. The cyan arrow points to a curved arc hugging the north-western side of the deflector at about 2\"; the magenta arrow marks a compact counter-image candidate on the opposite, south-western side. The arc is tangentially stretched about the nucleus. Two dotted circles flag the stars bracketing the system and dashed circles the field galaxies to mask.",
+    "tags": ["arc+counter-image"]
+  },
+  "items": [
+    {"type": "arrow", "label": "deflector nucleus", "color": "green", "tail": [0.645, 0.44], "head": [0.561, 0.437],
+     "label_anchor": "auto", "confidence": 0.95, "rationale": "nucleus of the central galaxy"},
+    {"type": "arrow", "label": "arc", "color": "cyan", "tail": [0.403, 0.316], "head": [0.466, 0.372],
+     "label_anchor": "auto", "confidence": 0.85, "rationale": "curved arc NW of the nucleus"},
+    {"type": "arrow", "label": "counter-image cand.", "color": "magenta", "tail": [0.422, 0.614], "head": [0.466, 0.546],
+     "label_anchor": "auto", "confidence": 0.6, "rationale": "compact source opposite the arc"},
+    {"type": "mask_circle", "center": [0.089, 0.462], "radius_arcsec": 0.95, "kind": "galaxy", "color": "mask_red",
+     "confidence": 0.9, "rationale": "galaxy at the left edge"},
+    {"type": "mask_circle", "center": [0.409, 0.372], "radius_arcsec": 0.36, "kind": "star", "color": "mask_red",
+     "confidence": 0.85, "rationale": "star just west of the arc"},
+    {"type": "mask_circle", "center": [0.655, 0.372], "radius_arcsec": 0.36, "kind": "star", "color": "mask_red",
+     "confidence": 0.85, "rationale": "star just east of the nucleus"},
+    {"type": "mask_circle", "center": [0.918, 0.844], "radius_arcsec": 0.45, "kind": "galaxy", "color": "mask_red",
+     "confidence": 0.7, "rationale": "galaxy near the lower-right corner"},
+    {"type": "mask_circle", "center": [1.03, 0.52], "radius_arcsec": 0.5, "kind": "galaxy", "color": "mask_red",
+     "confidence": 0.4, "rationale": "galaxy cut by the right edge (deliberately just outside [0,1] to exercise the clamp repair)"},
+    {"type": "einstein_ring", "center": [0.565, 0.428], "theta_e_arcsec": 2.0, "color": "ring_white",
+     "confidence": 0.75, "rationale": "circle through the arc and the counter-image candidate"}
+  ],
+  "notes": "fixture: hand-transcribed from the deck's annotated panel for rank 89 (slide 11); one mask centre is deliberately out of range"
+}

@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LensMarkCritique",
+  "description": "One reviewer's critique of one Claude proposal run on one image (critiques/<image_id>.<reviewer>.<run_id>.json). Per-item verdicts are merged into the item 'review' fields of the LensMark file; panel scores grade the run as a whole. Flat (no $ref), closed objects.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "image_id", "run_id", "reviewer", "items"],
+  "properties": {
+    "schema_version": { "type": "string", "const": "lensmark-critique/1.0" },
+    "image_id": { "type": "string", "pattern": "^[A-Za-z0-9_.-]+$" },
+    "run_id": { "type": "string", "description": "the ProposalRun being critiqued (provenance.proposal_runs[].run_id)" },
+    "model": { "type": ["string", "null"], "description": "filled from the ProposalRun when omitted" },
+    "effort": { "type": ["string", "null"], "enum": ["low", "medium", "high", "xhigh", "max", null] },
+    "reviewer": { "type": "string", "description": "reviewer identity (a field, not auth)" },
+    "reviewed_at": { "type": "string", "description": "ISO-8601 UTC" },
+    "lead_time_s": { "type": ["number", "null"], "description": "seconds from proposal shown to critique submitted" },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["item_id", "verdict"],
+        "properties": {
+          "item_id": { "type": "string" },
+          "verdict": { "type": "string", "enum": ["correct", "wrong_position", "wrong_label", "wrong_type", "wrong_size", "spurious", "redundant", "missed_by_model"] },
+          "severity": { "type": ["string", "null"], "enum": ["minor", "major", null] },
+          "comment": { "type": "string" },
+          "delta_arcsec": { "type": ["number", "null"], "description": "|edit| in arcsec for edited items; computed from item.edit_of when omitted" }
+        }
+      }
+    },
+    "panel": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "completeness": { "type": ["integer", "null"], "minimum": 1, "maximum": 5 },
+        "geometric_accuracy": { "type": ["integer", "null"], "minimum": 1, "maximum": 5 },
+        "label_quality": { "type": ["integer", "null"], "minimum": 1, "maximum": 5 },
+        "description_quality": { "type": ["integer", "null"], "minimum": 1, "maximum": 5 },
+        "theta_e_verdict": { "type": ["string", "null"], "enum": ["correct", "too_small", "too_large", "missing", "spurious", null] },
+        "theta_e_human_arcsec": { "type": ["number", "null"] },
+        "free_text": { "type": "string" },
+        "would_use_as_fewshot": { "type": ["boolean", "null"] }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "description": "proposed / accepted / edited / rejected / invalid / unreviewed / added_by_human - filled by submit_critique when empty",
+      "additionalProperties": { "type": "integer" }
+    }
+  }
+}

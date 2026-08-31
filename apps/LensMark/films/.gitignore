@@ -1,0 +1,14 @@
+# Everything here is either large, machine-specific, or reproducible from the sources.
+.venv/
+models
+node_modules/
+assets/fonts/
+out/
+requirements.lock
+
+# Generated: holds an absolute path to this machine's Chromium.
+.playwright/
+
+# playwright-cli's session spool. Excluded because it captures page snapshots verbatim,
+# and in the pipeline this generalizes several of them held live invite tokens.
+.playwright-cli/

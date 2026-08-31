@@ -1,0 +1,354 @@
+{
+  "schema_version": "lensmark/1.0",
+  "id": "deck-05",
+  "created": "2026-08-30T12:00:00Z",
+  "modified": "2026-08-30T12:00:00Z",
+  "image": {
+    "file": "deck-05.png",
+    "sha256": "7c10daaf1cca8e15251fb0e0d1575ccd885918ee1861fe069e37134e6e4cbfbb",
+    "width": 403,
+    "height": 403,
+    "cutout_arcsec": 16.0,
+    "pixel_scale_arcsec": 0.03970223325062035,
+    "array_origin": "upper",
+    "north_up": true,
+    "east_left": true,
+    "scale_source": "assumed"
+  },
+  "coordinates": {
+    "geometry_units": "normalized",
+    "origin": "top_left",
+    "x_axis": "right",
+    "y_axis": "down",
+    "size_units": "arcsec",
+    "note": "px=(u*W, v*H); pixel_scale=cutout_arcsec/W; dE=(0.5-u)*W*ps if east_left; dN=(0.5-v)*H*ps; PA from N through E; x_fits=u*W+0.5, y_fits=(1-v)*H+0.5 (array_origin=upper)"
+  },
+  "system": {
+    "rank": 60,
+    "theta_e": {
+      "value_arcsec": 2.21,
+      "method": "human"
+    },
+    "verdict": "likely_lens",
+    "description": "Nearly complete blue ring: a long arc to the west (magenta arrow) and a fainter arc to the east (yellow arrow) around a bright elliptical deflector (green arrow). The companion galaxy to the north (white arrow) is masked. θ_E ≈ 2.21″.",
+    "description_refs": [],
+    "tags": []
+  },
+  "palette": "lensmark/v1",
+  "style_defaults": {
+    "unit": "fraction_of_min_dim",
+    "arrow": {
+      "line_w": 0.006,
+      "head_len": 0.045,
+      "head_w": 0.03,
+      "tip_gap": 0.012,
+      "default_len": 0.14
+    },
+    "mask_galaxy": {
+      "line_w": 0.0055,
+      "stroke": "dash",
+      "dash_len": 0.03,
+      "gap_len": 0.02
+    },
+    "mask_star": {
+      "line_w": 0.0055,
+      "stroke": "dot",
+      "dot_r": 0.003,
+      "gap_mult": 3.0
+    },
+    "einstein_ring": {
+      "stroke": "dot",
+      "dot_r": 0.0022,
+      "gap_mult": 3.0
+    },
+    "text": {
+      "size": 0.034,
+      "halo_px": 2
+    },
+    "label": {
+      "size": 0.038,
+      "font": "DejaVuSans-Bold.ttf",
+      "halo_px": 2,
+      "halo": "#000000CC",
+      "offset": 0.02
+    },
+    "theta_label": {
+      "size": 0.04,
+      "offset": 0.03
+    },
+    "legend": {
+      "size": 0.03,
+      "pad": 0.012,
+      "bg": "#000000B0",
+      "fg": "#FFFFFF",
+      "glyph": "→",
+      "line_h": 1.3
+    }
+  },
+  "legend": {
+    "show": true,
+    "position": "auto"
+  },
+  "items": [
+    {
+      "id": "ann-arrow-001",
+      "label": "arc (W)",
+      "color": "magenta",
+      "show_in_legend": true,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "arrow",
+      "tail": [
+        0.2556,
+        0.4603
+      ],
+      "head": [
+        0.3345,
+        0.4812
+      ],
+      "label_anchor": "auto"
+    },
+    {
+      "id": "ann-arrow-002",
+      "label": "arc (E)",
+      "color": "yellow",
+      "show_in_legend": true,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "arrow",
+      "tail": [
+        0.7209,
+        0.4934
+      ],
+      "head": [
+        0.6389,
+        0.4848
+      ],
+      "label_anchor": "auto"
+    },
+    {
+      "id": "ann-arrow-003",
+      "label": "deflector",
+      "color": "green",
+      "show_in_legend": true,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "arrow",
+      "tail": [
+        0.6038,
+        0.5812
+      ],
+      "head": [
+        0.4995,
+        0.491
+      ],
+      "label_anchor": "auto"
+    },
+    {
+      "id": "ann-arrow-004",
+      "label": "companion galaxy",
+      "color": "white",
+      "show_in_legend": true,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "arrow",
+      "tail": [
+        0.573,
+        0.149
+      ],
+      "head": [
+        0.632,
+        0.163
+      ],
+      "label_anchor": "auto"
+    },
+    {
+      "id": "ann-mask-001",
+      "color": "mask_red",
+      "show_in_legend": false,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "mask_circle",
+      "center": [
+        0.6694,
+        0.1755
+      ],
+      "radius_arcsec": 0.79,
+      "kind": "galaxy"
+    },
+    {
+      "id": "ann-mask-002",
+      "color": "mask_red",
+      "show_in_legend": false,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "mask_circle",
+      "center": [
+        0.9187,
+        0.3592
+      ],
+      "radius_arcsec": 0.32,
+      "kind": "star"
+    },
+    {
+      "id": "ann-mask-003",
+      "color": "mask_red",
+      "show_in_legend": false,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "mask_circle",
+      "center": [
+        0.9854,
+        0.383
+      ],
+      "radius_arcsec": 0.32,
+      "kind": "star"
+    },
+    {
+      "id": "ann-mask-004",
+      "color": "mask_red",
+      "show_in_legend": false,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "mask_circle",
+      "center": [
+        0.875,
+        0.5602
+      ],
+      "radius_arcsec": 0.32,
+      "kind": "star"
+    },
+    {
+      "id": "ann-mask-005",
+      "color": "mask_red",
+      "show_in_legend": false,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "mask_circle",
+      "center": [
+        0.8332,
+        0.7232
+      ],
+      "radius_arcsec": 0.32,
+      "kind": "star"
+    },
+    {
+      "id": "ann-mask-006",
+      "color": "mask_red",
+      "show_in_legend": false,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "mask_circle",
+      "center": [
+        0.5081,
+        0.7264
+      ],
+      "radius_arcsec": 0.68,
+      "kind": "galaxy"
+    },
+    {
+      "id": "ann-mask-007",
+      "color": "mask_red",
+      "show_in_legend": false,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "mask_circle",
+      "center": [
+        0.7739,
+        0.741
+      ],
+      "radius_arcsec": 0.79,
+      "kind": "star"
+    },
+    {
+      "id": "ann-mask-008",
+      "color": "mask_red",
+      "show_in_legend": false,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "mask_circle",
+      "center": [
+        0.7187,
+        0.7708
+      ],
+      "radius_arcsec": 0.32,
+      "kind": "star"
+    },
+    {
+      "id": "ann-ring-001",
+      "label": "θ_E ≈ 2.21″",
+      "color": "ring_white",
+      "show_in_legend": false,
+      "created_by": {
+        "kind": "human",
+        "reviewer": "xhuang"
+      },
+      "created_at": "2026-08-30T12:00:00Z",
+      "status": "accepted",
+      "type": "einstein_ring",
+      "center": [
+        0.4995,
+        0.491
+      ],
+      "theta_e_arcsec": 2.21,
+      "center_ref": "ann-arrow-003",
+      "label_pos": [
+        0.642,
+        0.314
+      ]
+    }
+  ],
+  "provenance": {
+    "proposal_runs": [],
+    "critiques": [],
+    "log": "deck-05.lensmark.log.jsonl"
+  }
+}

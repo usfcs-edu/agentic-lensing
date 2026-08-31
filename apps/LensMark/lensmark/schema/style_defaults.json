@@ -1,0 +1,11 @@
+{
+  "unit": "fraction_of_min_dim",
+  "arrow":         { "line_w": 0.0060, "head_len": 0.045, "head_w": 0.030, "tip_gap": 0.012, "default_len": 0.14 },
+  "mask_galaxy":   { "line_w": 0.0055, "stroke": "dash", "dash_len": 0.030, "gap_len": 0.020 },
+  "mask_star":     { "line_w": 0.0055, "stroke": "dot",  "dot_r": 0.0030, "gap_mult": 3.0 },
+  "einstein_ring": { "stroke": "dot", "dot_r": 0.0022, "gap_mult": 3.0 },
+  "text":          { "size": 0.034, "halo_px": 2 },
+  "label":         { "size": 0.038, "font": "DejaVuSans-Bold.ttf", "halo_px": 2, "halo": "#000000CC", "offset": 0.020 },
+  "theta_label":   { "size": 0.040, "offset": 0.030 },
+  "legend":        { "size": 0.030, "pad": 0.012, "bg": "#000000B0", "fg": "#FFFFFF", "glyph": "→", "line_h": 1.3 }
+}
