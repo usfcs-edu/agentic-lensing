@@ -22,10 +22,27 @@ document and in the vocabulary file, not only in a prompt.
 |---|---|
 | `<id>.png` | the original image, never modified |
 | `<id>.astromark.json` | the record: geometry, terms, provenance |
-| `<id>.annot.png` | a deterministic render, derived from the record |
+| `<id>.annot.png` | a deterministic render, derived from the record and traceable to it |
 
-**The record is primary and the render is derived, never the reverse.** Annotations are an overlay;
-they are never burned into the image. A consumer that has only the render has lost the record.
+**The record is primary; the render is derived, never the reverse.**
+
+Flattening is expected, not forbidden. A rendered overlay is the right artifact for a talk slide, a
+paper figure, a message to a colleague, and one arm of a payload handed to a model. What must not
+happen is a flattened render becoming the sole surviving artifact, because a consumer holding pixels
+alone has lost every term, every measurement and every provenance record the document carried.
+
+Two rules follow, and together they are the whole of it:
+
+1. **The original is never modified.** Marks are composited onto a copy.
+2. **Every derived render carries the identity of the record that produced it** (§10), so a flattened
+   image can always be traced back rather than being anonymous.
+
+Worth stating plainly, because the alternative has been tried at scale. The presentation-state model
+in medical imaging — overlay held separately, pixels untouched — has been the right answer since 1999
+and is supported by essentially every system in that field. It lost in practice to flattening,
+because flattening was easier and every viewer could display the result. A design does not win by
+being correct. The response here is not to forbid the easy path, but to require that it carry its
+provenance.
 
 ## 3. Coordinates and units
 
@@ -147,6 +164,15 @@ consumer that must not receive prose can therefore be given a provably clean doc
 The same record and the same style document produce a byte-identical render. The record's content
 hash covers everything except the render block. A render records the hash of the record it was made
 from, so a stale render is detectable rather than merely suspected.
+
+**The link must run in both directions.** A rendered image also **embeds the record's content hash**
+in a text chunk of the image file, and may embed a resolver reference beside it. A render that has
+been separated from its document can then still name what produced it, which is what makes rule 2 of
+§2 enforceable rather than aspirational.
+
+Determinism survives this. The embedded value derives from the record rather than from the image, so
+the output remains a pure function of its inputs — the same document and style still produce the
+same bytes. Adding it re-pins existing golden hashes once.
 
 ## 11. Profiles
 

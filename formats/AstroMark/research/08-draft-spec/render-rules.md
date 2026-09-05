@@ -195,10 +195,28 @@ Guidance, from ink budget and reading effort:
 - at most 6 distinct glyph types visible at once
 - two labelled marks closer than 0.09·m cannot both carry a full label
 
-## 10. Determinism
+## 10. Determinism and traceability
 
 Same record plus same style document produces byte-identical output. No background sampling at
 render time, no system fonts, no ordering that depends on a hash map's iteration.
+
+**The render carries its own provenance.** Alongside the pixels, the image file embeds, in a text
+chunk:
+
+| key | value |
+|---|---|
+| `astromark.record` | the content hash of the record that produced this render |
+| `astromark.style` | the id and version of the style document used |
+| `astromark.renderer` | the renderer version |
+| `astromark.ref` | *optional* — a resolver reference for fetching the record |
+
+This is what stops a flattened render from being an orphan. A figure lifted into a talk, a paper or a
+message can still be traced to the document, the style and the code that made it.
+
+It does not compromise determinism: every embedded value derives from the inputs rather than from the
+output, so the same record under the same style still produces identical bytes. Note the one
+practical consequence — a renderer that currently strips **all** metadata for byte-stability must
+switch to writing exactly this set and nothing else, and existing golden hashes are re-pinned once.
 
 Two assertions belong in the test suite:
 

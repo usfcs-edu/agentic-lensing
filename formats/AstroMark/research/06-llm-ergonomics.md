@@ -117,3 +117,32 @@ what each encoding *costs*, not what it *teaches*. The experiment that would set
 That experiment is cheap now that the encodings exist, and it is the single highest-value thing to
 run before the format is frozen. Until it is run, the read/write asymmetry is justified by token
 cost alone — which is sufficient, but it is a weaker claim than the one the team actually wants.
+
+### One distinction the experiment should keep separate
+
+**The payload that teaches the notation is not the payload for doing the task**, and conflating them
+is how a few-shot budget gets spent on the wrong thing.
+
+*Teaching* plausibly wants all three artifacts together: the original shows what was there, the
+rendered overlay demonstrates the visual grammar — which marks go where, how a negative reads, what
+restraint looks like — and the coordinate record supplies the precision the render cannot. The
+render is doing real work here, because the grammar is a visual thing and describing it in prose
+costs more tokens than showing it.
+
+*Doing the task* wants the original cutout plus the specification, and **not** a rendered example of
+a different system. A worked render of some other candidate is decoration at that point: it consumes
+roughly a thousand tokens to restate a grammar the spec already states, on a system the model is not
+being asked about.
+
+So the arms worth measuring are not three but four, and the fourth is the one most likely to be
+missed:
+
+| arm | teaching payload | working input |
+|---|---|---|
+| A | annotated PNG only | original |
+| B | original + line form | original |
+| C | original + line form + annotated PNG | original |
+| **D** | **C** | **original + spec, no exemplar render** |
+
+The interesting comparison is C against D: whether the annotated render earns its tokens at
+*inference* time, or only at *teaching* time.
