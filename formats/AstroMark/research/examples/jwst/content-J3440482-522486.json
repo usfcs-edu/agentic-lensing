@@ -1,0 +1,188 @@
+{
+  "content_version": "astromark-content/0.1",
+  "note": "rank 1 \u2014 SL2S J02176-0513, a published lens. Public JWST NIRCam archive; no embargo. Every mark is derived from a measurement recorded in top100_clean.csv, not placed by eye. Panel: colour_3.5 (3.5 arcsec across), north up, east left.",
+  "image": {
+    "file": "J3440482-522486.png",
+    "sha256": "f744b7e91d6e5be8ad589a449e5ef99d3279f2eb09ad060068e72b4aff23b17e",
+    "width": 240,
+    "height": 240,
+    "cutout_arcsec": 3.5,
+    "pixel_scale_arcsec": 0.01458333,
+    "north_up": true,
+    "east_left": true,
+    "survey": "JWST NIRCam",
+    "candidate_id": "J3440482-522486"
+  },
+  "system": {
+    "verdict": "likely_lens",
+    "grade": "A",
+    "p_lens": 0.95,
+    "counter_image": "found",
+    "n_images": 2,
+    "hard_case": [],
+    "sources": [
+      {
+        "tag": "S1",
+        "n_images": 2,
+        "config": "fold",
+        "theta_e_arcsec": 1.15
+      }
+    ],
+    "theta_e": {
+      "value_arcsec": 1.15,
+      "lower_arcsec": 0.95,
+      "upper_arcsec": 1.35,
+      "method": "half_separation"
+    },
+    "description": "Published lens SL2S J02176-0513. Blue tangential crescent east of a red elliptical, concave toward it, with a compact blue counter-image nearly opposite. Verifier grade A, 3 of 3."
+  },
+  "marks": [
+    {
+      "id": "m-defl",
+      "geometry": {
+        "kind": "vector",
+        "tail": [
+          0.5,
+          0.3
+        ],
+        "head": [
+          0.5,
+          0.5
+        ]
+      },
+      "role": "deflector",
+      "polarity": "positive",
+      "label": "deflector"
+    },
+    {
+      "id": "m-arc",
+      "geometry": {
+        "kind": "vector",
+        "tail": [
+          -0.0244,
+          0.2554
+        ],
+        "head": [
+          0.1297,
+          0.3273
+        ]
+      },
+      "role": "arc",
+      "polarity": "positive",
+      "source": "S1",
+      "label": "arc",
+      "note": "ridge traced at PA 34-150, r 1.40-1.51"
+    },
+    {
+      "id": "m-arc-n",
+      "geometry": {
+        "kind": "vector",
+        "tail": [
+          0.1636,
+          0.0014
+        ],
+        "head": [
+          0.2587,
+          0.1423
+        ]
+      },
+      "role": "knot",
+      "polarity": "positive",
+      "source": "S1",
+      "label": "knot"
+    },
+    {
+      "id": "m-arc-s",
+      "geometry": {
+        "kind": "vector",
+        "tail": [
+          0.2121,
+          0.9986
+        ],
+        "head": [
+          0.2971,
+          0.8514
+        ]
+      },
+      "role": "knot",
+      "polarity": "positive",
+      "source": "S1",
+      "label": ""
+    },
+    {
+      "id": "m-ci",
+      "geometry": {
+        "kind": "vector",
+        "tail": [
+          0.9109,
+          0.4202
+        ],
+        "head": [
+          0.744,
+          0.4526
+        ]
+      },
+      "role": "counter_image",
+      "polarity": "positive",
+      "source": "S1",
+      "emphasis": "key",
+      "label": "counter-image",
+      "note": "nearly antipodal to the arc apex"
+    },
+    {
+      "id": "m-ring",
+      "geometry": {
+        "kind": "circle",
+        "center_ref": "m-defl",
+        "radius_arcsec": 1.15
+      },
+      "role": "einstein_ring",
+      "bound": "nominal",
+      "source": "S1",
+      "method": "half_separation",
+      "lower_arcsec": 0.95,
+      "upper_arcsec": 1.35
+    },
+    {
+      "id": "m-ring-lo",
+      "geometry": {
+        "kind": "circle",
+        "center_ref": "m-defl",
+        "radius_arcsec": 0.95
+      },
+      "role": "einstein_ring",
+      "bound": "lower",
+      "source": "S1"
+    },
+    {
+      "id": "m-ring-hi",
+      "geometry": {
+        "kind": "circle",
+        "center_ref": "m-defl",
+        "radius_arcsec": 1.35
+      },
+      "role": "einstein_ring",
+      "bound": "upper",
+      "source": "S1"
+    },
+    {
+      "id": "m-streak",
+      "geometry": {
+        "kind": "vector",
+        "tail": [
+          -0.2337,
+          -0.3744
+        ],
+        "head": [
+          -0.1244,
+          -0.2442
+        ]
+      },
+      "role": "arc",
+      "polarity": "negative",
+      "alternative": "edge_on_disk",
+      "label": "arc",
+      "note": "runs NW-SE, radially rather than tangentially: a field galaxy, not a second arc"
+    }
+  ]
+}

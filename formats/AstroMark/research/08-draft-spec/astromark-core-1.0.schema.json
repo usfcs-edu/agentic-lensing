@@ -1,0 +1,430 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AstroMarkLensAnnotation",
+  "description": "One annotated astronomical image, lens profile. GENERATED from astromark-vocab/lens-1.0 \u2014 do not edit by hand. Flat (no $ref) and closed (additionalProperties false) so it can be used as a structured-output schema.",
+  "x-generated-from": "astromark-vocab/lens-1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "profile",
+    "system",
+    "marks"
+  ],
+  "properties": {
+    "schema": {
+      "const": "astromark/1.0"
+    },
+    "profile": {
+      "const": "astromark/lens/1.0"
+    },
+    "system": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "verdict",
+        "counter_image",
+        "description"
+      ],
+      "properties": {
+        "verdict": {
+          "type": "string",
+          "enum": [
+            "likely_lens",
+            "possible",
+            "not_lens",
+            "unclear"
+          ]
+        },
+        "grade": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "A",
+            "B",
+            "C",
+            "D",
+            null
+          ]
+        },
+        "p_lens": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "counter_image": {
+          "type": "string",
+          "enum": [
+            "core:found",
+            "core:not_found",
+            "core:not_searched"
+          ],
+          "description": "'not found' must mean you searched, not that you did not look"
+        },
+        "n_images": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "a merged pair counts as two"
+        },
+        "hard_case": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "lens:dust_lane_case",
+              "lens:second_deflector_case",
+              "lens:merging_pair",
+              "lens:faint_counter_image",
+              "lens:counter_image_outside_arc",
+              "lens:two_sources",
+              "lens:single_giant_arc",
+              "lens:group_scale",
+              "lens:low_snr",
+              "lens:arc_obscured",
+              "lens:lens_light_dominates"
+            ]
+          }
+        },
+        "theta_e": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value_arcsec": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "exclusiveMinimum": 0
+            },
+            "lower_arcsec": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "upper_arcsec": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "method": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "lens:arc_midline",
+                "lens:arc_bounds",
+                "lens:half_separation",
+                "lens:ring_mean",
+                "lens:model",
+                "lens:human",
+                null
+              ]
+            }
+          },
+          "description": "theta_E is a RADIUS. It lives here and nowhere else; a ring mark carries geometry, not a second copy of the measurement."
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "tag"
+            ],
+            "properties": {
+              "tag": {
+                "type": "string",
+                "pattern": "^S[1-9]$"
+              },
+              "n_images": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 1
+              },
+              "config": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "lens:double",
+                  "lens:quad",
+                  "lens:cusp",
+                  "lens:fold",
+                  "lens:cross",
+                  "lens:ring",
+                  "lens:partial_ring",
+                  "core:unknown",
+                  null
+                ]
+              }
+            }
+          }
+        },
+        "description": {
+          "type": "string",
+          "description": "free text FOR PEOPLE. Stripped before any model-facing use; see the embargo note in the spec."
+        }
+      }
+    },
+    "marks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "type",
+          "role"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.-]+$"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "vector",
+              "point",
+              "circle",
+              "polygon"
+            ],
+            "description": "vector: tail->head pointer. point: a location. circle: centre plus a MEASURED radius. polygon: a region."
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "lens:deflector",
+              "lens:second_deflector",
+              "lens:satellite",
+              "lens:lensed_image",
+              "lens:arc",
+              "lens:counter_image",
+              "lens:counter_arc",
+              "lens:knot",
+              "lens:secondary_ring",
+              "lens:dust_lane",
+              "lens:companion_galaxy",
+              "lens:nearby_galaxy",
+              "lens:field_galaxy",
+              "lens:star",
+              "lens:diffuse_candidate",
+              "lens:ambiguous_structure",
+              "lens:artifact",
+              "lens:einstein_ring",
+              "lens:lens_light",
+              "lens:lensed_light"
+            ],
+            "description": "what the feature is; see the vocabulary"
+          },
+          "polarity": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "core:positive",
+              "core:negative",
+              "core:ambiguous",
+              null
+            ],
+            "description": "what the mark does to the lensing interpretation. REQUIRED on roles whose takes_polarity is true; MUST BE ABSENT on inventory and measurement roles (a field galaxy, a star, an artefact, the Einstein ring) which cannot bear on it"
+          },
+          "alternative": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "lens:spiral_arm",
+              "lens:ring_galaxy",
+              "lens:shell_tidal",
+              "lens:merger",
+              "lens:edge_on_disk",
+              "lens:companion_projection",
+              "lens:star_forming_clump",
+              "lens:lens_galaxy_as_image",
+              "core:diffraction_spike",
+              "core:detector_artifact",
+              "core:subtraction_residual",
+              "core:psf_wing",
+              "lens:scale_tension",
+              "core:other",
+              null
+            ],
+            "description": "REQUIRED when polarity is negative or ambiguous: the non-lens reading of this feature"
+          },
+          "tail": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 2,
+            "description": "normalized [u, v]; u right, v down, origin top-left"
+          },
+          "head": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 2,
+            "description": "normalized [u, v]; u right, v down, origin top-left"
+          },
+          "at": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 2,
+            "description": "normalized [u, v]; u right, v down, origin top-left"
+          },
+          "center": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 2,
+            "description": "normalized [u, v]; u right, v down, origin top-left"
+          },
+          "center_ref": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "id of the mark whose position this circle tracks, so the ring and the deflector cannot drift apart"
+          },
+          "radius_arcsec": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "exclusiveMinimum": 0,
+            "description": "MEASURED. For a mask, the radius to apply; for a ring, theta_E. Never scaled for emphasis."
+          },
+          "points": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 2,
+              "maxItems": 2,
+              "description": "normalized [u, v]; u right, v down, origin top-left"
+            },
+            "minItems": 3
+          },
+          "source": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^S[1-9]$",
+            "description": "which physical source this is an image of"
+          },
+          "bound": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "nominal",
+              "lower",
+              "upper",
+              null
+            ]
+          },
+          "method": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "lens:arc_midline",
+              "lens:arc_bounds",
+              "lens:half_separation",
+              "lens:ring_mean",
+              "lens:model",
+              "lens:human",
+              null
+            ]
+          },
+          "lower_arcsec": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "upper_arcsec": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "treatment": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "core:mask",
+              "core:model",
+              null
+            ]
+          },
+          "emphasis": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "core:muted",
+              "core:normal",
+              "core:key",
+              null
+            ]
+          },
+          "label": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 40,
+            "description": "display only; the role carries the meaning"
+          },
+          "rationale": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 300
+          }
+        }
+      }
+    }
+  }
+}

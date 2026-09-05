@@ -1,0 +1,774 @@
+{
+  "schema": "astromark/1.0",
+  "profile": "astromark/lens/1.0",
+  "id": "astromark-ref",
+  "style_ref": {
+    "id": "astromark-style/thin-1.0",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "vocab_ref": {
+    "id": "astromark-vocab/lens-1.0",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "image": {
+    "file": "astromark-ref.png",
+    "sha256": "322450f9f5ee43442c7887f49497cbb7c0aaabdc68f5ebc8524bed3e22b6ff24",
+    "width": 403,
+    "height": 403,
+    "cutout_arcsec": 16.0,
+    "pixel_scale_arcsec": 0.03970223,
+    "north_up": true,
+    "east_left": true
+  },
+  "system": {
+    "verdict": "likely_lens",
+    "grade": "A",
+    "p_lens": 0.92,
+    "counter_image": "found",
+    "n_images": 2,
+    "hard_case": [
+      "dust_lane",
+      "second_deflector",
+      "counter_image_outside_arc"
+    ],
+    "sources": [
+      {
+        "tag": "S1",
+        "n_images": 2,
+        "config": "double",
+        "theta_e_arcsec": 1.45
+      }
+    ],
+    "theta_e": {
+      "value_arcsec": 1.45,
+      "lower_arcsec": 1.15,
+      "upper_arcsec": 1.8,
+      "method": "arc_midline"
+    },
+    "description": "Red early-type deflector crossed by a dust lane, with a blue tangential arc at 1.45 arcsec and a counter-image at 1.72 arcsec on the opposite side. A second deflector and a bound satellite add mass. The spiral to the north-west has an arm that mimics an arc; its curvature is centred on its own bulge."
+  },
+  "items": [
+    {
+      "id": "m-defl",
+      "role": "lens:deflector",
+      "polarity": "positive",
+      "type": "vector",
+      "tail": [
+        0.5,
+        0.35
+      ],
+      "head": [
+        0.5,
+        0.51
+      ],
+      "label": "deflector",
+      "emphasis": "normal",
+      "prov": {
+        "agent": "claude-opus-5",
+        "effort": "xhigh",
+        "run": "run-ref-01"
+      }
+    },
+    {
+      "id": "m-dust",
+      "role": "lens:dust_lane",
+      "polarity": "positive",
+      "type": "vector",
+      "tail": [
+        0.6243,
+        0.3495
+      ],
+      "head": [
+        0.5304,
+        0.5261
+      ],
+      "label": "dust lane",
+      "note": "an obscuring band inside the deflector; a hard case, not evidence against lensing",
+      "prov": {
+        "agent": "claude-opus-5",
+        "effort": "xhigh",
+        "run": "run-ref-01"
+      }
+    },
+    {
+      "id": "m-defl2",
+      "role": "lens:second_deflector",
+      "polarity": "positive",
+      "type": "vector",
+      "tail": [
+        0.235,
+        0.6567
+      ],
+      "head": [
+        0.3531,
+        0.5913
+      ],
+      "label": "second deflector",
+      "prov": {
+        "agent": "claude-opus-5",
+        "effort": "xhigh",
+        "run": "run-ref-01"
+      }
+    },
+    {
+      "id": "m-sat",
+      "role": "lens:satellite",
+      "polarity": "positive",
+      "type": "vector",
+      "tail": [
+        0.2436,
+        0.4601
+      ],
+      "head": [
+        0.3761,
+        0.4859
+      ],
+      "label": "satellite",
+      "note": "bound to the deflector: lens mass, never masked",
+      "prov": {
+        "agent": "claude-opus-5",
+        "effort": "xhigh",
+        "run": "run-ref-01"
+      }
+    },
+    {
+      "id": "m-arc",
+      "role": "lens:arc",
+      "polarity": "positive",
+      "type": "vector",
+      "tail": [
+        0.3942,
+        0.7092
+      ],
+      "head": [
+        0.4575,
+        0.59
+      ],
+      "source": "S1",
+      "label": "arc",
+      "status": "edited",
+      "prov": {
+        "agent": "claude-opus-5",
+        "effort": "xhigh",
+        "run": "run-ref-01"
+      },
+      "review": {
+        "verdict": "wrong_position",
+        "delta_arcsec": 0.31,
+        "by": "reviewer-1"
+      }
+    },
+    {
+      "id": "m-knot",
+      "role": "lens:knot",
+      "polarity": "positive",
+      "type": "vector",
+      "tail": [
+        0.48,
+        0.6995
+      ],
+      "head": [
+        0.4905,
+        0.6001
+      ],
+      "source": "S1",
+      "label": "knot",
+      "prov": {
+        "agent": "claude-opus-5",
+        "effort": "xhigh",
+        "run": "run-ref-01"
+      }
+    },
+    {
+      "id": "m-ci",
+      "role": "lens:counter_image",
+      "polarity": "positive",
+      "type": "vector",
+      "tail": [
+        0.6139,
+        0.2959
+      ],
+      "head": [
+        0.5505,
+        0.4151
+      ],
+      "source": "S1",
+      "label": "counter-image",
+      "emphasis": "key",
+      "note": "1.72 arcsec from the deflector, farther out than the arc at 1.45 — allowed by lensing",
+      "prov": {
+        "agent": "human",
+        "reviewer": "reviewer-1"
+      }
+    },
+    {
+      "id": "m-mimic",
+      "role": "lens:arc",
+      "polarity": "negative",
+      "type": "vector",
+      "tail": [
+        0.8507,
+        0.3583
+      ],
+      "head": [
+        0.7394,
+        0.2819
+      ],
+      "alternative": "lens:spiral_arm",
+      "label": "arc",
+      "note": "curvature centred on its own bulge, not on the deflector",
+      "prov": {
+        "agent": "claude-opus-5",
+        "effort": "xhigh",
+        "run": "run-ref-01"
+      }
+    },
+    {
+      "id": "m-ring",
+      "role": "lens:einstein_ring",
+      "polarity": "positive",
+      "type": "circle",
+      "center_ref": "m-defl",
+      "radius_arcsec": 1.45,
+      "source": "S1",
+      "bound": "nominal",
+      "method": "arc_midline",
+      "lower_arcsec": 1.15,
+      "upper_arcsec": 1.8,
+      "prov": {
+        "agent": "claude-opus-5",
+        "effort": "xhigh",
+        "run": "run-ref-01"
+      }
+    },
+    {
+      "id": "m-ring-lo",
+      "role": "lens:einstein_ring",
+      "polarity": "positive",
+      "type": "circle",
+      "center_ref": "m-defl",
+      "radius_arcsec": 1.15,
+      "source": "S1",
+      "bound": "lower",
+      "prov": {
+        "agent": "claude-opus-5",
+        "effort": "xhigh",
+        "run": "run-ref-01"
+      }
+    },
+    {
+      "id": "m-ring-hi",
+      "role": "lens:einstein_ring",
+      "polarity": "positive",
+      "type": "circle",
+      "center_ref": "m-defl",
+      "radius_arcsec": 1.8,
+      "source": "S1",
+      "bound": "upper",
+      "prov": {
+        "agent": "claude-opus-5",
+        "effort": "xhigh",
+        "run": "run-ref-01"
+      }
+    },
+    {
+      "id": "m-mask-1",
+      "role": "lens:field_galaxy",
+      "polarity": "positive",
+      "type": "circle",
+      "center": [
+        0.1813,
+        0.2413
+      ],
+      "radius_arcsec": 1.1,
+      "treatment": "mask",
+      "prov": {
+        "agent": "claude-opus-5",
+        "effort": "xhigh",
+        "run": "run-ref-01"
+      }
+    },
+    {
+      "id": "m-mask-2",
+      "role": "lens:field_galaxy",
+      "polarity": "positive",
+      "type": "circle",
+      "center": [
+        0.85,
+        0.7944
+      ],
+      "radius_arcsec": 0.94,
+      "treatment": "mask",
+      "prov": {
+        "agent": "claude-opus-5",
+        "effort": "xhigh",
+        "run": "run-ref-01"
+      }
+    },
+    {
+      "id": "m-mask-3",
+      "role": "lens:field_galaxy",
+      "polarity": "positive",
+      "type": "circle",
+      "center": [
+        0.2469,
+        0.8444
+      ],
+      "radius_arcsec": 0.78,
+      "treatment": "mask",
+      "prov": {
+        "agent": "claude-opus-5",
+        "effort": "xhigh",
+        "run": "run-ref-01"
+      }
+    },
+    {
+      "id": "m-mask-4",
+      "role": "lens:field_galaxy",
+      "polarity": "positive",
+      "type": "circle",
+      "center": [
+        0.5687,
+        0.8912
+      ],
+      "radius_arcsec": 0.68,
+      "treatment": "mask",
+      "prov": {
+        "agent": "claude-opus-5",
+        "effort": "xhigh",
+        "run": "run-ref-01"
+      }
+    },
+    {
+      "id": "m-mask-near",
+      "role": "lens:field_galaxy",
+      "polarity": "positive",
+      "type": "circle",
+      "center": [
+        0.3094,
+        0.3444
+      ],
+      "radius_arcsec": 1.15,
+      "treatment": "model",
+      "label": "nearby galaxy",
+      "note": "its light reaches the lens system: fit it, do not cut it out",
+      "prov": {
+        "agent": "claude-opus-5",
+        "effort": "xhigh",
+        "run": "run-ref-01"
+      }
+    },
+    {
+      "id": "m-mask-star",
+      "role": "lens:star",
+      "polarity": "positive",
+      "type": "circle",
+      "center": [
+        0.7125,
+        0.6381
+      ],
+      "radius_arcsec": 0.55,
+      "treatment": "mask",
+      "prov": {
+        "agent": "claude-opus-5",
+        "effort": "xhigh",
+        "run": "run-ref-01"
+      }
+    },
+    {
+      "id": "m-seg-lens",
+      "role": "lens:lens_light",
+      "polarity": "positive",
+      "type": "polygon",
+      "points": [
+        [
+          0.5579,
+          0.5408
+        ],
+        [
+          0.5517,
+          0.5491
+        ],
+        [
+          0.5428,
+          0.5555
+        ],
+        [
+          0.5318,
+          0.5595
+        ],
+        [
+          0.5192,
+          0.5611
+        ],
+        [
+          0.5056,
+          0.5602
+        ],
+        [
+          0.4917,
+          0.5567
+        ],
+        [
+          0.4783,
+          0.5508
+        ],
+        [
+          0.4659,
+          0.543
+        ],
+        [
+          0.4553,
+          0.5334
+        ],
+        [
+          0.4469,
+          0.5227
+        ],
+        [
+          0.4412,
+          0.5114
+        ],
+        [
+          0.4384,
+          0.5
+        ],
+        [
+          0.4387,
+          0.4891
+        ],
+        [
+          0.4421,
+          0.4792
+        ],
+        [
+          0.4483,
+          0.4709
+        ],
+        [
+          0.4572,
+          0.4645
+        ],
+        [
+          0.4682,
+          0.4605
+        ],
+        [
+          0.4808,
+          0.4589
+        ],
+        [
+          0.4944,
+          0.4598
+        ],
+        [
+          0.5083,
+          0.4633
+        ],
+        [
+          0.5217,
+          0.4692
+        ],
+        [
+          0.5341,
+          0.477
+        ],
+        [
+          0.5447,
+          0.4866
+        ],
+        [
+          0.5531,
+          0.4973
+        ],
+        [
+          0.5588,
+          0.5086
+        ],
+        [
+          0.5616,
+          0.52
+        ],
+        [
+          0.5613,
+          0.5309
+        ]
+      ],
+      "note": "tolerant: about half the visible halo, not the faintest isophote",
+      "prov": {
+        "agent": "claude-opus-5",
+        "effort": "xhigh",
+        "run": "run-ref-01"
+      }
+    },
+    {
+      "id": "m-seg-arc",
+      "role": "lens:lensed_light",
+      "polarity": "positive",
+      "type": "polygon",
+      "points": [
+        [
+          0.5519,
+          0.5999
+        ],
+        [
+          0.5393,
+          0.606
+        ],
+        [
+          0.526,
+          0.6104
+        ],
+        [
+          0.5123,
+          0.613
+        ],
+        [
+          0.4983,
+          0.6137
+        ],
+        [
+          0.4844,
+          0.6126
+        ],
+        [
+          0.4707,
+          0.6095
+        ],
+        [
+          0.4576,
+          0.6047
+        ],
+        [
+          0.4452,
+          0.5981
+        ],
+        [
+          0.4339,
+          0.5899
+        ],
+        [
+          0.4237,
+          0.5803
+        ],
+        [
+          0.4149,
+          0.5694
+        ],
+        [
+          0.4077,
+          0.5574
+        ],
+        [
+          0.4022,
+          0.5446
+        ],
+        [
+          0.3984,
+          0.5311
+        ],
+        [
+          0.3965,
+          0.5172
+        ],
+        [
+          0.4227,
+          0.5154
+        ],
+        [
+          0.4241,
+          0.5258
+        ],
+        [
+          0.4269,
+          0.5358
+        ],
+        [
+          0.4311,
+          0.5454
+        ],
+        [
+          0.4365,
+          0.5544
+        ],
+        [
+          0.443,
+          0.5625
+        ],
+        [
+          0.4506,
+          0.5697
+        ],
+        [
+          0.4591,
+          0.5758
+        ],
+        [
+          0.4683,
+          0.5807
+        ],
+        [
+          0.4781,
+          0.5843
+        ],
+        [
+          0.4883,
+          0.5866
+        ],
+        [
+          0.4987,
+          0.5875
+        ],
+        [
+          0.5092,
+          0.587
+        ],
+        [
+          0.5194,
+          0.585
+        ],
+        [
+          0.5294,
+          0.5817
+        ],
+        [
+          0.5388,
+          0.5771
+        ]
+      ],
+      "source": "S1",
+      "prov": {
+        "agent": "claude-opus-5",
+        "effort": "xhigh",
+        "run": "run-ref-01"
+      }
+    },
+    {
+      "id": "m-seg-ci",
+      "role": "lens:lensed_light",
+      "polarity": "positive",
+      "type": "polygon",
+      "points": [
+        [
+          0.5693,
+          0.4251
+        ],
+        [
+          0.5674,
+          0.4275
+        ],
+        [
+          0.5646,
+          0.4294
+        ],
+        [
+          0.5611,
+          0.4305
+        ],
+        [
+          0.5572,
+          0.4308
+        ],
+        [
+          0.5528,
+          0.4304
+        ],
+        [
+          0.5484,
+          0.4292
+        ],
+        [
+          0.544,
+          0.4272
+        ],
+        [
+          0.54,
+          0.4247
+        ],
+        [
+          0.5365,
+          0.4217
+        ],
+        [
+          0.5338,
+          0.4184
+        ],
+        [
+          0.5318,
+          0.4149
+        ],
+        [
+          0.5308,
+          0.4114
+        ],
+        [
+          0.5308,
+          0.4081
+        ],
+        [
+          0.5317,
+          0.4051
+        ],
+        [
+          0.5336,
+          0.4027
+        ],
+        [
+          0.5364,
+          0.4008
+        ],
+        [
+          0.5399,
+          0.3997
+        ],
+        [
+          0.5438,
+          0.3994
+        ],
+        [
+          0.5482,
+          0.3998
+        ],
+        [
+          0.5526,
+          0.401
+        ],
+        [
+          0.557,
+          0.403
+        ],
+        [
+          0.561,
+          0.4055
+        ],
+        [
+          0.5645,
+          0.4085
+        ],
+        [
+          0.5672,
+          0.4118
+        ],
+        [
+          0.5692,
+          0.4153
+        ],
+        [
+          0.5702,
+          0.4188
+        ],
+        [
+          0.5702,
+          0.4221
+        ]
+      ],
+      "source": "S1",
+      "note": "the faint opposite image is included: recall matters on the lensed side",
+      "prov": {
+        "agent": "claude-opus-5",
+        "effort": "xhigh",
+        "run": "run-ref-01"
+      }
+    }
+  ]
+}

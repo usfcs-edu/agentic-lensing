@@ -1,0 +1,611 @@
+{
+  "vocabulary": "astromark-vocab/lens-1.0",
+  "core": "astromark-vocab/core-1.0",
+  "status": "draft",
+  "note": "The single generator. Every downstream artifact \u2014 pydantic Literals, JSON Schema enums, TypeScript unions, the prompt's vocabulary section, the renderer's role table and the documentation \u2014 is GENERATED from this file, with a CI check that fails on staleness. Adding a term must touch exactly one file; it currently touches six. Term shape follows SKOS: an id, a preferred label, a definition, an optional broader term, a status, and replaced_by when deprecated. Terms are referenced as prefixed strings ('lens:arc'), never as bare enums, so that an unknown prefix is recognisably not-mine rather than merely invalid.",
+  "prefixes": {
+    "core": "astromark-vocab/core-1.0",
+    "lens": "astromark-vocab/lens-1.0"
+  },
+  "schemes": {
+    "role": {
+      "definition": "What a mark asserts the feature IS. Orthogonal to polarity: a role says what kind of thing this would be, polarity says whether it supports the lensing interpretation.",
+      "terms": [
+        {
+          "id": "lens:deflector",
+          "label": "deflector",
+          "broader": null,
+          "definition": "The foreground galaxy whose mass bends the light. The whole galaxy, including its extended halo \u2014 not only the bright core.",
+          "family": "lens_mass",
+          "status": "stable",
+          "takes_polarity": true
+        },
+        {
+          "id": "lens:second_deflector",
+          "label": "second deflector",
+          "broader": "lens:deflector",
+          "definition": "An additional galaxy contributing lensing mass to the same system. Labelled as a lens, never as a lensed image.",
+          "family": "lens_mass",
+          "status": "stable",
+          "takes_polarity": true
+        },
+        {
+          "id": "lens:satellite",
+          "label": "satellite",
+          "broader": "lens:deflector",
+          "definition": "A small galaxy gravitationally bound to the deflector. A separate light and mass component for modelling, and never a mask target.",
+          "family": "lens_mass",
+          "status": "stable",
+          "takes_polarity": true
+        },
+        {
+          "id": "lens:lensed_image",
+          "label": "lensed image",
+          "broader": null,
+          "definition": "Light originating behind the deflector and deflected by it. The general class; an arc is the tangentially extended special case.",
+          "family": "lensed",
+          "status": "stable",
+          "takes_polarity": true
+        },
+        {
+          "id": "lens:arc",
+          "label": "arc",
+          "broader": "lens:lensed_image",
+          "definition": "A tangentially stretched lensed image, curved about the deflector.",
+          "family": "lensed",
+          "status": "stable",
+          "takes_polarity": true
+        },
+        {
+          "id": "lens:counter_image",
+          "label": "counter-image",
+          "broader": "lens:lensed_image",
+          "definition": "The image of the SAME source lying across the deflector from the main image. It may lie at a greater radius than the main image; radius is never a ground for rejecting it.",
+          "family": "lensed",
+          "status": "stable",
+          "takes_polarity": true
+        },
+        {
+          "id": "lens:counter_arc",
+          "label": "counter-arc",
+          "broader": "lens:counter_image",
+          "definition": "A counter-image that is itself tangentially extended.",
+          "family": "lensed",
+          "status": "stable",
+          "takes_polarity": true
+        },
+        {
+          "id": "lens:knot",
+          "label": "knot",
+          "broader": "lens:lensed_image",
+          "definition": "A bright compact star-forming region WITHIN a lensed image. A whole compact lensed image is a lensed image, not a knot.",
+          "family": "lensed",
+          "status": "stable",
+          "takes_polarity": true
+        },
+        {
+          "id": "lens:secondary_ring",
+          "label": "secondary ring",
+          "broader": "lens:lensed_image",
+          "definition": "The small ring a secondary deflector imprints on already-lensed light.",
+          "family": "lensed",
+          "status": "stable",
+          "takes_polarity": true
+        },
+        {
+          "id": "lens:dust_lane",
+          "label": "dust lane",
+          "broader": null,
+          "definition": "An obscuring band inside the deflector that can hide part of a lensed image. A reason the lensed light may be partly invisible; NOT a reason against lensing.",
+          "family": "obstruction",
+          "status": "stable",
+          "takes_polarity": true
+        },
+        {
+          "id": "lens:companion_galaxy",
+          "label": "companion galaxy",
+          "broader": null,
+          "definition": "A galaxy near the system that is not lens mass and not lensed. Applied to a counter-image candidate only after the same-source test has failed.",
+          "family": "field",
+          "status": "stable",
+          "takes_polarity": true
+        },
+        {
+          "id": "lens:nearby_galaxy",
+          "label": "nearby galaxy",
+          "broader": "lens:companion_galaxy",
+          "definition": "The brightest field galaxy close enough that its light reaches the lens system, so the modeller must choose between fitting and masking it.",
+          "family": "field",
+          "status": "stable",
+          "takes_polarity": false
+        },
+        {
+          "id": "lens:field_galaxy",
+          "label": "field galaxy",
+          "broader": null,
+          "definition": "An unrelated extended object to be treated during modelling.",
+          "family": "field",
+          "status": "stable",
+          "takes_polarity": false
+        },
+        {
+          "id": "lens:star",
+          "label": "star",
+          "broader": null,
+          "definition": "A point source, usually with diffraction spikes.",
+          "family": "field",
+          "status": "stable",
+          "takes_polarity": false
+        },
+        {
+          "id": "lens:diffuse_candidate",
+          "label": "diffuse candidate",
+          "broader": null,
+          "definition": "Bluish, spread-out light near the system, unlike a compact field galaxy. A flag for the modeller rather than a claim.",
+          "family": "lensed",
+          "status": "provisional",
+          "takes_polarity": true
+        },
+        {
+          "id": "lens:ambiguous_structure",
+          "label": "ambiguous structure",
+          "broader": null,
+          "definition": "A feature whose class cannot be settled from the imaging available.",
+          "family": "field",
+          "status": "stable",
+          "takes_polarity": true
+        },
+        {
+          "id": "lens:artifact",
+          "label": "artifact",
+          "broader": null,
+          "definition": "A detector or processing artefact: a spike, a hot pixel, a ghost, a subtraction residual.",
+          "family": "obstruction",
+          "status": "stable",
+          "takes_polarity": false
+        },
+        {
+          "id": "lens:einstein_ring",
+          "label": "Einstein ring",
+          "broader": null,
+          "definition": "The measured Einstein radius, drawn as a circle. A MEASUREMENT, not a feature: its radius is the datum.",
+          "family": "measurement",
+          "status": "stable",
+          "takes_polarity": false,
+          "polarity_note": "Takes no polarity, and the reason is not taxonomic convenience. theta_E is DOWNSTREAM of the lensing interpretation: it can only be computed once a lens has been assumed, so it presupposes the claim and cannot bear on whether the claim is true. This also encodes an existing domain rule into the schema rather than leaving it to a prompt \u2014 that the size of theta_E is supporting evidence and never the sole ground for a verdict. Note the distinction the name invites: the DRAWN CIRCLE recording how big the ring is carries no polarity, while the OBSERVED ring of light in the data is powerful evidence and is marked separately, as arc / lensed_image marks or a lensed_light region with source config `ring` \u2014 all of which do take polarity. Doubt about the MEASUREMENT travels in `lower_arcsec`/`upper_arcsec` and the coded `method`; doubt about the INTERPRETATION travels in polarity on the evidential marks; and a ring simply drawn wrong is a review verdict of `wrong_size`, not a polarity."
+        },
+        {
+          "id": "lens:lens_light",
+          "label": "lens light",
+          "broader": null,
+          "definition": "A segmentation region covering the deflector's light. Deliberately tolerant \u2014 about half the visible halo, not the faintest isophote.",
+          "family": "lens_mass",
+          "status": "provisional",
+          "takes_polarity": true
+        },
+        {
+          "id": "lens:lensed_light",
+          "label": "lensed light",
+          "broader": null,
+          "definition": "A segmentation region covering lensed light, including faint opposite images. Recall matters here in a way it does not for lens light.",
+          "family": "lensed",
+          "status": "provisional",
+          "takes_polarity": true
+        }
+      ],
+      "polarity_rule": "A role carries `takes_polarity`. When true the mark MAY bear on the lensing interpretation and `polarity` is REQUIRED. When false the mark is inventory or measurement \u2014 a field galaxy to mask, a star, a detector artefact, the Einstein-radius circle \u2014 and `polarity` MUST be ABSENT. Forcing a value there was a fault in the first draft: it made 'positive' mean two different things and applied it to the majority of marks in a real annotation, where 82 percent of items are field objects. The general principle behind the boundary: a role takes polarity when the mark can bear on whether the lensing interpretation is true. Inventory roles cannot, because they assert only that something is present and how to treat it; measurement roles cannot, because they presuppose the interpretation they would otherwise be voting on."
+    },
+    "polarity": {
+      "definition": "What the mark does to the lensing interpretation. Present only on roles whose `takes_polarity` is true. Independent of role: role=arc with polarity=negative and alternative=spiral_arm reads 'this arc-like thing is a spiral arm'.",
+      "terms": [
+        {
+          "id": "core:positive",
+          "label": "positive",
+          "definition": "The mark ASSERTS rather than refutes: this feature is here and is what the role says it is. It does not additionally claim to prove lensing.",
+          "status": "stable"
+        },
+        {
+          "id": "core:negative",
+          "label": "negative",
+          "definition": "Argues AGAINST lensing, with a named alternative reading. Requires `alternative`.",
+          "status": "stable"
+        },
+        {
+          "id": "core:ambiguous",
+          "label": "ambiguous",
+          "definition": "Could be lensing or the named alternative. The natural class for a grade-C system's evidence. Requires `alternative`.",
+          "status": "stable"
+        }
+      ],
+      "note": "Three values, one axis. A fourth 'neutral' value and a split into separate presence and bearing axes were both considered and rejected: presence does not vary here (a mark exists because someone drew it), and where it genuinely does vary it is already carried better at system level by `counter_image: found | not_found | not_searched`. The real defect was applying polarity to roles that cannot bear on the claim, which `takes_polarity` fixes."
+    },
+    "alternative": {
+      "definition": "The non-lens reading of a feature. Required when polarity is negative or ambiguous.",
+      "terms": [
+        {
+          "id": "lens:spiral_arm",
+          "label": "spiral arm",
+          "definition": "An arm of a face-on spiral, curved about its own bulge rather than about a foreground mass.",
+          "status": "stable"
+        },
+        {
+          "id": "lens:ring_galaxy",
+          "label": "ring galaxy",
+          "definition": "An intrinsic stellar ring, not a lensed image.",
+          "status": "stable"
+        },
+        {
+          "id": "lens:shell_tidal",
+          "label": "shell or tidal feature",
+          "definition": "A shell or tidal tail from a past interaction.",
+          "status": "stable"
+        },
+        {
+          "id": "lens:merger",
+          "label": "merger",
+          "definition": "An interacting pair mimicking multiple images.",
+          "status": "stable"
+        },
+        {
+          "id": "lens:edge_on_disk",
+          "label": "edge-on disk",
+          "definition": "An edge-on disk galaxy mimicking an arc.",
+          "status": "stable"
+        },
+        {
+          "id": "lens:companion_projection",
+          "label": "chance projection",
+          "definition": "An unrelated object that happens to lie across the deflector.",
+          "status": "stable"
+        },
+        {
+          "id": "lens:star_forming_clump",
+          "label": "star-forming clump",
+          "definition": "A clump in the deflector itself.",
+          "status": "stable"
+        },
+        {
+          "id": "lens:lens_galaxy_as_image",
+          "label": "lens galaxy read as an image",
+          "definition": "A lensing galaxy mistaken for a lensed image. The known model failure mode.",
+          "status": "stable"
+        },
+        {
+          "id": "core:diffraction_spike",
+          "label": "diffraction spike",
+          "status": "stable",
+          "definition": "A spike from a bright star."
+        },
+        {
+          "id": "core:detector_artifact",
+          "label": "detector artifact",
+          "status": "stable",
+          "definition": "A defect of the detector or the exposure."
+        },
+        {
+          "id": "core:subtraction_residual",
+          "label": "subtraction residual",
+          "status": "stable",
+          "definition": "A residual left by an imperfect model subtraction."
+        },
+        {
+          "id": "core:psf_wing",
+          "label": "PSF wing",
+          "status": "stable",
+          "definition": "The wing of a bright source's point-spread function."
+        },
+        {
+          "id": "lens:scale_tension",
+          "label": "scale tension",
+          "definition": "The deflector's apparent mass is implausible for the Einstein radius. SUPPORTING evidence only; never a verdict on its own.",
+          "status": "stable"
+        },
+        {
+          "id": "core:other",
+          "label": "other",
+          "definition": "Named in free text. Its presence in a corpus is a signal that a term is missing.",
+          "status": "stable"
+        }
+      ],
+      "removed": [
+        {
+          "id": "lens:dust_lane",
+          "reason": "A dust lane is not an alternative reading of a feature \u2014 it is a reason lensed light may be hidden. It belongs to `role` and `hard_case`, and was removed from this scheme during adjudication."
+        }
+      ]
+    },
+    "hard_case": {
+      "definition": "Morphologies that make a system hard to read but are still lenses. Emitted verbatim by the exemplar exporter so rare cases can be found and stratified.",
+      "terms": [
+        {
+          "id": "lens:dust_lane_case",
+          "label": "dust lane",
+          "status": "stable"
+        },
+        {
+          "id": "lens:second_deflector_case",
+          "label": "second deflector",
+          "status": "stable"
+        },
+        {
+          "id": "lens:merging_pair",
+          "label": "merging pair",
+          "definition": "Two merged images; the same colour at both tips is the mirror-parity signature, which is positive evidence.",
+          "status": "stable"
+        },
+        {
+          "id": "lens:faint_counter_image",
+          "label": "faint counter-image",
+          "status": "stable"
+        },
+        {
+          "id": "lens:counter_image_outside_arc",
+          "label": "counter-image outside the arc",
+          "status": "stable"
+        },
+        {
+          "id": "lens:two_sources",
+          "label": "two sources",
+          "status": "stable"
+        },
+        {
+          "id": "lens:single_giant_arc",
+          "label": "single giant arc",
+          "definition": "One very large, clearly tangentially stretched arc with no counterpart found after a search.",
+          "status": "stable"
+        },
+        {
+          "id": "lens:group_scale",
+          "label": "group scale",
+          "status": "stable"
+        },
+        {
+          "id": "lens:low_snr",
+          "label": "low signal to noise",
+          "status": "stable"
+        },
+        {
+          "id": "lens:arc_obscured",
+          "label": "arc obscured",
+          "status": "stable"
+        },
+        {
+          "id": "lens:lens_light_dominates",
+          "label": "lens light dominates",
+          "status": "stable"
+        }
+      ]
+    },
+    "theta_e_method": {
+      "definition": "How the Einstein radius was estimated. Replaces a free string.",
+      "terms": [
+        {
+          "id": "lens:arc_midline",
+          "label": "arc midline",
+          "definition": "Radius to the radial MIDPOINT of the main lensed image. The preferred rule.",
+          "status": "stable",
+          "preferred": true
+        },
+        {
+          "id": "lens:arc_bounds",
+          "label": "arc bounds",
+          "definition": "From the inner and outer edges of the main image, giving the lower and upper bounds.",
+          "status": "stable"
+        },
+        {
+          "id": "lens:half_separation",
+          "label": "half separation",
+          "definition": "Half the arc-to-opposite-image distance. Secondary, and a cross-check only: the opposite image may lie farther out than the arc.",
+          "status": "stable"
+        },
+        {
+          "id": "lens:ring_mean",
+          "label": "ring mean",
+          "definition": "Mean radius of a full or partial ring.",
+          "status": "stable"
+        },
+        {
+          "id": "lens:model",
+          "label": "model",
+          "definition": "From a lens model fit.",
+          "status": "stable"
+        },
+        {
+          "id": "lens:human",
+          "label": "human",
+          "definition": "Set by an expert without a stated rule.",
+          "status": "stable"
+        },
+        {
+          "id": "lens:geometric",
+          "label": "geometric",
+          "status": "deprecated",
+          "replaced_by": "lens:arc_midline",
+          "definition": "Retained because the nine example decks use it. Mapped on load."
+        },
+        {
+          "id": "lens:arc_radius",
+          "label": "arc radius",
+          "status": "deprecated",
+          "replaced_by": "lens:arc_midline",
+          "definition": "Retained for the same reason. 'The arc's radius' names no specific part of the arc, which is why it was replaced."
+        }
+      ]
+    },
+    "treatment": {
+      "definition": "What a modeller should do with a field object.",
+      "terms": [
+        {
+          "id": "core:mask",
+          "label": "mask",
+          "definition": "Exclude these pixels from the fit.",
+          "status": "stable"
+        },
+        {
+          "id": "core:model",
+          "label": "model",
+          "definition": "The object's light reaches the lens system, so fit it as its own component rather than cutting it out. Extended objects only.",
+          "status": "stable"
+        }
+      ],
+      "never_applies_to": [
+        "lens:deflector",
+        "lens:satellite",
+        "lens:arc",
+        "lens:counter_image",
+        "lens:lensed_image",
+        "lens:knot"
+      ],
+      "note": "The deflector's extended halo and a bound satellite are lens mass. Circling either is an error, not a choice."
+    },
+    "counter_image_search": {
+      "definition": "Three-valued, because 'not found' must be distinguishable from 'did not look'. In a structured-output schema a null and a missing key are the same thing to many model outputs, so this is an explicit enum.",
+      "terms": [
+        {
+          "id": "core:found",
+          "label": "found",
+          "status": "stable"
+        },
+        {
+          "id": "core:not_found",
+          "label": "not found",
+          "definition": "Searched, at all radii out to the cutout edge, and none was located.",
+          "status": "stable"
+        },
+        {
+          "id": "core:not_searched",
+          "label": "not searched",
+          "status": "stable"
+        }
+      ]
+    },
+    "source_config": {
+      "definition": "The image configuration of one source.",
+      "terms": [
+        {
+          "id": "lens:double",
+          "label": "double",
+          "status": "stable"
+        },
+        {
+          "id": "lens:quad",
+          "label": "quad",
+          "status": "stable"
+        },
+        {
+          "id": "lens:cusp",
+          "label": "cusp",
+          "status": "stable"
+        },
+        {
+          "id": "lens:fold",
+          "label": "fold",
+          "status": "stable"
+        },
+        {
+          "id": "lens:cross",
+          "label": "cross",
+          "status": "stable"
+        },
+        {
+          "id": "lens:ring",
+          "label": "ring",
+          "status": "stable"
+        },
+        {
+          "id": "lens:partial_ring",
+          "label": "partial ring",
+          "status": "stable"
+        },
+        {
+          "id": "core:unknown",
+          "label": "unknown",
+          "status": "stable"
+        }
+      ]
+    },
+    "emphasis": {
+      "definition": "PRESENTATIONAL only. Scales stroke weight and glyph size; never a measured radius or a polygon vertex. Ordinal, three values \u2014 a continuous multiplier would invite arbitrary values and make cross-panel comparison meaningless.",
+      "terms": [
+        {
+          "id": "core:muted",
+          "label": "muted",
+          "status": "stable"
+        },
+        {
+          "id": "core:normal",
+          "label": "normal",
+          "status": "stable",
+          "default": true
+        },
+        {
+          "id": "core:key",
+          "label": "key",
+          "definition": "At most one per panel, lint-warned above that.",
+          "status": "stable"
+        }
+      ]
+    },
+    "review_verdict": {
+      "definition": "A reviewer's judgement of one proposed mark.",
+      "terms": [
+        {
+          "id": "core:correct",
+          "label": "correct",
+          "status": "stable"
+        },
+        {
+          "id": "core:wrong_position",
+          "label": "wrong position",
+          "status": "stable"
+        },
+        {
+          "id": "core:wrong_label",
+          "label": "wrong label",
+          "status": "stable"
+        },
+        {
+          "id": "core:wrong_type",
+          "label": "wrong type",
+          "status": "stable"
+        },
+        {
+          "id": "core:wrong_size",
+          "label": "wrong size",
+          "status": "stable"
+        },
+        {
+          "id": "core:spurious",
+          "label": "spurious",
+          "status": "stable"
+        },
+        {
+          "id": "core:redundant",
+          "label": "redundant",
+          "status": "stable"
+        },
+        {
+          "id": "core:missed_by_model",
+          "label": "missed by model",
+          "definition": "On a human-added mark: the recall signal.",
+          "status": "stable"
+        }
+      ]
+    }
+  },
+  "governance": {
+    "note": "A three-person group is not a standards body, so the rule has to be one they can actually sustain.",
+    "adding_a_term": "Open a pull request against this file with the id, label, definition, family and broader term. A term enters at status `provisional`. Downstream artifacts regenerate; CI fails if any is stale.",
+    "promoting_a_term": "`provisional` becomes `stable` when it has been used on at least ten annotations by at least two annotators, and no reviewer has flagged it as a duplicate.",
+    "deprecating_a_term": "Set status `deprecated` and give `replaced_by`. Old documents keep loading; a loader maps the term and records that it did. A term is never deleted, because deleting one silently changes the meaning of every document that used it.",
+    "profile_boundary": "The core scheme carries terms that are true of any astronomical image annotation. Anything that mentions lensing belongs to the lens profile. A core-only reader that meets a `lens:` term can recognise it as belonging to a profile it does not implement, and skip it, rather than failing validation."
+  },
+  "external_vocabularies": {
+    "note": "A standard that mints parallel class terms for objects an existing astronomy vocabulary already publishes makes itself un-interoperable and irritates the body whose recommendation it will eventually need. AstroMark's own terms should cover what is specific to ANNOTATION \u2014 polarity, treatment, estimation method, review verdict, emphasis, hard-case class. The astronomical OBJECT classes should be borrowed.",
+    "action": "OPEN: before circulation, map the role scheme's object-like terms onto http://www.ivoa.net/rdf/object-type (which already publishes grav-lens, lensed-image, lensed-g, lensed-q) and the Unified Astronomy Thesaurus, and carry the external URI on each term as `same_as`. Terms with no external equivalent \u2014 the annotation-specific ones \u2014 keep a local id.",
+    "candidates": {
+      "lens:deflector": "http://www.ivoa.net/rdf/object-type#grav-lens",
+      "lens:lensed_image": "http://www.ivoa.net/rdf/object-type#lensed-image"
+    }
+  }
+}

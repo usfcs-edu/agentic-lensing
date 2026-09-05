@@ -1,0 +1,70 @@
+[
+  {
+    "file": "02-requirements.md",
+    "ok": true,
+    "banned_lexicon": [],
+    "substantive": [],
+    "generic": [
+      "it has to be"
+    ]
+  },
+  {
+    "file": "03-notation-proposals.md",
+    "ok": false,
+    "banned_lexicon": [],
+    "substantive": [
+      "rather than starting from"
+    ],
+    "generic": [
+      "is the only one",
+      "the only one that"
+    ]
+  },
+  {
+    "file": "04-metadata-proposals.md",
+    "ok": false,
+    "banned_lexicon": [],
+    "substantive": [
+      "in full this is",
+      "the shape of the"
+    ],
+    "generic": [
+      "this is not the",
+      "this is the only",
+      "this is not a"
+    ]
+  },
+  {
+    "file": "05-accessibility-design.md",
+    "ok": false,
+    "banned_lexicon": [],
+    "substantive": [
+      "this is the part"
+    ],
+    "generic": [
+      "why this is not",
+      "this is not a"
+    ]
+  },
+  {
+    "file": "06-llm-ergonomics.md",
+    "ok": false,
+    "banned_lexicon": [],
+    "substantive": [
+      "is the difference between",
+      "the reason is that"
+    ],
+    "generic": [
+      "this is not a",
+      "is that it is",
+      "it is the same"
+    ]
+  },
+  {
+    "file": "README.md",
+    "ok": true,
+    "banned_lexicon": [],
+    "substantive": [],
+    "generic": []
+  }
+]

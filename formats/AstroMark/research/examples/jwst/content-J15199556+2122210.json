@@ -1,0 +1,152 @@
+{
+  "content_version": "astromark-content/0.1",
+  "note": "rank 2 \u2014 single arc, counter-image searched for and not found. Public JWST NIRCam archive; no embargo. Every mark is derived from a measurement recorded in top100_clean.csv, not placed by eye. Panel: colour_3.5 (3.5 arcsec across), north up, east left.",
+  "image": {
+    "file": "J15199556+2122210.png",
+    "sha256": "06884b451108d6f346d6f48ff9569f8ac40d6959a553855871c0b19509b81cb3",
+    "width": 240,
+    "height": 240,
+    "cutout_arcsec": 3.5,
+    "pixel_scale_arcsec": 0.01458333,
+    "north_up": true,
+    "east_left": true,
+    "survey": "JWST NIRCam",
+    "candidate_id": "J15199556+2122210"
+  },
+  "system": {
+    "verdict": "likely_lens",
+    "grade": "A",
+    "p_lens": 0.82,
+    "counter_image": "not_found",
+    "n_images": 1,
+    "hard_case": [
+      "single_giant_arc"
+    ],
+    "sources": [
+      {
+        "tag": "S1",
+        "n_images": 1,
+        "config": "partial_ring",
+        "theta_e_arcsec": 1.48
+      }
+    ],
+    "theta_e": {
+      "value_arcsec": 1.48,
+      "lower_arcsec": 1.23,
+      "upper_arcsec": 1.73,
+      "method": "arc_midline"
+    },
+    "description": "Thin tangential arc east through south-southeast of a red elliptical, bluer than the host, surviving in the deflector-subtracted panel. Searched for a counter-image at every stretch; none visible. theta_E therefore rests on the arc radius alone and could be high if the source is offset."
+  },
+  "marks": [
+    {
+      "id": "m-defl",
+      "geometry": {
+        "kind": "vector",
+        "tail": [
+          0.5,
+          0.3
+        ],
+        "head": [
+          0.5,
+          0.5
+        ]
+      },
+      "role": "deflector",
+      "polarity": "positive",
+      "label": "deflector"
+    },
+    {
+      "id": "m-arc",
+      "geometry": {
+        "kind": "vector",
+        "tail": [
+          0.0612,
+          0.8814
+        ],
+        "head": [
+          0.1895,
+          0.7699
+        ]
+      },
+      "role": "arc",
+      "polarity": "positive",
+      "source": "S1",
+      "label": "arc",
+      "emphasis": "key",
+      "note": "ridge PA 100-175, r 1.44-1.52"
+    },
+    {
+      "id": "m-arc-e",
+      "geometry": {
+        "kind": "vector",
+        "tail": [
+          -0.0644,
+          0.6512
+        ],
+        "head": [
+          0.0998,
+          0.6072
+        ]
+      },
+      "role": "knot",
+      "polarity": "positive",
+      "source": "S1",
+      "label": "knot"
+    },
+    {
+      "id": "m-arc-s",
+      "geometry": {
+        "kind": "vector",
+        "tail": [
+          0.3436,
+          1.0837
+        ],
+        "head": [
+          0.3876,
+          0.9195
+        ]
+      },
+      "role": "knot",
+      "polarity": "positive",
+      "source": "S1",
+      "label": ""
+    },
+    {
+      "id": "m-ring",
+      "geometry": {
+        "kind": "circle",
+        "center_ref": "m-defl",
+        "radius_arcsec": 1.48
+      },
+      "role": "einstein_ring",
+      "bound": "nominal",
+      "source": "S1",
+      "method": "arc_midline",
+      "lower_arcsec": 1.23,
+      "upper_arcsec": 1.73
+    },
+    {
+      "id": "m-ring-lo",
+      "geometry": {
+        "kind": "circle",
+        "center_ref": "m-defl",
+        "radius_arcsec": 1.23
+      },
+      "role": "einstein_ring",
+      "bound": "lower",
+      "source": "S1"
+    },
+    {
+      "id": "m-ring-hi",
+      "geometry": {
+        "kind": "circle",
+        "center_ref": "m-defl",
+        "radius_arcsec": 1.73
+      },
+      "role": "einstein_ring",
+      "bound": "upper",
+      "source": "S1"
+    }
+  ]
+}

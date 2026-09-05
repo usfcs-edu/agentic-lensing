@@ -1,0 +1,62 @@
+{
+  "chars_per_token_assumed": 3.5,
+  "note": "char counts exact; token figures derived",
+  "rows": [
+    {
+      "file": "P1-evolved.json",
+      "title": "P1 evolved bespoke",
+      "chars": 14362,
+      "est_tokens": 4103,
+      "x_smallest": 6.9,
+      "lines": 774
+    },
+    {
+      "file": "P2-geojson.json",
+      "title": "P2 GeoJSON-shaped",
+      "chars": 19762,
+      "est_tokens": 5646,
+      "x_smallest": 9.5,
+      "lines": 945
+    },
+    {
+      "file": "P3-webannotation.jsonld",
+      "title": "P3 W3C Web Annotation",
+      "chars": 17777,
+      "est_tokens": 5079,
+      "x_smallest": 8.5,
+      "lines": 584
+    },
+    {
+      "file": "P4-coded-concepts.json",
+      "title": "P4 markup/annotation split",
+      "chars": 19678,
+      "est_tokens": 5622,
+      "x_smallest": 9.4,
+      "lines": 1123
+    },
+    {
+      "file": "P5-lines.amk",
+      "title": "P5 line notation",
+      "chars": 2173,
+      "est_tokens": 621,
+      "x_smallest": 1.0,
+      "lines": 24
+    },
+    {
+      "file": "P5-lines-read.amk",
+      "title": "P5 model-READ surface",
+      "chars": 2091,
+      "est_tokens": 597,
+      "x_smallest": 1.0,
+      "lines": 23
+    },
+    {
+      "file": "P6-relational.json",
+      "title": "P6 relational",
+      "chars": 8089,
+      "est_tokens": 2311,
+      "x_smallest": 3.9,
+      "lines": 352
+    }
+  ]
+}

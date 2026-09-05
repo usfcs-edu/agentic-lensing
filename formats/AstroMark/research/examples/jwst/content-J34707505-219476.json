@@ -1,0 +1,208 @@
+{
+  "content_version": "astromark-content/0.1",
+  "note": "rank 3 \u2014 knot chain, counter-image outside the arc. Public JWST NIRCam archive; no embargo. Every mark is derived from a measurement recorded in top100_clean.csv, not placed by eye. Panel: colour_3.5 (3.5 arcsec across), north up, east left.",
+  "image": {
+    "file": "J34707505-219476.png",
+    "sha256": "ddb0dd52f4d2aa3a1941909f8af83832d13235795a4ed90300ccafe7bef48160",
+    "width": 240,
+    "height": 240,
+    "cutout_arcsec": 3.5,
+    "pixel_scale_arcsec": 0.01458333,
+    "north_up": true,
+    "east_left": true,
+    "survey": "JWST NIRCam",
+    "candidate_id": "J34707505-219476"
+  },
+  "system": {
+    "verdict": "likely_lens",
+    "grade": "A",
+    "p_lens": 0.78,
+    "counter_image": "found",
+    "n_images": 2,
+    "hard_case": [
+      "counter_image_outside_arc",
+      "faint_counter_image"
+    ],
+    "sources": [
+      {
+        "tag": "S1",
+        "n_images": 2,
+        "config": "partial_ring",
+        "theta_e_arcsec": 1.4
+      }
+    ],
+    "theta_e": {
+      "value_arcsec": 1.4,
+      "lower_arcsec": 1.24,
+      "upper_arcsec": 1.49,
+      "method": "arc_midline"
+    },
+    "description": "Five blue compact knots forming a chain from PA 95 to 162 at r 1.24-1.49, concave toward an orange elliptical. A blue blob antipodal to the chain at r=1.88 is a plausible counter-image, but it lies FARTHER out than the chain, so half-separation was declined and theta_E rests on the chain radius alone. If the blob is the counter-image, theta_E is nearer 1.6."
+  },
+  "marks": [
+    {
+      "id": "m-defl",
+      "geometry": {
+        "kind": "vector",
+        "tail": [
+          0.5,
+          0.3
+        ],
+        "head": [
+          0.5,
+          0.5
+        ]
+      },
+      "role": "deflector",
+      "polarity": "positive",
+      "label": "deflector"
+    },
+    {
+      "id": "m-knot-1",
+      "geometry": {
+        "kind": "vector",
+        "tail": [
+          -0.0906,
+          0.5517
+        ],
+        "head": [
+          0.0788,
+          0.5369
+        ]
+      },
+      "role": "knot",
+      "polarity": "positive",
+      "source": "S1",
+      "label": "knot"
+    },
+    {
+      "id": "m-knot-2",
+      "geometry": {
+        "kind": "vector",
+        "tail": [
+          -0.0754,
+          0.6542
+        ],
+        "head": [
+          0.0888,
+          0.6102
+        ]
+      },
+      "role": "knot",
+      "polarity": "positive",
+      "source": "S1",
+      "label": ""
+    },
+    {
+      "id": "m-knot-3",
+      "geometry": {
+        "kind": "vector",
+        "tail": [
+          0.046,
+          0.7621
+        ],
+        "head": [
+          0.1932,
+          0.6771
+        ]
+      },
+      "role": "knot",
+      "polarity": "positive",
+      "source": "S1",
+      "label": ""
+    },
+    {
+      "id": "m-knot-4",
+      "geometry": {
+        "kind": "vector",
+        "tail": [
+          0.1772,
+          0.9132
+        ],
+        "head": [
+          0.2819,
+          0.7792
+        ]
+      },
+      "role": "knot",
+      "polarity": "positive",
+      "source": "S1",
+      "label": ""
+    },
+    {
+      "id": "m-knot-5",
+      "geometry": {
+        "kind": "vector",
+        "tail": [
+          0.3327,
+          1.0149
+        ],
+        "head": [
+          0.3852,
+          0.8532
+        ]
+      },
+      "role": "knot",
+      "polarity": "positive",
+      "source": "S1",
+      "label": ""
+    },
+    {
+      "id": "m-ci",
+      "geometry": {
+        "kind": "vector",
+        "tail": [
+          1.0997,
+          0.1253
+        ],
+        "head": [
+          0.9555,
+          0.2154
+        ]
+      },
+      "role": "counter_image",
+      "polarity": "ambiguous",
+      "alternative": "companion_projection",
+      "source": "S1",
+      "emphasis": "key",
+      "label": "counter-image",
+      "note": "antipodal and the same colour as the knots, but at a GREATER radius than the chain, which is the reverse of the usual configuration"
+    },
+    {
+      "id": "m-ring",
+      "geometry": {
+        "kind": "circle",
+        "center_ref": "m-defl",
+        "radius_arcsec": 1.4
+      },
+      "role": "einstein_ring",
+      "bound": "nominal",
+      "source": "S1",
+      "method": "arc_midline",
+      "lower_arcsec": 1.24,
+      "upper_arcsec": 1.49
+    },
+    {
+      "id": "m-ring-lo",
+      "geometry": {
+        "kind": "circle",
+        "center_ref": "m-defl",
+        "radius_arcsec": 1.24
+      },
+      "role": "einstein_ring",
+      "bound": "lower",
+      "source": "S1"
+    },
+    {
+      "id": "m-ring-hi",
+      "geometry": {
+        "kind": "circle",
+        "center_ref": "m-defl",
+        "radius_arcsec": 1.49
+      },
+      "role": "einstein_ring",
+      "bound": "upper",
+      "source": "S1"
+    }
+  ]
+}

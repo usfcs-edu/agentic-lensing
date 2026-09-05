@@ -1,0 +1,54 @@
+{
+  "note": "SIX RENDERINGS OF ONE SKY. The two field-of-view groups do NOT share a geometry frame \u2014 a mark at [u,v] in a 3.5 arcsec panel is elsewhere in a 10 arcsec panel \u2014 so `variants` must carry each panel's own scale and the record must say which panel the marks were placed on. This is requirement R33, and the current format cannot express it: it has one image per file.",
+  "annotated_on": "colour_3.5",
+  "variants": [
+    {
+      "name": "normal_10",
+      "file": "J15199556+2122210-panels/normal_10.png",
+      "width": 240,
+      "height": 240,
+      "cutout_arcsec": 10.0,
+      "sha256": "61ff6c5829ba642b"
+    },
+    {
+      "name": "deep_10",
+      "file": "J15199556+2122210-panels/deep_10.png",
+      "width": 240,
+      "height": 240,
+      "cutout_arcsec": 10.0,
+      "sha256": "9d2aa5463f91e7a8"
+    },
+    {
+      "name": "colour_10",
+      "file": "J15199556+2122210-panels/colour_10.png",
+      "width": 240,
+      "height": 240,
+      "cutout_arcsec": 10.0,
+      "sha256": "93aaf75faf8246aa"
+    },
+    {
+      "name": "deep_3.5",
+      "file": "J15199556+2122210-panels/deep_3.5.png",
+      "width": 240,
+      "height": 240,
+      "cutout_arcsec": 3.5,
+      "sha256": "4d5563f5d07167a8"
+    },
+    {
+      "name": "colour_3.5",
+      "file": "J15199556+2122210-panels/colour_3.5.png",
+      "width": 240,
+      "height": 240,
+      "cutout_arcsec": 3.5,
+      "sha256": "06884b451108d6f3"
+    },
+    {
+      "name": "subtracted_3.5",
+      "file": "J15199556+2122210-panels/subtracted_3.5.png",
+      "width": 240,
+      "height": 240,
+      "cutout_arcsec": 3.5,
+      "sha256": "e88187780686a1be"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "note": "Every semantically distinct mark that can appear on one AstroMark panel, with the channel each dimension uses. Fed to `cvd.py pairtest` as the WCAG 1.4.1 gate: any pair that colour alone cannot separate must differ in shape, texture or orientation.",
+  "marks": [
+    {"name": "deflector",        "color": "#009E73", "shape": "triangle_filled",  "texture": "solid", "orientation": "radial"},
+    {"name": "second_deflector", "color": "#009E73", "shape": "triangle_notched", "texture": "solid", "orientation": "radial"},
+    {"name": "satellite",        "color": "#009E73", "shape": "triangle_small",   "texture": "solid", "orientation": "radial"},
+    {"name": "arc",              "color": "#56B4E9", "shape": "crescent",         "texture": "solid", "orientation": "tangential"},
+    {"name": "lensed_image",     "color": "#56B4E9", "shape": "chevron",          "texture": "solid", "orientation": "tangential"},
+    {"name": "counter_image",    "color": "#56B4E9", "shape": "chevron_double",   "texture": "solid", "orientation": "tangential"},
+    {"name": "knot",             "color": "#56B4E9", "shape": "ring_small",       "texture": "solid", "orientation": "tangential"},
+    {"name": "dust_lane",        "color": "#CC79A7", "shape": "bar_double",       "texture": "solid", "orientation": "radial"},
+    {"name": "mask_galaxy",      "color": "#D55E00", "shape": "circle",           "texture": "dash",  "orientation": "none"},
+    {"name": "mask_star",        "color": "#D55E00", "shape": "circle",           "texture": "dot",   "orientation": "none"},
+    {"name": "model_galaxy",     "color": "#E69F00", "shape": "circle",           "texture": "dashdot", "orientation": "none"},
+    {"name": "ring_nominal",     "color": "#F0E442", "shape": "circle",           "texture": "finedot", "orientation": "none"},
+    {"name": "ring_bound",       "color": "#BFBFBF", "shape": "circle",           "texture": "microdot", "orientation": "none"},
+    {"name": "seg_lens_light",   "color": "#009E73", "shape": "polygon",          "texture": "longdash", "orientation": "none"},
+    {"name": "seg_lensed_light", "color": "#56B4E9", "shape": "polygon",          "texture": "solid", "orientation": "none"},
+    {"name": "negative_mark",    "color": "#56B4E9", "shape": "crescent_struck",  "texture": "dash",  "orientation": "tangential"},
+    {"name": "ambiguous_mark",   "color": "#56B4E9", "shape": "crescent_hollow",  "texture": "dot",   "orientation": "tangential"}
+  ]
+}

@@ -1,0 +1,62 @@
+[
+  {
+    "file": "01-prior-art/accessibility.md",
+    "ok": true,
+    "banned_lexicon": [],
+    "substantive": [],
+    "generic": []
+  },
+  {
+    "file": "01-prior-art/astronomy-metadata.md",
+    "ok": true,
+    "banned_lexicon": [],
+    "substantive": [],
+    "generic": [
+      "it is the same"
+    ]
+  },
+  {
+    "file": "01-prior-art/astronomy-overlays.md",
+    "ok": true,
+    "banned_lexicon": [],
+    "substantive": [],
+    "generic": []
+  },
+  {
+    "file": "01-prior-art/computer-vision-and-web.md",
+    "ok": true,
+    "banned_lexicon": [],
+    "substantive": [],
+    "generic": []
+  },
+  {
+    "file": "01-prior-art/medical-imaging.md",
+    "ok": true,
+    "banned_lexicon": [],
+    "substantive": [],
+    "generic": []
+  },
+  {
+    "file": "01-prior-art/notation-design.md",
+    "ok": true,
+    "banned_lexicon": [],
+    "substantive": [],
+    "generic": []
+  },
+  {
+    "file": "01-prior-art/README.md",
+    "ok": true,
+    "banned_lexicon": [],
+    "substantive": [],
+    "generic": []
+  },
+  {
+    "file": "01-prior-art/vocabularies-and-grading.md",
+    "ok": true,
+    "banned_lexicon": [],
+    "substantive": [],
+    "generic": [
+      "this is where the"
+    ]
+  }
+]

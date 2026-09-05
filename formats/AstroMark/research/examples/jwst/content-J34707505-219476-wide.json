@@ -1,0 +1,208 @@
+{
+  "content_version": "astromark-content/0.1",
+  "note": "rank 3 on the 10 arcsec field. The counter-image candidate at r=1.88 arcsec falls OUTSIDE the 3.5 arcsec zoom, so the same annotation is unrenderable there \u2014 the clearest possible demonstration that a mark's coordinates are meaningless without a declared frame, and why `variants` is a requirement rather than a convenience.",
+  "image": {
+    "file": "J34707505-219476-wide.png",
+    "sha256": "1efc8589c1e3524fe4ebd69c5458bef75a39c3a91b25a74741e855c36c884555",
+    "width": 240,
+    "height": 240,
+    "cutout_arcsec": 10.0,
+    "pixel_scale_arcsec": 0.04166667,
+    "north_up": true,
+    "east_left": true,
+    "survey": "JWST NIRCam",
+    "candidate_id": "J34707505-219476"
+  },
+  "system": {
+    "verdict": "likely_lens",
+    "grade": "A",
+    "p_lens": 0.78,
+    "counter_image": "found",
+    "n_images": 2,
+    "hard_case": [
+      "counter_image_outside_arc",
+      "faint_counter_image"
+    ],
+    "sources": [
+      {
+        "tag": "S1",
+        "n_images": 2,
+        "config": "partial_ring",
+        "theta_e_arcsec": 1.4
+      }
+    ],
+    "theta_e": {
+      "value_arcsec": 1.4,
+      "lower_arcsec": 1.24,
+      "upper_arcsec": 1.49,
+      "method": "arc_midline"
+    },
+    "description": "Five blue compact knots forming a chain from PA 95 to 162 at r 1.24-1.49, concave toward an orange elliptical. A blue blob antipodal to the chain at r=1.88 is a plausible counter-image, but it lies FARTHER out than the chain, so half-separation was declined and theta_E rests on the chain radius alone. If the blob is the counter-image, theta_E is nearer 1.6."
+  },
+  "marks": [
+    {
+      "id": "m-defl",
+      "geometry": {
+        "kind": "vector",
+        "tail": [
+          0.5,
+          0.3
+        ],
+        "head": [
+          0.5,
+          0.5
+        ]
+      },
+      "role": "deflector",
+      "polarity": "positive",
+      "label": "deflector"
+    },
+    {
+      "id": "m-knot-1",
+      "geometry": {
+        "kind": "vector",
+        "tail": [
+          0.1832,
+          0.5277
+        ],
+        "head": [
+          0.3526,
+          0.5129
+        ]
+      },
+      "role": "knot",
+      "polarity": "positive",
+      "source": "S1",
+      "label": "knot"
+    },
+    {
+      "id": "m-knot-2",
+      "geometry": {
+        "kind": "vector",
+        "tail": [
+          0.1919,
+          0.5826
+        ],
+        "head": [
+          0.3561,
+          0.5386
+        ]
+      },
+      "role": "knot",
+      "polarity": "positive",
+      "source": "S1",
+      "label": ""
+    },
+    {
+      "id": "m-knot-3",
+      "geometry": {
+        "kind": "vector",
+        "tail": [
+          0.2454,
+          0.647
+        ],
+        "head": [
+          0.3926,
+          0.562
+        ]
+      },
+      "role": "knot",
+      "polarity": "positive",
+      "source": "S1",
+      "label": ""
+    },
+    {
+      "id": "m-knot-4",
+      "geometry": {
+        "kind": "vector",
+        "tail": [
+          0.3191,
+          0.7317
+        ],
+        "head": [
+          0.4237,
+          0.5977
+        ]
+      },
+      "role": "knot",
+      "polarity": "positive",
+      "source": "S1",
+      "label": ""
+    },
+    {
+      "id": "m-knot-5",
+      "geometry": {
+        "kind": "vector",
+        "tail": [
+          0.4072,
+          0.7853
+        ],
+        "head": [
+          0.4598,
+          0.6236
+        ]
+      },
+      "role": "knot",
+      "polarity": "positive",
+      "source": "S1",
+      "label": ""
+    },
+    {
+      "id": "m-ci",
+      "geometry": {
+        "kind": "vector",
+        "tail": [
+          0.8036,
+          0.3103
+        ],
+        "head": [
+          0.6594,
+          0.4004
+        ]
+      },
+      "role": "counter_image",
+      "polarity": "ambiguous",
+      "alternative": "companion_projection",
+      "source": "S1",
+      "emphasis": "key",
+      "label": "counter-image",
+      "note": "antipodal and the same colour as the knots, but at a GREATER radius than the chain, which is the reverse of the usual configuration"
+    },
+    {
+      "id": "m-ring",
+      "geometry": {
+        "kind": "circle",
+        "center_ref": "m-defl",
+        "radius_arcsec": 1.4
+      },
+      "role": "einstein_ring",
+      "bound": "nominal",
+      "source": "S1",
+      "method": "arc_midline",
+      "lower_arcsec": 1.24,
+      "upper_arcsec": 1.49
+    },
+    {
+      "id": "m-ring-lo",
+      "geometry": {
+        "kind": "circle",
+        "center_ref": "m-defl",
+        "radius_arcsec": 1.24
+      },
+      "role": "einstein_ring",
+      "bound": "lower",
+      "source": "S1"
+    },
+    {
+      "id": "m-ring-hi",
+      "geometry": {
+        "kind": "circle",
+        "center_ref": "m-defl",
+        "radius_arcsec": 1.49
+      },
+      "role": "einstein_ring",
+      "bound": "upper",
+      "source": "S1"
+    }
+  ]
+}

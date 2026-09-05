@@ -1,0 +1,180 @@
+[
+  {
+    "file": "00-executive-summary.md",
+    "ok": true,
+    "banned_lexicon": [],
+    "substantive": [],
+    "generic": [
+      "is the only one",
+      "the only one that",
+      "this is where the"
+    ]
+  },
+  {
+    "file": "02-requirements.md",
+    "ok": true,
+    "banned_lexicon": [],
+    "substantive": [],
+    "generic": [
+      "it has to be"
+    ]
+  },
+  {
+    "file": "03-notation-proposals.md",
+    "ok": false,
+    "banned_lexicon": [],
+    "substantive": [
+      "rather than starting from"
+    ],
+    "generic": [
+      "is the only one",
+      "the only one that"
+    ]
+  },
+  {
+    "file": "04-metadata-proposals.md",
+    "ok": false,
+    "banned_lexicon": [],
+    "substantive": [
+      "in full this is",
+      "the shape of the"
+    ],
+    "generic": [
+      "this is not the",
+      "this is the only",
+      "this is not a"
+    ]
+  },
+  {
+    "file": "05-accessibility-design.md",
+    "ok": false,
+    "banned_lexicon": [],
+    "substantive": [
+      "this is the part"
+    ],
+    "generic": [
+      "why this is not",
+      "this is not a"
+    ]
+  },
+  {
+    "file": "06-llm-ergonomics.md",
+    "ok": false,
+    "banned_lexicon": [],
+    "substantive": [
+      "is the difference between",
+      "the reason is that"
+    ],
+    "generic": [
+      "this is not a",
+      "is that it is",
+      "it is the same"
+    ]
+  },
+  {
+    "file": "07-recommendation.md",
+    "ok": true,
+    "banned_lexicon": [],
+    "substantive": [],
+    "generic": [
+      "the only one that"
+    ]
+  },
+  {
+    "file": "09-jwst-examples.md",
+    "ok": false,
+    "banned_lexicon": [],
+    "substantive": [
+      "if the source is"
+    ],
+    "generic": []
+  },
+  {
+    "file": "01-prior-art/accessibility.md",
+    "ok": true,
+    "banned_lexicon": [],
+    "substantive": [],
+    "generic": []
+  },
+  {
+    "file": "01-prior-art/astronomy-metadata.md",
+    "ok": true,
+    "banned_lexicon": [],
+    "substantive": [],
+    "generic": [
+      "it is the same"
+    ]
+  },
+  {
+    "file": "01-prior-art/astronomy-overlays.md",
+    "ok": true,
+    "banned_lexicon": [],
+    "substantive": [],
+    "generic": []
+  },
+  {
+    "file": "01-prior-art/computer-vision-and-web.md",
+    "ok": true,
+    "banned_lexicon": [],
+    "substantive": [],
+    "generic": []
+  },
+  {
+    "file": "01-prior-art/medical-imaging.md",
+    "ok": true,
+    "banned_lexicon": [],
+    "substantive": [],
+    "generic": []
+  },
+  {
+    "file": "01-prior-art/notation-design.md",
+    "ok": true,
+    "banned_lexicon": [],
+    "substantive": [],
+    "generic": []
+  },
+  {
+    "file": "01-prior-art/README.md",
+    "ok": true,
+    "banned_lexicon": [],
+    "substantive": [],
+    "generic": []
+  },
+  {
+    "file": "01-prior-art/vocabularies-and-grading.md",
+    "ok": true,
+    "banned_lexicon": [],
+    "substantive": [],
+    "generic": [
+      "this is where the"
+    ]
+  },
+  {
+    "file": "08-draft-spec/astromark-core-1.0.md",
+    "ok": true,
+    "banned_lexicon": [],
+    "substantive": [],
+    "generic": []
+  },
+  {
+    "file": "08-draft-spec/astromark-lens-1.0.md",
+    "ok": true,
+    "banned_lexicon": [],
+    "substantive": [],
+    "generic": []
+  },
+  {
+    "file": "08-draft-spec/render-rules.md",
+    "ok": true,
+    "banned_lexicon": [],
+    "substantive": [],
+    "generic": []
+  },
+  {
+    "file": "README.md",
+    "ok": true,
+    "banned_lexicon": [],
+    "substantive": [],
+    "generic": []
+  }
+]

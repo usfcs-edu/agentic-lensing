@@ -1,0 +1,120 @@
+{
+  "file": "astromark-ref.png",
+  "sha256": "322450f9f5ee43442c7887f49497cbb7c0aaabdc68f5ebc8524bed3e22b6ff24",
+  "seed": 20260903,
+  "width": 403,
+  "height": 403,
+  "cutout_arcsec": 16.0,
+  "pixel_scale_arcsec": 0.03970223,
+  "north_up": true,
+  "east_left": true,
+  "theta_e_true_arcsec": 1.45,
+  "deflector_uv": [
+    0.5,
+    0.51
+  ],
+  "embargo": null,
+  "note": "Synthetic. Free of any embargo; may ship with the standard. Positions below are ground truth, so an example annotation can be authored against them.",
+  "components": [
+    {
+      "name": "deflector",
+      "role": "deflector",
+      "u": 0.5,
+      "v": 0.51,
+      "theta_e_arcsec": 1.45
+    },
+    {
+      "name": "dust lane",
+      "role": "dust_lane",
+      "u": 0.5,
+      "v": 0.51,
+      "pa_deg": 28.0
+    },
+    {
+      "name": "second deflector",
+      "role": "second_deflector",
+      "u": 0.3531,
+      "v": 0.5913
+    },
+    {
+      "name": "satellite",
+      "role": "satellite",
+      "u": 0.3761,
+      "v": 0.4859
+    },
+    {
+      "name": "main arc",
+      "role": "arc",
+      "u": 0.4575,
+      "v": 0.59,
+      "source": "S1"
+    },
+    {
+      "name": "arc knot",
+      "role": "knot",
+      "u": 0.4905,
+      "v": 0.6001,
+      "source": "S1"
+    },
+    {
+      "name": "counter-image",
+      "role": "counter_image",
+      "u": 0.5505,
+      "v": 0.4151,
+      "source": "S1",
+      "radius_arcsec": 1.72,
+      "note": "farther from the deflector than the arc"
+    },
+    {
+      "name": "spiral arm (arc mimic)",
+      "role": "NEGATIVE:spiral_arm",
+      "u": 0.7394,
+      "v": 0.2819,
+      "note": "curvature centred on its own bulge, not on the deflector"
+    },
+    {
+      "name": "field galaxy 1",
+      "role": "field_galaxy",
+      "u": 0.1813,
+      "v": 0.2413,
+      "mask_radius_arcsec": 1.09
+    },
+    {
+      "name": "field galaxy 2",
+      "role": "field_galaxy",
+      "u": 0.85,
+      "v": 0.7944,
+      "mask_radius_arcsec": 0.94
+    },
+    {
+      "name": "field galaxy 3",
+      "role": "field_galaxy",
+      "u": 0.2469,
+      "v": 0.8444,
+      "mask_radius_arcsec": 0.78
+    },
+    {
+      "name": "field galaxy 4",
+      "role": "field_galaxy",
+      "u": 0.5687,
+      "v": 0.8912,
+      "mask_radius_arcsec": 0.68
+    },
+    {
+      "name": "nearby galaxy",
+      "role": "field_galaxy:model",
+      "u": 0.3094,
+      "v": 0.3444,
+      "mask_radius_arcsec": 1.15,
+      "treatment": "model",
+      "note": "light reaches the lens system"
+    },
+    {
+      "name": "star",
+      "role": "star",
+      "u": 0.7125,
+      "v": 0.6381,
+      "mask_radius_arcsec": 0.55
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "note": "A role carries `takes_polarity`. When true the mark MAY bear on the lensing interpretation and `polarity` is REQUIRED. When false the mark is inventory or measurement \u2014 a field galaxy to mask, a star, a detector artefact, the Einstein-radius circle \u2014 and `polarity` MUST be ABSENT. Forcing a value there was a fault in the first draft: it made 'positive' mean two different things and applied it to the majority of marks in a real annotation, where 82 percent of items are field objects. The general principle behind the boundary: a role takes polarity when the mark can bear on whether the lensing interpretation is true. Inventory roles cannot, because they assert only that something is present and how to treat it; measurement roles cannot, because they presuppose the interpretation they would otherwise be voting on.",
+  "requires_polarity": [
+    "lens:ambiguous_structure",
+    "lens:arc",
+    "lens:companion_galaxy",
+    "lens:counter_arc",
+    "lens:counter_image",
+    "lens:deflector",
+    "lens:diffuse_candidate",
+    "lens:dust_lane",
+    "lens:knot",
+    "lens:lens_light",
+    "lens:lensed_image",
+    "lens:lensed_light",
+    "lens:satellite",
+    "lens:second_deflector",
+    "lens:secondary_ring"
+  ],
+  "forbids_polarity": [
+    "lens:artifact",
+    "lens:einstein_ring",
+    "lens:field_galaxy",
+    "lens:nearby_galaxy",
+    "lens:star"
+  ]
+}

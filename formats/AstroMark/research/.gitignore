@@ -1,0 +1,7 @@
+# STScI-embargoed cutouts and every render derived from them.
+# See examples/internal/README.md. Internal review only — never commit, publish or upload.
+examples/internal/
+
+# Python bytecode from the example tools
+__pycache__/
+*.pyc
