@@ -1,0 +1,47 @@
+{
+  "note": "Derived from render_proposals.S so it cannot drift. Nominal and bound rings share one dot texture by design; the caliper identifies the bracket.",
+  "textures": [
+    {
+      "name": "mask galaxy",
+      "kind": "dash",
+      "period": 0.05,
+      "family": "circle"
+    },
+    {
+      "name": "mask artifact",
+      "kind": "dash",
+      "period": 0.024,
+      "family": "circle"
+    },
+    {
+      "name": "model mask",
+      "kind": "dashdot",
+      "period": 0.0796,
+      "family": "circle"
+    },
+    {
+      "name": "theta_E ring",
+      "kind": "dot",
+      "period": 0.011,
+      "family": "circle"
+    },
+    {
+      "name": "mask star",
+      "kind": "dot",
+      "period": 0.024,
+      "family": "circle"
+    },
+    {
+      "name": "negative shaft",
+      "kind": "dash",
+      "period": 0.03,
+      "family": "shaft"
+    },
+    {
+      "name": "ambiguous shaft",
+      "kind": "dot",
+      "period": 0.0055,
+      "family": "shaft"
+    }
+  ]
+}

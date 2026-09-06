@@ -245,6 +245,39 @@ def pair_test(marks: list[dict], floor: float = DELTA_E_FLOOR) -> dict:
     }
 
 
+TEXTURE_OCTAVE = 2.0        # two textures of the same kind must differ in period by this much
+
+
+def texture_test(textures: list[dict], octave: float = TEXTURE_OCTAVE) -> dict:
+    """The second half of the redundancy gate, and the half that was missing.
+
+    The pair test above compares texture NAMES. That is not enough: "dot", "finedot" and "microdot"
+    are three different strings and three visually similar circles. Two textures of the same KIND
+    (dot against dot, dash against dash) on marks that can share a panel must differ in PERIOD by a
+    full octave, or they converge as the panel shrinks. Across kinds there is no constraint — a dash
+    and a dot are told apart by the shape of the ink, whatever their periods.
+
+    Each texture is {name, kind, period, family}. `family` is the mark family it is drawn on, since
+    the same period on a circle and on a pointer shaft is not confusable.
+    """
+    failures, checked = [], 0
+    for a, b in combinations(textures, 2):
+        if a["kind"] != b["kind"] or a.get("family") != b.get("family"):
+            continue
+        checked += 1
+        pa, pb = a["period"], b["period"]
+        r = max(pa, pb) / min(pa, pb) if min(pa, pb) > 0 else 0.0
+        if r < octave:
+            failures.append({"pair": [a["name"], b["name"]], "kind": a["kind"],
+                             "family": a.get("family"), "ratio": round(r, 2),
+                             "periods": [pa, pb],
+                             "reason": f"same kind on the same mark family, only {r:.2f}x apart"})
+    return {"ok": not failures, "pairs_checked": checked, "octave": octave,
+            "failures": failures,
+            "note": ("Only same-kind, same-family pairs are compared. A dash and a dot are "
+                     "distinguishable by the shape of the ink regardless of period.")}
+
+
 def selftest() -> int:
     ok = True
 
@@ -287,6 +320,20 @@ def selftest() -> int:
     check("greyscale is achromatic",
           float(np.abs(np.diff(simulate(hex_to_rgb01("#FF6B6B"), "greyscale"))).max()), 0.0, 1e-9)
 
+    print("texture-period gate")
+    r = texture_test([{"name": "a", "kind": "dot", "period": 0.011, "family": "circle"},
+                      {"name": "b", "kind": "dot", "period": 0.015, "family": "circle"}])
+    check("two dots 1.36x apart on circles fail", r["ok"], False)
+    r = texture_test([{"name": "a", "kind": "dot", "period": 0.011, "family": "circle"},
+                      {"name": "b", "kind": "dot", "period": 0.024, "family": "circle"}])
+    check("two dots 2.18x apart pass", r["ok"], True)
+    r = texture_test([{"name": "a", "kind": "dot",  "period": 0.011, "family": "circle"},
+                      {"name": "b", "kind": "dash", "period": 0.012, "family": "circle"}])
+    check("a dot and a dash at the same period pass (different kinds)", r["ok"], True)
+    r = texture_test([{"name": "a", "kind": "dash", "period": 0.030, "family": "shaft"},
+                      {"name": "b", "kind": "dash", "period": 0.035, "family": "circle"}])
+    check("same kind on different mark families pass", r["ok"], True)
+
     print("pair test gate")
     r = pair_test([
         {"name": "a", "color": "#FF0000", "shape": "tri", "texture": "solid"},
@@ -312,6 +359,10 @@ def main() -> int:
     s.add_argument("out_dir", type=Path)
     s.add_argument("--kinds", nargs="+",
                    default=["deuteranopia", "protanopia", "tritanopia", "greyscale"])
+    t = sub.add_parser("texturetest", help="run the texture-period gate over a texture table")
+    t.add_argument("textures_json", type=Path,
+                   help='JSON list of {name, kind, period, family}')
+    t.add_argument("--octave", type=float, default=TEXTURE_OCTAVE)
     p = sub.add_parser("pairtest", help="run the redundancy gate over a mark table")
     p.add_argument("marks_json", type=Path, help='JSON list of {name,color,shape,texture[,orientation,co_occurs]}')
     p.add_argument("--floor", type=float, default=DELTA_E_FLOOR)
@@ -320,6 +371,15 @@ def main() -> int:
 
     if args.cmd == "selftest":
         return selftest()
+
+    if args.cmd == "texturetest":
+        data = json.loads(args.textures_json.read_text(encoding="utf-8"))
+        rep = texture_test(data.get("textures", data), args.octave)
+        print(json.dumps(rep, indent=2))
+        if not rep["ok"]:
+            print(f"\nGATE FAILED: {len(rep['failures'])} texture pair(s) closer than "
+                  f"{args.octave}x within a kind.", file=sys.stderr)
+        return 0 if rep["ok"] else 1
 
     if args.cmd == "simulate":
         args.out_dir.mkdir(parents=True, exist_ok=True)

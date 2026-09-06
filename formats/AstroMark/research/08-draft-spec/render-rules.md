@@ -87,15 +87,36 @@ No mark may cover the pixels it refers to.
 | **negative** | long dash, 0.020 on / 0.010 off | plus a cross-bar struck through it |
 | **ambiguous** | dotted, 0.0024 dot / 0.0055 spacing | drawn hollow where the positive form is filled |
 
-Three numeric rules govern the texture channel, checked when a style document is released:
+Three numeric rules govern the texture channel, enforced when a style document is released:
 
-1. any two textures used together must differ in **period by at least 2.0×** — a full octave;
+1. two textures of the **same kind** on the **same mark family** must differ in **period by at least
+   2.0×** — a full octave. Across kinds there is no constraint: a dash and a dot are told apart by
+   how the ink itself is shaped, whatever their periods;
 2. every period must be **at least 3× the stroke width**;
 3. every texture must survive the rasterisation floor at the smallest intended output size.
 
-Rule 1 is the one most easily violated by intuition: a dashed circle and a dotted circle that look
-different at full size can converge at thumbnail scale if their periods are close. The existing
-dashed-galaxy versus dotted-star convention should be measured against it rather than assumed.
+Rule 1 is the one most easily violated by intuition, and it was violated in the first draft of this
+notation. Three dotted circles that can share a panel — the nominal ring, its bounds, and a star mask
+— sat at periods 0.011, 0.008 and 0.015, separated by only 1.36× and 1.38×. They read as distinct at full size and converge as the panel shrinks. The accessibility gate passed them because it compared
+texture *names*, and `dot`, `finedot` and `microdot` are three different strings.
+
+The periods that satisfy the rule:
+
+| texture | kind | family | period |
+|---|---|---|---:|
+| model mask | dash-dot | circle | 0.0796 |
+| galaxy mask | dash | circle | 0.050 |
+| artifact mask | dash | circle | 0.024 |
+| star mask | dot | circle | 0.024 |
+| θ_E ring, nominal **and bounds** | dot | circle | 0.011 |
+| negative shaft | dash | shaft | 0.030 |
+| ambiguous shaft | dot | shaft | 0.0055 |
+
+**The bound rings deliberately share the nominal ring's texture.** A third dot period cannot be an
+octave from the other two *and* clear the aliasing floor; the arithmetic forbids it.
+What identifies the bracket is structural instead: the two **calipers**, short radial ticks joining
+the inner ring to the outer at the 45° and 225° azimuths. The ring inside the bracket that no caliper
+touches is the nominal. That reads in greyscale, which a colour difference would not.
 
 Negative gets two redundant channels: it is the rarest mark and the most consequential.
 

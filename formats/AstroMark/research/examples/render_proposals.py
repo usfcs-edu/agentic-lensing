@@ -75,8 +75,15 @@ S = {   # fractions of min(W, H) of the OUTPUT image
     "stroke": 0.0040, "glyph_stroke": 0.0038, "circle": 0.0036, "hairline": 0.0022,
     "poly": 0.0028, "bracket": 0.0030, "casing_add": 0.0022,
     "glyph": 0.026, "tip_gap": 0.010,
-    "ring_dot": 0.0022, "bound_dot": 0.0016,
-    "dash": 0.030, "gap": 0.020, "star_dot": 0.0030, "star_gap": 3.0,
+    # Texture periods, chosen so that two textures of the SAME KIND on the same mark family differ
+    # by at least a full octave (see cvd.py texture_test). Dots on circles: ring 0.011, star 0.024.
+    # Dashes on circles: artifact 0.024, galaxy 0.050. Bound rings deliberately share the ring's dot
+    # texture — what identifies them is the caliper joining them, not a third dot period, and a
+    # third dot could not clear both the octave rule above and the rasterisation floor below.
+    "ring_dot": 0.0022,                       # period (2+3)*r = 0.011
+    "dash": 0.030, "gap": 0.020,              # galaxy mask, period 0.050
+    "artifact_dash": 0.010, "artifact_gap": 0.014,   # period 0.024
+    "star_dot": 0.0032, "star_gap": 5.5,      # period (2+5.5)*r = 0.024
     "label": 0.023, "label_alt": 0.019, "label_small": 0.017, "label_offset": 0.014,
 }
 
@@ -414,8 +421,10 @@ def draw_measures(ctx: Ctx, sc: Scene, thin: float = 1.0):
             w = ctx.f(S["circle"]) * mul(m, "stroke") * thin
             if m["role"] == "einstein_ring":
                 bound = m.get("bound", "nominal")
-                base_dot = S["ring_dot"] if bound == "nominal" else S["bound_dot"]
-                dot = ctx.f(base_dot) * mul(m, "dot")
+                # Same dot texture for nominal and bound rings, on purpose. A third, finer dot
+                # period cannot be an octave from the other two AND clear the aliasing floor, and
+                # the bracket is already identified structurally by the caliper joining the pair.
+                dot = ctx.f(S["ring_dot"]) * mul(m, "dot")
                 dot = min(dot, 0.08 * r)                           # guard: dots must not bias r
                 ctx.stroked_circle(dr, cx, cy, r, w, ink if bound == "nominal" else "#BFBFBF",
                                    pattern="dot", dot_r=dot, dot_gap=3.0)
@@ -425,6 +434,9 @@ def draw_measures(ctx: Ctx, sc: Scene, thin: float = 1.0):
             elif m.get("treatment") == "model":
                 ctx.stroked_circle(dr, cx, cy, r, w, ink, pattern="dashdot",
                                    dash=ctx.f(S["dash"]), gap=ctx.f(S["gap"]))
+            elif m["role"] == "artifact":
+                ctx.stroked_circle(dr, cx, cy, r, w, ink, pattern="dash",
+                                   dash=ctx.f(S["artifact_dash"]), gap=ctx.f(S["artifact_gap"]))
             else:
                 ctx.stroked_circle(dr, cx, cy, r, w, ink, pattern="dash",
                                    dash=ctx.f(S["dash"]), gap=ctx.f(S["gap"]))
@@ -1060,7 +1072,7 @@ def caption_rows(ctx, sc, arm, key_rows, fr, fb, max_w):
         for ln in _wrap("  ".join(f"{n} {t}" for n, t, _ in ctx.demoted), fr, max_w):
             rows.append((ln, fr, (235, 235, 240)))
     if key_rows:
-        for ln in _wrap("   ".join(f"{g} {t}" for g, t in key_rows), fr, max_w):
+        for ln in _wrap("   ·   ".join(f"{g} {t}" for g, t in key_rows), fr, max_w):
             rows.append((ln, fr, (190, 190, 196)))
     ps = ctx.cutout_arcsec / ctx.bw * UPSCALE
     rows.append((f'scale: {ctx.cutout_arcsec:g}″ across, {ps:.4f}″/px, shown at {UPSCALE}×',

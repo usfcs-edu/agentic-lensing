@@ -4,20 +4,20 @@
     "title": "Terminator alphabet",
     "statements": 20,
     "ink_pct": 3.65,
-    "ink_per_statement": 0.182,
-    "occlusion_pct": 10.95,
-    "contrast_p5": 0.138,
-    "contrast_median": 0.412
+    "ink_per_statement": 0.183,
+    "occlusion_pct": 11.06,
+    "contrast_p5": 0.139,
+    "contrast_median": 0.417
   },
   {
     "arm": "N2",
     "title": "Bertin ledger",
     "statements": 20,
-    "ink_pct": 3.16,
-    "ink_per_statement": 0.158,
-    "occlusion_pct": 11.12,
-    "contrast_p5": 0.14,
-    "contrast_median": 0.404
+    "ink_pct": 3.17,
+    "ink_per_statement": 0.159,
+    "occlusion_pct": 11.24,
+    "contrast_p5": 0.141,
+    "contrast_median": 0.41
   },
   {
     "arm": "N3",
@@ -25,9 +25,9 @@
     "statements": 20,
     "ink_pct": 3.36,
     "ink_per_statement": 0.168,
-    "occlusion_pct": 11.59,
-    "contrast_p5": 0.14,
-    "contrast_median": 0.401
+    "occlusion_pct": 11.67,
+    "contrast_p5": 0.141,
+    "contrast_median": 0.407
   },
   {
     "arm": "N4",
@@ -35,9 +35,9 @@
     "statements": 20,
     "ink_pct": 2.66,
     "ink_per_statement": 0.133,
-    "occlusion_pct": 11.35,
-    "contrast_p5": 0.114,
-    "contrast_median": 0.363
+    "occlusion_pct": 11.43,
+    "contrast_p5": 0.116,
+    "contrast_median": 0.375
   },
   {
     "arm": "R-CURRENT",
